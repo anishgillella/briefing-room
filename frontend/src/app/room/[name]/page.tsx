@@ -103,6 +103,7 @@ export default function RoomPage() {
             <main className="h-screen">
                 <VideoRoom
                     roomUrl={roomState.roomUrl}
+                    roomName={roomName}
                     token={roomState.token}
                     participantType={roomState.participantType}
                     participantName={roomState.participantName}

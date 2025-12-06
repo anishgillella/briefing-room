@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import {
     DailyProvider,
     useDaily,
@@ -13,9 +14,17 @@ import {
 } from "@daily-co/daily-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { getBriefing } from "@/lib/api";
+
+// Dynamic import for AI sidebar
+const AIChatSidebar = dynamic(() => import("@/components/ai-chat-sidebar"), {
+    ssr: false,
+    loading: () => null,
+});
 
 interface VideoRoomProps {
     roomUrl: string;
+    roomName: string;
     token: string;
     participantType: "interviewer" | "candidate";
     participantName: string;
@@ -65,19 +74,14 @@ function SimulatedCandidateTile({ onRemove }: { onRemove: () => void }) {
     return (
         <Card className="relative overflow-hidden col-span-1">
             <CardContent className="p-0 aspect-video bg-muted flex items-center justify-center">
-                {/* Random avatar from UI Faces */}
                 <img
                     src={`https://i.pravatar.cc/400?img=${randomId}`}
                     alt="Simulated Candidate"
                     className="w-full h-full object-cover"
                 />
-
-                {/* Label overlay */}
                 <div className="absolute bottom-2 left-2 bg-black/60 text-white px-2 py-1 rounded text-sm flex items-center gap-2">
                     <span>Candidate (Simulated)</span>
                 </div>
-
-                {/* Remove button */}
                 <button
                     onClick={onRemove}
                     className="absolute top-2 right-2 bg-red-500/80 text-white px-2 py-1 rounded text-xs hover:bg-red-600"
@@ -89,8 +93,9 @@ function SimulatedCandidateTile({ onRemove }: { onRemove: () => void }) {
     );
 }
 
-function CallInterface({ roomUrl, token, participantType, participantName, onLeave }: {
+function CallInterface({ roomUrl, roomName, token, participantType, participantName, onLeave }: {
     roomUrl: string;
+    roomName: string;
     token: string;
     participantType: "interviewer" | "candidate";
     participantName: string;
@@ -105,6 +110,21 @@ function CallInterface({ roomUrl, token, participantType, participantName, onLea
     const [isJoining, setIsJoining] = useState(true);
     const [hasJoined, setHasJoined] = useState(false);
     const [showSimulatedCandidate, setShowSimulatedCandidate] = useState(false);
+
+    // AI sidebar state (only for interviewer)
+    const [showAISidebar, setShowAISidebar] = useState(false);
+    const [briefingContext, setBriefingContext] = useState<string | undefined>(undefined);
+
+    // Fetch briefing context for AI sidebar
+    useEffect(() => {
+        if (participantType === "interviewer" && roomName) {
+            getBriefing(roomName)
+                .then((data) => {
+                    setBriefingContext(data.briefing_prompt);
+                })
+                .catch(console.error);
+        }
+    }, [participantType, roomName]);
 
     // Join the call when component mounts
     useEffect(() => {
@@ -171,8 +191,18 @@ function CallInterface({ roomUrl, token, participantType, participantName, onLea
 
     return (
         <div className="flex flex-col h-full">
+            {/* AI Chat Sidebar - only for interviewer */}
+            {participantType === "interviewer" && (
+                <AIChatSidebar
+                    roomName={roomName}
+                    briefingContext={briefingContext}
+                    isOpen={showAISidebar}
+                    onToggle={() => setShowAISidebar(!showAISidebar)}
+                />
+            )}
+
             {/* Video grid */}
-            <div className="flex-1 p-4 grid grid-cols-2 gap-4 auto-rows-fr">
+            <div className={`flex-1 p-4 grid grid-cols-2 gap-4 auto-rows-fr ${showAISidebar ? "mr-80" : ""}`}>
                 {localSessionId && (
                     <VideoTile
                         sessionId={localSessionId}
@@ -195,7 +225,7 @@ function CallInterface({ roomUrl, token, participantType, participantName, onLea
                     <SimulatedCandidateTile onRemove={() => setShowSimulatedCandidate(false)} />
                 )}
 
-                {/* Waiting placeholder - only show if no remote participants */}
+                {/* Waiting placeholder */}
                 {!hasRemoteParticipants && (
                     <Card className="col-span-1 bg-muted/50">
                         <CardContent className="h-full flex flex-col items-center justify-center p-4 gap-4">
@@ -217,7 +247,7 @@ function CallInterface({ roomUrl, token, participantType, participantName, onLea
             </div>
 
             {/* Controls */}
-            <div className="p-4 border-t bg-card">
+            <div className={`p-4 border-t bg-card ${showAISidebar ? "mr-80" : ""}`}>
                 <div className="flex justify-center gap-4">
                     <Button
                         variant={isCameraOn ? "secondary" : "destructive"}
@@ -248,11 +278,12 @@ function CallInterface({ roomUrl, token, participantType, participantName, onLea
     );
 }
 
-export default function VideoRoom({ roomUrl, token, participantType, participantName, onLeave }: VideoRoomProps) {
+export default function VideoRoom({ roomUrl, roomName, token, participantType, participantName, onLeave }: VideoRoomProps) {
     return (
         <DailyProvider>
             <CallInterface
                 roomUrl={roomUrl}
+                roomName={roomName}
                 token={token}
                 participantType={participantType}
                 participantName={participantName}

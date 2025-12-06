@@ -3,9 +3,9 @@
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import JoinScreen from "@/components/join-screen";
-import { createRoom, joinRoom } from "@/lib/api";
+import { createRoom, joinRoom, setBriefing } from "@/lib/api";
 
-// Dynamic import to avoid SSR issues with Daily
+// Dynamic imports to avoid SSR issues
 const VideoRoom = dynamic(() => import("@/components/video-room"), {
   ssr: false,
   loading: () => (
@@ -14,6 +14,17 @@ const VideoRoom = dynamic(() => import("@/components/video-room"), {
     </div>
   ),
 });
+
+const PreBriefingScreen = dynamic(() => import("@/components/pre-briefing-screen"), {
+  ssr: false,
+  loading: () => (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-violet-950 via-slate-900 to-slate-950">
+      <div className="animate-pulse text-white/60">Loading briefing assistant...</div>
+    </div>
+  ),
+});
+
+type AppPhase = "join" | "briefing" | "interview";
 
 interface RoomState {
   token: string;
@@ -24,6 +35,7 @@ interface RoomState {
 }
 
 export default function Home() {
+  const [phase, setPhase] = useState<AppPhase>("join");
   const [roomState, setRoomState] = useState<RoomState | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,6 +43,8 @@ export default function Home() {
   const handleJoin = async (data: {
     participantName: string;
     participantType: "interviewer" | "candidate";
+    jobDescription?: string;
+    candidateResume?: string;
   }) => {
     setIsLoading(true);
     setError(null);
@@ -39,6 +53,21 @@ export default function Home() {
       // Create a new room
       const room = await createRoom(data.participantName);
 
+      // If interviewer and has JD/resume, store briefing data
+      if (data.participantType === "interviewer" && (data.jobDescription || data.candidateResume)) {
+        try {
+          await setBriefing(room.room_name, {
+            candidate_name: "the candidate",
+            role: data.jobDescription ? "See job description" : undefined,
+            resume_summary: data.candidateResume,
+            notes: data.jobDescription,
+          });
+        } catch (briefingErr) {
+          console.error("Failed to store briefing:", briefingErr);
+          // Non-fatal, continue
+        }
+      }
+
       // If candidate, get a separate token (interviewer token is already in room response)
       let token = room.interviewer_token;
       if (data.participantType === "candidate") {
@@ -46,7 +75,7 @@ export default function Home() {
         token = joinResponse.token;
       }
 
-      // Set room state to show video room
+      // Set room state
       setRoomState({
         token,
         roomUrl: room.room_url,
@@ -54,18 +83,43 @@ export default function Home() {
         participantType: data.participantType,
         participantName: data.participantName,
       });
+
+      // If interviewer, go to briefing first. If candidate, go directly to interview.
+      if (data.participantType === "interviewer") {
+        setPhase("briefing");
+      } else {
+        setPhase("interview");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create room");
+    } finally {
       setIsLoading(false);
     }
   };
 
-  const handleLeave = () => {
-    setRoomState(null);
+  const handleStartInterview = () => {
+    // Transition from briefing to interview
+    setPhase("interview");
   };
 
-  // If we have room state, show the video room
-  if (roomState) {
+  const handleLeave = () => {
+    setRoomState(null);
+    setPhase("join");
+  };
+
+  // Phase: Pre-Interview Briefing (interviewer only)
+  if (phase === "briefing" && roomState) {
+    return (
+      <PreBriefingScreen
+        roomName={roomState.roomName}
+        participantName={roomState.participantName}
+        onStartInterview={handleStartInterview}
+      />
+    );
+  }
+
+  // Phase: Interview (video room)
+  if (phase === "interview" && roomState) {
     return (
       <main className="h-screen flex flex-col">
         {/* Room info bar */}
@@ -82,6 +136,7 @@ export default function Home() {
         <div className="flex-1">
           <VideoRoom
             roomUrl={roomState.roomUrl}
+            roomName={roomState.roomName}
             token={roomState.token}
             participantType={roomState.participantType}
             participantName={roomState.participantName}
@@ -92,7 +147,7 @@ export default function Home() {
     );
   }
 
-  // Show join screen
+  // Phase: Join screen
   return (
     <main className="min-h-screen">
       {error && (

@@ -73,3 +73,56 @@ export async function joinRoom(
 
     return response.json();
 }
+
+export interface BriefingData {
+    candidate_name: string;
+    role: string | null;
+    resume_summary: string | null;
+    notes: string | null;
+    focus_areas: string[] | null;
+    briefing_prompt: string;
+}
+
+export async function getBriefing(roomName: string): Promise<BriefingData> {
+    const response = await fetch(`${API_BASE_URL}/api/rooms/${roomName}/briefing`);
+
+    if (!response.ok) {
+        // Return default briefing if not found
+        return {
+            candidate_name: "the candidate",
+            role: null,
+            resume_summary: null,
+            notes: null,
+            focus_areas: null,
+            briefing_prompt: "No specific candidate information was provided.",
+        };
+    }
+
+    return response.json();
+}
+
+export async function setBriefing(
+    roomName: string,
+    data: {
+        candidate_name: string;
+        role?: string;
+        resume_summary?: string;
+        notes?: string;
+        focus_areas?: string[];
+    }
+): Promise<BriefingData> {
+    const response = await fetch(`${API_BASE_URL}/api/rooms/${roomName}/briefing`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || "Failed to set briefing");
+    }
+
+    return response.json();
+}
