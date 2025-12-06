@@ -304,14 +304,15 @@ async def chat(room_name: str, request: ChatRequest):
         system_prompt = """You are a warm, helpful AI interview assistant. You're helping an interviewer DURING an active interview.
 
 Your responses should be:
-- CONCISE (1-3 sentences max)
-- ACTIONABLE (give specific questions or things to look for)
-- FRIENDLY and supportive
+- **FORMATTED CLEANLY**: Use bullet points with blank lines between them for readability.
+- **CONCISE**: Keep it short and punchy.
+- **ACTIONABLE**: Suggestions must be specific to the candidate's background if provided.
+- **FRIENDLY**: helpful and supportive tone.
 
-The interviewer is in a video call with the candidate and needs quick, helpful assistance."""
+IMPORTANT: If you have context about the job or candidate below, USE IT. Do not ask for information that is already provided."""
 
         if request.context:
-            system_prompt += f"\n\nHere's the context about this interview:\n{request.context}"
+            system_prompt += f"\n\n### INTERVIEW CONTEXT (Candidate & Job Info):\n{request.context}\n\nUse this context to tailor your answers."
 
         # Build messages array
         messages = [{"role": "system", "content": system_prompt}]
@@ -357,3 +358,137 @@ The interviewer is in a video call with the candidate and needs quick, helpful a
     except Exception as e:
         print(f"Chat error: {type(e).__name__}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Chat failed: {str(e)}")
+
+
+class DebriefRequest(BaseModel):
+    chat_history: list[ChatMessage]
+    notes: Optional[str] = None
+
+
+class DebriefResponse(BaseModel):
+    summary: str
+    strengths: list[str]
+    improvements: list[str]  # Renamed from weaknesses to be constructive
+    follow_up_questions: list[str]
+    recommendation: str  # "Strong Hire", "Hire", "Leaning Hire", "Leaning No Hire", "No Hire"
+    original_briefing: Optional[BriefingResponse] = None
+
+
+@router.post("/{room_name}/debrief", response_model=DebriefResponse)
+async def generate_debrief(room_name: str, request: DebriefRequest):
+    """
+    Generate an interview debrief based on the session
+    
+    - Analyzes chat history to see what was discussed
+    - Uses original briefing context (JD/Resume)
+    - Generates summary, pros/cons, and recommendation
+    """
+    if not OPENROUTER_API_KEY:
+        raise HTTPException(status_code=500, detail="OpenRouter API key not configured")
+    
+    try:
+        # Get original briefing context
+        briefing_data = _briefings_cache.get(room_name, {})
+        briefing_prompt = _generate_briefing_prompt(briefing_data)
+        
+        # Construct analysis prompt
+        if not request.chat_history and not request.notes:
+            return DebriefResponse(
+                summary="No interview activity recorded.",
+                strengths=[],
+                improvements=[],
+                follow_up_questions=[],
+                recommendation="N/A",
+                original_briefing=None
+            )
+
+        chat_transcript = "\n".join([f"{msg.role.upper()}: {msg.content}" for msg in request.chat_history])
+        
+        system_prompt = """You are an expert technical recruiter and hiring manager. 
+Your task is to generate a structured interview debrief based on the available signals from the interview.
+
+The signals are imperfect (we don't have a full transcript), so rely on:
+1. The Job Description & Resume (Context)
+2. The questions the interviewer asked the AI (which reveal what they were probing)
+3. Any notes provided by the interviewer
+
+Output strictly valid JSON with the following structure:
+{
+  "summary": "2-3 sentence executive summary of the candidate's fit",
+  "strengths": ["list", "of", "strong", "points"],
+  "improvements": ["list", "of", "areas", "for", "improvement"],
+  "follow_up_questions": ["3 specific questions for the next interviewer"],
+  "recommendation": "One of: Strong Hire, Hire, Leaning Hire, Leaning No Hire, No Hire"
+}"""
+
+        user_prompt = f"""
+### INTERVIEW CONTEXT
+{briefing_prompt}
+
+### INTERVIEWER NOTES
+{request.notes or "None provided"}
+
+### CHAT HISTORY (Questions interviewer asked AI helper)
+{chat_transcript}
+
+Based on what the interviewer was asking you (the AI) during the call, infer what topics were covered and where the concerns might be. 
+For example, if they asked for "red flags about job hopping", that's a signal of concern.
+"""
+
+        # Call OpenRouter
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                    "Content-Type": "application/json",
+                    "HTTP-Referer": "https://briefing-room.app",
+                    "X-Title": "Briefing Room"
+                },
+                json={
+                    "model": OPENROUTER_MODEL,
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    "response_format": {"type": "json_object"},
+                    "max_tokens": 1000,
+                    "temperature": 0.5
+                },
+                timeout=60.0
+            )
+            
+            if response.status_code != 200:
+                print(f"OpenRouter error: {response.status_code} - {response.text}")
+                raise HTTPException(status_code=500, detail="Failed to generate debrief")
+            
+            data = response.json()
+            content = data["choices"][0]["message"]["content"]
+            
+            import json
+            result = json.loads(content)
+            
+            # Construct original briefing response object for UI reference
+            original_briefing = None
+            if briefing_data:
+                original_briefing = BriefingResponse(
+                    candidate_name=briefing_data.get("candidate_name", "Candidate"),
+                    role=briefing_data.get("role"),
+                    resume_summary=briefing_data.get("resume_summary"),
+                    notes=briefing_data.get("notes"),
+                    focus_areas=briefing_data.get("focus_areas"),
+                    briefing_prompt=briefing_prompt
+                )
+
+            return DebriefResponse(
+                summary=result.get("summary", "Analysis failed"),
+                strengths=result.get("strengths", []),
+                improvements=result.get("improvements", []),
+                follow_up_questions=result.get("follow_up_questions", []),
+                recommendation=result.get("recommendation", "Leaning Hire"),
+                original_briefing=original_briefing
+            )
+            
+    except Exception as e:
+        print(f"Debrief error: {type(e).__name__}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Debrief generation failed: {str(e)}")

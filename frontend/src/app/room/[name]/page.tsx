@@ -7,6 +7,7 @@ import JoinScreen from "@/components/join-screen";
 import { joinRoom, getRoom } from "@/lib/api";
 
 // Dynamic import to avoid SSR issues with Daily
+// Dynamic import to avoid SSR issues with Daily
 const VideoRoom = dynamic(() => import("@/components/video-room"), {
     ssr: false,
     loading: () => (
@@ -14,6 +15,10 @@ const VideoRoom = dynamic(() => import("@/components/video-room"), {
             <div className="animate-pulse text-muted-foreground">Loading video room...</div>
         </div>
     ),
+});
+
+const DebriefScreen = dynamic(() => import("@/components/debrief-screen"), {
+    loading: () => null,
 });
 
 interface RoomState {
@@ -32,6 +37,7 @@ export default function RoomPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [roomExists, setRoomExists] = useState<boolean | null>(null);
+    const [showDebrief, setShowDebrief] = useState(false);
 
     // Check if room exists
     useEffect(() => {
@@ -79,6 +85,11 @@ export default function RoomPage() {
         router.push("/");
     };
 
+    const handleEndInterview = () => {
+        // Transition to debrief screen
+        setShowDebrief(true);
+    };
+
     // Show error if room doesn't exist
     if (roomExists === false) {
         return (
@@ -97,10 +108,22 @@ export default function RoomPage() {
         );
     }
 
+    // Show Debrief Screen
+    if (showDebrief) {
+        return (
+            <main className="min-h-screen bg-background text-foreground">
+                <DebriefScreen
+                    roomName={roomName}
+                    onClose={handleLeave}
+                />
+            </main>
+        );
+    }
+
     // If we have room state, show the video room
     if (roomState) {
         return (
-            <main className="h-screen">
+            <main className="h-screen overflow-hidden">
                 <VideoRoom
                     roomUrl={roomState.roomUrl}
                     roomName={roomName}
@@ -108,6 +131,7 @@ export default function RoomPage() {
                     participantType={roomState.participantType}
                     participantName={roomState.participantName}
                     onLeave={handleLeave}
+                    onEndInterview={handleEndInterview} // Pass new handler
                 />
             </main>
         );
@@ -129,3 +153,4 @@ export default function RoomPage() {
         </main>
     );
 }
+

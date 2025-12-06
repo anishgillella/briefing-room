@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,6 +19,8 @@ interface AIChatSidebarProps {
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const MIN_WIDTH = 320;
+const MAX_WIDTH = 800;
 
 export default function AIChatSidebar({
     roomName,
@@ -28,12 +31,47 @@ export default function AIChatSidebar({
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+
+    // Resize state
+    const [width, setWidth] = useState(MIN_WIDTH);
+    const [isResizing, setIsResizing] = useState(false);
+
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // Auto-scroll to bottom
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
+
+    // Handle resizing (mouse events)
+    useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!isResizing) return;
+            const newWidth = window.innerWidth - e.clientX;
+            if (newWidth >= MIN_WIDTH && newWidth <= MAX_WIDTH) {
+                setWidth(newWidth);
+            }
+        };
+
+        const handleMouseUp = () => {
+            setIsResizing(false);
+            document.body.style.cursor = "default";
+        };
+
+        if (isResizing) {
+            window.addEventListener("mousemove", handleMouseMove);
+            window.addEventListener("mouseup", handleMouseUp);
+            document.body.style.cursor = "ew-resize";
+            document.body.style.userSelect = "none"; // Prevent text selection while dragging
+        }
+
+        return () => {
+            window.removeEventListener("mousemove", handleMouseMove);
+            window.removeEventListener("mouseup", handleMouseUp);
+            document.body.style.cursor = "default";
+            document.body.style.userSelect = "";
+        };
+    }, [isResizing]);
 
     // Add initial context message
     useEffect(() => {
@@ -109,7 +147,16 @@ export default function AIChatSidebar({
     }
 
     return (
-        <div className="fixed right-0 top-0 h-screen w-80 bg-background border-l shadow-lg z-50 flex flex-col">
+        <div
+            className="fixed right-0 top-0 h-screen bg-background border-l shadow-lg z-50 flex flex-col"
+            style={{ width: `${width}px` }}
+        >
+            {/* Resize handle */}
+            <div
+                className="absolute left-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-violet-500/50 transition-colors z-50"
+                onMouseDown={() => setIsResizing(true)}
+            />
+
             {/* Header - fixed height */}
             <div className="flex items-center justify-between py-3 px-4 border-b bg-background shrink-0">
                 <div className="text-sm flex items-center gap-2 font-medium">
@@ -151,7 +198,23 @@ export default function AIChatSidebar({
                         <span className="font-medium text-xs block mb-1 opacity-70">
                             {msg.role === "user" ? "You" : "AI"}
                         </span>
-                        {msg.content}
+                        <div className="prose prose-sm dark:prose-invert max-w-none">
+                            {msg.role === "assistant" ? (
+                                <ReactMarkdown
+                                    components={{
+                                        ul: ({ node, ...props }) => <ul className="list-disc list-outside ml-4 space-y-1 my-1" {...props} />,
+                                        ol: ({ node, ...props }) => <ol className="list-decimal list-outside ml-4 space-y-1 my-1" {...props} />,
+                                        li: ({ node, ...props }) => <li className="pl-1" {...props} />,
+                                        p: ({ node, ...props }) => <p className="mb-1 last:mb-0 inline" {...props} />,
+                                        strong: ({ node, ...props }) => <strong className="font-semibold text-primary" {...props} />
+                                    }}
+                                >
+                                    {msg.content}
+                                </ReactMarkdown>
+                            ) : (
+                                msg.content
+                            )}
+                        </div>
                     </div>
                 ))}
                 {isLoading && (
@@ -185,4 +248,3 @@ export default function AIChatSidebar({
         </div>
     );
 }
-

@@ -29,6 +29,7 @@ interface VideoRoomProps {
     participantType: "interviewer" | "candidate";
     participantName: string;
     onLeave?: () => void;
+    onEndInterview?: () => void;
 }
 
 function VideoTile({ sessionId, isLocal, label }: { sessionId: string; isLocal: boolean; label: string }) {
@@ -265,18 +266,32 @@ function CallInterface({ roomUrl, roomName, token, participantType, participantN
                         {isMicOn ? "🎙️" : "🔇"} Mic
                     </Button>
 
-                    <Button
-                        variant="destructive"
-                        size="lg"
-                        onClick={leaveCall}
-                    >
-                        Leave Call
-                    </Button>
+                    {participantType === "interviewer" ? (
+                        <Button
+                            className="bg-red-600 hover:bg-red-700 text-white"
+                            size="lg"
+                            onClick={() => {
+                                // If end interview is provided (caller handles it), otherwise just leave
+                                if (onLeave) onLeave();
+                            }}
+                        >
+                            End Interview
+                        </Button>
+                    ) : (
+                        <Button
+                            variant="destructive"
+                            size="lg"
+                            onClick={leaveCall}
+                        >
+                            Leave Call
+                        </Button>
+                    )}
                 </div>
             </div>
         </div>
     );
 }
+
 
 export default function VideoRoom({ roomUrl, roomName, token, participantType, participantName, onLeave }: VideoRoomProps) {
     return (

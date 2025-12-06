@@ -126,3 +126,36 @@ export async function setBriefing(
 
     return response.json();
 }
+
+export interface DebriefResponse {
+    summary: string;
+    strengths: string[];
+    improvements: string[];
+    follow_up_questions: string[];
+    recommendation: string;
+    original_briefing: BriefingData | null;
+}
+
+export async function generateDebrief(
+    roomName: string,
+    chatHistory: { role: string; content: string }[],
+    notes?: string
+): Promise<DebriefResponse> {
+    const response = await fetch(`${API_BASE_URL}/api/rooms/${roomName}/debrief`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            chat_history: chatHistory,
+            notes: notes,
+        }),
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || "Failed to generate debrief");
+    }
+
+    return response.json();
+}
