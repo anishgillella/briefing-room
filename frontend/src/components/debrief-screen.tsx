@@ -1,18 +1,32 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
     generateDebrief,
     DebriefResponse,
     getInterviewAnalytics,
     InterviewAnalytics,
-    QuestionAnswer,
-    getBriefing
+    getBriefing,
+    HighlightItem
 } from "@/lib/api";
+import {
+    Download,
+    CheckCircle2,
+    AlertTriangle,
+    Lightbulb,
+    MessageSquare,
+    Star,
+    ChevronRight,
+    BarChart3,
+    Clock,
+    User,
+    FileText,
+    HelpCircle
+} from "lucide-react";
 
 interface DebriefScreenProps {
     roomName: string;
@@ -20,466 +34,503 @@ interface DebriefScreenProps {
     onClose: () => void;
 }
 
+function ScoreRing({ score, label, color = "violet" }: { score: number; label: string; color?: "violet" | "emerald" | "blue" | "amber" }) {
+    const getColor = (c: string) => {
+        if (c === "emerald") return "#34d399";
+        if (c === "blue") return "#60a5fa";
+        if (c === "amber") return "#fbbf24";
+        return "#a78bfa";
+    };
+
+    // Normalize score to 10
+    const normalizedScore = score > 10 ? score / 10 : score;
+
+    return (
+        <div className="flex flex-col items-center">
+            <div className="relative w-20 h-20 mb-2">
+                <svg className="w-full h-full transform -rotate-90">
+                    <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="6" />
+                    <circle
+                        cx="40"
+                        cy="40"
+                        r="34"
+                        fill="none"
+                        stroke={getColor(color)}
+                        strokeWidth="6"
+                        strokeDasharray={2 * Math.PI * 34}
+                        strokeDashoffset={2 * Math.PI * 34 * (1 - normalizedScore / 10)}
+                        strokeLinecap="round"
+                        className={`drop-shadow-[0_0_8px_${getColor(color)}40] transition-all duration-1000 ease-out`}
+                    />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center text-xl font-bold">
+                    {normalizedScore.toFixed(1)}
+                </div>
+            </div>
+            <span className="text-xs uppercase tracking-wider text-white/40">{label}</span>
+        </div>
+    );
+}
+
+// Helper to check if highlight is valid (since interface has no methods at runtime)
+const isValidHighlight = (h: HighlightItem | null | undefined): boolean => {
+    return !!(h && h.quote && h.quote.length > 5);
+};
+
 export default function DebriefScreen({ roomName, transcript, onClose }: DebriefScreenProps) {
-    const [data, setData] = useState<DebriefResponse | null>(null);
+    const [debrief, setDebrief] = useState<DebriefResponse | null>(null);
     const [analytics, setAnalytics] = useState<InterviewAnalytics | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [analyticsLoading, setAnalyticsLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [showTranscript, setShowTranscript] = useState(false);
-    const [expandedQA, setExpandedQA] = useState<number | null>(null);
+    const [candidateName, setCandidateName] = useState("Candidate");
+    const [role, setRole] = useState("Position");
+    const [expandedQuestion, setExpandedQuestion] = useState<number | null>(null);
+
+    // Tab state
+    const [activeTab, setActiveTab] = useState("overview");
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Fetch debrief (existing functionality)
-                const result = await generateDebrief(roomName, [], undefined, transcript);
-                setData(result);
-
-                // If we have transcript, also fetch analytics
-                if (transcript && transcript.length > 100) {
-                    setAnalyticsLoading(true);
-                    try {
-                        // Get briefing context for better analysis
-                        const briefing = await getBriefing(roomName);
-                        const analyticsResult = await getInterviewAnalytics(
-                            roomName,
-                            transcript,
-                            briefing?.role || undefined,
-                            briefing?.resume_summary || undefined
-                        );
-                        setAnalytics(analyticsResult);
-                    } catch (analyticsErr) {
-                        console.error("Analytics failed:", analyticsErr);
-                        // Don't fail the whole debrief if analytics fails
-                    } finally {
-                        setAnalyticsLoading(false);
-                    }
+                // 1. Get candidate info
+                const briefing = await getBriefing(roomName);
+                if (briefing.candidate_name && briefing.candidate_name !== "the candidate") {
+                    setCandidateName(briefing.candidate_name);
                 }
+                if (briefing.role) setRole(briefing.role);
+
+                // 2. Generate/Fetch Debrief
+                // Pass empty array for chatHistory, undefined for notes, and the transcript string
+                const debriefData = await generateDebrief(roomName, [], undefined, transcript);
+                setDebrief(debriefData);
+
+                // 3. Fetch Analytics
+                const analyticsData = await getInterviewAnalytics(roomName, transcript || "");
+                setAnalytics(analyticsData);
+
             } catch (err) {
-                console.error("Debrief failed:", err);
-                setError("Failed to generate debrief. Please try again.");
+                console.error("Debrief error:", err);
+                setError(err instanceof Error ? err.message : "Failed to load debrief");
             } finally {
-                setIsLoading(false);
+                setLoading(false);
             }
         };
 
         fetchData();
     }, [roomName, transcript]);
 
-    const getScoreColor = (score: number) => {
-        if (score >= 8) return "text-green-600 dark:text-green-400";
-        if (score >= 6) return "text-yellow-600 dark:text-yellow-400";
-        return "text-red-600 dark:text-red-400";
-    };
-
     const getRecColor = (rec: string) => {
         const r = rec.toLowerCase();
-        if (r.includes("strong hire")) return "bg-green-600 hover:bg-green-700";
-        if (r.includes("no hire")) return "bg-red-600 hover:bg-red-700";
-        if (r.includes("hire")) return "bg-green-500 hover:bg-green-600";
-        return "bg-yellow-500 hover:bg-yellow-600";
+        if (r.includes("strong hire")) return "bg-emerald-500 text-white shadow-[0_0_20px_rgba(16,185,129,0.4)]";
+        if (r.includes("hire") && !r.includes("no")) return "bg-emerald-600/80 text-white";
+        if (r.includes("no hire")) return "bg-red-500/80 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]";
+        return "bg-amber-500/80 text-white";
     };
-
-    const getTypeColor = (type: string) => {
-        switch (type) {
-            case "technical": return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
-            case "behavioral": return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200";
-            case "situational": return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200";
-            default: return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200";
-        }
-    };
-
-    if (isLoading) {
-        return (
-            <div className="h-full flex flex-col items-center justify-center space-y-4 animate-in fade-in bg-background p-8">
-                <div className="animate-spin text-4xl">🤖</div>
-                <h2 className="text-xl font-medium">Generating interview debrief...</h2>
-                <p className="text-muted-foreground text-center max-w-md">
-                    The AI is analyzing the interview to provide detailed insights.
-                </p>
-            </div>
-        );
-    }
-
-    if (error || !data) {
-        return (
-            <div className="h-full flex flex-col items-center justify-center space-y-4 p-8">
-                <div className="text-destructive text-4xl">⚠️</div>
-                <h2 className="text-xl font-medium">Something went wrong</h2>
-                <p className="text-muted-foreground">{error}</p>
-                <Button onClick={onClose}>Return to Home</Button>
-            </div>
-        );
-    }
 
     const exportMarkdown = () => {
-        let md = `# Interview Debrief\n\n`;
-        md += `**Candidate:** ${data.original_briefing?.candidate_name || "Unknown"}\n`;
-        md += `**Role:** ${data.original_briefing?.role || "Unknown"}\n`;
-        md += `**Date:** ${new Date().toLocaleDateString()}\n\n`;
-        md += `## Recommendation: ${data.recommendation}\n\n`;
-        md += `## Summary\n${data.summary}\n\n`;
+        if (!debrief || !analytics) return;
 
-        if (analytics) {
-            md += `## Overall Scores\n`;
-            md += `- Overall: ${analytics.overall.overall_score}/100\n`;
-            md += `- Communication: ${analytics.overall.communication_score}/10\n`;
-            md += `- Technical: ${analytics.overall.technical_score}/10\n\n`;
+        const content = `
+# Interview Debrief: ${candidateName}
+**Score:** ${analytics.overall.overall_score}/100
+**Verdict:** ${analytics.overall.recommendation}
 
-            md += `## Question Analysis (${analytics.qa_pairs.length} Q&As)\n\n`;
-            analytics.qa_pairs.forEach((qa, i) => {
-                md += `### Q${i + 1}: ${qa.question}\n`;
-                md += `**Type:** ${qa.question_type}\n`;
-                md += `**Scores:** Relevance: ${qa.metrics.relevance}/10, Clarity: ${qa.metrics.clarity}/10, Depth: ${qa.metrics.depth}/10\n`;
-                md += `**Answer:** ${qa.answer}\n\n`;
-            });
-        }
+## Executive Summary
+${debrief.summary}
 
-        if (transcript) {
-            md += `## Full Transcript\n\`\`\`\n${transcript}\n\`\`\`\n`;
-        }
+## Strengths
+${debrief.strengths.map(s => `- ${s}`).join('\n')}
 
-        const blob = new Blob([md], { type: 'text/markdown' });
+## Concerns
+${debrief.improvements.map(a => `- ${a}`).join('\n')}
+
+## Recommended Next Round Questions
+${debrief.follow_up_questions.map(q => `- ${q}`).join('\n')}
+
+## Question Analysis
+${analytics.qa_pairs.map(qa => `
+### ${qa.question}
+**Answer:** ${qa.answer}
+**Metrics:** Clarity: ${qa.metrics.clarity}/10, Relevance: ${qa.metrics.relevance}/10, Depth: ${qa.metrics.depth}/10
+`).join('\n')}
+
+## Full Transcript
+${transcript || "No transcript available."}
+        `.trim();
+
+        const blob = new Blob([content], { type: 'text/markdown' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `debrief-${roomName}-${Date.now()}.md`;
+        a.download = `debrief-${candidateName.replace(/\s+/g, '-').toLowerCase()}.md`;
+        document.body.appendChild(a);
         a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     };
 
-    return (
-        <div className="container mx-auto max-w-5xl py-8 px-4 space-y-8 animate-in slide-in-from-bottom-4 duration-500">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Interview Debrief</h1>
-                    <p className="text-muted-foreground mt-1">
-                        {data.original_briefing?.candidate_name || "Candidate"} • {data.original_briefing?.role || "Role"}
-                    </p>
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white">
+                <div className="relative mb-8">
+                    <div className="w-24 h-24 border-4 border-violet-500/30 border-t-violet-500 rounded-full animate-spin"></div>
+                    <div className="absolute inset-0 flex items-center justify-center text-4xl">🧠</div>
                 </div>
-                <div className="flex gap-2">
-                    <Button variant="outline" onClick={exportMarkdown}>📥 Export</Button>
-                    <Button onClick={onClose}>Done</Button>
+                <h2 className="text-2xl font-bold mb-2">Synthesizing Interview...</h2>
+                <p className="text-white/40">Analyzing transcript, scoring answers, and generating verdict</p>
+            </div>
+        );
+    }
+
+    if (error || !debrief || !analytics) {
+        return (
+            <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-8">
+                <div className="text-5xl mb-6">⚠️</div>
+                <h2 className="text-2xl font-bold mb-2 text-red-400">Analysis Failed</h2>
+                <p className="text-white/60 mb-6 max-w-md text-center">{error}</p>
+                <div className="flex gap-4">
+                    <Button onClick={() => window.location.reload()} variant="outline">Retry</Button>
+                    <Button onClick={onClose}>Close</Button>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="min-h-screen bg-slate-950 text-white font-sans flex flex-col">
+            {/* Header */}
+            <div className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-xl border-b border-white/10 p-4 shrink-0">
+                <div className="max-w-6xl mx-auto flex justify-between items-center">
+                    <div className="flex items-center gap-4">
+                        <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full hover:bg-white/10">
+                            ←
+                        </Button>
+                        <div>
+                            <h1 className="text-xl font-bold flex items-center gap-2">
+                                Review: {candidateName}
+                                <Badge variant="outline" className="text-white/40 border-white/10 font-normal">
+                                    {role}
+                                </Badge>
+                            </h1>
+                        </div>
+                    </div>
+
+                    {/* Simplified Tabs in Header */}
+                    <div className="flex gap-1 bg-white/5 p-1 rounded-lg">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setActiveTab("overview")}
+                            className={activeTab === "overview" ? "bg-white/10 text-white" : "text-white/50 hover:text-white hover:bg-white/5"}
+                        >
+                            Overview
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setActiveTab("transcript")}
+                            className={activeTab === "transcript" ? "bg-white/10 text-white" : "text-white/50 hover:text-white hover:bg-white/5"}
+                        >
+                            Transcript
+                        </Button>
+                    </div>
+
+                    <div className="flex gap-3">
+                        <Button variant="outline" className="border-white/10 hover:bg-white/5" onClick={exportMarkdown}>
+                            <Download className="w-4 h-4 mr-2" /> Export
+                        </Button>
+                        <Button className="bg-emerald-600 hover:bg-emerald-700" onClick={onClose}>
+                            Done
+                        </Button>
+                    </div>
                 </div>
             </div>
 
-            {/* Overall Score Card - Only if analytics available */}
-            {analytics && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <Card className="bg-gradient-to-br from-violet-500 to-purple-600 text-white border-0">
-                        <CardContent className="p-6 text-center">
-                            <div className="text-4xl font-bold">{analytics.overall.overall_score}</div>
-                            <div className="text-sm opacity-80">Overall Score</div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardContent className="p-6 text-center">
-                            <div className={`text-3xl font-bold ${getScoreColor(analytics.overall.communication_score)}`}>
-                                {analytics.overall.communication_score.toFixed(1)}
-                            </div>
-                            <div className="text-sm text-muted-foreground">Communication</div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardContent className="p-6 text-center">
-                            <div className={`text-3xl font-bold ${getScoreColor(analytics.overall.technical_score)}`}>
-                                {analytics.overall.technical_score.toFixed(1)}
-                            </div>
-                            <div className="text-sm text-muted-foreground">Technical</div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardContent className="p-6 text-center">
-                            <div className={`text-3xl font-bold ${getScoreColor(analytics.overall.cultural_fit_score)}`}>
-                                {analytics.overall.cultural_fit_score.toFixed(1)}
-                            </div>
-                            <div className="text-sm text-muted-foreground">Cultural Fit</div>
-                        </CardContent>
-                    </Card>
-                </div>
-            )}
+            <div className="flex-1 overflow-y-auto">
+                <div className="max-w-6xl mx-auto p-6 space-y-6">
 
-            {/* Recommendation Banner */}
-            <Card className={`${analytics ? getRecColor(analytics.overall.recommendation) : getRecColor(data.recommendation)} text-white border-0`}>
-                <CardContent className="flex items-center justify-between p-6">
-                    <div className="flex-1">
-                        <h3 className="text-lg font-medium opacity-90">AI Recommendation</h3>
-                        <p className="text-3xl font-bold">{analytics?.overall.recommendation || data.recommendation}</p>
-                        {analytics?.overall.recommendation_reasoning && (
-                            <p className="text-sm opacity-90 mt-2 max-w-xl">
-                                💡 {analytics.overall.recommendation_reasoning}
-                            </p>
-                        )}
-                        {analytics && (
-                            <p className="text-sm opacity-75 mt-1">Confidence: {analytics.overall.confidence}%</p>
-                        )}
-                    </div>
-                    <div className="text-4xl opacity-50">
-                        {(analytics?.overall.recommendation || data.recommendation).toLowerCase().includes("no") ? "🚫" : "✅"}
-                    </div>
-                </CardContent>
-            </Card>
+                    {/* OVERVIEW TAB CONTENT */}
+                    {activeTab === "overview" && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            {/* Hero Section: Verdict & Scores */}
+                            <div className="grid md:grid-cols-12 gap-6">
+                                {/* Verdict Card - 4 cols */}
+                                <Card className="md:col-span-4 bg-gradient-to-br from-indigo-500/10 to-violet-500/10 border-indigo-500/20">
+                                    <CardContent className="p-6 flex flex-col items-center justify-center h-full text-center">
+                                        <span className="text-xs uppercase tracking-widest text-indigo-300 mb-4">AI Recommendation</span>
+                                        <Badge className={`text-lg px-6 py-2 mb-4 ${getRecColor(analytics.overall.recommendation)} border-0`}>
+                                            {analytics.overall.recommendation}
+                                        </Badge>
+                                        <div className="flex items-center gap-2 text-sm text-indigo-200/60 w-full justify-center">
+                                            <span>Confidence:</span>
+                                            <span>{analytics.overall.confidence}%</span>
+                                        </div>
+                                        <p className="mt-4 text-xs text-white/50 italic px-4">
+                                            "{analytics.overall.recommendation_reasoning.slice(0, 80)}..."
+                                        </p>
+                                    </CardContent>
+                                </Card>
 
-            {/* Analytics Loading */}
-            {analyticsLoading && (
-                <Card className="border-dashed">
-                    <CardContent className="flex items-center justify-center p-8 gap-3">
-                        <div className="animate-spin text-2xl">🔍</div>
-                        <span className="text-muted-foreground">Analyzing Q&A pairs with Gemini...</span>
-                    </CardContent>
-                </Card>
-            )}
-
-            {/* TL;DR Highlights Section */}
-            {analytics?.highlights && (
-                <Card className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border-amber-200 dark:border-amber-800">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            ⚡ TL;DR - Interview Highlights
-                        </CardTitle>
-                        <CardDescription>Key moments from the interview at a glance</CardDescription>
-                    </CardHeader>
-                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Best Answer */}
-                        <div className="bg-green-50 dark:bg-green-950/30 p-4 rounded-lg border border-green-200 dark:border-green-800">
-                            <div className="flex items-center gap-2 mb-2">
-                                <span className="text-xl">🌟</span>
-                                <span className="font-semibold text-green-800 dark:text-green-300">Best Answer</span>
+                                {/* Score Breakdown - 8 cols */}
+                                <Card className="md:col-span-8 bg-white/5 border-white/10">
+                                    <CardContent className="p-6 flex flex-col md:flex-row justify-around items-center h-full gap-8">
+                                        <div className="text-center md:mr-8">
+                                            <span className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-white to-white/50">
+                                                {analytics.overall.overall_score}
+                                            </span>
+                                            <p className="text-xs uppercase tracking-widest text-white/40 mt-2">Overall Score</p>
+                                        </div>
+                                        <div className="h-px w-full md:h-16 md:w-px bg-white/10"></div>
+                                        <div className="flex gap-8">
+                                            <ScoreRing score={analytics.overall.communication_score} label="Communication" color="blue" />
+                                            <ScoreRing score={analytics.overall.technical_score} label="Technical" color="violet" />
+                                            <ScoreRing score={analytics.overall.cultural_fit_score} label="Culture Fit" color="emerald" />
+                                        </div>
+                                    </CardContent>
+                                </Card>
                             </div>
-                            <p className="text-sm italic text-green-900 dark:text-green-200 mb-2">
-                                "{analytics.highlights.best_answer.quote}"
-                            </p>
-                            <p className="text-xs text-green-700 dark:text-green-400">
-                                {analytics.highlights.best_answer.context}
-                            </p>
-                        </div>
 
-                        {/* Red Flag (if any) */}
-                        {analytics.highlights.red_flag && (
-                            <div className="bg-red-50 dark:bg-red-950/30 p-4 rounded-lg border border-red-200 dark:border-red-800">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-xl">🚩</span>
-                                    <span className="font-semibold text-red-800 dark:text-red-300">Red Flag</span>
-                                </div>
-                                <p className="text-sm italic text-red-900 dark:text-red-200 mb-2">
-                                    "{analytics.highlights.red_flag.quote}"
-                                </p>
-                                <p className="text-xs text-red-700 dark:text-red-400">
-                                    {analytics.highlights.red_flag.context}
+                            {/* Executive Summary */}
+                            <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
+                                <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                                    <Lightbulb className="w-5 h-5 text-amber-400" /> Executive Summary
+                                </h2>
+                                <p className="text-lg leading-relaxed text-white/90">
+                                    {debrief.summary}
                                 </p>
                             </div>
-                        )}
 
-                        {/* Quotable Moment */}
-                        <div className="bg-blue-50 dark:bg-blue-950/30 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                            <div className="flex items-center gap-2 mb-2">
-                                <span className="text-xl">💬</span>
-                                <span className="font-semibold text-blue-800 dark:text-blue-300">Quotable Moment</span>
-                            </div>
-                            <p className="text-sm italic text-blue-900 dark:text-blue-200">
-                                "{analytics.highlights.quotable_moment}"
-                            </p>
-                        </div>
-
-                        {/* Areas to Probe */}
-                        {analytics.highlights.areas_to_probe.length > 0 && (
-                            <div className="bg-purple-50 dark:bg-purple-950/30 p-4 rounded-lg border border-purple-200 dark:border-purple-800">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-xl">🔍</span>
-                                    <span className="font-semibold text-purple-800 dark:text-purple-300">Areas to Probe</span>
-                                </div>
-                                <ul className="text-sm text-purple-900 dark:text-purple-200 list-disc list-inside">
-                                    {analytics.highlights.areas_to_probe.map((area, i) => (
-                                        <li key={i}>{area}</li>
+                            {/* NEXT ROUND QUESTIONS (NEW) */}
+                            <div className="p-6 rounded-2xl bg-gradient-to-br from-violet-900/20 to-indigo-900/20 border border-violet-500/20">
+                                <h2 className="text-lg font-bold text-violet-300 mb-4 flex items-center gap-2">
+                                    <HelpCircle className="w-5 h-5" /> Suggested for Next Round
+                                </h2>
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    {debrief.follow_up_questions.map((q, i) => (
+                                        <div key={i} className="bg-black/20 p-4 rounded-xl border border-white/5 flex gap-3">
+                                            <span className="text-violet-500 font-mono text-sm">{i + 1}.</span>
+                                            <p className="text-white/90 text-sm font-medium">{q}</p>
+                                        </div>
                                     ))}
-                                </ul>
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
-            )}
-
-            {/* Q&A Breakdown */}
-            {analytics && analytics.qa_pairs.length > 0 && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            📊 Question Analysis
-                            <Badge variant="secondary">{analytics.qa_pairs.length} Q&As</Badge>
-                        </CardTitle>
-                        <CardDescription>
-                            Click any question to expand the full answer
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                        {analytics.qa_pairs.map((qa, index) => (
-                            <div
-                                key={index}
-                                className="border rounded-lg p-4 cursor-pointer hover:bg-muted/50 transition-colors"
-                                onClick={() => setExpandedQA(expandedQA === index ? null : index)}
-                            >
-                                <div className="flex items-start justify-between gap-4">
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <Badge className={getTypeColor(qa.question_type)}>
-                                                {qa.question_type}
-                                            </Badge>
-                                            {qa.highlight && <Badge variant="outline">⭐ Notable</Badge>}
-                                        </div>
-                                        <p className="font-medium">{qa.question}</p>
-                                    </div>
-                                    <div className="flex gap-2 text-sm shrink-0">
-                                        <div className="text-center px-2">
-                                            <div className={`font-bold ${getScoreColor(qa.metrics.relevance)}`}>{qa.metrics.relevance}</div>
-                                            <div className="text-xs text-muted-foreground">Rel</div>
-                                        </div>
-                                        <div className="text-center px-2">
-                                            <div className={`font-bold ${getScoreColor(qa.metrics.clarity)}`}>{qa.metrics.clarity}</div>
-                                            <div className="text-xs text-muted-foreground">Clr</div>
-                                        </div>
-                                        <div className="text-center px-2">
-                                            <div className={`font-bold ${getScoreColor(qa.metrics.depth)}`}>{qa.metrics.depth}</div>
-                                            <div className="text-xs text-muted-foreground">Dpt</div>
-                                        </div>
-                                        <div className="text-center px-2">
-                                            <div className={`font-bold ${getScoreColor(qa.metrics.type_specific_metric)}`}>{qa.metrics.type_specific_metric}</div>
-                                            <div className="text-xs text-muted-foreground truncate max-w-[60px]" title={qa.metrics.type_specific_label}>
-                                                {qa.metrics.type_specific_label.split(" ")[0]}
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
-                                {expandedQA === index && (
-                                    <div className="mt-4 pt-4 border-t">
-                                        <p className="text-muted-foreground whitespace-pre-wrap">{qa.answer}</p>
-                                        {qa.highlight && (
-                                            <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg text-sm">
-                                                <span className="font-medium">💡 Highlight:</span> {qa.highlight}
+                            </div>
+
+                            {/* Strengths & Red Flags Grid */}
+                            <div className="grid md:grid-cols-2 gap-6">
+                                {/* Strengths */}
+                                <div className="p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/20">
+                                    <h2 className="text-lg font-bold text-emerald-400 mb-4 flex items-center gap-2">
+                                        <CheckCircle2 className="w-5 h-5" /> Key Strengths
+                                    </h2>
+                                    <ul className="space-y-3">
+                                        {debrief.strengths.map((point, i) => (
+                                            <li key={i} className="flex gap-3 text-emerald-100/90">
+                                                <span className="text-emerald-500 mt-1">•</span>
+                                                {point}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+
+                                {/* Red Flags / Improvements */}
+                                <div className="p-6 rounded-2xl bg-amber-500/5 border border-amber-500/20">
+                                    <h2 className="text-lg font-bold text-amber-400 mb-4 flex items-center gap-2">
+                                        <AlertTriangle className="w-5 h-5" /> Areas to Probe
+                                    </h2>
+                                    <ul className="space-y-3">
+                                        {debrief.improvements.map((point, i) => (
+                                            <li key={i} className="flex gap-3 text-amber-100/90">
+                                                <span className="text-amber-500 mt-1">•</span>
+                                                {point}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </div>
+
+                            {/* Interview Highlights & Analytics */}
+                            <div className="grid md:grid-cols-3 gap-6">
+                                {/* Highlights Column */}
+                                <div className="md:col-span-2 space-y-6">
+                                    {/* Best Answer */}
+                                    {isValidHighlight(analytics.highlights.best_answer) && (
+                                        <div className="p-6 rounded-2xl bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 border border-violet-500/20 relative overflow-hidden">
+                                            <div className="absolute top-0 right-0 p-4 opacity-10">
+                                                <Star className="w-32 h-32" />
                                             </div>
-                                        )}
+                                            <h3 className="text-sm uppercase tracking-widest text-violet-300 mb-3 flex items-center gap-2">
+                                                <Star className="w-4 h-4" /> Best Answer
+                                            </h3>
+                                            <blockquote className="text-xl font-medium italic text-white mb-4 relative z-10">
+                                                "{analytics.highlights.best_answer.quote}"
+                                            </blockquote>
+                                            <p className="text-white/60 text-sm border-l-2 border-violet-500/30 pl-3">
+                                                {analytics.highlights.best_answer.context}
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {/* Red Flag Moment */}
+                                    {isValidHighlight(analytics.highlights.red_flag) && (
+                                        <div className="p-6 rounded-2xl bg-red-500/5 border border-red-500/20">
+                                            <h3 className="text-sm uppercase tracking-widest text-red-400 mb-3 flex items-center gap-2">
+                                                <AlertTriangle className="w-4 h-4" /> Specific Concern
+                                            </h3>
+                                            <blockquote className="text-lg text-white/90 mb-3">
+                                                "{analytics.highlights.red_flag!.quote}"
+                                            </blockquote>
+                                            <p className="text-white/50 text-sm">
+                                                {analytics.highlights.red_flag!.context}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Metrics Sidebar */}
+                                <div className="space-y-4">
+                                    <Card className="bg-black/20 border-white/10">
+                                        <CardContent className="p-4">
+                                            <h3 className="text-xs uppercase text-white/40 mb-3 flex items-center gap-2">
+                                                <Clock className="w-3 h-3" /> Pacing
+                                            </h3>
+                                            <div className="space-y-3">
+                                                <div className="flex justify-between items-center text-sm pt-2">
+                                                    <span className="text-white/50">Avg Response Length</span>
+                                                    <span className="font-mono">{Math.round(analytics.overall.avg_response_length)} words</span>
+                                                </div>
+                                                <div className="flex justify-between items-center text-sm pt-2 border-t border-white/5">
+                                                    <span className="text-white/50">Total Questions</span>
+                                                    <span className="font-mono">{analytics.overall.total_questions}</span>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+
+                                    <Card className="bg-black/20 border-white/10">
+                                        <CardContent className="p-4">
+                                            <h3 className="text-xs uppercase text-white/40 mb-2">Meta</h3>
+                                            <div className="flex justify-between text-xs text-white/30">
+                                                <span>Analysis Model</span>
+                                                <span>Gemini 2.5 Flash</span>
+                                            </div>
+                                            <div className="flex justify-between text-xs text-white/30 mt-1">
+                                                <span>Date</span>
+                                                <span>{new Date().toLocaleDateString()}</span>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </div>
+                            </div>
+
+                            {/* Q&A Analysis */}
+                            {analytics.qa_pairs.length > 0 && (
+                                <section className="pt-6 border-t border-white/10">
+                                    <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
+                                        <MessageSquare className="w-5 h-5 text-blue-400" /> Question Analysis
+                                        <Badge className="bg-white/10 text-white/60 ml-2">{analytics.qa_pairs.length} Q&As</Badge>
+                                    </h2>
+
+                                    <div className="grid gap-4">
+                                        {analytics.qa_pairs.map((qa, i) => (
+                                            <div
+                                                key={i}
+                                                className={`group rounded-xl border transition-all duration-300 overflow-hidden ${expandedQuestion === i
+                                                        ? "bg-white/10 border-white/20"
+                                                        : "bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/10"
+                                                    }`}
+                                            >
+                                                <div
+                                                    className="p-4 cursor-pointer flex justify-between items-start gap-4"
+                                                    onClick={() => setExpandedQuestion(expandedQuestion === i ? null : i)}
+                                                >
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center gap-2 mb-2">
+                                                            <Badge variant="outline" className="border-white/20 text-white/50 text-[10px] uppercase">
+                                                                {qa.question_type}
+                                                            </Badge>
+                                                            <div className="flex gap-1">
+                                                                {[1, 2, 3].map(n => (
+                                                                    <div key={n} className={`w-1.5 h-1.5 rounded-full ${n <= (qa.metrics.relevance / 3.3) ? 'bg-blue-400' : 'bg-white/10'}`} />
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                        <h3 className="font-medium text-white/90">{qa.question}</h3>
+                                                    </div>
+                                                    <ChevronRight className={`w-5 h-5 text-white/30 transition-transform ${expandedQuestion === i ? 'rotate-90' : ''}`} />
+                                                </div>
+
+                                                {/* Expanded Content */}
+                                                {expandedQuestion === i && (
+                                                    <div className="px-4 pb-4 border-t border-white/5 pt-4 bg-black/20">
+                                                        <p className="text-white/70 italic text-sm mb-4 pl-3 border-l-2 border-white/10">
+                                                            "{qa.answer.slice(0, 300)}..."
+                                                        </p>
+
+                                                        <div className="grid grid-cols-3 gap-2 mb-3">
+                                                            <div className="bg-white/5 rounded p-2 text-center border border-white/5">
+                                                                <span className="block text-lg font-bold text-white">{qa.metrics.clarity}/10</span>
+                                                                <span className="text-[10px] text-white/40 uppercase">Clarity</span>
+                                                            </div>
+                                                            <div className="bg-white/5 rounded p-2 text-center border border-white/5">
+                                                                <span className="block text-lg font-bold text-white">{qa.metrics.relevance}/10</span>
+                                                                <span className="text-[10px] text-white/40 uppercase">Relevance</span>
+                                                            </div>
+                                                            <div className="bg-white/5 rounded p-2 text-center border border-white/5">
+                                                                <span className="block text-lg font-bold text-white">{qa.metrics.depth}/10</span>
+                                                                <span className="text-[10px] text-white/40 uppercase">Depth</span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="bg-blue-500/10 rounded-lg p-3 text-sm text-blue-200 border border-blue-500/20">
+                                                            <span className="font-bold mr-2">💡 Analysis:</span>
+                                                            {qa.highlight || "No specific highlight for this answer."}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </section>
+                            )}
+                        </div>
+                    )}
+
+                    {/* TRANSCRIPT TAB CONTENT */}
+                    {activeTab === "transcript" && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
+                                <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
+                                    <FileText className="w-5 h-5 text-violet-400" /> Full Transcript
+                                </h2>
+
+                                {transcript ? (
+                                    <div className="space-y-4 font-mono text-sm leading-relaxed text-white/80">
+                                        {transcript.split('\n').filter(line => line.trim()).map((line, i) => {
+                                            const isInterviewer = line.toLowerCase().startsWith('interviewer') || line.toLowerCase().startsWith('user');
+                                            return (
+                                                <div key={i} className={`p-3 rounded-lg ${isInterviewer ? 'bg-white/10 ml-8' : 'bg-black/20 mr-8 border border-white/5'}`}>
+                                                    <span className={`block text-xs uppercase tracking-wider mb-1 ${isInterviewer ? 'text-violet-300' : 'text-emerald-300'}`}>
+                                                        {isInterviewer ? 'Interviewer' : 'Candidate'}
+                                                    </span>
+                                                    {line.replace(/^(interviewer|candidate|user|assistant):/i, '').trim()}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-12 text-white/40 italic">
+                                        No transcript was recorded for this session.
                                     </div>
                                 )}
                             </div>
-                        ))}
-                    </CardContent>
-                </Card>
-            )}
+                        </div>
+                    )}
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Main Summary */}
-                <div className="md:col-span-2 space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Executive Summary</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-lg leading-relaxed">{data.summary}</p>
-                        </CardContent>
-                    </Card>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <Card className="bg-green-50/50 dark:bg-green-950/20 border-green-200 dark:border-green-900">
-                            <CardHeader>
-                                <CardTitle className="text-green-700 dark:text-green-400 text-lg flex items-center gap-2">
-                                    💪 Strengths
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <ul className="list-disc list-outside ml-4 space-y-2">
-                                    {(analytics?.overall.highlights || data.strengths).map((s, i) => (
-                                        <li key={i} className="text-sm">{s}</li>
-                                    ))}
-                                </ul>
-                            </CardContent>
-                        </Card>
-
-                        <Card className="bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900">
-                            <CardHeader>
-                                <CardTitle className="text-amber-700 dark:text-amber-400 text-lg flex items-center gap-2">
-                                    ⚠️ Red Flags / Areas to Probe
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <ul className="list-disc list-outside ml-4 space-y-2">
-                                    {(analytics?.overall.red_flags.length ? analytics.overall.red_flags : data.improvements).map((s, i) => (
-                                        <li key={i} className="text-sm">{s}</li>
-                                    ))}
-                                </ul>
-                            </CardContent>
-                        </Card>
+                    <div className="h-12 text-center text-white/20 text-xs">
+                        Analysis generated by Superposition AI • {roomName}
                     </div>
                 </div>
-
-                {/* Sidebar */}
-                <div className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-lg">Follow-up Questions</CardTitle>
-                            <CardDescription>Suggested for the next round</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <ul className="space-y-4">
-                                {data.follow_up_questions.map((q, i) => (
-                                    <li key={i} className="bg-muted p-3 rounded-lg text-sm italic">
-                                        "{q}"
-                                    </li>
-                                ))}
-                            </ul>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-lg">Meta</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-2 text-sm text-muted-foreground">
-                            <div className="flex justify-between">
-                                <span>Date</span>
-                                <span>{new Date().toLocaleDateString()}</span>
-                            </div>
-                            <Separator />
-                            <div className="flex justify-between">
-                                <span>Analysis Model</span>
-                                <span>Gemini 2.5 Flash</span>
-                            </div>
-                            {analytics && (
-                                <>
-                                    <Separator />
-                                    <div className="flex justify-between">
-                                        <span>Avg Response</span>
-                                        <span>{analytics.overall.avg_response_length} words</span>
-                                    </div>
-                                </>
-                            )}
-                        </CardContent>
-                    </Card>
-                </div>
             </div>
-
-            {/* Full Transcript Section */}
-            {transcript && (
-                <Card>
-                    <CardHeader
-                        className="cursor-pointer hover:bg-muted/50 transition-colors"
-                        onClick={() => setShowTranscript(!showTranscript)}
-                    >
-                        <div className="flex items-center justify-between">
-                            <CardTitle className="text-lg">📝 Full Transcript</CardTitle>
-                            <Button variant="ghost" size="sm">
-                                {showTranscript ? "Collapse ▲" : "Expand ▼"}
-                            </Button>
-                        </div>
-                    </CardHeader>
-                    {showTranscript && (
-                        <CardContent>
-                            <pre className="whitespace-pre-wrap text-sm bg-muted p-4 rounded-lg max-h-96 overflow-y-auto">
-                                {transcript}
-                            </pre>
-                        </CardContent>
-                    )}
-                </Card>
-            )}
         </div>
     );
 }

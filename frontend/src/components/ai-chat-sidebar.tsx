@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { getCoachSuggestion, CoachSuggestion } from "@/lib/api";
+import { Lightbulb, MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
 
 interface Message {
     role: "user" | "assistant";
@@ -65,7 +66,7 @@ export default function AIChatSidebar({
     const [isLoading, setIsLoading] = useState(false);
 
     // Resize state
-    const [width, setWidth] = useState(MIN_WIDTH);
+    const [width, setWidth] = useState(380); // Slightly wider default
     const [isResizing, setIsResizing] = useState(false);
 
     // Coach Mode state - keep history of all suggestions
@@ -75,7 +76,7 @@ export default function AIChatSidebar({
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    // Auto-scroll to bottom
+    // Auto-scroll to bottom of chat
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
@@ -115,7 +116,7 @@ export default function AIChatSidebar({
         if (messages.length === 0 && briefingContext) {
             setMessages([{
                 role: "assistant",
-                content: "I'm here to help during the interview. After each Q&A exchange, I'll suggest the next question to ask."
+                content: "I'm here to help. I'll suggest questions above, and you can chat with me here."
             }]);
         }
     }, [briefingContext, messages.length]);
@@ -138,8 +139,8 @@ export default function AIChatSidebar({
                     elapsedMinutes,
                     briefingContext
                 );
-                // Add to array instead of replacing
-                setCoachSuggestions(prev => [...prev, suggestion]);
+                // Add to array instead of replacing (Max 50 history)
+                setCoachSuggestions(prev => [...prev, suggestion].slice(-50));
                 setLastProcessedExchange(lastExchange);
             } catch (err) {
                 console.error("Coach suggestion failed:", err);
@@ -202,18 +203,11 @@ export default function AIChatSidebar({
         }
     };
 
-    // Quick actions
-    const quickActions = [
-        { label: "🎯 Suggest Question", prompt: "Suggest a good interview question to ask right now based on the candidate's background." },
-        { label: "⚠️ Red Flags", prompt: "What potential red flags should I be watching for with this candidate?" },
-        { label: "📝 Probe Deeper", prompt: "What should I probe deeper on based on what we've discussed?" },
-    ];
-
     if (!isOpen) {
         return (
             <Button
                 onClick={onToggle}
-                className="fixed right-4 top-20 z-50 bg-violet-600 hover:bg-violet-700"
+                className="fixed right-4 top-20 z-50 bg-violet-600 hover:bg-violet-700 shadow-lg"
             >
                 🤖 AI Assistant
             </Button>
@@ -222,7 +216,7 @@ export default function AIChatSidebar({
 
     return (
         <div
-            className="fixed right-0 top-0 h-screen bg-background border-l shadow-lg z-50 flex flex-col"
+            className="fixed right-0 top-0 h-screen bg-background border-l shadow-2xl z-50 flex flex-col"
             style={{ width: `${width}px` }}
         >
             {/* Resize handle */}
@@ -231,150 +225,128 @@ export default function AIChatSidebar({
                 onMouseDown={() => setIsResizing(true)}
             />
 
-            {/* Header - fixed height */}
+            {/* Header */}
             <div className="flex items-center justify-between py-3 px-4 border-b bg-background shrink-0">
-                <div className="text-sm flex items-center gap-2 font-medium">
+                <div className="text-sm font-semibold flex items-center gap-2">
                     🤖 AI Assistant
-                    <span className="text-xs text-muted-foreground font-normal">(only you can see this)</span>
+                    <span className="text-xs text-muted-foreground font-normal">(Private)</span>
                 </div>
                 <Button variant="ghost" size="sm" onClick={onToggle}>✕</Button>
             </div>
 
-            {/* Quick actions - fixed height */}
-            <div className="px-3 py-2 border-b flex gap-2 flex-wrap shrink-0">
-                {quickActions.map((action, i) => (
-                    <Button
-                        key={i}
-                        variant="outline"
-                        size="sm"
-                        className="text-xs"
-                        onClick={() => {
-                            setInput(action.prompt);
-                            setTimeout(() => sendMessage(), 100);
-                        }}
-                        disabled={isLoading}
-                    >
-                        {action.label}
-                    </Button>
-                ))}
-            </div>
+            {/* SPLIT VIEW */}
+            <div className="flex-1 flex flex-col min-h-0 bg-slate-50 dark:bg-slate-950/50">
 
-            {/* Coach Mode Suggestions - Shows all suggestions with newest first */}
-            {coachSuggestions.length > 0 && (
-                <div className="mx-3 mt-2 space-y-2 max-h-64 overflow-y-auto">
-                    {[...coachSuggestions].reverse().map((suggestion, reverseIdx) => {
-                        const originalIndex = coachSuggestions.length - 1 - reverseIdx;
-                        return (
-                            <div key={originalIndex} className="p-3 rounded-lg border bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30 border-violet-200 dark:border-violet-700">
-                                <div className="flex items-start justify-between gap-2">
-                                    <div className="flex-1">
-                                        {/* Answer quality indicator */}
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <span className={`text-xs px-2 py-0.5 rounded-full ${suggestion.answer_quality === "strong" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" :
-                                                    suggestion.answer_quality === "adequate" ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" :
-                                                        suggestion.answer_quality === "weak" ? "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200" :
-                                                            "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
-                                                }`}>
-                                                {suggestion.answer_quality === "strong" && "✓ Strong"}
-                                                {suggestion.answer_quality === "adequate" && "○ OK"}
-                                                {suggestion.answer_quality === "weak" && "⚠ Probe"}
-                                                {suggestion.answer_quality === "unclear" && "?"}
-                                            </span>
-                                            {suggestion.should_change_topic && (
-                                                <span className="text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
-                                                    🔄 Topic
+                {/* TOP HALF: Active Suggestions (Coach) */}
+                <div className="flex-1 min-h-0 flex flex-col border-b overflow-hidden">
+                    <div className="px-4 py-2 bg-gradient-to-r from-violet-500/10 to-purple-500/10 border-b flex justify-between items-center shrink-0">
+                        <span className="text-xs font-bold uppercase tracking-wider text-violet-600 dark:text-violet-300 flex items-center gap-2">
+                            <Lightbulb className="w-3 h-3" /> Live Suggestions
+                        </span>
+                        {isCoachLoading && <span className="text-xs animate-pulse text-muted-foreground">Analyzing...</span>}
+                    </div>
+
+                    <div className="overflow-y-auto p-3 space-y-3 bg-slate-100/50 dark:bg-black/20">
+                        {coachSuggestions.length === 0 ? (
+                            <div className="text-center p-6 text-muted-foreground text-sm opacity-60">
+                                <Lightbulb className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                                <p>Listening to interview...</p>
+                                <p className="text-xs">Suggestions will appear here automatically.</p>
+                            </div>
+                        ) : (
+                            [...coachSuggestions].reverse().map((suggestion, reverseIdx) => {
+                                const originalIndex = coachSuggestions.length - 1 - reverseIdx;
+                                const isNewest = reverseIdx === 0;
+                                return (
+                                    <div
+                                        key={originalIndex}
+                                        className={`p-3 rounded-xl border transition-all duration-500 ${isNewest
+                                            ? "bg-white dark:bg-slate-900 border-violet-500/30 shadow-lg shadow-violet-500/10 scale-[1.02]"
+                                            : "bg-white/50 dark:bg-slate-900/50 border-transparent opacity-70 hover:opacity-100 scale-100"
+                                            }`}
+                                    >
+                                        <div className="flex items-start justify-between gap-2 mb-2">
+                                            <div className="flex items-center gap-2">
+                                                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium uppercase tracking-wide ${suggestion.answer_quality === "strong" ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300" :
+                                                    suggestion.answer_quality === "adequate" ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300" :
+                                                        suggestion.answer_quality === "weak" ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300" :
+                                                            "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                                                    }`}>
+                                                    {suggestion.answer_quality} Answer
                                                 </span>
-                                            )}
-                                            <span className="text-xs text-muted-foreground">#{originalIndex + 1}</span>
+                                            </div>
+                                            <Button variant="ghost" size="sm" className="h-5 w-5 p-0 opacity-40 hover:opacity-100" onClick={() => dismissSuggestion(originalIndex)}>×</Button>
                                         </div>
 
-                                        {/* Suggested next question */}
-                                        <p className="text-sm text-violet-900 dark:text-violet-100 italic bg-white/50 dark:bg-black/20 p-2 rounded">
+                                        <p className="text-sm font-medium text-slate-800 dark:text-slate-100 mb-2 leading-relaxed">
                                             "{suggestion.suggested_next_question}"
                                         </p>
 
-                                        {/* Reasoning */}
-                                        <p className="text-xs text-muted-foreground mt-1">
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 border-l-2 border-slate-200 dark:border-slate-800 pl-2">
                                             {suggestion.reasoning}
                                         </p>
                                     </div>
-                                    <Button variant="ghost" size="sm" className="shrink-0 h-5 w-5 p-0 opacity-50 hover:opacity-100" onClick={() => dismissSuggestion(originalIndex)}>
-                                        ✕
-                                    </Button>
+                                );
+                            })
+                        )}
+                    </div>
+                </div>
+
+                {/* BOTTOM HALF: Assistant Chat */}
+                <div className="flex-1 min-h-0 flex flex-col">
+                    <div className="px-4 py-2 bg-slate-50 dark:bg-slate-900 border-b flex justify-between items-center shrink-0">
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                            <MessageSquare className="w-3 h-3" /> Assistant Chat
+                        </span>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-white dark:bg-slate-950">
+                        {messages.map((msg, i) => (
+                            <div
+                                key={i}
+                                className={`text-sm ${msg.role === "user"
+                                    ? "bg-violet-600 text-white ml-8 rounded-2xl rounded-tr-sm p-3 shadow-sm"
+                                    : "bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200 mr-8 rounded-2xl rounded-tl-sm p-3"
+                                    }`}
+                            >
+                                <div className="prose prose-sm dark:prose-invert max-w-none break-words">
+                                    <ReactMarkdown>{msg.content}</ReactMarkdown>
                                 </div>
                             </div>
-                        );
-                    })}
-                </div>
-            )}
+                        ))}
+                        {isLoading && (
+                            <div className="bg-slate-100 dark:bg-slate-900 rounded-2xl rounded-tl-sm p-3 mr-auto w-12 flex items-center justify-center">
+                                <span className="flex gap-1">
+                                    <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                                    <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                                    <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span>
+                                </span>
+                            </div>
+                        )}
+                        <div ref={messagesEndRef} />
+                    </div>
 
-            {/* Loading indicator for coach */}
-            {isCoachLoading && (
-                <div className="mx-3 mt-2 p-2 rounded-lg border border-dashed flex items-center gap-2 text-sm text-muted-foreground">
-                    <span className="animate-spin">🔍</span>
-                    Analyzing...
-                </div>
-            )}
-
-            {/* Messages - scrollable, takes remaining space */}
-            <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-0">
-                {messages.map((msg, i) => (
-                    <div
-                        key={i}
-                        className={`text-sm ${msg.role === "user"
-                            ? "bg-primary/10 ml-8 rounded-lg p-2"
-                            : "bg-muted rounded-lg p-2"
-                            }`}
-                    >
-                        <span className="font-medium text-xs block mb-1 opacity-70">
-                            {msg.role === "user" ? "You" : "AI"}
-                        </span>
-                        <div className="prose prose-sm dark:prose-invert max-w-none">
-                            {msg.role === "assistant" ? (
-                                <ReactMarkdown
-                                    components={{
-                                        ul: ({ node, ...props }) => <ul className="list-disc list-outside ml-4 space-y-1 my-1" {...props} />,
-                                        ol: ({ node, ...props }) => <ol className="list-decimal list-outside ml-4 space-y-1 my-1" {...props} />,
-                                        li: ({ node, ...props }) => <li className="pl-1" {...props} />,
-                                        p: ({ node, ...props }) => <p className="mb-1 last:mb-0 inline" {...props} />,
-                                        strong: ({ node, ...props }) => <strong className="font-semibold text-primary" {...props} />
-                                    }}
-                                >
-                                    {msg.content}
-                                </ReactMarkdown>
-                            ) : (
-                                msg.content
-                            )}
+                    <div className="p-3 border-t bg-background shrink-0">
+                        <div className="flex gap-2">
+                            <Textarea
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                placeholder="Ask me anything..."
+                                className="min-h-[44px] max-h-[100px] resize-none text-sm rounded-xl"
+                                disabled={isLoading}
+                            />
+                            <Button
+                                onClick={sendMessage}
+                                disabled={!input.trim() || isLoading}
+                                className="self-end rounded-xl bg-violet-600 hover:bg-violet-700 h-[44px]"
+                            >
+                                Send
+                            </Button>
                         </div>
                     </div>
-                ))}
-                {isLoading && (
-                    <div className="bg-muted rounded-lg p-2 text-sm opacity-70">
-                        <span className="animate-pulse">Thinking...</span>
-                    </div>
-                )}
-                <div ref={messagesEndRef} />
-            </div>
-
-            {/* Input - fixed at bottom */}
-            <div className="p-3 border-t bg-background shrink-0">
-                <div className="flex gap-2">
-                    <Textarea
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        placeholder="Ask for suggestions..."
-                        className="min-h-[50px] max-h-[80px] resize-none text-sm"
-                        disabled={isLoading}
-                    />
-                    <Button
-                        onClick={sendMessage}
-                        disabled={!input.trim() || isLoading}
-                        className="self-end"
-                    >
-                        Send
-                    </Button>
                 </div>
+
             </div>
         </div>
     );

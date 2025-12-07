@@ -2,19 +2,14 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import Vapi from "@vapi-ai/web";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { getBriefing } from "@/lib/api";
+import { getBriefing, getPreInterviewBrief, PreInterviewBrief } from "@/lib/api";
+import PreInterviewBriefComponent from "@/components/pre-interview-brief";
 
 interface PreBriefingScreenProps {
     roomName: string;
     participantName: string;
-    onStartInterview: () => void;
-}
-
-interface Message {
-    role: "assistant" | "user";
-    content: string;
+    onStartInterview: (brief?: PreInterviewBrief) => void;
 }
 
 export default function PreBriefingScreen({
@@ -22,139 +17,193 @@ export default function PreBriefingScreen({
     participantName,
     onStartInterview
 }: PreBriefingScreenProps) {
+    // Visual brief state
+    const [preBrief, setPreBrief] = useState<PreInterviewBrief | null>(null);
+    const [preBriefLoading, setPreBriefLoading] = useState(true);
+    const [preBriefError, setPreBriefError] = useState<string | null>(null);
+
+    // Voice agent state
+    const [isVoiceActive, setIsVoiceActive] = useState(false);
+    const [isVoiceConnecting, setIsVoiceConnecting] = useState(false);
     const vapiRef = useRef<Vapi | null>(null);
-    const [isConnected, setIsConnected] = useState(false);
-    const [isSpeaking, setIsSpeaking] = useState(false);
-    const [transcript, setTranscript] = useState<Message[]>([]);
-    const [error, setError] = useState<string | null>(null);
-    const [briefingContext, setBriefingContext] = useState<string | null>(null);
-    const [isStarting, setIsStarting] = useState(false);
-    const hasStartedRef = useRef(false);
+    const briefingContextRef = useRef<string>("");
 
-    // Fetch briefing from Python backend
+    // Rotating facts state
+    const [currentFactIndex, setCurrentFactIndex] = useState(0);
+    const facts = [
+        "Did you know? Top talent stays on the market for only 10 days.",
+        "Structured interviews are 2x more predictive of job performance than unstructured ones.",
+        "A bad hire can cost up to 30% of the employee's first-year earnings.",
+        "73% of candidates are passive job seekers, open to new opportunities.",
+        "Data-driven recruiting improves quality of hire by over 50%.",
+        "Soft skills are cited by 92% of talent professionals as equally or more important than hard skills.",
+        " Diverse companies are 35% more likely to outperform their competitors."
+    ];
+
     useEffect(() => {
-        if (roomName && !briefingContext) {
-            getBriefing(roomName)
-                .then((data) => {
-                    console.log("Fetched briefing from backend:", data);
-                    setBriefingContext(data.briefing_prompt);
-                })
-                .catch((err) => {
-                    console.error("Failed to fetch briefing:", err);
-                    setBriefingContext("No specific candidate information was provided.");
-                });
+        if (preBriefLoading) {
+            const interval = setInterval(() => {
+                setCurrentFactIndex((prev) => (prev + 1) % facts.length);
+            }, 3000);
+            return () => clearInterval(interval);
         }
-    }, [roomName, briefingContext]);
+    }, [preBriefLoading, facts.length]);
 
-    // Initialize Vapi and start agent
+    // Fetch briefing data and pre-brief on mount
     useEffect(() => {
-        const publicKey = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY;
+        const fetchData = async () => {
+            try {
+                const briefingData = await getBriefing(roomName);
+                briefingContextRef.current = briefingData.briefing_prompt || "";
 
-        if (!publicKey) {
-            setError("Vapi public key not configured. Add NEXT_PUBLIC_VAPI_PUBLIC_KEY to .env.local");
+                // Fetch visual pre-brief
+                if (briefingData.notes && briefingData.resume_summary) {
+                    const brief = await getPreInterviewBrief(
+                        roomName,
+                        briefingData.notes,
+                        briefingData.resume_summary
+                    );
+                    setPreBrief(brief);
+                    setPreBriefLoading(false);
+                } else {
+                    setPreBriefError("Missing job description or resume. Please go back and add them.");
+                    setPreBriefLoading(false);
+                }
+            } catch (err) {
+                console.error("Pre-brief error:", err);
+                setPreBriefError(err instanceof Error ? err.message : "Failed to generate brief");
+                setPreBriefLoading(false);
+            }
+        };
+
+        fetchData();
+    }, [roomName]);
+
+    // Start voice agent
+    const startVoiceAgent = useCallback(async () => {
+        const vapiKey = process.env.NEXT_PUBLIC_VAPI_WEB_KEY;
+        const assistantId = process.env.NEXT_PUBLIC_VAPI_BRIEFING_ASSISTANT_ID;
+
+        if (!vapiKey) {
+            alert("Voice AI not configured. Add NEXT_PUBLIC_VAPI_WEB_KEY to .env.local");
             return;
         }
 
-        if (briefingContext === null || hasStartedRef.current) return;
+        setIsVoiceConnecting(true);
 
-        hasStartedRef.current = true;
-        setIsStarting(true);
+        try {
+            const vapi = new Vapi(vapiKey);
+            vapiRef.current = vapi;
 
-        const vapi = new Vapi(publicKey);
-        vapiRef.current = vapi;
+            vapi.on("call-start", () => {
+                setIsVoiceConnecting(false);
+                setIsVoiceActive(true);
+            });
+            vapi.on("call-end", () => {
+                setIsVoiceActive(false);
+            });
+            vapi.on("error", (err) => {
+                console.error("VAPI error:", err);
+                setIsVoiceConnecting(false);
+                setIsVoiceActive(false);
+            });
 
-        // Event handlers
-        vapi.on("call-start", () => {
-            setIsConnected(true);
-            setIsStarting(false);
-            setError(null);
-        });
-
-        vapi.on("call-end", () => {
-            setIsConnected(false);
-            setIsSpeaking(false);
-        });
-
-        vapi.on("speech-start", () => {
-            setIsSpeaking(true);
-        });
-
-        vapi.on("speech-end", () => {
-            setIsSpeaking(false);
-        });
-
-        vapi.on("message", (message) => {
-            if (message.type === "transcript" && message.transcriptType === "final") {
-                setTranscript((prev) => [
-                    ...prev,
-                    { role: message.role, content: message.transcript },
-                ]);
-            }
-        });
-
-        vapi.on("error", (e) => {
-            console.error("Vapi error:", JSON.stringify(e, null, 2));
-            const errorObj = e as { error?: { message?: string } };
-            setError(errorObj?.error?.message || "Agent connection error");
-            setIsStarting(false);
-        });
-
-        // Start the agent
-        const startAgent = async () => {
-            try {
-                console.log("[PreBriefing] Starting with context:", {
-                    participantName,
-                    briefingContextLength: briefingContext?.length || 0,
-                });
-
-                // Use saved assistant ID with dynamic context overrides
-                await vapi.start("1d5854df-2a62-47c1-94db-81d8bdf28255", {
+            // Use assistantId if configured, otherwise use inline config
+            if (assistantId) {
+                await vapi.start(assistantId, {
                     variableValues: {
-                        participantName: participantName,
-                        briefingContext: briefingContext || "No specific candidate information provided.",
-                    },
+                        participantName,
+                        briefingContext: briefingContextRef.current,
+                        candidateName: preBrief?.candidate_name || "the candidate"
+                    }
                 });
+            } else {
+                // Fallback: inline assistant config
+                await vapi.start({
+                    model: {
+                        provider: "openai",
+                        model: "gpt-4o-mini",
+                        messages: [
+                            {
+                                role: "system",
+                                content: `You are a helpful interview preparation assistant helping ${participantName} prepare for an interview.
 
-                console.log("[PreBriefing] vapi.start() completed successfully");
-            } catch (err) {
-                console.error("[PreBriefing] Failed to start Vapi:", err);
-                setError(err instanceof Error ? err.message : "Failed to start agent");
-                setIsStarting(false);
+${briefingContextRef.current}
+
+Help by:
+- Answering questions about the candidate
+- Suggesting interview questions
+- Discussing areas to probe
+
+Be concise. The interviewer has limited time.`
+                            }
+                        ]
+                    },
+                    voice: {
+                        provider: "11labs",
+                        voiceId: "21m00Tcm4TlvDq8ikWAM"
+                    },
+                    firstMessage: `Hi ${participantName}! Ready to discuss ${preBrief?.candidate_name || "the candidate"}. What would you like to know?`
+                });
+            }
+        } catch (err) {
+            console.error("Voice agent failed:", err);
+            setIsVoiceConnecting(false);
+            alert("Failed to start voice AI. Check console for details.");
+        }
+    }, [participantName, preBrief]);
+
+    // Stop voice agent
+    const stopVoiceAgent = useCallback(() => {
+        if (vapiRef.current) {
+            vapiRef.current.stop();
+            vapiRef.current = null;
+        }
+        setIsVoiceActive(false);
+    }, []);
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            if (vapiRef.current) {
+                vapiRef.current.stop();
             }
         };
+    }, []);
 
-        startAgent();
+    // Toggle voice
+    const handleVoiceToggle = () => {
+        if (isVoiceActive) {
+            stopVoiceAgent();
+        } else {
+            startVoiceAgent();
+        }
+    };
 
-        return () => {
-            vapi.stop();
-        };
-    }, [briefingContext, participantName]);
-
-    const handleStartInterview = useCallback(() => {
-        // Stop Vapi agent
-        vapiRef.current?.stop();
-        // Transition to video room
-        onStartInterview();
-    }, [onStartInterview]);
-
-    const handleSkipBriefing = useCallback(() => {
-        vapiRef.current?.stop();
-        onStartInterview();
-    }, [onStartInterview]);
+    const handleStartClick = () => {
+        onStartInterview(preBrief || undefined);
+    };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-violet-950 via-slate-900 to-slate-950 flex flex-col">
+        <div className="min-h-screen bg-slate-950 text-white flex flex-col">
             {/* Header */}
-            <div className="p-4 border-b border-white/10">
-                <div className="max-w-4xl mx-auto flex justify-between items-center">
-                    <div>
-                        <h1 className="text-xl font-semibold text-white">Pre-Interview Briefing</h1>
-                        <p className="text-sm text-white/60">Room: {roomName}</p>
-                    </div>
+            <div className="shrink-0 p-4 border-b border-white/10 bg-slate-900/80 backdrop-blur-xl flex items-center justify-between">
+                <div>
+                    <h1 className="text-xl font-bold">Pre-Interview Briefing</h1>
+                    <p className="text-white/50 text-sm">Room: {roomName}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                    {/* Voice indicator */}
+                    {isVoiceActive && (
+                        <div className="flex items-center gap-2 px-3 py-1.5 bg-violet-500/20 border border-violet-500/30 rounded-full">
+                            <span className="w-2 h-2 bg-violet-400 rounded-full animate-pulse"></span>
+                            <span className="text-sm text-violet-300">AI Listening...</span>
+                        </div>
+                    )}
                     <Button
-                        onClick={handleStartInterview}
+                        onClick={handleStartClick}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 px-6"
                         size="lg"
-                        className="bg-green-600 hover:bg-green-700 text-white"
                     >
                         🎬 Start Interview
                     </Button>
@@ -162,61 +211,53 @@ export default function PreBriefingScreen({
             </div>
 
             {/* Main content */}
-            <div className="flex-1 flex items-center justify-center p-8">
-                <div className="max-w-2xl w-full space-y-6">
-                    {/* Agent status card */}
-                    <Card className="bg-white/5 border-white/10 backdrop-blur">
-                        <CardContent className="p-6">
-                            {error ? (
-                                <div className="text-center space-y-4">
-                                    <div className="text-red-400">⚠️ {error}</div>
-                                    <Button variant="outline" onClick={handleSkipBriefing}>
-                                        Skip Briefing & Start Interview
-                                    </Button>
-                                </div>
-                            ) : isStarting ? (
-                                <div className="flex items-center justify-center gap-3 text-white/70">
-                                    <div className="w-4 h-4 border-2 border-violet-400 border-t-transparent rounded-full animate-spin" />
-                                    <span>Connecting to briefing assistant...</span>
-                                </div>
-                            ) : (
-                                <div className="space-y-4">
-                                    {/* Status indicator */}
-                                    <div className="flex items-center justify-center gap-3">
-                                        <div className={`w-4 h-4 rounded-full ${isSpeaking ? "bg-green-500 animate-pulse" : isConnected ? "bg-green-500" : "bg-yellow-500"}`} />
-                                        <span className="text-lg text-white">
-                                            {isSpeaking ? "🗣️ Agent Speaking" : isConnected ? "🎧 Listening..." : "Connecting..."}
-                                        </span>
-                                    </div>
+            <div className="flex-1 overflow-hidden">
+                {preBriefLoading ? (
+                    <div className="h-full flex flex-col items-center justify-center gap-4 p-8 text-center max-w-2xl mx-auto">
+                        <div className="relative mb-4">
+                            <div className="w-24 h-24 border-4 border-violet-500/30 border-t-violet-500 rounded-full animate-spin"></div>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <span className="text-3xl">🤖</span>
+                            </div>
+                        </div>
 
-                                    {/* Transcript */}
-                                    {transcript.length > 0 && (
-                                        <div className="mt-4 max-h-64 overflow-y-auto space-y-3 p-4 bg-black/20 rounded-lg">
-                                            {transcript.map((msg, i) => (
-                                                <div
-                                                    key={i}
-                                                    className={`text-sm ${msg.role === "assistant" ? "text-violet-300" : "text-white"}`}
-                                                >
-                                                    <span className="font-medium">
-                                                        {msg.role === "assistant" ? "🤖 Agent: " : "👤 You: "}
-                                                    </span>
-                                                    {msg.content}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    {/* Instructions */}
-                    <div className="text-center text-white/50 text-sm space-y-2">
-                        <p>💡 Ask the assistant anything about the upcoming interview.</p>
-                        <p>Click <strong>"Start Interview"</strong> when you're ready to begin the video call.</p>
+                        <div className="space-y-2 h-24 transition-all duration-500">
+                            <p className="text-violet-300 text-lg font-medium animate-pulse">Generating Candidate Intelligence...</p>
+                            <p className="text-white/60 text-xl font-light italic">
+                                "{facts[currentFactIndex]}"
+                            </p>
+                        </div>
                     </div>
-                </div>
+                ) : preBriefError ? (
+                    <div className="h-full flex flex-col items-center justify-center gap-4 p-8">
+                        <span className="text-5xl">⚠️</span>
+                        <p className="text-white/80 text-lg">{preBriefError}</p>
+                        <div className="flex gap-3">
+                            <Button onClick={() => window.location.reload()} variant="outline" className="border-white/20">
+                                🔄 Retry
+                            </Button>
+                            <Button onClick={() => onStartInterview(undefined)} className="bg-violet-600 hover:bg-violet-700">
+                                Skip to Interview →
+                            </Button>
+                        </div>
+                    </div>
+                ) : preBrief ? (
+                    <PreInterviewBriefComponent
+                        brief={preBrief}
+                        onActivateVoice={handleVoiceToggle}
+                        isVoiceActive={isVoiceActive || isVoiceConnecting}
+                    />
+                ) : null}
             </div>
+
+            {/* Footer hint */}
+            {preBrief && (
+                <div className="shrink-0 p-3 bg-slate-900/50 border-t border-white/5 text-center">
+                    <p className="text-white/40 text-sm">
+                        💡 Review the brief above, then click <strong className="text-emerald-400">Start Interview</strong> when ready
+                    </p>
+                </div>
+            )}
         </div>
     );
 }

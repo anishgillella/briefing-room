@@ -281,3 +281,91 @@ export async function getCoachSuggestion(
     return response.json();
 }
 
+// Pre-Interview Brief types
+export interface SkillMatch {
+    skill: string;
+    required_level: string;
+    candidate_level: "expert" | "proficient" | "competent" | "beginner" | "not_found";
+    evidence: string | null;
+    is_match: boolean;
+}
+
+export interface ExperienceHighlight {
+    company: string;
+    role: string;
+    duration: string;
+    key_achievement: string;
+    relevance: string;
+}
+
+export interface ConcernItem {
+    concern: string;
+    evidence: string;
+    suggested_question: string;
+    severity: "low" | "medium" | "high";
+}
+
+export interface StrengthItem {
+    strength: string;
+    evidence: string;
+    how_to_verify: string;
+}
+
+export interface SuggestedQuestion {
+    question: string;
+    category: "technical" | "behavioral" | "situational" | "cultural";
+    purpose: string;
+    follow_up: string | null;
+}
+
+export interface ScoreBreakdown {
+    technical_skills: number;
+    experience_relevance: number;
+    leadership_potential: number;
+    communication_signals: number;
+    culture_fit_signals: number;
+    growth_trajectory: number;
+}
+
+export interface PreInterviewBrief {
+    candidate_name: string;
+    current_role: string;
+    years_experience: number;
+    overall_fit_score: number;
+    fit_summary: string;
+    score_breakdown: ScoreBreakdown;
+    skill_matches: SkillMatch[];
+    experience_highlights: ExperienceHighlight[];
+    strengths: StrengthItem[];
+    concerns: ConcernItem[];
+    suggested_questions: SuggestedQuestion[];
+    topics_to_avoid: string[];
+    tldr: string;
+    key_things_to_remember: string[];
+}
+
+export async function getPreInterviewBrief(
+    roomName: string,
+    jobDescription: string,
+    resume: string,
+    companyContext?: string
+): Promise<PreInterviewBrief> {
+    const response = await fetch(`${API_BASE_URL}/api/prebrief/${roomName}`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            job_description: jobDescription,
+            resume: resume,
+            company_context: companyContext
+        }),
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || "Failed to generate pre-brief");
+    }
+
+    return response.json();
+}

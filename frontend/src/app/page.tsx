@@ -3,7 +3,7 @@
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import JoinScreen from "@/components/join-screen";
-import { createRoom, joinRoom, setBriefing } from "@/lib/api";
+import { createRoom, joinRoom, setBriefing, PreInterviewBrief } from "@/lib/api";
 
 // Dynamic imports to avoid SSR issues
 const VideoRoom = dynamic(() => import("@/components/video-room"), {
@@ -102,13 +102,20 @@ export default function Home() {
     }
   };
 
-  const handleStartInterview = () => {
+  // Lifted state for caching
+  const [preBrief, setPreBrief] = useState<PreInterviewBrief | null>(null);
+
+  const handleStartInterview = (brief?: PreInterviewBrief) => {
     // Transition from briefing to interview
+    if (brief) {
+      setPreBrief(brief);
+    }
     setPhase("interview");
   };
 
   const handleLeave = () => {
     setRoomState(null);
+    setPreBrief(null); // Reset cache on leave
     setPhase("join");
   };
 
@@ -145,7 +152,7 @@ export default function Home() {
   if (phase === "interview" && roomState) {
     return (
       <main className="h-screen flex flex-col overflow-hidden">
-        <div className="p-2 bg-muted border-b flex items-center justify-between">
+        <div className="p-2 bg-muted border-b flex items-center justify-between shrink-0">
           <span className="font-semibold">Room: {roomState.roomName}</span>
           <span className="text-muted-foreground">
             Share link: <span className="font-mono text-foreground select-all">
@@ -153,7 +160,7 @@ export default function Home() {
             </span>
           </span>
         </div>
-        <div className="flex-1">
+        <div className="flex-1 overflow-hidden">
           <VideoRoom
             roomUrl={roomState.roomUrl}
             roomName={roomState.roomName}
@@ -162,6 +169,7 @@ export default function Home() {
             participantName={roomState.participantName}
             onLeave={handleLeave}
             onEndInterview={handleEndInterview}
+            initialBrief={preBrief}
           />
         </div>
       </main>
