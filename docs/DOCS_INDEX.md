@@ -189,6 +189,98 @@ if (phase === "debrief") { return <DebriefScreen ... /> }
 
 ---
 
+### Challenge 13: Briefing Overlay Feels Like Navigation
+**Symptom**: Clicking "Briefing" button during interview felt like leaving the video call
+**Cause**: Used `absolute inset-4` positioning which filled entire viewport, no visual connection to underlying video
+**User Feedback**: "I want it to just be a pop-up, which I can scroll to go through... I should stay within the interview"
+**Resolution**: 
+1. Changed to `fixed inset-0` with `bg-black/80 backdrop-blur-sm` backdrop
+2. Constrained modal to `max-w-6xl h-[90vh]` centered container
+3. Added `rounded-2xl` and shadow for clear modal boundary
+4. Result: User can see darkened video feed behind modal, maintaining interview context
+
+---
+
+### Challenge 14: Video Control Bar Pushed Off-Screen
+**Symptom**: Camera/Mic/End buttons not visible, pushed below viewport on some screen sizes
+**Cause**: Video grid was allowed to grow without constraints, squashing the control bar
+**User Feedback**: "I don't see the buttons down there, make sure the buttons are in the frame"
+**Resolution**:
+1. Added `shrink-0` to control bar div to prevent flexbox shrinking
+2. Changed video grid container from `flex-1` to `flex-1 min-h-0`
+3. Added explicit height constraints and overflow handling
+```tsx
+// Control bar
+<div className="shrink-0 p-4 border-t...">
+
+// Video container  
+<div className="flex-1 min-h-0 p-4...">
+  <div className="h-full w-full grid...">
+```
+**Result**: Controls always visible at bottom, video grid properly constrained
+
+---
+
+### Challenge 15: Uneven Video Tile Sizing
+**Symptom**: Interviewer and candidate video tiles had different sizes, felt visually unbalanced
+**Cause**: `VideoTile` component had `col-span-2` for remote and `col-span-1` for local
+**Resolution**: 
+1. Removed `col-span` logic from `VideoTile` component
+2. Wrapped each tile in a `div` with `min-h-[300px]` and `w-full h-full`
+3. Used `grid-cols-1 md:grid-cols-2` for responsive equal sizing
+```tsx
+{localSessionId && (
+  <div className="relative w-full h-full min-h-[300px]...">
+    <VideoTile sessionId={localSessionId} ... />
+  </div>
+)}
+```
+**Result**: All video tiles equal size, interview power balance maintained
+
+---
+
+### Challenge 16: Briefing Data Re-fetch During Interview
+**Symptom**: Clicking "Briefing" button during interview took several seconds to load
+**Cause**: Component fetched briefing data from API every time modal opened (expensive Gemini API call)
+**User Feedback**: "The briefing part takes a while to load, are you not caching it?"
+**Resolution**: Implemented state lifting pattern
+1. Added `preBrief` state to parent `page.tsx`
+2. Modified `PreBriefingScreen` to pass fetched brief back via callback: `onStartInterview(brief)`
+3. Added `initialBrief` prop to `VideoRoom` component
+4. Initialize `fullBriefing` state with cached data: `useState(initialBrief || null)`
+5. Only fetch if cache miss: `if (!initialBrief && data.notes && data.resume_summary)`
+**Result**: Briefing overlay loads instantly, no API call during interview
+
+---
+
+### Challenge 17: Loading Screen User Engagement
+**Symptom**: "Analyzing Candidate..." loading screen felt long and boring during AI generation
+**Cause**: Static text with spinner, no engagement while waiting 10-15 seconds
+**User Request**: "Change the loading screen text to something interesting facts about recruitment"
+**Resolution**:
+1. Created array of 7 recruitment statistics/facts
+2. Added `currentFactIndex` state with rotating interval (every 3 seconds)
+3. Displayed current fact below main loading message
+```tsx
+const facts = [
+  "Did you know? Top talent stays on the market for only 10 days.",
+  "Structured interviews are 2x more predictive of job performance...",
+  // ...
+];
+
+useEffect(() => {
+  if (preBriefLoading) {
+    const interval = setInterval(() => {
+      setCurrentFactIndex((prev) => (prev + 1) % facts.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }
+}, [preBriefLoading, facts.length]);
+```
+**Result**: Loading screen now educational and engaging, perceived wait time reduced
+
+---
+
 ## Lessons Learned
 
 1. **Test SDK integrations early** - Hidden dependencies (like Vapi using Daily) are hard to discover

@@ -15,13 +15,20 @@ import {
 } from "@daily-co/daily-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { getBriefing } from "@/lib/api";
+import { getBriefing, getPreInterviewBrief, PreInterviewBrief } from "@/lib/api";
 import useOpenAIRealtimeAgent from "@/components/openai-realtime-agent";
+import { ClipboardList } from "lucide-react";
 
 // Dynamic import for AI sidebar
 const AIChatSidebar = dynamic(() => import("@/components/ai-chat-sidebar"), {
     ssr: false,
     loading: () => null,
+});
+
+// Dynamic import for PreInterviewBriefComponent overlay (reuse existing)
+const PreInterviewBriefComponent = dynamic(() => import("@/components/pre-interview-brief"), {
+    ssr: false,
+    loading: () => <div className="text-white">Loading Briefing...</div>
 });
 
 interface VideoRoomProps {
@@ -32,6 +39,7 @@ interface VideoRoomProps {
     participantName: string;
     onLeave?: () => void;
     onEndInterview?: (transcript?: string) => void;
+    initialBrief?: PreInterviewBrief | null;
 }
 
 function VideoTile({ sessionId, isLocal, label }: { sessionId: string; isLocal: boolean; label: string }) {
@@ -98,15 +106,7 @@ function AICandidateTile({ isSpeaking, onRemove, candidateName }: { isSpeaking: 
     );
 }
 
-function CallInterface({ roomUrl, roomName, token, participantType, participantName, onLeave, onEndInterview }: {
-    roomUrl: string;
-    roomName: string;
-    token: string;
-    participantType: "interviewer" | "candidate";
-    participantName: string;
-    onLeave?: () => void;
-    onEndInterview?: (transcript?: string) => void;
-}) {
+function CallInterface({ roomUrl, roomName, token, participantType, participantName, onLeave, onEndInterview, initialBrief }: VideoRoomProps) {
     const daily = useDaily();
     const localSessionId = useLocalSessionId();
     const participantIds = useParticipantIds({ filter: "remote" });
@@ -122,8 +122,13 @@ function CallInterface({ roomUrl, roomName, token, participantType, participantN
     const isEndingInterviewRef = useRef(false);
 
     // AI sidebar state (only for interviewer)
-    const [showAISidebar, setShowAISidebar] = useState(false);
+    const [showAISidebar, setShowAISidebar] = useState(true);
     const [briefingContext, setBriefingContext] = useState<string | undefined>(undefined);
+
+    // BRIEFING OVERLAY STATE
+    const [showBriefingOverlay, setShowBriefingOverlay] = useState(false);
+    // Initialize with cached brief if available
+    const [fullBriefing, setFullBriefing] = useState<PreInterviewBrief | null>(initialBrief || null);
 
     // State for live transcript (from OpenAI Realtime)
     const [fullTranscript, setFullTranscript] = useState<string>("");
@@ -156,9 +161,36 @@ function CallInterface({ roomUrl, roomName, token, participantType, participantN
     // Fetch briefing context for AI sidebar and candidate name
     useEffect(() => {
         if (participantType === "interviewer" && roomName) {
+            // Use cached brief if available to set context immediately
+            if (initialBrief) {
+                setBriefingContext(initialBrief.tldr); // Use TLDR or similar as prompt fallback if needed
+                setCandidateName(initialBrief.candidate_name);
+                setBriefingData({
+                    resume: "", // Full brief doesn't hold raw resume, consider adding if vital
+                    role: initialBrief.current_role,
+                    jobDescription: ""
+                });
+                // We still might want to fetch getBriefing for the specific prompt fields if they differ
+            }
+
             getBriefing(roomName)
-                .then((data) => {
+                .then(async (data) => {
                     setBriefingContext(data.briefing_prompt);
+
+                    // Only fetch full visual pre-brief if NOT already provided via cache
+                    if (!initialBrief && data.notes && data.resume_summary) {
+                        try {
+                            const brief = await getPreInterviewBrief(
+                                roomName,
+                                data.notes,
+                                data.resume_summary
+                            );
+                            setFullBriefing(brief);
+                        } catch (err) {
+                            console.error("Failed to fetch full briefing for overlay:", err);
+                        }
+                    }
+
                     // Extract candidate name from briefing
                     if (data.candidate_name && data.candidate_name !== "the candidate") {
                         setCandidateName(data.candidate_name);
@@ -172,11 +204,7 @@ function CallInterface({ roomUrl, roomName, token, participantType, participantN
                 })
                 .catch(console.error);
         }
-    }, [participantType, roomName]);
-
-    // ... (rest of effects) ...
-
-
+    }, [participantType, roomName, initialBrief]);
 
     // Join the call when component mounts
     useEffect(() => {
@@ -282,7 +310,7 @@ function CallInterface({ roomUrl, roomName, token, participantType, participantN
     }
 
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full w-full relative overflow-hidden">
             {/* AI Chat Sidebar - only for interviewer */}
             {participantType === "interviewer" && (
                 <AIChatSidebar
@@ -295,62 +323,94 @@ function CallInterface({ roomUrl, roomName, token, participantType, participantN
                 />
             )}
 
-            {/* Video grid */}
-            <div className={`flex-1 p-4 grid grid-cols-2 gap-4 auto-rows-fr ${showAISidebar ? "mr-80" : ""}`}>
-                {localSessionId && (
-                    <VideoTile
-                        sessionId={localSessionId}
-                        isLocal={true}
-                        label={`${participantName} (${participantType})`}
-                    />
-                )}
+            {/* Video grid container - Using min-h-0 to allow flexbox shrinking */}
+            <div className={`flex-1 min-h-0 p-4 transition-all duration-300 ${showAISidebar ? "mr-80" : ""}`}>
+                <div className="h-full w-full grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                {participantIds.map((id) => (
-                    <VideoTile
-                        key={id}
-                        sessionId={id}
-                        isLocal={false}
-                        label="Participant"
-                    />
-                ))}
+                    {localSessionId && (
+                        <div className="relative w-full h-full min-h-[300px] overflow-hidden rounded-xl">
+                            <VideoTile
+                                sessionId={localSessionId}
+                                isLocal={true}
+                                label={`${participantName} (${participantType})`}
+                            />
+                        </div>
+                    )}
 
-                {/* AI Candidate tile */}
-                {showAICandidate && (
-                    <AICandidateTile
-                        isSpeaking={candidateAgent.isSpeaking}
-                        onRemove={() => {
-                            candidateAgent.stop();
-                            setShowAICandidate(false);
-                        }}
-                        candidateName={candidateName}
-                    />
-                )}
+                    {participantIds.map((id) => (
+                        <div key={id} className="relative w-full h-full min-h-[300px] overflow-hidden rounded-xl">
+                            <VideoTile
+                                sessionId={id}
+                                isLocal={false}
+                                label="Participant"
+                            />
+                        </div>
+                    ))}
 
-                {/* Waiting placeholder */}
-                {!hasRemoteParticipants && (
-                    <Card className="col-span-1 bg-muted/50">
-                        <CardContent className="h-full flex flex-col items-center justify-center p-4 gap-4">
-                            <p className="text-muted-foreground text-center">
-                                Waiting for {participantType === "interviewer" ? "candidate" : "interviewer"} to join...
-                            </p>
-                            {participantType === "interviewer" && (
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => {
-                                        setShowAICandidate(true);
-                                    }}
-                                >
-                                    🎭 Connect to AI Candidate
-                                </Button>
-                            )}
-                        </CardContent>
-                    </Card>
-                )}
+                    {/* AI Candidate tile */}
+                    {showAICandidate && (
+                        <div className="relative w-full h-full min-h-[300px] overflow-hidden rounded-xl">
+                            <AICandidateTile
+                                isSpeaking={candidateAgent.isSpeaking}
+                                onRemove={() => {
+                                    candidateAgent.stop();
+                                    setShowAICandidate(false);
+                                }}
+                                candidateName={candidateName}
+                            />
+                        </div>
+                    )}
+
+                    {/* Waiting placeholder */}
+                    {!hasRemoteParticipants && (
+                        <div className="relative w-full h-full min-h-[300px] overflow-hidden rounded-xl">
+                            <Card className="h-full w-full bg-gradient-to-br from-slate-900 to-violet-950 border-white/10">
+                                <CardContent className="h-full flex flex-col items-center justify-center p-8 gap-6">
+                                    <div className="text-center">
+                                        <p className="text-white/60 text-lg mb-2">
+                                            Waiting for candidate to join...
+                                        </p>
+                                        <p className="text-white/40 text-sm">
+                                            Or practice with an AI-simulated candidate
+                                        </p>
+                                    </div>
+
+                                    {participantType === "interviewer" && (
+                                        <Button
+                                            size="lg"
+                                            className="bg-violet-600 hover:bg-violet-700 text-white px-8 py-6 text-lg gap-3"
+                                            onClick={() => setShowAICandidate(true)}
+                                        >
+                                            🎭 Connect to AI Candidate
+                                        </Button>
+                                    )}
+
+                                    <p className="text-white/30 text-xs text-center max-w-xs">
+                                        The AI candidate uses OpenAI Realtime API to simulate a job interview
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    )}
+                </div>
             </div>
 
-            {/* Controls */}
-            <div className={`p-4 border-t bg-card ${showAISidebar ? "mr-80" : ""}`}>
+            {/* BRIEFING OVERLAY - Modal Pop-up */}
+            {showBriefingOverlay && fullBriefing && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200 p-4 md:p-8">
+                    <div className="w-full max-w-6xl h-[90vh] bg-slate-950 rounded-2xl overflow-hidden shadow-2xl border border-white/10 animate-in zoom-in-95 duration-200 flex flex-col relative">
+                        <PreInterviewBriefComponent
+                            brief={fullBriefing}
+                            onClose={() => setShowBriefingOverlay(false)}
+                            isOverlay={true}
+                        // No voice activation needed for the overlay context
+                        />
+                    </div>
+                </div>
+            )}
+
+            {/* Controls Bar - Fixed height, shrink-0 to prevent squash */}
+            <div className={`shrink-0 p-4 border-t bg-card transition-all duration-300 ${showAISidebar ? "mr-80" : ""}`}>
                 <div className="flex justify-center gap-4">
                     <Button
                         variant={isCameraOn ? "secondary" : "destructive"}
@@ -367,6 +427,18 @@ function CallInterface({ roomUrl, roomName, token, participantType, participantN
                     >
                         {isMicOn ? "🎙️" : "🔇"} Mic
                     </Button>
+
+                    {/* NEW BRIEFING BUTTON */}
+                    {participantType === "interviewer" && (
+                        <Button
+                            className="bg-slate-700 hover:bg-slate-600 text-white"
+                            size="lg"
+                            onClick={() => setShowBriefingOverlay(!showBriefingOverlay)}
+                        >
+                            <ClipboardList className="w-5 h-5 mr-2" />
+                            Briefing
+                        </Button>
+                    )}
 
                     {participantType === "interviewer" ? (
                         <Button
@@ -411,7 +483,7 @@ function CallInterface({ roomUrl, roomName, token, participantType, participantN
 }
 
 
-export default function VideoRoom({ roomUrl, roomName, token, participantType, participantName, onLeave, onEndInterview }: VideoRoomProps) {
+export default function VideoRoom({ roomUrl, roomName, token, participantType, participantName, onLeave, onEndInterview, initialBrief }: VideoRoomProps) {
     // Create callObject with allowMultipleCallInstances to avoid conflict with other Daily instances
     const callObject = useMemo(() => {
         return Daily.createCallObject({
@@ -429,6 +501,7 @@ export default function VideoRoom({ roomUrl, roomName, token, participantType, p
                 participantName={participantName}
                 onLeave={onLeave}
                 onEndInterview={onEndInterview}
+                initialBrief={initialBrief}
             />
         </DailyProvider>
     );

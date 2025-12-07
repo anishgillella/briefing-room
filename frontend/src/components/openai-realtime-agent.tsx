@@ -7,6 +7,9 @@
 
 "use client";
 
+// Set to true for verbose logging during development
+const DEBUG = false;
+
 import { useState, useEffect, useRef, useCallback } from "react";
 
 interface RealtimeAgentProps {
@@ -74,19 +77,19 @@ export default function useOpenAIRealtimeAgent({
         const type = event.type as string;
 
         // Log ALL events for debugging
-        console.log("[RealtimeAgent] Event:", type, event);
+        DEBUG && console.log("[RealtimeAgent] Event:", type, event);
 
         switch (type) {
             case "session.created":
-                console.log("[RealtimeAgent] Session created by server");
+                DEBUG && console.log("[RealtimeAgent] Session created by server");
                 break;
 
             case "session.updated":
-                console.log("[RealtimeAgent] Session config updated");
+                DEBUG && console.log("[RealtimeAgent] Session config updated");
                 break;
 
             case "response.created":
-                console.log("[RealtimeAgent] Response started");
+                DEBUG && console.log("[RealtimeAgent] Response started");
                 break;
 
             case "response.audio.delta":
@@ -105,7 +108,7 @@ export default function useOpenAIRealtimeAgent({
                 // AI finished speaking - add to transcript
                 const aiText = event.transcript as string;
                 if (aiText) {
-                    console.log("[RealtimeAgent] AI said:", aiText);
+                    DEBUG && console.log("[RealtimeAgent] AI said:", aiText);
                     setTranscript((prev) => [
                         ...prev,
                         { role: "assistant", content: aiText, timestamp: Date.now() },
@@ -114,18 +117,18 @@ export default function useOpenAIRealtimeAgent({
                 break;
 
             case "input_audio_buffer.speech_started":
-                console.log("[RealtimeAgent] User started speaking");
+                DEBUG && console.log("[RealtimeAgent] User started speaking");
                 break;
 
             case "input_audio_buffer.speech_stopped":
-                console.log("[RealtimeAgent] User stopped speaking");
+                DEBUG && console.log("[RealtimeAgent] User stopped speaking");
                 break;
 
             case "conversation.item.input_audio_transcription.completed":
                 // User finished speaking - add to transcript
                 const userText = event.transcript as string;
                 if (userText) {
-                    console.log("[RealtimeAgent] User said:", userText);
+                    DEBUG && console.log("[RealtimeAgent] User said:", userText);
                     setTranscript((prev) => [
                         ...prev,
                         { role: "user", content: userText, timestamp: Date.now() },
@@ -142,10 +145,10 @@ export default function useOpenAIRealtimeAgent({
             case "response.done":
                 // Log the full response to see if it contains audio
                 const response = event.response as Record<string, unknown>;
-                console.log("[RealtimeAgent] Response completed, output:", response?.output);
-                console.log("[RealtimeAgent] Response status:", response?.status);
+                DEBUG && console.log("[RealtimeAgent] Response completed, output:", response?.output);
+                DEBUG && console.log("[RealtimeAgent] Response status:", response?.status);
                 if (response?.status_details) {
-                    console.log("[RealtimeAgent] Status details:", JSON.stringify(response.status_details, null, 2));
+                    DEBUG && console.log("[RealtimeAgent] Status details:", JSON.stringify(response.status_details, null, 2));
                 }
                 setIsSpeaking(false);
                 break;
@@ -158,14 +161,14 @@ export default function useOpenAIRealtimeAgent({
             default:
                 // Log unknown events
                 if (type && !type.startsWith("response.audio.delta")) {
-                    console.log("[RealtimeAgent] Unhandled event:", type);
+                    DEBUG && console.log("[RealtimeAgent] Unhandled event:", type);
                 }
         }
     }, []);
 
     // Stop the connection
     const stop = useCallback(() => {
-        console.log("[RealtimeAgent] Stopping...");
+        DEBUG && console.log("[RealtimeAgent] Stopping...");
 
         // Stop media tracks
         if (mediaStreamRef.current) {
@@ -214,7 +217,7 @@ export default function useOpenAIRealtimeAgent({
 
         const startSession = async () => {
             try {
-                console.log("[RealtimeAgent] Starting session...");
+                DEBUG && console.log("[RealtimeAgent] Starting session...");
                 setError(null);
 
                 // 1. Get ephemeral token from our backend
@@ -235,7 +238,7 @@ export default function useOpenAIRealtimeAgent({
                 }
 
                 const { client_secret: ephemeralKey } = await tokenResponse.json();
-                console.log("[RealtimeAgent] Got ephemeral key");
+                DEBUG && console.log("[RealtimeAgent] Got ephemeral key");
 
                 // 2. Create peer connection with STUN servers
                 const pc = new RTCPeerConnection({
@@ -247,7 +250,7 @@ export default function useOpenAIRealtimeAgent({
 
                 // Monitor connection state
                 pc.onconnectionstatechange = () => {
-                    console.log("[RealtimeAgent] Connection state:", pc.connectionState);
+                    DEBUG && console.log("[RealtimeAgent] Connection state:", pc.connectionState);
                     if (pc.connectionState === "failed" || pc.connectionState === "disconnected") {
                         setError(`Connection ${pc.connectionState}`);
                         setIsConnected(false);
@@ -255,7 +258,7 @@ export default function useOpenAIRealtimeAgent({
                 };
 
                 pc.oniceconnectionstatechange = () => {
-                    console.log("[RealtimeAgent] ICE state:", pc.iceConnectionState);
+                    DEBUG && console.log("[RealtimeAgent] ICE state:", pc.iceConnectionState);
                 };
 
                 // 3. Set up audio playback
@@ -265,12 +268,12 @@ export default function useOpenAIRealtimeAgent({
                 document.body.appendChild(audioEl); // Append to DOM for autoplay
 
                 pc.ontrack = (event) => {
-                    console.log("[RealtimeAgent] Got audio track from server");
+                    DEBUG && console.log("[RealtimeAgent] Got audio track from server");
                     audioEl.srcObject = event.streams[0];
                 };
 
                 // 4. Get user microphone
-                console.log("[RealtimeAgent] Requesting microphone...");
+                DEBUG && console.log("[RealtimeAgent] Requesting microphone...");
                 const mediaStream = await navigator.mediaDevices.getUserMedia({
                     audio: {
                         echoCancellation: true,
@@ -279,11 +282,11 @@ export default function useOpenAIRealtimeAgent({
                     },
                 });
                 mediaStreamRef.current = mediaStream;
-                console.log("[RealtimeAgent] Got microphone access");
+                DEBUG && console.log("[RealtimeAgent] Got microphone access");
 
                 // Add audio track to peer connection
                 mediaStream.getTracks().forEach((track) => {
-                    console.log("[RealtimeAgent] Adding audio track to peer connection");
+                    DEBUG && console.log("[RealtimeAgent] Adding audio track to peer connection");
                     pc.addTrack(track, mediaStream);
                 });
 
@@ -292,13 +295,13 @@ export default function useOpenAIRealtimeAgent({
                 dataChannelRef.current = dataChannel;
 
                 dataChannel.onopen = () => {
-                    console.log("[RealtimeAgent] Data channel open - sending initial message");
+                    DEBUG && console.log("[RealtimeAgent] Data channel open - sending initial message");
                     setIsConnected(true);
 
                     // Wait a moment then send initial response.create to start the conversation
                     setTimeout(() => {
                         if (dataChannel.readyState === "open") {
-                            console.log("[RealtimeAgent] Sending response.create");
+                            DEBUG && console.log("[RealtimeAgent] Sending response.create");
                             dataChannel.send(JSON.stringify({
                                 type: "response.create",
                                 response: {
@@ -324,7 +327,7 @@ export default function useOpenAIRealtimeAgent({
                 };
 
                 dataChannel.onclose = () => {
-                    console.log("[RealtimeAgent] Data channel closed");
+                    DEBUG && console.log("[RealtimeAgent] Data channel closed");
                     // Only update state if we're still supposed to be active
                     if (isActiveRef.current) {
                         setIsConnected(false);
@@ -332,13 +335,13 @@ export default function useOpenAIRealtimeAgent({
                 };
 
                 // 6. Create and set local description
-                console.log("[RealtimeAgent] Creating offer...");
+                DEBUG && console.log("[RealtimeAgent] Creating offer...");
                 const offer = await pc.createOffer();
                 await pc.setLocalDescription(offer);
-                console.log("[RealtimeAgent] Local description set");
+                DEBUG && console.log("[RealtimeAgent] Local description set");
 
                 // 7. Send offer to OpenAI Realtime API
-                console.log("[RealtimeAgent] Sending offer to OpenAI...");
+                DEBUG && console.log("[RealtimeAgent] Sending offer to OpenAI...");
                 const sdpResponse = await fetch(
                     "https://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17",
                     {
@@ -357,14 +360,14 @@ export default function useOpenAIRealtimeAgent({
                 }
 
                 const answerSdp = await sdpResponse.text();
-                console.log("[RealtimeAgent] Got answer SDP from OpenAI");
+                DEBUG && console.log("[RealtimeAgent] Got answer SDP from OpenAI");
 
                 await pc.setRemoteDescription({
                     type: "answer",
                     sdp: answerSdp,
                 });
 
-                console.log("[RealtimeAgent] WebRTC connection established!");
+                DEBUG && console.log("[RealtimeAgent] WebRTC connection established!");
 
             } catch (err) {
                 console.error("[RealtimeAgent] Error:", err);
@@ -377,7 +380,7 @@ export default function useOpenAIRealtimeAgent({
 
         // Cleanup function - only runs when effect is cleaned up
         return () => {
-            console.log("[RealtimeAgent] Effect cleanup");
+            DEBUG && console.log("[RealtimeAgent] Effect cleanup");
         };
     }, [isActive, candidateName, role, resume, jobDescription, handleRealtimeEvent, stop]);
 
