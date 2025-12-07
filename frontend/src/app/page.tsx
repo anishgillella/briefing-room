@@ -113,7 +113,6 @@ export default function Home() {
   };
 
   const handleEndInterview = (transcript?: string) => {
-    console.log("[Home] handleEndInterview called, transcript length:", transcript?.length || 0);
     setFinalTranscript(transcript);
     setPhase("debrief");
   };

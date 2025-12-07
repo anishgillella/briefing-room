@@ -4,7 +4,6 @@ from datetime import datetime, timedelta
 from typing import Optional
 import httpx
 from services.daily import daily_service
-from services.vapi import vapi_service
 from services.supabase import get_supabase_client
 from config import OPENROUTER_API_KEY, OPENROUTER_MODEL
 
@@ -517,32 +516,3 @@ Based on what the interviewer was asking you (the AI) during the call, infer wha
     except Exception as e:
         print(f"Debrief error: {type(e).__name__}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Debrief generation failed: {str(e)}")
-
-
-@router.post("/{room_name}/candidate")
-async def spawn_candidate(room_name: str):
-    """
-    Spawn the Immersive AI Candidate into the room
-    """
-    try:
-        # Get room details for URL
-        supabase = get_supabase_client()
-        room = await supabase.select_one("rooms", filters={"name": room_name})
-        
-        if not room:
-            raise HTTPException(status_code=404, detail="Room not found")
-            
-        daily_url = room["daily_room_url"]
-        
-        # Get briefing context
-        briefing_data = _briefings_cache.get(room_name, {})
-        
-        # Spawn Vapi agent
-        result = await vapi_service.create_candidate_agent(daily_url, briefing_data)
-        
-        return {"success": True, "call_id": result.get("id"), "details": result}
-        
-    except Exception as e:
-        print(f"Spawn candidate error: {type(e).__name__}: {str(e)}")
-        # Don't crash the UI if Vapi fails, but return valid error
-        raise HTTPException(status_code=500, detail=f"Failed to spawn candidate: {str(e)}")

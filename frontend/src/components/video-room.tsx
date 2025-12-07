@@ -334,11 +334,7 @@ function CallInterface({ roomUrl, roomName, token, participantType, participantN
                                     variant="outline"
                                     size="sm"
                                     onClick={() => {
-                                        console.log("[VideoRoom] Connect to AI Candidate clicked!");
-                                        console.log("[VideoRoom] Current showAICandidate state:", showAICandidate);
-                                        // Activate the Vapi candidate agent
                                         setShowAICandidate(true);
-                                        console.log("[VideoRoom] setShowAICandidate(true) called");
                                     }}
                                 >
                                     🎭 Connect to AI Candidate
@@ -373,31 +369,22 @@ function CallInterface({ roomUrl, roomName, token, participantType, participantN
                             className="bg-red-600 hover:bg-red-700 text-white"
                             size="lg"
                             onClick={() => {
-                                console.log("[VideoRoom] End Interview clicked");
-
                                 // Set flag BEFORE anything else to prevent onLeave redirect
                                 isEndingInterviewRef.current = true;
 
                                 // Stop the AI candidate agent if active
                                 if (showAICandidate) {
-                                    console.log("[VideoRoom] Stopping AI candidate agent...");
                                     candidateAgent.stop();
                                     setShowAICandidate(false);
                                 }
 
                                 // FIRST: Trigger transition to debrief (before Daily leave)
-                                console.log("[VideoRoom] Triggering debrief transition. Transcript length:", fullTranscript.length);
-                                console.log("[VideoRoom] onEndInterview defined?", !!onEndInterview, typeof onEndInterview);
                                 if (onEndInterview) {
-                                    console.log("[VideoRoom] Calling onEndInterview now");
                                     onEndInterview(fullTranscript);
-                                } else {
-                                    console.log("[VideoRoom] ERROR: onEndInterview is NOT defined!");
                                 }
 
                                 // THEN: Leave the Daily call (after parent state change)
                                 if (daily) {
-                                    console.log("[VideoRoom] Leaving Daily call...");
                                     daily.leave();
                                 }
                             }}
@@ -421,10 +408,7 @@ function CallInterface({ roomUrl, roomName, token, participantType, participantN
 
 
 export default function VideoRoom({ roomUrl, roomName, token, participantType, participantName, onLeave, onEndInterview }: VideoRoomProps) {
-    // Debug log to trace prop passing
-    console.log("[VideoRoom Wrapper] onEndInterview received?", !!onEndInterview, typeof onEndInterview);
-
-    // Create callObject with allowMultipleCallInstances to avoid conflict with Vapi's Daily instance
+    // Create callObject with allowMultipleCallInstances to avoid conflict with other Daily instances
     const callObject = useMemo(() => {
         return Daily.createCallObject({
             allowMultipleCallInstances: true,

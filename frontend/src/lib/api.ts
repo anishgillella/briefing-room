@@ -161,16 +161,3 @@ export async function generateDebrief(
 
     return response.json();
 }
-
-export async function spawnCandidate(roomName: string): Promise<{ success: boolean; call_id: string }> {
-    const response = await fetch(`${API_BASE_URL}/api/rooms/${roomName}/candidate`, {
-        method: "POST",
-    });
-
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || "Failed to spawn candidate agent");
-    }
-
-    return response.json();
-}
