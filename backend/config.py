@@ -15,5 +15,9 @@ SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini")
 
+# OpenAI (for Realtime API)
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
 # App
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+

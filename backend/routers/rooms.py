@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 import httpx
 from services.daily import daily_service
+from services.vapi import vapi_service
 from services.supabase import get_supabase_client
 from config import OPENROUTER_API_KEY, OPENROUTER_MODEL
 
@@ -363,6 +364,7 @@ IMPORTANT: If you have context about the job or candidate below, USE IT. Do not 
 class DebriefRequest(BaseModel):
     chat_history: list[ChatMessage]
     notes: Optional[str] = None
+    transcript: Optional[str] = None  # New captured transcript
 
 
 class DebriefResponse(BaseModel):
@@ -379,7 +381,7 @@ async def generate_debrief(room_name: str, request: DebriefRequest):
     """
     Generate an interview debrief based on the session
     
-    - Analyzes chat history to see what was discussed
+    - Analyzes transcript (preferred) or chat history + notes
     - Uses original briefing context (JD/Resume)
     - Generates summary, pros/cons, and recommendation
     """
@@ -391,8 +393,11 @@ async def generate_debrief(room_name: str, request: DebriefRequest):
         briefing_data = _briefings_cache.get(room_name, {})
         briefing_prompt = _generate_briefing_prompt(briefing_data)
         
-        # Construct analysis prompt
-        if not request.chat_history and not request.notes:
+        # Check if we have enough data
+        has_transcript = bool(request.transcript and len(request.transcript) > 50)
+        has_chat = bool(request.chat_history)
+        
+        if not has_transcript and not has_chat and not request.notes:
             return DebriefResponse(
                 summary="No interview activity recorded.",
                 strengths=[],
@@ -404,24 +409,45 @@ async def generate_debrief(room_name: str, request: DebriefRequest):
 
         chat_transcript = "\n".join([f"{msg.role.upper()}: {msg.content}" for msg in request.chat_history])
         
-        system_prompt = """You are an expert technical recruiter and hiring manager. 
-Your task is to generate a structured interview debrief based on the available signals from the interview.
+        # Select prompt strategy based on data quality
+        if has_transcript:
+            system_prompt = """You are an expert technical recruiter and hiring manager. 
+Your task is to generate a structured interview debrief based on the VERBATIM TRANSCRIPT of the interview.
 
-The signals are imperfect (we don't have a full transcript), so rely on:
-1. The Job Description & Resume (Context)
-2. The questions the interviewer asked the AI (which reveal what they were probing)
-3. Any notes provided by the interviewer
+Analyze the candidate's actual answers to evaluate their skills, communication style, and depth of knowledge.
+Look for specific evidence in their responses to support your recommendation.
 
 Output strictly valid JSON with the following structure:
 {
   "summary": "2-3 sentence executive summary of the candidate's fit",
-  "strengths": ["list", "of", "strong", "points"],
-  "improvements": ["list", "of", "areas", "for", "improvement"],
-  "follow_up_questions": ["3 specific questions for the next interviewer"],
+  "strengths": ["list", "of", "strong", "points", "with", "evidence"],
+  "improvements": ["list", "of", "missing", "skills", "or", "weak", "answers"],
+  "follow_up_questions": ["3 specific questions to dig deeper into weak areas"],
   "recommendation": "One of: Strong Hire, Hire, Leaning Hire, Leaning No Hire, No Hire"
 }"""
+            user_prompt = f"""
+### INTERVIEW CONTEXT
+{briefing_prompt}
 
-        user_prompt = f"""
+### INTERVIEWER NOTES
+{request.notes or "None provided"}
+
+### INTERVIEW TRANSCRIPT
+{request.transcript}
+"""
+        else:
+            # Fallback to inference mode
+            system_prompt = """You are an expert technical recruiter. 
+Your task is to generate a structured debrief based on IMPERFECT signals (we only have the interviewer's side-chat with AI, not the full audio transcript).
+
+Rely on:
+1. The Job Description (Context)
+2. The questions the interviewer asked the AI (which reveal what they were probing)
+3. Any notes provided
+
+Output strictly valid JSON (same structure as above)."""
+            
+            user_prompt = f"""
 ### INTERVIEW CONTEXT
 {briefing_prompt}
 
@@ -431,8 +457,7 @@ Output strictly valid JSON with the following structure:
 ### CHAT HISTORY (Questions interviewer asked AI helper)
 {chat_transcript}
 
-Based on what the interviewer was asking you (the AI) during the call, infer what topics were covered and where the concerns might be. 
-For example, if they asked for "red flags about job hopping", that's a signal of concern.
+Based on what the interviewer was asking you (the AI) during the call, infer what topics were covered and where the concerns might be.
 """
 
         # Call OpenRouter
@@ -492,3 +517,32 @@ For example, if they asked for "red flags about job hopping", that's a signal of
     except Exception as e:
         print(f"Debrief error: {type(e).__name__}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Debrief generation failed: {str(e)}")
+
+
+@router.post("/{room_name}/candidate")
+async def spawn_candidate(room_name: str):
+    """
+    Spawn the Immersive AI Candidate into the room
+    """
+    try:
+        # Get room details for URL
+        supabase = get_supabase_client()
+        room = await supabase.select_one("rooms", filters={"name": room_name})
+        
+        if not room:
+            raise HTTPException(status_code=404, detail="Room not found")
+            
+        daily_url = room["daily_room_url"]
+        
+        # Get briefing context
+        briefing_data = _briefings_cache.get(room_name, {})
+        
+        # Spawn Vapi agent
+        result = await vapi_service.create_candidate_agent(daily_url, briefing_data)
+        
+        return {"success": True, "call_id": result.get("id"), "details": result}
+        
+    except Exception as e:
+        print(f"Spawn candidate error: {type(e).__name__}: {str(e)}")
+        # Don't crash the UI if Vapi fails, but return valid error
+        raise HTTPException(status_code=500, detail=f"Failed to spawn candidate: {str(e)}")

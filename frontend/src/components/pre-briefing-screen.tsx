@@ -102,40 +102,22 @@ export default function PreBriefingScreen({
         // Start the agent
         const startAgent = async () => {
             try {
-                await vapi.start({
-                    transcriber: {
-                        provider: "deepgram",
-                        model: "nova-2",
-                        language: "en-US",
-                    },
-                    model: {
-                        provider: "openai",
-                        model: "gpt-4o-mini",
-                        messages: [
-                            {
-                                role: "system",
-                                content: `You are a warm, friendly, and supportive pre-interview briefing assistant. Think of yourself as a helpful colleague who's genuinely excited to help the interviewer prepare. 
-
-Your personality:
-- Warm and encouraging, like a supportive teammate
-- Conversational and natural, not robotic or formal
-- Concise but genuinely helpful
-- Use occasional phrases like "Great question!", "I love that", "Here's something interesting..."
-
-${briefingContext}
-
-Remember: The interviewer can start the video call anytime by clicking "Start Interview". Keep things light and helpful - this is meant to calm pre-interview nerves and boost confidence!`,
-                            },
-                        ],
-                    },
-                    voice: {
-                        provider: "11labs",
-                        voiceId: "EXAVITQu4vr4xnSDxMaL", // Bella - warm, friendly, expressive
-                    },
-                    firstMessage: `Hey ${participantName}! Great to chat with you before your interview. I've got the details on the candidate and the role - how can I help you feel ready?`,
+                console.log("[PreBriefing] Starting with context:", {
+                    participantName,
+                    briefingContextLength: briefingContext?.length || 0,
                 });
+
+                // Use saved assistant ID with dynamic context overrides
+                await vapi.start("1d5854df-2a62-47c1-94db-81d8bdf28255", {
+                    variableValues: {
+                        participantName: participantName,
+                        briefingContext: briefingContext || "No specific candidate information provided.",
+                    },
+                });
+
+                console.log("[PreBriefing] vapi.start() completed successfully");
             } catch (err) {
-                console.error("Failed to start Vapi:", err);
+                console.error("[PreBriefing] Failed to start Vapi:", err);
                 setError(err instanceof Error ? err.message : "Failed to start agent");
                 setIsStarting(false);
             }

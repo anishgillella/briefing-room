@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState, useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
+import Daily from "@daily-co/daily-js";
 import {
     DailyProvider,
     useDaily,
@@ -15,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getBriefing } from "@/lib/api";
+import useOpenAIRealtimeAgent from "@/components/openai-realtime-agent";
 
 // Dynamic import for AI sidebar
 const AIChatSidebar = dynamic(() => import("@/components/ai-chat-sidebar"), {
@@ -29,7 +31,7 @@ interface VideoRoomProps {
     participantType: "interviewer" | "candidate";
     participantName: string;
     onLeave?: () => void;
-    onEndInterview?: () => void;
+    onEndInterview?: (transcript?: string) => void;
 }
 
 function VideoTile({ sessionId, isLocal, label }: { sessionId: string; isLocal: boolean; label: string }) {
@@ -68,39 +70,42 @@ function VideoTile({ sessionId, isLocal, label }: { sessionId: string; isLocal: 
     );
 }
 
-// Simulated candidate tile with random avatar
-function SimulatedCandidateTile({ onRemove }: { onRemove: () => void }) {
+// AI Candidate tile with speaking indicator
+function AICandidateTile({ isSpeaking, onRemove, candidateName }: { isSpeaking: boolean; onRemove: () => void; candidateName: string }) {
     const randomId = useState(() => Math.floor(Math.random() * 70) + 1)[0];
 
     return (
-        <Card className="relative overflow-hidden col-span-1">
+        <Card className={`relative overflow-hidden col-span-1 ${isSpeaking ? "ring-2 ring-green-500" : ""}`}>
             <CardContent className="p-0 aspect-video bg-muted flex items-center justify-center">
                 <img
                     src={`https://i.pravatar.cc/400?img=${randomId}`}
-                    alt="Simulated Candidate"
+                    alt="AI Candidate"
                     className="w-full h-full object-cover"
                 />
                 <div className="absolute bottom-2 left-2 bg-black/60 text-white px-2 py-1 rounded text-sm flex items-center gap-2">
-                    <span>Candidate (Simulated)</span>
+                    <span className={isSpeaking ? "animate-pulse" : ""}>
+                        {isSpeaking ? "🗣️" : "🎧"} {candidateName} (AI)
+                    </span>
                 </div>
                 <button
                     onClick={onRemove}
                     className="absolute top-2 right-2 bg-red-500/80 text-white px-2 py-1 rounded text-xs hover:bg-red-600"
                 >
-                    ✕ Remove
+                    ✕ End
                 </button>
             </CardContent>
         </Card>
     );
 }
 
-function CallInterface({ roomUrl, roomName, token, participantType, participantName, onLeave }: {
+function CallInterface({ roomUrl, roomName, token, participantType, participantName, onLeave, onEndInterview }: {
     roomUrl: string;
     roomName: string;
     token: string;
     participantType: "interviewer" | "candidate";
     participantName: string;
     onLeave?: () => void;
+    onEndInterview?: (transcript?: string) => void;
 }) {
     const daily = useDaily();
     const localSessionId = useLocalSessionId();
@@ -110,22 +115,63 @@ function CallInterface({ roomUrl, roomName, token, participantType, participantN
     const [isMicOn, setIsMicOn] = useState(true);
     const [isJoining, setIsJoining] = useState(true);
     const [hasJoined, setHasJoined] = useState(false);
-    const [showSimulatedCandidate, setShowSimulatedCandidate] = useState(false);
+    const [showAICandidate, setShowAICandidate] = useState(false);
+    const [candidateName, setCandidateName] = useState("Candidate");
 
     // AI sidebar state (only for interviewer)
     const [showAISidebar, setShowAISidebar] = useState(false);
     const [briefingContext, setBriefingContext] = useState<string | undefined>(undefined);
 
-    // Fetch briefing context for AI sidebar
+    // State for live transcript (from OpenAI Realtime)
+    const [fullTranscript, setFullTranscript] = useState<string>("");
+
+    // Briefing data for AI candidate context
+    const [briefingData, setBriefingData] = useState<{
+        resume: string;
+        role: string;
+        jobDescription: string;
+    }>({ resume: "", role: "", jobDescription: "" });
+
+    // OpenAI Realtime Candidate Agent hook (replaces Vapi to avoid Daily conflict)
+    const candidateAgent = useOpenAIRealtimeAgent({
+        isActive: showAICandidate,
+        roomName: roomName,
+        candidateName: candidateName,
+        role: briefingData.role,
+        resume: briefingData.resume,
+        jobDescription: briefingData.jobDescription,
+        onStop: () => setShowAICandidate(false),
+        onTranscriptUpdate: (transcript) => {
+            // Convert transcript array to string for debrief
+            const formatted = transcript.map(m => `${m.role === "user" ? "Interviewer" : "Candidate"}: ${m.content}`).join("\n");
+            setFullTranscript(formatted);
+        },
+    });
+
+    // Fetch briefing context for AI sidebar and candidate name
     useEffect(() => {
         if (participantType === "interviewer" && roomName) {
             getBriefing(roomName)
                 .then((data) => {
                     setBriefingContext(data.briefing_prompt);
+                    // Extract candidate name from briefing
+                    if (data.candidate_name && data.candidate_name !== "the candidate") {
+                        setCandidateName(data.candidate_name);
+                    }
+                    // Store briefing data for AI candidate context
+                    setBriefingData({
+                        resume: data.resume_summary || "",
+                        role: data.role || "this position",
+                        jobDescription: data.notes || "",
+                    });
                 })
                 .catch(console.error);
         }
     }, [participantType, roomName]);
+
+    // ... (rest of effects) ...
+
+
 
     // Join the call when component mounts
     useEffect(() => {
@@ -152,10 +198,38 @@ function CallInterface({ roomUrl, roomName, token, participantType, participantN
         joinCall();
     }, [daily, roomUrl, token, participantName, hasJoined]);
 
+
+
     // Handle left-meeting event
     useDailyEvent("left-meeting", () => {
         setHasJoined(false);
         onLeave?.();
+    });
+
+    // Listen for transcription messages (handled as app-message for many integrations or transcription-message)
+    // Daily's transcription often comes as 'app-message' from the bot or 'transcription-message' event.
+    // We will listen for both to cover different Daily configuration modes.
+    useDailyEvent("app-message", (ev) => {
+        // Standard Daily AI transcription format often comes via app-message if not native
+        // But native transcription is 'transcription-message'
+        const data = ev?.data as any;
+        if (data?.event === "transcription" || data?.type === "transcription") {
+            const speaker = data.user_name || "Speaker";
+            const text = data.text;
+            if (text) {
+                setFullTranscript(prev => prev + `\n${speaker}: ${text}`);
+            }
+        }
+    });
+
+    // Also try the native transcription event if supported by the hook version
+    useDailyEvent("transcription-message" as any, (ev: any) => {
+        const speaker = ev.participantId === localSessionId ? "Interviewer" : "Candidate";
+        // Note: participantId needs to be mapped to name if possible, simplified here
+        const text = ev.text;
+        if (text) {
+            setFullTranscript(prev => prev + `\n${speaker}: ${text}`);
+        }
     });
 
     const toggleCamera = useCallback(() => {
@@ -178,7 +252,18 @@ function CallInterface({ roomUrl, roomName, token, participantType, participantN
         }
     }, [daily]);
 
-    // Show loading while joining
+
+
+    // Auto-hide AI candidate tile if real participant joins
+    useEffect(() => {
+        if (participantIds.length > 0) {
+            setShowAICandidate(false);
+        }
+    }, [participantIds]);
+
+    const hasRemoteParticipants = participantIds.length > 0 || showAICandidate;
+
+    // Show loading while joining (Must occur AFTER all hooks to prevent React errors)
     if (isJoining) {
         return (
             <div className="flex flex-col h-full items-center justify-center">
@@ -187,8 +272,6 @@ function CallInterface({ roomUrl, roomName, token, participantType, participantN
             </div>
         );
     }
-
-    const hasRemoteParticipants = participantIds.length > 0 || showSimulatedCandidate;
 
     return (
         <div className="flex flex-col h-full">
@@ -221,9 +304,16 @@ function CallInterface({ roomUrl, roomName, token, participantType, participantN
                     />
                 ))}
 
-                {/* Simulated candidate */}
-                {showSimulatedCandidate && (
-                    <SimulatedCandidateTile onRemove={() => setShowSimulatedCandidate(false)} />
+                {/* AI Candidate tile */}
+                {showAICandidate && (
+                    <AICandidateTile
+                        isSpeaking={candidateAgent.isSpeaking}
+                        onRemove={() => {
+                            candidateAgent.stop();
+                            setShowAICandidate(false);
+                        }}
+                        candidateName={candidateName}
+                    />
                 )}
 
                 {/* Waiting placeholder */}
@@ -237,9 +327,15 @@ function CallInterface({ roomUrl, roomName, token, participantType, participantN
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => setShowSimulatedCandidate(true)}
+                                    onClick={() => {
+                                        console.log("[VideoRoom] Connect to AI Candidate clicked!");
+                                        console.log("[VideoRoom] Current showAICandidate state:", showAICandidate);
+                                        // Activate the Vapi candidate agent
+                                        setShowAICandidate(true);
+                                        console.log("[VideoRoom] setShowAICandidate(true) called");
+                                    }}
                                 >
-                                    🎭 Simulate Candidate
+                                    🎭 Connect to AI Candidate
                                 </Button>
                             )}
                         </CardContent>
@@ -272,7 +368,11 @@ function CallInterface({ roomUrl, roomName, token, participantType, participantN
                             size="lg"
                             onClick={() => {
                                 // If end interview is provided (caller handles it), otherwise just leave
-                                if (onLeave) onLeave();
+                                if (onEndInterview) {
+                                    onEndInterview(fullTranscript);
+                                } else if (onLeave) {
+                                    onLeave();
+                                }
                             }}
                         >
                             End Interview
@@ -293,9 +393,16 @@ function CallInterface({ roomUrl, roomName, token, participantType, participantN
 }
 
 
-export default function VideoRoom({ roomUrl, roomName, token, participantType, participantName, onLeave }: VideoRoomProps) {
+export default function VideoRoom({ roomUrl, roomName, token, participantType, participantName, onLeave, onEndInterview }: VideoRoomProps) {
+    // Create callObject with allowMultipleCallInstances to avoid conflict with Vapi's Daily instance
+    const callObject = useMemo(() => {
+        return Daily.createCallObject({
+            allowMultipleCallInstances: true,
+        });
+    }, []);
+
     return (
-        <DailyProvider>
+        <DailyProvider callObject={callObject}>
             <CallInterface
                 roomUrl={roomUrl}
                 roomName={roomName}
@@ -303,6 +410,7 @@ export default function VideoRoom({ roomUrl, roomName, token, participantType, p
                 participantType={participantType}
                 participantName={participantName}
                 onLeave={onLeave}
+                onEndInterview={onEndInterview}
             />
         </DailyProvider>
     );

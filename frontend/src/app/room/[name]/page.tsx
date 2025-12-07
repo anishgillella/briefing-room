@@ -38,6 +38,7 @@ export default function RoomPage() {
     const [error, setError] = useState<string | null>(null);
     const [roomExists, setRoomExists] = useState<boolean | null>(null);
     const [showDebrief, setShowDebrief] = useState(false);
+    const [finalTranscript, setFinalTranscript] = useState<string | undefined>(undefined);
 
     // Check if room exists
     useEffect(() => {
@@ -85,8 +86,9 @@ export default function RoomPage() {
         router.push("/");
     };
 
-    const handleEndInterview = () => {
+    const handleEndInterview = (transcript?: string) => {
         // Transition to debrief screen
+        setFinalTranscript(transcript);
         setShowDebrief(true);
     };
 
@@ -114,6 +116,7 @@ export default function RoomPage() {
             <main className="min-h-screen bg-background text-foreground">
                 <DebriefScreen
                     roomName={roomName}
+                    transcript={finalTranscript}
                     onClose={handleLeave}
                 />
             </main>

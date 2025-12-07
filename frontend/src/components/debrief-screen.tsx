@@ -10,10 +10,11 @@ import ReactMarkdown from "react-markdown";
 
 interface DebriefScreenProps {
     roomName: string;
+    transcript?: string;
     onClose: () => void;
 }
 
-export default function DebriefScreen({ roomName, onClose }: DebriefScreenProps) {
+export default function DebriefScreen({ roomName, transcript, onClose }: DebriefScreenProps) {
     const [data, setData] = useState<DebriefResponse | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -22,9 +23,8 @@ export default function DebriefScreen({ roomName, onClose }: DebriefScreenProps)
         // Fetch debrief data on mount
         const fetchDebrief = async () => {
             try {
-                // In a real app, we'd pass the actual chat history here if we tracked it in frontend state
-                // For now, we'll let the backend use what it has stored or generate lightly
-                const result = await generateDebrief(roomName, []);
+                // Use the provided transcript, or fall back to empty array logic
+                const result = await generateDebrief(roomName, [], undefined, transcript);
                 setData(result);
             } catch (err) {
                 console.error("Debrief failed:", err);
