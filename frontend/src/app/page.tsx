@@ -24,7 +24,11 @@ const PreBriefingScreen = dynamic(() => import("@/components/pre-briefing-screen
   ),
 });
 
-type AppPhase = "join" | "briefing" | "interview";
+const DebriefScreen = dynamic(() => import("@/components/debrief-screen"), {
+  loading: () => null,
+});
+
+type AppPhase = "join" | "briefing" | "interview" | "debrief";
 
 interface RoomState {
   token: string;
@@ -39,6 +43,7 @@ export default function Home() {
   const [roomState, setRoomState] = useState<RoomState | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [finalTranscript, setFinalTranscript] = useState<string | undefined>(undefined);
 
   const handleJoin = async (data: {
     participantName: string;
@@ -107,6 +112,12 @@ export default function Home() {
     setPhase("join");
   };
 
+  const handleEndInterview = (transcript?: string) => {
+    console.log("[Home] handleEndInterview called, transcript length:", transcript?.length || 0);
+    setFinalTranscript(transcript);
+    setPhase("debrief");
+  };
+
   // Phase: Pre-Interview Briefing (interviewer only)
   if (phase === "briefing" && roomState) {
     return (
@@ -118,15 +129,25 @@ export default function Home() {
     );
   }
 
+  // Phase: Debrief
+  if (phase === "debrief" && roomState) {
+    return (
+      <main className="min-h-screen bg-background text-foreground">
+        <DebriefScreen
+          roomName={roomState.roomName}
+          transcript={finalTranscript}
+          onClose={handleLeave}
+        />
+      </main>
+    );
+  }
+
   // Phase: Interview (video room)
   if (phase === "interview" && roomState) {
     return (
-      <main className="h-screen flex flex-col">
-        {/* Room info bar */}
-        <div className="bg-muted px-4 py-2 flex justify-between items-center text-sm">
-          <span className="text-muted-foreground">
-            Room: <span className="font-mono text-foreground">{roomState.roomName}</span>
-          </span>
+      <main className="h-screen flex flex-col overflow-hidden">
+        <div className="p-2 bg-muted border-b flex items-center justify-between">
+          <span className="font-semibold">Room: {roomState.roomName}</span>
           <span className="text-muted-foreground">
             Share link: <span className="font-mono text-foreground select-all">
               {typeof window !== "undefined" ? `${window.location.origin}/room/${roomState.roomName}` : ""}
@@ -141,6 +162,7 @@ export default function Home() {
             participantType={roomState.participantType}
             participantName={roomState.participantName}
             onLeave={handleLeave}
+            onEndInterview={handleEndInterview}
           />
         </div>
       </main>

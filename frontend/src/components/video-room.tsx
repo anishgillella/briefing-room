@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, useEffect, useMemo } from "react";
+import { useCallback, useState, useEffect, useMemo, useRef } from "react";
 import dynamic from "next/dynamic";
 import Daily from "@daily-co/daily-js";
 import {
@@ -118,6 +118,9 @@ function CallInterface({ roomUrl, roomName, token, participantType, participantN
     const [showAICandidate, setShowAICandidate] = useState(false);
     const [candidateName, setCandidateName] = useState("Candidate");
 
+    // Ref to track if we're ending interview (to prevent onLeave redirect)
+    const isEndingInterviewRef = useRef(false);
+
     // AI sidebar state (only for interviewer)
     const [showAISidebar, setShowAISidebar] = useState(false);
     const [briefingContext, setBriefingContext] = useState<string | undefined>(undefined);
@@ -203,7 +206,10 @@ function CallInterface({ roomUrl, roomName, token, participantType, participantN
     // Handle left-meeting event
     useDailyEvent("left-meeting", () => {
         setHasJoined(false);
-        onLeave?.();
+        // Only call onLeave if we're NOT transitioning to debrief
+        if (!isEndingInterviewRef.current) {
+            onLeave?.();
+        }
     });
 
     // Listen for transcription messages (handled as app-message for many integrations or transcription-message)
@@ -367,11 +373,32 @@ function CallInterface({ roomUrl, roomName, token, participantType, participantN
                             className="bg-red-600 hover:bg-red-700 text-white"
                             size="lg"
                             onClick={() => {
-                                // If end interview is provided (caller handles it), otherwise just leave
+                                console.log("[VideoRoom] End Interview clicked");
+
+                                // Set flag BEFORE anything else to prevent onLeave redirect
+                                isEndingInterviewRef.current = true;
+
+                                // Stop the AI candidate agent if active
+                                if (showAICandidate) {
+                                    console.log("[VideoRoom] Stopping AI candidate agent...");
+                                    candidateAgent.stop();
+                                    setShowAICandidate(false);
+                                }
+
+                                // FIRST: Trigger transition to debrief (before Daily leave)
+                                console.log("[VideoRoom] Triggering debrief transition. Transcript length:", fullTranscript.length);
+                                console.log("[VideoRoom] onEndInterview defined?", !!onEndInterview, typeof onEndInterview);
                                 if (onEndInterview) {
+                                    console.log("[VideoRoom] Calling onEndInterview now");
                                     onEndInterview(fullTranscript);
-                                } else if (onLeave) {
-                                    onLeave();
+                                } else {
+                                    console.log("[VideoRoom] ERROR: onEndInterview is NOT defined!");
+                                }
+
+                                // THEN: Leave the Daily call (after parent state change)
+                                if (daily) {
+                                    console.log("[VideoRoom] Leaving Daily call...");
+                                    daily.leave();
                                 }
                             }}
                         >
@@ -394,6 +421,9 @@ function CallInterface({ roomUrl, roomName, token, participantType, participantN
 
 
 export default function VideoRoom({ roomUrl, roomName, token, participantType, participantName, onLeave, onEndInterview }: VideoRoomProps) {
+    // Debug log to trace prop passing
+    console.log("[VideoRoom Wrapper] onEndInterview received?", !!onEndInterview, typeof onEndInterview);
+
     // Create callObject with allowMultipleCallInstances to avoid conflict with Vapi's Daily instance
     const callObject = useMemo(() => {
         return Daily.createCallObject({

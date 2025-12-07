@@ -154,6 +154,40 @@ app.add_middleware(
 
 ---
 
+### Challenge 12: Debrief Not Appearing After End Interview
+**Symptom**: Clicking "End Interview" stayed on video room or went to home instead of debrief screen
+**Root Cause**: There are TWO page flows in the app:
+- `/app/page.tsx` (home page flow) - main entry point
+- `/app/room/[name]/page.tsx` (room page flow)
+
+The **home page flow** was missing:
+- `onEndInterview` prop on VideoRoom
+- `debrief` phase in the AppPhase type
+- `DebriefScreen` dynamic import
+- `handleEndInterview` handler
+
+**Detection**: Added console logs tracing prop from RoomPage → VideoRoom wrapper → CallInterface. Found `onEndInterview` was `undefined` at all levels, indicating the home page was the active flow.
+**Resolution**: Added full debrief support to `/app/page.tsx`:
+```tsx
+// Added debrief phase
+type AppPhase = "join" | "briefing" | "interview" | "debrief";
+
+// Added handler
+const handleEndInterview = (transcript) => {
+  setFinalTranscript(transcript);
+  setPhase("debrief");
+};
+
+// Added DebriefScreen render
+if (phase === "debrief") { return <DebriefScreen ... /> }
+
+// Passed prop to VideoRoom
+<VideoRoom onEndInterview={handleEndInterview} />
+```
+**Lesson**: When debugging prop issues, trace the ENTIRE component hierarchy using console logs at each level.
+
+---
+
 ## Lessons Learned
 
 1. **Test SDK integrations early** - Hidden dependencies (like Vapi using Daily) are hard to discover

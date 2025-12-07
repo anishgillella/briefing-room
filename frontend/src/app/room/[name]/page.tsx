@@ -77,6 +77,7 @@ export default function RoomPage() {
     };
 
     const handleLeave = () => {
+        console.log("[RoomPage] handleLeave called - this should redirect to home");
         // Clear session data
         sessionStorage.removeItem(`room_${roomName}_token`);
         sessionStorage.removeItem(`room_${roomName}_type`);
@@ -87,9 +88,13 @@ export default function RoomPage() {
     };
 
     const handleEndInterview = (transcript?: string) => {
+        console.log("[RoomPage] handleEndInterview called");
+        console.log("[RoomPage] Setting showDebrief to true");
+        console.log("[RoomPage] Transcript length:", transcript?.length || 0);
         // Transition to debrief screen
         setFinalTranscript(transcript);
         setShowDebrief(true);
+        console.log("[RoomPage] showDebrief state set to true");
     };
 
     // Show error if room doesn't exist
@@ -111,7 +116,9 @@ export default function RoomPage() {
     }
 
     // Show Debrief Screen
+    console.log("[RoomPage] Render check - showDebrief:", showDebrief, "roomState:", !!roomState);
     if (showDebrief) {
+        console.log("[RoomPage] Rendering DebriefScreen");
         return (
             <main className="min-h-screen bg-background text-foreground">
                 <DebriefScreen
@@ -125,6 +132,8 @@ export default function RoomPage() {
 
     // If we have room state, show the video room
     if (roomState) {
+        console.log("[RoomPage] Rendering VideoRoom");
+        console.log("[RoomPage] handleEndInterview defined?", !!handleEndInterview, typeof handleEndInterview);
         return (
             <main className="h-screen overflow-hidden">
                 <VideoRoom
@@ -134,7 +143,7 @@ export default function RoomPage() {
                     participantType={roomState.participantType}
                     participantName={roomState.participantName}
                     onLeave={handleLeave}
-                    onEndInterview={handleEndInterview} // Pass new handler
+                    onEndInterview={handleEndInterview}
                 />
             </main>
         );
