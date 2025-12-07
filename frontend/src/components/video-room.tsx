@@ -127,6 +127,8 @@ function CallInterface({ roomUrl, roomName, token, participantType, participantN
 
     // State for live transcript (from OpenAI Realtime)
     const [fullTranscript, setFullTranscript] = useState<string>("");
+    // Track when interview started for coach mode elapsed time
+    const [interviewStartTime] = useState<number>(Date.now());
 
     // Briefing data for AI candidate context
     const [briefingData, setBriefingData] = useState<{
@@ -288,6 +290,8 @@ function CallInterface({ roomUrl, roomName, token, participantType, participantN
                     briefingContext={briefingContext}
                     isOpen={showAISidebar}
                     onToggle={() => setShowAISidebar(!showAISidebar)}
+                    transcript={fullTranscript}
+                    interviewStartTime={interviewStartTime}
                 />
             )}
 

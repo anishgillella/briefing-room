@@ -1,0 +1,230 @@
+"""
+Analytics router for post-interview analysis using Gemini 2.5 Flash
+"""
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from typing import Optional
+import httpx
+import json
+
+from config import OPENROUTER_API_KEY, GEMINI_ANALYTICS_MODEL
+from models.analytics import InterviewAnalytics, QuestionAnswer, QuestionMetrics, OverallMetrics
+
+router = APIRouter(prefix="/analytics", tags=["analytics"])
+
+
+class AnalyticsRequest(BaseModel):
+    transcript: str
+    job_description: Optional[str] = None
+    resume: Optional[str] = None
+
+
+ANALYTICS_SYSTEM_PROMPT = """You are an expert interview analyst. Your task is to analyze an interview transcript and provide structured metrics.
+
+Given:
+- Job Description (if provided): Expectations for the role
+- Candidate Resume (if provided): Their background and experience
+- Interview Transcript: The conversation between interviewer and candidate
+
+Your analysis should:
+1. Extract ALL question-answer pairs from the transcript
+2. Classify each question as: technical, behavioral, situational, or other
+3. Score each answer (0-10) on:
+   - Relevance: Did they answer what was asked?
+   - Clarity: Was the response structured and easy to follow?
+   - Depth: Surface-level vs thorough exploration?
+   - Type-specific metric:
+     * For behavioral: "STAR Adherence" (Situation-Task-Action-Result)
+     * For technical: "Technical Accuracy"
+     * For situational: "Problem-Solving"
+     * For other: "Completeness"
+4. Calculate overall metrics
+5. Identify red flags (concerns) and highlights (standout moments)
+6. Provide a hiring recommendation with confidence level
+
+Be fair but rigorous. Excellent answers get 9-10, good answers 7-8, average 5-6, below average 3-4, poor 1-2."""
+
+
+ANALYTICS_USER_PROMPT = """Please analyze this interview:
+
+{context}
+
+## Interview Transcript:
+{transcript}
+
+Respond with a JSON object matching this exact structure:
+{{
+  "qa_pairs": [
+    {{
+      "question": "The question asked",
+      "answer": "Summary of candidate's response (max 200 words)",
+      "question_type": "technical|behavioral|situational|other",
+      "metrics": {{
+        "relevance": 0-10,
+        "clarity": 0-10,
+        "depth": 0-10,
+        "type_specific_metric": 0-10,
+        "type_specific_label": "STAR Adherence|Technical Accuracy|Problem-Solving|Completeness"
+      }},
+      "highlight": "Notable quote or null if not standout"
+    }}
+  ],
+  "overall": {{
+    "overall_score": 0-100,
+    "communication_score": 0.0-10.0,
+    "technical_score": 0.0-10.0,
+    "cultural_fit_score": 0.0-10.0,
+    "total_questions": number,
+    "avg_response_length": number (words),
+    "red_flags": ["concern 1", "concern 2"],
+    "highlights": ["strength 1", "strength 2"],
+    "recommendation": "Strong Hire|Hire|Leaning Hire|Leaning No Hire|No Hire",
+    "recommendation_reasoning": "1-2 sentence explanation of WHY this recommendation was given, citing specific evidence from the interview",
+    "confidence": 0-100
+  }},
+  "highlights": {{
+    "best_answer": {{
+      "quote": "Direct quote from their best response",
+      "context": "Why this answer was strong"
+    }},
+    "red_flag": {{
+      "quote": "Concerning quote if any, or null",
+      "context": "Why this is a concern"
+    }},
+    "quotable_moment": "A memorable quote that captures the candidate's personality/values",
+    "areas_to_probe": ["Topic 1 needing follow-up", "Topic 2"]
+  }}
+}}
+
+Return ONLY valid JSON, no markdown code blocks or additional text."""
+
+MAX_RETRIES = 2  # Number of retries on validation errors
+
+
+def normalize_analytics_data(data: dict) -> dict:
+    """
+    Normalize LLM output to handle common issues like null fields inside objects
+    """
+    if "highlights" in data and data["highlights"]:
+        highlights = data["highlights"]
+        
+        # Handle red_flag with null inner fields - convert to None
+        if "red_flag" in highlights and highlights["red_flag"]:
+            rf = highlights["red_flag"]
+            if isinstance(rf, dict) and (rf.get("quote") is None or rf.get("context") is None):
+                # LLM returned object with null fields - treat as no red flag
+                highlights["red_flag"] = None
+        
+        # Ensure quotable_moment is a string
+        if highlights.get("quotable_moment") is None:
+            highlights["quotable_moment"] = ""
+        
+        # Ensure areas_to_probe is a list
+        if highlights.get("areas_to_probe") is None:
+            highlights["areas_to_probe"] = []
+    
+    return data
+
+
+@router.post("/{room_name}")
+async def get_interview_analytics(room_name: str, request: AnalyticsRequest) -> InterviewAnalytics:
+    """
+    Analyze an interview transcript and return structured metrics.
+    Includes retry logic for validation errors.
+    """
+    if not OPENROUTER_API_KEY:
+        raise HTTPException(status_code=500, detail="OPENROUTER_API_KEY not configured")
+    
+    if not request.transcript or len(request.transcript.strip()) < 50:
+        raise HTTPException(status_code=400, detail="Transcript is too short for analysis")
+    
+    # Build context from optional inputs
+    context_parts = []
+    if request.job_description:
+        context_parts.append(f"## Job Description:\n{request.job_description}")
+    if request.resume:
+        context_parts.append(f"## Candidate Resume/Background:\n{request.resume}")
+    
+    context = "\n\n".join(context_parts) if context_parts else "No additional context provided."
+    
+    user_prompt = ANALYTICS_USER_PROMPT.format(
+        context=context,
+        transcript=request.transcript
+    )
+    
+    last_error = None
+    
+    for attempt in range(MAX_RETRIES + 1):
+        try:
+            async with httpx.AsyncClient(timeout=120.0) as client:
+                response = await client.post(
+                    "https://openrouter.ai/api/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                        "Content-Type": "application/json",
+                        "HTTP-Referer": "http://localhost:3000",
+                        "X-Title": "Briefing Room Analytics"
+                    },
+                    json={
+                        "model": GEMINI_ANALYTICS_MODEL,
+                        "messages": [
+                            {"role": "system", "content": ANALYTICS_SYSTEM_PROMPT},
+                            {"role": "user", "content": user_prompt}
+                        ],
+                        "temperature": 0.3 + (attempt * 0.1),  # Slightly increase temp on retry
+                        "response_format": {"type": "json_object"}
+                    }
+                )
+                
+                if response.status_code != 200:
+                    error_text = response.text
+                    print(f"[Analytics] OpenRouter error: {response.status_code} - {error_text}")
+                    raise HTTPException(status_code=500, detail=f"Analytics API error: {response.status_code}")
+                
+                result = response.json()
+                content = result["choices"][0]["message"]["content"]
+                
+                # Parse and validate with Pydantic
+                try:
+                    analytics_data = json.loads(content)
+                    
+                    # Normalize data to handle common LLM output issues
+                    analytics_data = normalize_analytics_data(analytics_data)
+                    
+                    analytics = InterviewAnalytics(**analytics_data)
+                    print(f"[Analytics] Successfully analyzed {analytics.overall.total_questions} Q&A pairs (attempt {attempt + 1})")
+                    return analytics
+                    
+                except json.JSONDecodeError as e:
+                    print(f"[Analytics] JSON parse error (attempt {attempt + 1}): {e}")
+                    print(f"[Analytics] Raw content: {content[:500]}")
+                    last_error = f"Failed to parse analytics response: {str(e)}"
+                    if attempt < MAX_RETRIES:
+                        continue  # Retry
+                    raise HTTPException(status_code=500, detail=last_error)
+                    
+                except Exception as e:
+                    print(f"[Analytics] Validation error (attempt {attempt + 1}): {e}")
+                    last_error = f"Analytics validation error: {str(e)}"
+                    if attempt < MAX_RETRIES:
+                        print(f"[Analytics] Retrying... ({attempt + 2}/{MAX_RETRIES + 1})")
+                        continue  # Retry with different temperature
+                    raise HTTPException(status_code=500, detail=last_error)
+                    
+        except httpx.TimeoutException:
+            last_error = "Analytics request timed out"
+            if attempt < MAX_RETRIES:
+                continue
+            raise HTTPException(status_code=504, detail=last_error)
+        except HTTPException:
+            raise
+        except Exception as e:
+            print(f"[Analytics] Unexpected error (attempt {attempt + 1}): {type(e).__name__}: {str(e)}")
+            last_error = f"Analytics failed: {str(e)}"
+            if attempt < MAX_RETRIES:
+                continue
+            raise HTTPException(status_code=500, detail=last_error)
+    
+    # Should not reach here, but just in case
+    raise HTTPException(status_code=500, detail=last_error or "Analytics failed after retries")
+
