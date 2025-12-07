@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import rooms, realtime
+from routers import rooms, realtime, analytics, coach
 
 app = FastAPI(
     title="Briefing Room API",
@@ -20,6 +20,8 @@ app.add_middleware(
 # Include routers
 app.include_router(rooms.router, prefix="/api")
 app.include_router(realtime.router, prefix="/api")
+app.include_router(analytics.router, prefix="/api")
+app.include_router(coach.router, prefix="/api")
 
 
 @app.get("/health")

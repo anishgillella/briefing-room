@@ -5,6 +5,7 @@ import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { getCoachSuggestion, CoachSuggestion } from "@/lib/api";
 
 interface Message {
     role: "user" | "assistant";
@@ -16,17 +17,48 @@ interface AIChatSidebarProps {
     briefingContext?: string;
     isOpen: boolean;
     onToggle: () => void;
+    transcript?: string;  // Live transcript for coach mode
+    interviewStartTime?: number;  // When interview started (for elapsed time)
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const MIN_WIDTH = 320;
 const MAX_WIDTH = 800;
 
+// Detect when a Q&A exchange completes (Interviewer asks, Candidate answers)
+function extractLastExchange(transcript: string): string | null {
+    // Look for pattern: "Interviewer: ..." followed by "Candidate: ..."
+    const lines = transcript.split('\n').filter(l => l.trim());
+    if (lines.length < 2) return null;
+
+    // Find the last complete exchange
+    let lastInterviewerIdx = -1;
+    let lastCandidateIdx = -1;
+
+    for (let i = lines.length - 1; i >= 0; i--) {
+        const line = lines[i].toLowerCase();
+        if (line.includes('candidate:') && lastCandidateIdx === -1) {
+            lastCandidateIdx = i;
+        }
+        if (line.includes('interviewer:') && lastCandidateIdx !== -1 && lastInterviewerIdx === -1) {
+            lastInterviewerIdx = i;
+            break;
+        }
+    }
+
+    if (lastInterviewerIdx !== -1 && lastCandidateIdx !== -1) {
+        return lines.slice(lastInterviewerIdx, lastCandidateIdx + 1).join('\n');
+    }
+    return null;
+}
+
 export default function AIChatSidebar({
     roomName,
     briefingContext,
     isOpen,
-    onToggle
+    onToggle,
+    transcript,
+    interviewStartTime
 }: AIChatSidebarProps) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
@@ -35,6 +67,11 @@ export default function AIChatSidebar({
     // Resize state
     const [width, setWidth] = useState(MIN_WIDTH);
     const [isResizing, setIsResizing] = useState(false);
+
+    // Coach Mode state
+    const [coachSuggestion, setCoachSuggestion] = useState<CoachSuggestion | null>(null);
+    const [lastProcessedExchange, setLastProcessedExchange] = useState<string>("");
+    const [isCoachLoading, setIsCoachLoading] = useState(false);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -62,7 +99,7 @@ export default function AIChatSidebar({
             window.addEventListener("mousemove", handleMouseMove);
             window.addEventListener("mouseup", handleMouseUp);
             document.body.style.cursor = "ew-resize";
-            document.body.style.userSelect = "none"; // Prevent text selection while dragging
+            document.body.style.userSelect = "none";
         }
 
         return () => {
@@ -78,10 +115,44 @@ export default function AIChatSidebar({
         if (messages.length === 0 && briefingContext) {
             setMessages([{
                 role: "assistant",
-                content: "I'm here to help during the interview. Ask me for question suggestions, red flags to watch for, or anything about the candidate's background."
+                content: "I'm here to help during the interview. After each Q&A exchange, I'll suggest the next question to ask."
             }]);
         }
     }, [briefingContext, messages.length]);
+
+    // Coach Mode: Detect Q&A exchanges and get suggestions
+    useEffect(() => {
+        if (!transcript || !interviewStartTime || !isOpen) return;
+
+        const lastExchange = extractLastExchange(transcript);
+        if (!lastExchange || lastExchange === lastProcessedExchange) return;
+
+        const fetchCoachSuggestion = async () => {
+            setIsCoachLoading(true);
+            const elapsedMinutes = Math.floor((Date.now() - interviewStartTime) / 60000);
+
+            try {
+                const suggestion = await getCoachSuggestion(
+                    lastExchange,
+                    transcript,
+                    elapsedMinutes,
+                    briefingContext
+                );
+                setCoachSuggestion(suggestion);
+                setLastProcessedExchange(lastExchange);
+            } catch (err) {
+                console.error("Coach suggestion failed:", err);
+            } finally {
+                setIsCoachLoading(false);
+            }
+        };
+
+        const timer = setTimeout(fetchCoachSuggestion, 500); // Small debounce
+        return () => clearTimeout(timer);
+    }, [transcript, interviewStartTime, isOpen, lastProcessedExchange, briefingContext]);
+
+    const dismissSuggestion = () => setCoachSuggestion(null);
+
 
     const sendMessage = useCallback(async () => {
         if (!input.trim() || isLoading) return;
@@ -100,7 +171,7 @@ export default function AIChatSidebar({
                 body: JSON.stringify({
                     message: userMessage,
                     context: briefingContext,
-                    history: messages.slice(-6), // Last 6 messages for context
+                    history: messages.slice(-6),
                 }),
             });
 
@@ -184,6 +255,65 @@ export default function AIChatSidebar({
                     </Button>
                 ))}
             </div>
+
+            {/* Coach Mode Suggestion Banner - Shows suggested next question */}
+            {coachSuggestion && (
+                <div className="mx-3 mt-2 p-3 rounded-lg border bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30 border-violet-200 dark:border-violet-700 animate-in slide-in-from-top-2">
+                    <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1">
+                            {/* Answer quality indicator */}
+                            <div className="flex items-center gap-2 mb-2">
+                                <span className={`text-xs px-2 py-0.5 rounded-full ${coachSuggestion.answer_quality === "strong" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" :
+                                        coachSuggestion.answer_quality === "adequate" ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" :
+                                            coachSuggestion.answer_quality === "weak" ? "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200" :
+                                                "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
+                                    }`}>
+                                    {coachSuggestion.answer_quality === "strong" && "✓ Strong answer"}
+                                    {coachSuggestion.answer_quality === "adequate" && "○ Adequate"}
+                                    {coachSuggestion.answer_quality === "weak" && "⚠ Needs probing"}
+                                    {coachSuggestion.answer_quality === "unclear" && "? Unclear"}
+                                </span>
+                                {coachSuggestion.should_change_topic && (
+                                    <span className="text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
+                                        🔄 Change topic
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* Suggested next question */}
+                            <p className="text-sm font-medium text-foreground mb-1">
+                                💡 Ask next:
+                            </p>
+                            <p className="text-sm text-violet-900 dark:text-violet-100 italic bg-white/50 dark:bg-black/20 p-2 rounded">
+                                "{coachSuggestion.suggested_next_question}"
+                            </p>
+
+                            {/* Reasoning */}
+                            <p className="text-xs text-muted-foreground mt-2">
+                                {coachSuggestion.reasoning}
+                            </p>
+
+                            {/* Topic suggestion if changing */}
+                            {coachSuggestion.topic_suggestion && (
+                                <p className="text-xs text-orange-700 dark:text-orange-300 mt-1">
+                                    → Move to: {coachSuggestion.topic_suggestion}
+                                </p>
+                            )}
+                        </div>
+                        <Button variant="ghost" size="sm" className="shrink-0 h-6 w-6 p-0" onClick={dismissSuggestion}>
+                            ✕
+                        </Button>
+                    </div>
+                </div>
+            )}
+
+            {/* Loading indicator for coach */}
+            {isCoachLoading && (
+                <div className="mx-3 mt-2 p-2 rounded-lg border border-dashed flex items-center gap-2 text-sm text-muted-foreground">
+                    <span className="animate-spin">🔍</span>
+                    Analyzing last exchange...
+                </div>
+            )}
 
             {/* Messages - scrollable, takes remaining space */}
             <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-0">

@@ -10,6 +10,7 @@ Technical documentation for the Briefing Room interview training platform.
 | `architecture.md` | System architecture, data flow, tech stack |
 | `ai-candidate-agent.md` | AI candidate feature design (updated for OpenAI Realtime) |
 | `transcription.md` | Real-time transcription implementation |
+| `interview-analytics.md` | Post-interview analytics with Gemini 2.5 Flash |
 
 ## Quick Links
 

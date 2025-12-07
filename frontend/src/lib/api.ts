@@ -162,15 +162,122 @@ export async function generateDebrief(
     return response.json();
 }
 
-export async function spawnCandidate(roomName: string): Promise<{ success: boolean; call_id: string }> {
-    const response = await fetch(`${API_BASE_URL}/api/rooms/${roomName}/candidate`, {
+// Interview Analytics types
+export interface QuestionMetrics {
+    relevance: number;
+    clarity: number;
+    depth: number;
+    type_specific_metric: number;
+    type_specific_label: string;
+}
+
+export interface QuestionAnswer {
+    question: string;
+    answer: string;
+    question_type: "technical" | "behavioral" | "situational" | "other";
+    metrics: QuestionMetrics;
+    highlight: string | null;
+}
+
+export interface OverallMetrics {
+    overall_score: number;
+    communication_score: number;
+    technical_score: number;
+    cultural_fit_score: number;
+    total_questions: number;
+    avg_response_length: number;
+    red_flags: string[];
+    highlights: string[];
+    recommendation: "Strong Hire" | "Hire" | "Leaning Hire" | "Leaning No Hire" | "No Hire";
+    recommendation_reasoning: string;
+    confidence: number;
+}
+
+export interface HighlightItem {
+    quote: string;
+    context: string;
+}
+
+export interface InterviewHighlights {
+    best_answer: HighlightItem;
+    red_flag: HighlightItem | null;
+    quotable_moment: string;
+    areas_to_probe: string[];
+}
+
+export interface InterviewAnalytics {
+    qa_pairs: QuestionAnswer[];
+    overall: OverallMetrics;
+    highlights: InterviewHighlights;
+}
+
+export async function getInterviewAnalytics(
+    roomName: string,
+    transcript: string,
+    jobDescription?: string,
+    resume?: string
+): Promise<InterviewAnalytics> {
+    const response = await fetch(`${API_BASE_URL}/api/analytics/${roomName}`, {
         method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            transcript,
+            job_description: jobDescription,
+            resume,
+        }),
     });
 
     if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.detail || "Failed to spawn candidate agent");
+        throw new Error(error.detail || "Failed to get interview analytics");
     }
 
     return response.json();
 }
+
+// Coach Mode types and API - suggests next question after each Q&A exchange
+export interface CoachSuggestion {
+    last_question_type: string;
+    answer_quality: "strong" | "adequate" | "weak" | "unclear";
+    suggested_next_question: string;
+    reasoning: string;
+    should_change_topic: boolean;
+    topic_suggestion: string | null;
+}
+
+export async function getCoachSuggestion(
+    lastExchange: string,
+    fullTranscript: string,
+    elapsedMinutes: number,
+    briefingContext?: string
+): Promise<CoachSuggestion> {
+    const response = await fetch(`${API_BASE_URL}/api/coach/suggest`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            last_exchange: lastExchange,
+            full_transcript: fullTranscript,
+            elapsed_minutes: elapsedMinutes,
+            briefing_context: briefingContext,
+        }),
+    });
+
+    if (!response.ok) {
+        // Return default suggestion on error
+        return {
+            last_question_type: "other",
+            answer_quality: "adequate",
+            suggested_next_question: "Continue with your planned questions",
+            reasoning: "API error",
+            should_change_topic: false,
+            topic_suggestion: null
+        };
+    }
+
+    return response.json();
+}
+
