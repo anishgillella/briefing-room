@@ -144,6 +144,16 @@ app.add_middleware(
 
 ---
 
+### Challenge 11: OpenAI Realtime API Quota/Billing Error
+**Symptom**: Connection establishes successfully, but AI responses fail immediately with no audio
+**Error**: `{"type": "insufficient_quota", "code": "insufficient_quota", "message": "You exceeded your current quota..."}`
+**Cause**: OpenAI Realtime API requires sufficient account credits. It costs ~$0.06/min input + $0.24/min output
+**Detection**: Added detailed logging for `response.done` events to see `status_details.error`
+**Resolution**: Add credits to OpenAI account at platform.openai.com/settings/organization/billing
+**Note**: The code is correct - this is purely a billing/quota issue, not a bug
+
+---
+
 ## Lessons Learned
 
 1. **Test SDK integrations early** - Hidden dependencies (like Vapi using Daily) are hard to discover
@@ -151,6 +161,7 @@ app.add_middleware(
 3. **Have fallback options** - Voice AI is complex, have backup providers ready
 4. **Hook ordering matters** - React Strict Mode catches these in dev, pay attention
 5. **Document as you go** - Challenges are easier to explain right after solving
+6. **Check API quotas early** - Billing issues can block testing even when code is correct
 
 ---
 
