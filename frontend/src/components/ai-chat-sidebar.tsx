@@ -68,8 +68,8 @@ export default function AIChatSidebar({
     const [width, setWidth] = useState(MIN_WIDTH);
     const [isResizing, setIsResizing] = useState(false);
 
-    // Coach Mode state
-    const [coachSuggestion, setCoachSuggestion] = useState<CoachSuggestion | null>(null);
+    // Coach Mode state - keep history of all suggestions
+    const [coachSuggestions, setCoachSuggestions] = useState<CoachSuggestion[]>([]);
     const [lastProcessedExchange, setLastProcessedExchange] = useState<string>("");
     const [isCoachLoading, setIsCoachLoading] = useState(false);
 
@@ -138,7 +138,8 @@ export default function AIChatSidebar({
                     elapsedMinutes,
                     briefingContext
                 );
-                setCoachSuggestion(suggestion);
+                // Add to array instead of replacing
+                setCoachSuggestions(prev => [...prev, suggestion]);
                 setLastProcessedExchange(lastExchange);
             } catch (err) {
                 console.error("Coach suggestion failed:", err);
@@ -151,7 +152,9 @@ export default function AIChatSidebar({
         return () => clearTimeout(timer);
     }, [transcript, interviewStartTime, isOpen, lastProcessedExchange, briefingContext]);
 
-    const dismissSuggestion = () => setCoachSuggestion(null);
+    const dismissSuggestion = (index: number) => {
+        setCoachSuggestions(prev => prev.filter((_, i) => i !== index));
+    };
 
 
     const sendMessage = useCallback(async () => {
@@ -256,54 +259,52 @@ export default function AIChatSidebar({
                 ))}
             </div>
 
-            {/* Coach Mode Suggestion Banner - Shows suggested next question */}
-            {coachSuggestion && (
-                <div className="mx-3 mt-2 p-3 rounded-lg border bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30 border-violet-200 dark:border-violet-700 animate-in slide-in-from-top-2">
-                    <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1">
-                            {/* Answer quality indicator */}
-                            <div className="flex items-center gap-2 mb-2">
-                                <span className={`text-xs px-2 py-0.5 rounded-full ${coachSuggestion.answer_quality === "strong" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" :
-                                        coachSuggestion.answer_quality === "adequate" ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" :
-                                            coachSuggestion.answer_quality === "weak" ? "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200" :
-                                                "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
-                                    }`}>
-                                    {coachSuggestion.answer_quality === "strong" && "✓ Strong answer"}
-                                    {coachSuggestion.answer_quality === "adequate" && "○ Adequate"}
-                                    {coachSuggestion.answer_quality === "weak" && "⚠ Needs probing"}
-                                    {coachSuggestion.answer_quality === "unclear" && "? Unclear"}
-                                </span>
-                                {coachSuggestion.should_change_topic && (
-                                    <span className="text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
-                                        🔄 Change topic
-                                    </span>
-                                )}
+            {/* Coach Mode Suggestions - Shows all suggestions with newest first */}
+            {coachSuggestions.length > 0 && (
+                <div className="mx-3 mt-2 space-y-2 max-h-64 overflow-y-auto">
+                    {[...coachSuggestions].reverse().map((suggestion, reverseIdx) => {
+                        const originalIndex = coachSuggestions.length - 1 - reverseIdx;
+                        return (
+                            <div key={originalIndex} className="p-3 rounded-lg border bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30 border-violet-200 dark:border-violet-700">
+                                <div className="flex items-start justify-between gap-2">
+                                    <div className="flex-1">
+                                        {/* Answer quality indicator */}
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className={`text-xs px-2 py-0.5 rounded-full ${suggestion.answer_quality === "strong" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" :
+                                                    suggestion.answer_quality === "adequate" ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" :
+                                                        suggestion.answer_quality === "weak" ? "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200" :
+                                                            "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
+                                                }`}>
+                                                {suggestion.answer_quality === "strong" && "✓ Strong"}
+                                                {suggestion.answer_quality === "adequate" && "○ OK"}
+                                                {suggestion.answer_quality === "weak" && "⚠ Probe"}
+                                                {suggestion.answer_quality === "unclear" && "?"}
+                                            </span>
+                                            {suggestion.should_change_topic && (
+                                                <span className="text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
+                                                    🔄 Topic
+                                                </span>
+                                            )}
+                                            <span className="text-xs text-muted-foreground">#{originalIndex + 1}</span>
+                                        </div>
+
+                                        {/* Suggested next question */}
+                                        <p className="text-sm text-violet-900 dark:text-violet-100 italic bg-white/50 dark:bg-black/20 p-2 rounded">
+                                            "{suggestion.suggested_next_question}"
+                                        </p>
+
+                                        {/* Reasoning */}
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            {suggestion.reasoning}
+                                        </p>
+                                    </div>
+                                    <Button variant="ghost" size="sm" className="shrink-0 h-5 w-5 p-0 opacity-50 hover:opacity-100" onClick={() => dismissSuggestion(originalIndex)}>
+                                        ✕
+                                    </Button>
+                                </div>
                             </div>
-
-                            {/* Suggested next question */}
-                            <p className="text-sm font-medium text-foreground mb-1">
-                                💡 Ask next:
-                            </p>
-                            <p className="text-sm text-violet-900 dark:text-violet-100 italic bg-white/50 dark:bg-black/20 p-2 rounded">
-                                "{coachSuggestion.suggested_next_question}"
-                            </p>
-
-                            {/* Reasoning */}
-                            <p className="text-xs text-muted-foreground mt-2">
-                                {coachSuggestion.reasoning}
-                            </p>
-
-                            {/* Topic suggestion if changing */}
-                            {coachSuggestion.topic_suggestion && (
-                                <p className="text-xs text-orange-700 dark:text-orange-300 mt-1">
-                                    → Move to: {coachSuggestion.topic_suggestion}
-                                </p>
-                            )}
-                        </div>
-                        <Button variant="ghost" size="sm" className="shrink-0 h-6 w-6 p-0" onClick={dismissSuggestion}>
-                            ✕
-                        </Button>
-                    </div>
+                        );
+                    })}
                 </div>
             )}
 
@@ -311,7 +312,7 @@ export default function AIChatSidebar({
             {isCoachLoading && (
                 <div className="mx-3 mt-2 p-2 rounded-lg border border-dashed flex items-center gap-2 text-sm text-muted-foreground">
                     <span className="animate-spin">🔍</span>
-                    Analyzing last exchange...
+                    Analyzing...
                 </div>
             )}
 
