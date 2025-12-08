@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { PreInterviewBrief } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -178,7 +177,7 @@ export default function PreInterviewBriefComponent({ brief, onActivateVoice, isV
                 </div>
             </div>
 
-            {/* Scrollable Content - Single Page */}
+            {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto">
                 <div className="max-w-5xl mx-auto p-6 space-y-8">
 

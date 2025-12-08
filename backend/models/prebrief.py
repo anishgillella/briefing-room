@@ -91,3 +91,4 @@ class PreInterviewBrief(BaseModel):
     # Quick reference
     tldr: str = Field(..., description="2-3 sentence executive summary")
     key_things_to_remember: list[str] = Field(..., description="3-5 bullet points to keep in mind")
+

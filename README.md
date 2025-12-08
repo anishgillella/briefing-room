@@ -31,12 +31,6 @@ Let's make those minutes collaborative, calm, and effective.
 - **Q&A Analysis**: Question quality assessment and conversation balance metrics
 - **Next Round Recommendations**: AI-suggested questions for follow-up interviews
 
-### 🎨 Premium UI/UX
-- **Dark Mode Design**: Sleek slate-950 background with violet/emerald accents
-- **Glassmorphism Effects**: Backdrop blur, subtle borders, and depth
-- **Mission Control Aesthetic**: Data-dense, professional interface inspired by space control centers
-- **Responsive Layout**: Optimized for various screen sizes with proper overflow handling
-
 ---
 
 ## Tech Stack
@@ -166,6 +160,33 @@ npm run dev
 2. **Interview** - Join video call, standard interview experience
 3. **Done** - Simple "Leave Call" button when finished
 
+### 🔒 Security: AI Features Hidden from Candidates
+
+The AI coaching features (chat sidebar, suggestions, briefing) are **only visible to the interviewer**. Here's how to ensure separation:
+
+#### Production-Ready Options
+
+**Option 1: Role-Based Routes (Recommended)**
+```
+/room/[roomName]           → Interviewer view (AI features)
+/room/[roomName]/candidate → Candidate view (video only)
+```
+Check the route to conditionally hide AI components. Most secure and cleanest UX.
+
+**Option 2: Authentication Tokens**
+Generate two different tokens when creating a room:
+- Interviewer token → unlocks AI features
+- Candidate token → video only
+
+Validate tokens server-side for true security.
+
+**Option 3: Query Parameter**
+```
+/room/abc123?role=interviewer  → Full features
+/room/abc123                   → Video only (default)
+```
+Simpler but less secure (query params can be guessed).
+
 ---
 
 ## Design Decisions & Tradeoffs
@@ -175,36 +196,56 @@ npm run dev
 **Reason**: Vapi internally uses Daily.co, causing instance conflicts with our video room  
 **Tradeoff**: OpenAI Realtime is more expensive (~$0.30/min) but doesn't conflict with video
 
-###2. In-Memory vs Database Storage
-**Decision**: Use in-memory dict for briefing/debrief data  
-**Reason**: Faster setup, no database dependencies for demo  
-**Tradeoff**: Data lost on server restart. Production would use Supabase or PostgreSQL
+### 2. Visual Briefing First, Voice Agent as Add-On
+**Decision**: Prioritize the visual briefing dashboard over voice-only interaction  
+**Reason**: Research shows humans learn and retain information faster visually than through audio. The briefing screen displays candidate claims, alignment with job requirements, and areas of concern in a scannable format  
+**Voice Agent Role**: Available for interviewers who prefer hands-free prep or have follow-up questions. The voice agent has full context (resume, job description, briefing) and can answer any clarifying questions
 
-### 3. State Caching for Briefing Dashboard
-**Decision**: Lift briefing state to parent (`page.tsx`) instead of re-fetching  
-**Reason**: Briefs are expensive to generate (Gemini 2.5 Flash API call)  
-**Implementation**: Pass `initialBrief` prop from PreBriefingScreen → VideoRoom  
-**Benefit**: Instant overlay load during interview
+### 3. Context-Aware Coaching (Not Time-Based)
+**Decision**: Show coaching suggestions based on answer quality, not fixed intervals  
+**Reason**: After each candidate response, we analyze the answer and suggest whether to probe deeper or move on  
+**Implementation**: Real-time analysis of conversation flow provides relevant follow-up questions
 
-### 4. Glassmorphism UI Design
-**Decision**: Dark mode with glass-morphism instead of light traditional UI  
-**Reason**: Modern, premium aesthetic that stands out. Reduces eye strain in long interviews  
-**Tradeoff**: Accessibility (contrast) requires careful color selection
+### 4. Gemini 2.5 Flash for LLM Calls
+**Decision**: Use Gemini 2.5 Flash via OpenRouter for all text generation  
+**Reason**: 128K token context window handles even long interviews (30-90 min). Most interviews stay well under this limit  
+**Tradeoff**: Perfect balance of cost, latency, context size, and intelligence for interview analysis
 
-### 5. Modal Overlay vs Navigation for Briefing Access
-**Decision**: Fixed modal overlay instead of navigation/route change  
-**Reason**: Keeps user mentally "in the interview." Video context visible behind blur  
-**Implementation**: `fixed inset-0 z-50` with backdrop blur, constrained `max-w-6xl h-[90vh]`
+### 5. In-Memory Single-Session Storage
+**Decision**: Use in-memory dict for briefing/debrief data (single interview instance)  
+**Reason**: Time constraint - focused on core experience over persistence  
+**Tradeoff**: Data lost on server restart; interviews are independent of each other. Production would use Supabase for cross-interview analytics
 
-### 6. Two-Column Video Grid vs Auto-Grid
-**Decision**: Force 2-column grid with equal-sized tiles  
-**Reason**: Ensures interviewer and candidate frames are visually equal (power balance)  
-**Implementation**: Wrap each tile in `min-h-[300px]` divs within `grid-cols-2`
+---
 
-### 7. Coach Mode Timing Logic
-**Decision**: Show coach suggestions every 5 minutes, track elapsed time  
-**Reason**: Avoid overwhelming interviewer with constant pings  
-**Implementation**: Store `interviewStartTime`, calculate elapsed in sidebar
+## Product Vision: Interview Intelligence Platform
+
+This project is a **foundation for something much bigger**. Here's how a single interview tool evolves into an enterprise-grade hiring intelligence platform:
+
+### Phase 1: Single Interview (Current ✅)
+- Pre-brief → In-interview coaching → Shareable debrief artifact
+- Voice AI for hands-free preparation
+- Real-time chat coaching during interviews
+
+### Phase 2: Interview History
+**Problem**: Hiring decisions are made based on a single interview snapshot. Previous interviews with the same candidate are lost.  
+**Solution**: Aggregate all interviews for a candidate into a unified view. Surface patterns across interviewers.  
+**Example**: *"3 of 4 interviewers flagged 'communication' as a concern. Is this a real signal or are they anchoring on the same data?"*
+
+### Phase 3: Calibration & Consistency
+**Problem**: Interviewers aren't calibrated. One person's "strong yes" means nothing because we don't track if their "yes" candidates actually succeed.  
+**Solution**: Link interview scores to 1-year retention and performance outcomes. Build an interviewer effectiveness score.  
+**Example**: *"Priya's 'strong yes' candidates have 85% 1-year retention. Mike's have 40%. Trust Priya's signal more."*
+
+### Phase 4: Hiring Funnel Intelligence
+**Problem**: Companies don't know where their hiring process breaks down. They optimize blindly.  
+**Solution**: Track conversion rates at each stage. Identify which interview rounds lose the best candidates. A/B test different question sets.  
+**Example**: *"60% of candidates fail the system design round, but system design scores don't correlate with job performance. Consider removing it."*
+
+### Phase 5: The Knowledge Graph
+**Problem**: Institutional knowledge walks out when interviewers leave. Every interviewer asks questions differently.  
+**Solution**: Build a corpus of every question asked and every answer given. Pattern match against successful hires to surface what actually predicts success.  
+**Example**: *"Here's how your last 50 successful hires answered 'Tell me about a conflict with a manager.' Compare this candidate's answer."*
 
 ---
 
@@ -213,13 +254,11 @@ npm run dev
 ### With 2 More Days
 
 1. **Persistent Storage**: Migrate to Supabase for interview history
-2. **Interview Library**: Browse past interviews, compare candidates
-3. **Team Collaboration**: Share debriefs with hiring team, add comments
-4. **Candidate Portal**: Post-interview feedback and next steps
-5. **Email Integration**: Auto-send calendar invites and debriefs
-6. **Advanced Analytics**: Trend analysis across multiple interviews
-7. **Mobile Responsive**: Optimize for tablet/mobile interviewer experience
-8. **Custom Scoring Rubrics**: Allow teams to define their own evaluation dimensions
+2. **"Copy as Markdown" Debrief**: One-click copy debrief for Slack/email sharing, Browse past interviews, compare candidates
+3. **Team Collaboration**: Share debriefs with hiring team on different channels, add comments
+4. **Structured Scorecards**: Force ratings on specific competencies (creates training data)
+5. **Evidence Linking**: Every rating must link to a transcript moment
+
 
 ### Technical Debt
 
@@ -247,27 +286,22 @@ See [`docs/DOCS_INDEX.md`](docs/DOCS_INDEX.md) for complete challenges log.
 
 ## API Costs
 
-This project uses several paid APIs:
+Production cost estimates for a **30-minute interview**:
 
-- **Daily.co**: Free tier available (10,000 room minutes/month)
-- **OpenRouter (Gemini)**: ~$0.15 per 1M tokens input, ~$0.60 per 1M output
-- **OpenAI Realtime**: ~$0.06/min input + $0.24/min output (for AI candidate)
-- **Vapi**: ~$0.05-0.15/min (for voice briefing, optional feature)
+| Service | Rate | Usage per Interview | Cost |
+|---------|------|---------------------|------|
+| **Daily.co** | $0.01/min after free tier | 60 room-min (2 users) | **~$0.60** |
+| **OpenRouter (Gemini 2.5 Flash)** | $0.15/1M in, $0.60/1M out | ~15K tokens | **~$0.01** |
+| **Vapi** (optional voice briefing) | ~$0.10/min | 5 min briefing | **~$0.50** |
 
-**Estimated cost per interview**: $0.10-0.50 depending on features used
+### Production Cost: 8-Hour Workday
 
----
+Assuming **10-12 interviews per interviewer per day** (30 min each + breaks):
 
-## Philosophy
+| Scenario | Cost/Interview | Daily Cost (12 interviews) | Monthly (22 days) |
+|----------|----------------|---------------------------|-------------------|
+| **Standard** (AI briefing + debrief) | ~$0.61 | **~$7.32** | **~$161** |
+| **With voice briefing** | ~$1.11 | **~$13.32** | **~$293** |
 
-This is a canvas, not a checklist. The spec was intentionally open-ended to allow creativity while demonstrating production-quality engineering:
+> 💡 **Note**: The AI candidate simulator (OpenAI Realtime at ~$9/session) is for practice only and not included in production estimates.
 
-- **Scoping**: We added features beyond requirements (radar charts, coach mode, mission control UI) where they meaningfully improved the experience
-- **Shipping**: We prioritized working features over perfect features. Database can wait; delight can't
-- **Polish**: We sweated the details - smooth animations, rotating facts, glassmorphism - because those details compound into "wow"
-
----
-
-## Acknowledgments
-
-Built for the Superposition.ai interview challenge. Thank you for the opportunity to create something delightful.

@@ -47,8 +47,8 @@ function VideoTile({ sessionId, isLocal, label }: { sessionId: string; isLocal: 
     const audioState = useAudioTrack(sessionId);
 
     return (
-        <Card className={`relative overflow-hidden ${isLocal ? "col-span-1" : "col-span-2"}`}>
-            <CardContent className="p-0 aspect-video bg-muted flex items-center justify-center">
+        <Card className="relative overflow-hidden h-full w-full">
+            <CardContent className="p-0 h-full bg-muted flex items-center justify-center">
                 {videoState.isOff ? (
                     <div className="flex flex-col items-center gap-2 text-muted-foreground">
                         <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
@@ -83,8 +83,8 @@ function AICandidateTile({ isSpeaking, onRemove, candidateName }: { isSpeaking: 
     const randomId = useState(() => Math.floor(Math.random() * 70) + 1)[0];
 
     return (
-        <Card className={`relative overflow-hidden col-span-1 ${isSpeaking ? "ring-2 ring-green-500" : ""}`}>
-            <CardContent className="p-0 aspect-video bg-muted flex items-center justify-center">
+        <Card className={`relative overflow-hidden h-full w-full ${isSpeaking ? "ring-2 ring-green-500" : ""}`}>
+            <CardContent className="p-0 h-full bg-muted flex items-center justify-center">
                 <img
                     src={`https://i.pravatar.cc/400?img=${randomId}`}
                     alt="AI Candidate"
@@ -403,7 +403,6 @@ function CallInterface({ roomUrl, roomName, token, participantType, participantN
                             brief={fullBriefing}
                             onClose={() => setShowBriefingOverlay(false)}
                             isOverlay={true}
-                        // No voice activation needed for the overlay context
                         />
                     </div>
                 </div>
