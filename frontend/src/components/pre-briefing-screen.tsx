@@ -63,6 +63,7 @@ export default function PreBriefingScreen({
                         briefingData.notes,
                         briefingData.resume_summary
                     );
+
                     setPreBrief(brief);
                     setPreBriefLoading(false);
                 } else {
@@ -104,8 +105,13 @@ export default function PreBriefingScreen({
             });
             vapi.on("error", (err) => {
                 console.error("VAPI error:", err);
+                console.error("VAPI error details:", JSON.stringify(err, null, 2));
                 setIsVoiceConnecting(false);
                 setIsVoiceActive(false);
+                // Don't show alert for empty errors - this often happens during cleanup
+                if (err && Object.keys(err).length > 0) {
+                    alert(`Voice AI error: ${err.message || JSON.stringify(err)}`);
+                }
             });
 
             // Use assistantId if configured, otherwise use inline config
@@ -149,7 +155,15 @@ Be concise. The interviewer has limited time.`
         } catch (err) {
             console.error("Voice agent failed:", err);
             setIsVoiceConnecting(false);
-            alert("Failed to start voice AI. Check console for details.");
+            // More specific error message
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            if (errorMsg.includes("401") || errorMsg.includes("unauthorized")) {
+                alert("Voice AI: Invalid API key. Check your NEXT_PUBLIC_VAPI_WEB_KEY in .env.local");
+            } else if (errorMsg.includes("assistant")) {
+                alert("Voice AI: Assistant configuration error. Try adding a NEXT_PUBLIC_VAPI_BRIEFING_ASSISTANT_ID.");
+            } else {
+                alert(`Failed to start voice AI: ${errorMsg}`);
+            }
         }
     }, [participantName, preBrief]);
 

@@ -369,3 +369,93 @@ export async function getPreInterviewBrief(
 
     return response.json();
 }
+
+
+// --- Parse resume and JD with LLM for formatted markdown ---
+
+// --- Parse resume and JD with LLM for formatted markdown ---
+
+export interface ParsedResume {
+    personal_info: {
+        name: string;
+        role: string;
+        contact?: string;
+        summary: string;
+    };
+    experience: {
+        company: string;
+        role: string;
+        duration: string;
+        location?: string;
+        highlights: string[];
+    }[];
+    education: {
+        school: string;
+        degree: string;
+        year: string;
+    }[];
+    skills: Record<string, string[]>;
+    projects?: {
+        name: string;
+        details: string;
+    }[];
+    other?: string[];
+}
+
+export interface ParsedJD {
+    role_info: {
+        title: string;
+        company: string;
+        location: string;
+    };
+    summary: string;
+    responsibilities: string[];
+    qualifications: {
+        category: string;
+        items: string[];
+    }[];
+    nice_to_haves?: string[];
+    benefits?: string[];
+}
+
+export interface ParseResponse<T> {
+    data: T | null;
+    formatted: string;
+    success: boolean;
+}
+
+export async function parseResume(text: string): Promise<ParseResponse<ParsedResume>> {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/prebrief/parse/resume`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text }),
+        });
+
+        if (!response.ok) {
+            return { data: null, formatted: text, success: false };
+        }
+
+        return response.json();
+    } catch {
+        return { data: null, formatted: text, success: false };
+    }
+}
+
+export async function parseJobDescription(text: string): Promise<ParseResponse<ParsedJD>> {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/prebrief/parse/jd`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text }),
+        });
+
+        if (!response.ok) {
+            return { data: null, formatted: text, success: false };
+        }
+
+        return response.json();
+    } catch {
+        return { data: null, formatted: text, success: false };
+    }
+}
