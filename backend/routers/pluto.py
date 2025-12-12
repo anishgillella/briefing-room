@@ -2,9 +2,9 @@
 Pluto router - API endpoints for candidate management and CSV processing.
 """
 
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException, BackgroundTasks
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, BackgroundTasks, Request
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Annotated
 import asyncio
 
 from models.candidate import Candidate, CandidateUpdate, ProcessingStatus
@@ -41,6 +41,10 @@ class ProcessingState:
         self.scored_candidates = []  # For streaming scored candidates
         self.algo_ranked = []  # For immediate algo-only ranking
         self.job_description = ""  # JD for scoring context
+        self.scoring_criteria = [] # Custom scoring criteria
+        self.red_flag_indicators = [] # Custom red flags
+        self.extraction_complete = False  # True when all candidates extracted
+        self.latest_scored = None  # Latest AI-scored candidate for streaming
 
 state = ProcessingState()
 
@@ -59,19 +63,52 @@ async def pluto_root():
     }
 
 
+class AnalyzeJDRequest(BaseModel):
+    """Request body for JD analysis."""
+    job_description: str
+
+
+@router.post("/analyze-jd")
+async def analyze_jd(request: AnalyzeJDRequest):
+    """
+    Analyze a job description and return suggested extraction fields.
+    Frontend can use this to show/edit criteria before processing.
+    """
+    from services.analyze_jd import analyze_job_description, get_full_extraction_schema, BASELINE_FIELDS
+    
+    # Analyze the JD
+    analysis = await analyze_job_description(request.job_description)
+    
+    # Combine with baseline fields
+    all_fields = get_full_extraction_schema(analysis.suggested_fields)
+    
+    return {
+        "role_type": analysis.role_type,
+        "baseline_fields": [f.model_dump() for f in BASELINE_FIELDS],
+        "jd_specific_fields": [f.model_dump() for f in analysis.suggested_fields],
+        "all_fields": [f.model_dump() for f in all_fields],
+        "scoring_criteria": analysis.scoring_criteria,
+        "red_flag_indicators": analysis.red_flag_indicators
+    }
+
+
 @router.post("/upload")
 async def upload_csv(
     background_tasks: BackgroundTasks, 
     file: UploadFile = File(...),
-    job_description: str = Form("")
+    job_description: Annotated[Optional[str], Form()] = None,
+    extraction_fields: Annotated[Optional[str], Form()] = None,
+    scoring_criteria: Annotated[Optional[str], Form()] = None,
+    red_flag_indicators: Annotated[Optional[str], Form()] = None
 ):
     """
     Upload a CSV file of candidates and process them.
-    Optionally accepts a job_description to customize AI scoring.
-    Returns immediately and processes in the background.
+    Step 1: Extracts and runs Algo Scoring ONLY.
+    Step 2: Frontend must call /score to trigger AI scoring.
     """
+    
     if not file.filename.endswith('.csv'):
-        raise HTTPException(status_code=400, detail="File must be a CSV")
+        raise HTTPException(status_code=400, detail="Invalid file format. Please upload a CSV file.")
     
     # Check if already processing
     if state.status in ["extracting", "scoring"]:
@@ -80,25 +117,124 @@ async def upload_csv(
     # Read file content
     content = await file.read()
     
+    # Parse extraction_fields if provided
+    parsed_fields = None
+    if extraction_fields and isinstance(extraction_fields, str) and extraction_fields.strip():
+        try:
+            import json
+            parsed_fields = json.loads(extraction_fields)
+        except json.JSONDecodeError:
+            pass
+    
     # Store JD in state for use in scoring
     state.reset()
     state.job_description = job_description
     state.status = "extracting"
-    state.message = "Starting processing..."
+    state.message = "Starting extraction..."
     
-    # Start background processing with JD
-    background_tasks.add_task(run_processing_pipeline, content, job_description)
+    # Parse and store criteria/red flags if provided
+    if scoring_criteria:
+        try:
+            state.scoring_criteria = json.loads(scoring_criteria)
+        except:
+            pass
+            
+    if red_flag_indicators:
+        try:
+            state.red_flag_indicators = json.loads(red_flag_indicators)
+        except:
+            pass
+            
+    # Start background processing with skip_ai_scoring=True
+    background_tasks.add_task(run_processing_pipeline, content, job_description, parsed_fields, True)
     
     return {
         "status": "started",
-        "message": f"Processing {file.filename}...",
+        "message": f"Extracting candidates from {file.filename}...",
         "job_description_provided": bool(job_description),
+        "extraction_fields_provided": bool(parsed_fields),
         "check_status_at": "/api/pluto/status"
     }
 
 
-async def run_processing_pipeline(content: bytes, job_description: str = ""):
-    """Background task to process CSV with optional JD for scoring context."""
+@router.post("/score")
+async def start_scoring(background_tasks: BackgroundTasks):
+    """
+    Trigger AI scoring for the extracted candidates.
+    Must be called after extraction is complete.
+    """
+    if not state.status == "complete" and state.extraction_complete is not True:
+         # Check if we are in "waiting_confirmation" or if extraction finished
+         pass
+         
+    # We allow triggering if extraction is complete (even if state says "waiting_confirmation" or "extracting")
+    if not state.extraction_complete:
+        raise HTTPException(status_code=400, detail="Extraction not yet complete or no candidates to score")
+    
+    if state.status == "scoring":
+         raise HTTPException(status_code=409, detail="Scoring already in progress")
+
+    # Update state
+    state.status = "scoring"
+    state.message = "Starting AI scoring..."
+    
+    # Get candidates to score (from memory/store)
+    candidates_to_score = []
+    # Try to get from state first
+    if state.algo_ranked:
+        # Re-construct basic objects or just fetch fresh from store?
+        # Fetching from store is safer as it has full data
+        from services.candidate_store import get_all_candidates
+        candidates = get_all_candidates()
+        candidates_to_score = candidates
+    
+    if not candidates_to_score:
+        raise HTTPException(status_code=404, detail="No candidates found to score")
+
+    # Start independent scoring task
+    background_tasks.add_task(
+        run_scoring_pipeline, 
+        candidates_to_score, 
+        state.job_description,
+        state.scoring_criteria,
+        state.red_flag_indicators
+    )
+    
+    return {
+        "status": "started",
+        "message": f"Scoring {len(candidates_to_score)} candidates...",
+        "check_status_at": "/api/pluto/status"
+    }
+
+
+async def run_scoring_pipeline(candidates, job_description, scoring_criteria=None, red_flag_indicators=None):
+    """Refactored pipeline wrapper for just the scoring phase."""
+    from services.pluto_processor import run_ai_scoring
+    
+    async def progress_callback(phase: str, progress: int, message: str, data: dict = None):
+        state.phase = phase
+        state.progress = progress
+        state.message = message
+        state.status = "scoring"
+        if data and "candidates_scored" in data:
+            state.candidates_scored = data["candidates_scored"]
+        if data and "latest_scored" in data:
+            state.latest_scored = data["latest_scored"]
+        if phase == "complete":
+            state.status = "complete"
+            state.status = "complete"
+            
+    try:
+        scored = await run_ai_scoring(candidates, progress_callback, job_description, scoring_criteria, red_flag_indicators)
+        state.scored_candidates = scored
+        state.status = "complete"
+    except Exception as e:
+        state.status = "error"
+        state.error = str(e)
+
+
+async def run_processing_pipeline(content: bytes, job_description: str = "", extraction_fields: list = None, skip_ai_scoring: bool = False):
+    """Background task to process CSV with optional JD for scoring context and dynamic extraction fields."""
     from services.pluto_processor import process_csv_file, calculate_algo_score
     
     async def progress_callback(phase: str, progress: int, message: str, data: dict = None):
@@ -107,35 +243,69 @@ async def run_processing_pipeline(content: bytes, job_description: str = ""):
         state.message = message
         if phase == "extracting":
             state.status = "extracting"
-            # Stream algo scores as candidates are extracted
+            # Set total count if provided
+            if data and "total_candidates" in data:
+                state.candidates_total = data["total_candidates"]
+            # Stream full algo table as candidates are extracted
             if data and "extracted_batch" in data:
+                # Build full algo_ranked list from all extracted candidates
+                algo_ranked = []
                 for c in data["extracted_batch"]:
-                    algo_score = calculate_algo_score(c)
                     preview = {
                         "id": c.get("id"),
                         "name": c.get("name"),
                         "job_title": c.get("job_title", ""),
                         "bio_summary": c.get("bio_summary", ""),
-                        "algo_score": algo_score,
+                        "algo_score": c.get("algo_score", 0),  # Pre-calculated in processor
                         "sold_to_finance": c.get("sold_to_finance", False),
                         "is_founder": c.get("is_founder", False),
                         "startup_experience": c.get("startup_experience", False),
+                        "enterprise_experience": c.get("enterprise_experience", False),
+                        "industries": c.get("industries", []),
+                        "skills": c.get("skills", []),
+                        "years_experience": c.get("years_experience"),
+                        "location_city": c.get("location_city", ""),
+                        "location_state": c.get("location_state", ""),
+                        "max_acv_mentioned": c.get("max_acv_mentioned"),
+                        "quota_attainment": c.get("quota_attainment"),
                     }
-                    state.extracted_preview.append(preview)
-                    state.algo_ranked.append(preview)
-                # Sort algo_ranked by score
-                state.algo_ranked.sort(key=lambda x: x.get("algo_score", 0), reverse=True)
-                state.candidates_extracted = len(state.algo_ranked)
+                    # Copy dynamic fields
+                    if extraction_fields:
+                        for field in extraction_fields:
+                            field_name = field.get("field_name", "")
+                            if field_name and field_name in c:
+                                preview[field_name] = c[field_name]
+                                
+                    algo_ranked.append(preview)
+                # Sort by algo_score descending
+                algo_ranked.sort(key=lambda x: x.get("algo_score", 0), reverse=True)
+                state.algo_ranked = algo_ranked
+                state.candidates_extracted = len(algo_ranked)
+                
+                # Mark extraction complete if flag is set
+                if data.get("extraction_complete"):
+                    state.extraction_complete = True
+        elif phase == "waiting_confirmation":
+            state.status = "waiting_confirmation"
+            state.extraction_complete = True
         elif phase == "scoring":
             state.status = "scoring"
             if data and "candidates_scored" in data:
                 state.candidates_scored = data["candidates_scored"]
+            # Store latest scored candidate for streaming updates
+            if data and "latest_scored" in data:
+                state.latest_scored = data["latest_scored"]
         elif phase == "complete":
             state.status = "complete"
     
     try:
-        # Pass job_description to processor for AI scoring context
-        candidates = await process_csv_file(content, progress_callback, job_description)
+        # Pass job_description and extraction_fields to processor
+        candidates = await process_csv_file(content, progress_callback, job_description, extraction_fields, skip_ai_scoring)
+        
+        # If we skipped scoring, we are done with this task for now
+        if skip_ai_scoring:
+            return
+
         state.candidates_total = len(candidates)
         state.candidates_extracted = len(candidates)
         state.candidates_scored = len(candidates)
@@ -143,7 +313,35 @@ async def run_processing_pipeline(content: bytes, job_description: str = ""):
         # Convert to Pluto frontend format (uses final_score, not combined_score)
         ranked = []
         for i, c in enumerate(candidates):
-            ranked.append({
+            # ... (conversion logic same as before but ensure c is dict if coming from process_csv_file)
+            pass 
+        # (This part is actually handled by the unified logic inside run_ai_scoring now, 
+        # but process_csv_file returns dicts. Let's make sure we handle the return value correctly.)
+        
+        # Actually, process_csv_file returns dicts, so we can reuse the logic, BUT
+        # since we refactored process_csv_file to use run_ai_scoring internally (if not skipped), 
+        # it returns fully scored candidates.
+        
+        # Let's clean up this function to match the new flow.
+        pass
+        
+    except Exception as e:
+        state.status = "error"
+        state.error = str(e)
+        state.message = f"Processing failed: {str(e)}"
+        
+    # Correct implementation of the try block logic:
+    candidates = await process_csv_file(content, progress_callback, job_description, extraction_fields, skip_ai_scoring)
+    
+    if skip_ai_scoring:
+        return
+
+    # If we didn't skip scoring, process the results
+    ranked = []
+    
+    # ... mapping logic ...
+    for i, c in enumerate(candidates):
+             candidate_dict = {
                 "rank": i + 1,
                 "id": c.get("id"),
                 "name": c.get("name"),
@@ -169,16 +367,21 @@ async def run_processing_pipeline(content: bytes, job_description: str = ""):
                 "data_completeness": c.get("completeness", 0),
                 "industries": "|".join(c.get("industries", [])) if isinstance(c.get("industries"), list) else "",
                 "skills": "|".join(c.get("skills", [])) if isinstance(c.get("skills"), list) else "",
-            })
-        
-        state.scored_candidates = ranked
-        state.algo_ranked = [{"id": c["id"], "name": c["name"], "algo_score": c["algo_score"]} for c in ranked]
-        state.status = "complete"
-        state.message = f"Successfully processed {len(candidates)} candidates"
-    except Exception as e:
-        state.status = "error"
-        state.error = str(e)
-        state.message = f"Processing failed: {str(e)}"
+                "interview_questions": c.get("interview_questions", []),
+            }
+             # Add dynamic fields from extraction_fields if provided
+             if extraction_fields:
+                for field in extraction_fields:
+                    field_name = field.get("field_name", "")
+                    if field_name and field_name in c:
+                        candidate_dict[field_name] = c[field_name]
+            
+             ranked.append(candidate_dict)
+            
+    state.scored_candidates = ranked
+    state.algo_ranked = [{"id": c["id"], "name": c["name"], "algo_score": c["algo_score"]} for c in ranked]
+    state.status = "complete"
+    state.message = f"Successfully processed {len(candidates)} candidates"
 
 
 @router.get("/status")
@@ -196,6 +399,8 @@ async def get_status():
         "extracted_preview": state.extracted_preview,
         "scored_candidates": state.scored_candidates,
         "algo_ranked": state.algo_ranked,
+        "extraction_complete": state.extraction_complete,
+        "latest_scored": state.latest_scored,
     }
 
 

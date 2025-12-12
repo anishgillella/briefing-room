@@ -73,6 +73,7 @@ class Candidate(BaseModel):
     has_enrichment_data: bool = False
     
     class Config:
+        extra = "allow"
         json_encoders = {
             datetime: lambda v: v.isoformat()
         }
