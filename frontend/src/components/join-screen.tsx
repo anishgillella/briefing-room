@@ -71,8 +71,8 @@ export default function JoinScreen({ roomName, onJoin, isLoading }: JoinScreenPr
                                     type="button"
                                     onClick={() => setParticipantType("interviewer")}
                                     className={`relative flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-medium transition-all duration-300 ${isInterviewer
-                                            ? "bg-violet-600 text-white shadow-lg shadow-violet-500/20"
-                                            : "text-slate-400 hover:text-white hover:bg-white/5"
+                                        ? "bg-violet-600 text-white shadow-lg shadow-violet-500/20"
+                                        : "text-slate-400 hover:text-white hover:bg-white/5"
                                         }`}
                                 >
                                     <UserCircle2 className="w-4 h-4" />
@@ -82,8 +82,8 @@ export default function JoinScreen({ roomName, onJoin, isLoading }: JoinScreenPr
                                     type="button"
                                     onClick={() => setParticipantType("candidate")}
                                     className={`relative flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-medium transition-all duration-300 ${!isInterviewer
-                                            ? "bg-emerald-600 text-white shadow-lg shadow-emerald-500/20"
-                                            : "text-slate-400 hover:text-white hover:bg-white/5"
+                                        ? "bg-emerald-600 text-white shadow-lg shadow-emerald-500/20"
+                                        : "text-slate-400 hover:text-white hover:bg-white/5"
                                         }`}
                                 >
                                     <Code2 className="w-4 h-4" />
@@ -162,8 +162,8 @@ export default function JoinScreen({ roomName, onJoin, isLoading }: JoinScreenPr
                             <Button
                                 type="submit"
                                 className={`w-full h-12 text-lg font-medium transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] ${isInterviewer
-                                        ? "bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 shadow-lg shadow-violet-500/25"
-                                        : "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 shadow-lg shadow-emerald-500/25"
+                                    ? "bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 shadow-lg shadow-violet-500/25"
+                                    : "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 shadow-lg shadow-emerald-500/25"
                                     }`}
                                 disabled={!name.trim() || isLoading}
                             >
@@ -185,9 +185,18 @@ export default function JoinScreen({ roomName, onJoin, isLoading }: JoinScreenPr
                 </div>
 
                 {/* Footer */}
-                <p className="text-center text-slate-500 text-sm mt-8">
-                    Powered by <span className="text-slate-400 font-medium">Daily.co</span> & <span className="text-slate-400 font-medium">OpenAI Realtime</span>
-                </p>
+                <div className="text-center mt-8 space-y-3">
+                    <a
+                        href="/candidates"
+                        className="inline-flex items-center gap-2 text-violet-400 hover:text-violet-300 transition-colors font-medium"
+                    >
+                        <User className="w-4 h-4" />
+                        View Candidate Pipeline
+                    </a>
+                    <p className="text-slate-500 text-sm">
+                        Powered by <span className="text-slate-400 font-medium">Daily.co</span> & <span className="text-slate-400 font-medium">OpenAI Realtime</span>
+                    </p>
+                </div>
             </div>
         </div>
     );

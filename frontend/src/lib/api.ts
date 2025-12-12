@@ -459,3 +459,142 @@ export async function parseJobDescription(text: string): Promise<ParseResponse<P
         return { data: null, formatted: text, success: false };
     }
 }
+
+
+// =============================================================================
+// Pluto API - Candidate Management
+// =============================================================================
+
+import type {
+    Candidate,
+    CandidateListResponse,
+    ProcessingStatus,
+    StartInterviewResponse,
+    CandidateUpdate,
+} from "./types";
+
+/**
+ * Get Pluto service info
+ */
+export async function getPlutoInfo(): Promise<{ service: string; description: string; candidates_count: number }> {
+    const response = await fetch(`${API_BASE_URL}/api/pluto/`);
+    if (!response.ok) {
+        throw new Error("Failed to reach Pluto service");
+    }
+    return response.json();
+}
+
+/**
+ * Upload a CSV file for processing
+ */
+export async function uploadCandidatesCsv(file: File): Promise<{ status: string; message: string; check_status_at: string }> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(`${API_BASE_URL}/api/pluto/upload`, {
+        method: "POST",
+        body: formData,
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || "Failed to upload CSV");
+    }
+
+    return response.json();
+}
+
+/**
+ * Check processing status
+ */
+export async function getProcessingStatus(): Promise<ProcessingStatus> {
+    const response = await fetch(`${API_BASE_URL}/api/pluto/status`);
+    if (!response.ok) {
+        throw new Error("Failed to get processing status");
+    }
+    return response.json();
+}
+
+/**
+ * Get all ranked candidates
+ */
+export async function getCandidates(
+    tier?: string,
+    status?: string,
+    limit: number = 50,
+    offset: number = 0
+): Promise<CandidateListResponse> {
+    const params = new URLSearchParams();
+    if (tier) params.append("tier", tier);
+    if (status) params.append("status", status);
+    params.append("limit", String(limit));
+    params.append("offset", String(offset));
+
+    const response = await fetch(`${API_BASE_URL}/api/pluto/candidates?${params}`);
+    if (!response.ok) {
+        throw new Error("Failed to get candidates");
+    }
+    return response.json();
+}
+
+/**
+ * Get a specific candidate by ID
+ */
+export async function getCandidate(candidateId: string): Promise<Candidate> {
+    const response = await fetch(`${API_BASE_URL}/api/pluto/candidates/${candidateId}`);
+    if (!response.ok) {
+        if (response.status === 404) {
+            throw new Error("Candidate not found");
+        }
+        throw new Error("Failed to get candidate");
+    }
+    return response.json();
+}
+
+/**
+ * Update a candidate's data
+ */
+export async function updateCandidate(candidateId: string, updates: CandidateUpdate): Promise<Candidate> {
+    const response = await fetch(`${API_BASE_URL}/api/pluto/candidates/${candidateId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || "Failed to update candidate");
+    }
+
+    return response.json();
+}
+
+/**
+ * Delete a candidate
+ */
+export async function deleteCandidate(candidateId: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/api/pluto/candidates/${candidateId}`, {
+        method: "DELETE",
+    });
+
+    if (!response.ok) {
+        throw new Error("Failed to delete candidate");
+    }
+}
+
+/**
+ * Start an interview for a candidate
+ */
+export async function startCandidateInterview(candidateId: string): Promise<StartInterviewResponse> {
+    const response = await fetch(`${API_BASE_URL}/api/pluto/candidates/${candidateId}/interview`, {
+        method: "POST",
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || "Failed to start interview");
+    }
+
+    return response.json();
+}
+
