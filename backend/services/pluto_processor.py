@@ -477,6 +477,17 @@ RETURN ONLY VALID JSON:
 }}"""
 
 
+def sanitize_json(content: str) -> str:
+    """Sanitize LLM JSON output to fix common errors like trailing commas."""
+    import re
+    # Remove trailing commas before ] or }
+    content = re.sub(r',\s*]', ']', content)
+    content = re.sub(r',\s*}', '}', content)
+    # Fix unescaped quotes within strings (common LLM error)
+    # This is tricky so we just try parsing first
+    return content.strip()
+
+
 async def evaluate_candidate(candidate: dict, job_description: str = "", scoring_criteria: list = None, red_flag_indicators: list = None) -> Evaluation:
     """Get AI evaluation for a candidate with optional job description context."""
     prompt = build_evaluation_prompt(candidate, job_description, scoring_criteria, red_flag_indicators)
@@ -486,7 +497,7 @@ async def evaluate_candidate(candidate: dict, job_description: str = "", scoring
             response = await client.chat.completions.create(
                 model=SCORING_MODEL,
                 messages=[
-                    {"role": "system", "content": "You are an expert recruiter. Return only valid JSON."},
+                    {"role": "system", "content": "You are an expert recruiter. Return only valid JSON. Never include trailing commas."},
                     {"role": "user", "content": prompt},
                 ],
                 response_format={"type": "json_object"},
@@ -497,7 +508,23 @@ async def evaluate_candidate(candidate: dict, job_description: str = "", scoring
             if not content:
                 raise ValueError("Empty response")
             
-            return Evaluation.model_validate_json(content)
+            # Sanitize JSON before parsing
+            sanitized = sanitize_json(content)
+            
+            try:
+                return Evaluation.model_validate_json(sanitized)
+            except Exception as parse_error:
+                # Try fallback: parse as dict and construct manually
+                logger.warning(f"JSON parse failed, trying fallback for {candidate.get('name')}: {parse_error}")
+                data = json.loads(sanitized)
+                return Evaluation(
+                    score=data.get("score", 50),
+                    one_line_summary=data.get("one_line_summary", "Evaluation parsed with fallback"),
+                    pros=data.get("pros", [])[:5] if isinstance(data.get("pros"), list) else [],
+                    cons=data.get("cons", [])[:5] if isinstance(data.get("cons"), list) else [],
+                    reasoning=data.get("reasoning", ""),
+                    interview_questions=data.get("interview_questions", [])[:3] if isinstance(data.get("interview_questions"), list) else [],
+                )
             
         except Exception as e:
             logger.warning(f"Evaluation failed for {candidate.get('name')}: {e}")

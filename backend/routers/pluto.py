@@ -518,17 +518,17 @@ async def start_interview(candidate_id: str) -> StartInterviewResponse:
     from services.daily import daily_service
     
     # Create a new room
-    room_data = await daily_service.create_room(expires_in_minutes=60)
+    room_data = await daily_service.create_room(expires_in_hours=1)
     room_name = room_data["name"]
     room_url = room_data["url"]
     
     # Generate interviewer token
-    token_data = await daily_service.create_meeting_token(
+    token = await daily_service.create_meeting_token(
         room_name=room_name,
-        user_name="Interviewer",
-        is_owner=True
+        participant_name="Interviewer",
+        participant_type="interviewer",
+        expires_in_hours=1
     )
-    token = token_data["token"]
     
     # Set briefing data for the room (so pre-brief has candidate context)
     from routers.rooms import _briefings_cache
@@ -555,3 +555,191 @@ async def start_interview(candidate_id: str) -> StartInterviewResponse:
         token=token,
         candidate=candidate.model_dump()
     )
+
+
+# ============================================================================
+# Pre-Brief Integration
+# ============================================================================
+
+class PreBriefRequestModel(BaseModel):
+    """Request body for generating pre-brief."""
+    job_description: Optional[str] = None
+    company_context: Optional[str] = None
+
+
+@router.get("/candidates/{candidate_id}/prebrief")
+async def get_candidate_prebrief(candidate_id: str):
+    """
+    Get or generate a pre-interview briefing for a candidate.
+    Uses cached brief if available, otherwise generates new one.
+    """
+    import json
+    import os
+    from pathlib import Path
+    
+    candidate = get_candidate(candidate_id)
+    if not candidate:
+        raise HTTPException(status_code=404, detail="Candidate not found")
+    
+    # Check for cached pre-brief
+    prebrief_dir = Path("data/prebriefs")
+    prebrief_dir.mkdir(parents=True, exist_ok=True)
+    prebrief_file = prebrief_dir / f"{candidate_id}.json"
+    
+    if prebrief_file.exists():
+        try:
+            with open(prebrief_file, "r") as f:
+                cached = json.load(f)
+                return {"prebrief": cached, "cached": True}
+        except:
+            pass
+    
+    # No cache - need JD to generate
+    if not state.job_description:
+        raise HTTPException(
+            status_code=400, 
+            detail="No job description available. Upload candidates with a JD first."
+        )
+    
+    # Generate pre-brief using existing prebrief service
+    from routers.prebrief import generate_pre_brief, PreBriefRequest as PBRequest
+    
+    # Build resume text from candidate data
+    resume_text = f"""
+Name: {candidate.name}
+Current Role: {candidate.job_title or 'N/A'} at {candidate.current_company or 'N/A'}
+Location: {candidate.location_city or ''}, {candidate.location_state or ''}
+Years of Experience: {candidate.years_experience or 'Unknown'}
+
+Summary:
+{candidate.bio_summary or 'No summary available'}
+
+Skills: {', '.join(candidate.skills) if candidate.skills else 'N/A'}
+Industries: {', '.join(candidate.industries) if candidate.industries else 'N/A'}
+"""
+    
+    try:
+        temp_room = f"prebrief-{candidate_id}"
+        request = PBRequest(job_description=state.job_description, resume=resume_text)
+        prebrief = await generate_pre_brief(temp_room, request)
+        prebrief_data = prebrief.model_dump()
+        
+        # Cache the result
+        with open(prebrief_file, "w") as f:
+            json.dump(prebrief_data, f, indent=2, default=str)
+        
+        return {"prebrief": prebrief_data, "cached": False}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate pre-brief: {str(e)}")
+
+
+# ============================================================================
+# Enhanced Interview with OpenAI Realtime
+# ============================================================================
+
+class FullInterviewResponse(BaseModel):
+    """Response for full interview setup including Realtime session."""
+    room_name: str
+    room_url: str
+    token: str
+    candidate: dict
+    realtime_session: Optional[dict] = None
+
+
+@router.post("/candidates/{candidate_id}/interview/start")
+async def start_full_interview(candidate_id: str) -> FullInterviewResponse:
+    """
+    Create an interview room (Daily.co only).
+    OpenAI Realtime session is created by frontend via /api/realtime/session.
+    """
+    
+    candidate = get_candidate(candidate_id)
+    if not candidate:
+        raise HTTPException(status_code=404, detail="Candidate not found")
+    
+    # Create Daily.co room
+    from services.daily import daily_service
+    room_data = await daily_service.create_room(expires_in_hours=1)
+    room_name = room_data["name"]
+    room_url = room_data["url"]
+    
+    # Generate interviewer token
+    token = await daily_service.create_meeting_token(
+        room_name=room_name,
+        participant_name="Interviewer",
+        participant_type="interviewer",
+        expires_in_hours=1
+    )
+    
+    # NOTE: OpenAI Realtime session is created by the frontend via /api/realtime/session
+    # Do NOT create a session here to avoid double sessions and rate limit issues
+    
+    # Update candidate status
+    update_candidate(candidate_id, {"interview_status": "in_progress", "room_name": room_name})
+    
+    return FullInterviewResponse(
+        room_name=room_name,
+        room_url=room_url,
+        token=token,
+        candidate=candidate.model_dump(),
+        realtime_session=None  # Frontend creates its own session
+    )
+
+
+# ============================================================================
+# Post-Interview Analytics
+# ============================================================================
+
+class SaveAnalyticsRequest(BaseModel):
+    """Request body for saving interview analytics."""
+    transcript: str
+    analytics: Optional[dict] = None
+
+
+@router.post("/candidates/{candidate_id}/analytics")
+async def save_interview_analytics(candidate_id: str, request: SaveAnalyticsRequest):
+    """
+    Save interview transcript and generate analytics.
+    Updates candidate with interview score and recommendation.
+    """
+    import json
+    from pathlib import Path
+    from datetime import datetime
+    
+    candidate = get_candidate(candidate_id)
+    if not candidate:
+        raise HTTPException(status_code=404, detail="Candidate not found")
+    
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    # Save transcript
+    transcript_dir = Path("data/transcripts")
+    transcript_dir.mkdir(parents=True, exist_ok=True)
+    with open(transcript_dir / f"{candidate_id}_{timestamp}.txt", "w") as f:
+        f.write(request.transcript)
+    
+    # Generate analytics if not provided
+    analytics_data = request.analytics
+    if not analytics_data:
+        from routers.analytics import get_interview_analytics, AnalyticsRequest
+        try:
+            req = AnalyticsRequest(transcript=request.transcript, job_description=state.job_description)
+            result = await get_interview_analytics(f"interview-{candidate_id}", req)
+            analytics_data = result.model_dump()
+        except Exception as e:
+            analytics_data = {"error": str(e)}
+    
+    # Save analytics
+    analytics_dir = Path("data/analytics")
+    analytics_dir.mkdir(parents=True, exist_ok=True)
+    with open(analytics_dir / f"{candidate_id}_{timestamp}.json", "w") as f:
+        json.dump(analytics_data, f, indent=2, default=str)
+    
+    # Update candidate
+    update_candidate(candidate_id, {
+        "interview_status": "completed",
+        "interview_score": analytics_data.get("overall_score"),
+        "recommendation": analytics_data.get("recommendation")
+    })
+    
+    return {"status": "saved", "analytics": analytics_data}

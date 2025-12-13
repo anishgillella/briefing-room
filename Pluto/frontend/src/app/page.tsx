@@ -1749,6 +1749,16 @@ Example:
                       </span>
                     )}
                   </div>
+
+                  {/* Action Buttons */}
+                  <div className="mt-6">
+                    <a
+                      href={`/candidates/${selectedCandidate.id}`}
+                      className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg text-center font-semibold hover:from-purple-700 hover:to-pink-700 transition flex items-center justify-center gap-2 shadow-lg shadow-purple-500/20"
+                    >
+                      📋 View Profile & Prepare Interview
+                    </a>
+                  </div>
                 </div>
               )}
             </div>
