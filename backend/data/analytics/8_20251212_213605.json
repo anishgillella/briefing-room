@@ -1,0 +1,49 @@
+{
+  "qa_pairs": [
+    {
+      "question": "Can you describe your experience with owning the full sales cycle?",
+      "answer": "David described his experience at ZoomInfo where he owned the entire sales cycle from prospecting to closing. He detailed identifying clients, conducting research, and engaging them using account-based marketing and personalized communications. He also mentioned presenting solutions, handling objections, maintaining stakeholder relationships, and consistently exceeding sales quotas, leading to long-term partnerships.",
+      "question_type": "behavioral",
+      "metrics": {
+        "relevance": 9,
+        "clarity": 9,
+        "depth": 8,
+        "type_specific_metric": 8,
+        "type_specific_label": "STAR Adherence"
+      },
+      "highlight": "This approach not only helped me exceed my sales quotas consistently but also helped me build trust with clients, leading to long-term partnerships."
+    }
+  ],
+  "overall": {
+    "overall_score": 75,
+    "communication_score": 8.5,
+    "technical_score": 0.0,
+    "cultural_fit_score": 0.0,
+    "total_questions": 1,
+    "avg_response_length": 98,
+    "red_flags": [
+      "Interview was cut short, preventing a full assessment."
+    ],
+    "highlights": [
+      "Clear articulation of sales cycle ownership.",
+      "Demonstrated understanding of strategic sales approaches (account-based marketing).",
+      "Focus on building long-term client relationships."
+    ],
+    "recommendation": "Leaning Hire",
+    "recommendation_reasoning": "Based on the single complete answer, the candidate demonstrated strong experience in owning the full sales cycle and clear communication. However, the interview was too short to fully assess all necessary skills and cultural fit.",
+    "confidence": 60
+  },
+  "highlights": {
+    "best_answer": {
+      "quote": "This approach not only helped me exceed my sales quotas consistently but also helped me build trust with clients, leading to long-term partnerships.",
+      "context": "This quote effectively summarizes the positive outcomes of his sales approach, highlighting both performance and relationship building."
+    },
+    "red_flag": null,
+    "quotable_moment": "I leveraged account-based marketing strategies to tailor my approach for each target.",
+    "areas_to_probe": [
+      "Specific examples of handling difficult objections.",
+      "How he measures success beyond quotas.",
+      "His approach to team collaboration within the sales cycle."
+    ]
+  }
+}

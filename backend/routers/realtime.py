@@ -85,8 +85,8 @@ Start by introducing yourself briefly when the conversation begins.
                     "modalities": ["audio", "text"],
                     "instructions": system_prompt,
                     "voice": "alloy",
-                    "input_audio_format": "pcm16",
-                    "output_audio_format": "pcm16",
+                    # Note: Do NOT specify input/output audio format for WebRTC mode
+                    # WebRTC negotiates its own codecs (typically Opus)
                     "input_audio_transcription": {
                         "model": "whisper-1"
                     },

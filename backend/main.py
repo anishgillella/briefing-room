@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import rooms, realtime, analytics, coach, prebrief, pluto
+from routers import rooms, realtime, analytics, coach, prebrief, pluto, livekit_router
+from typing import Annotated, Optional
 
 app = FastAPI(
     title="Briefing Room API",
@@ -24,6 +25,7 @@ app.include_router(analytics.router, prefix="/api")
 app.include_router(coach.router, prefix="/api")
 app.include_router(prebrief.router, prefix="/api")
 app.include_router(pluto.router, prefix="/api")
+app.include_router(livekit_router.router, prefix="/api")
 
 
 @app.get("/health")
@@ -41,10 +43,11 @@ from fastapi import UploadFile, File, Form, BackgroundTasks
 async def upload_alias(
     background_tasks: BackgroundTasks, 
     file: UploadFile = File(...),
-    job_description: str = Form("")
+    job_description: Annotated[Optional[str], Form()] = None,
+    extraction_fields: Annotated[Optional[str], Form()] = None
 ):
     """Alias for /api/pluto/upload - original Pluto frontend compatibility"""
-    return await upload_csv(background_tasks, file, job_description)
+    return await upload_csv(background_tasks, file, job_description, extraction_fields)
 
 @app.get("/api/status")
 async def status_alias():

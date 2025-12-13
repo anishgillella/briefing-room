@@ -6,7 +6,7 @@ Adapted from Pluto/backend/extract_data.py and score_candidates.py
 import json
 import asyncio
 import logging
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Literal
 from datetime import datetime
 
 import pandas as pd
@@ -73,6 +73,60 @@ class ExtractionResult(BaseModel):
     red_flags: RedFlags
 
 
+# ============================================================================
+# Deep Analytics Models (Pydantic)
+# ============================================================================
+
+class QuestionAnalytics(BaseModel):
+    """Analysis of a single Q&A exchange."""
+    question: str
+    answer_summary: str
+    quality_score: int = Field(ge=0, le=100, description="Overall quality 0-100")
+    key_insight: str = Field(description="One sentence takeaway")
+    topic: str = Field(description="Primary topic (e.g. Sales, Python)")
+    relevance_score: int = Field(ge=0, le=10, description="How relevant the answer was to the question (0-10)")
+    clarity_score: int = Field(ge=0, le=10, description="How clear/concise the answer was (0-10)")
+    depth_score: int = Field(ge=0, le=10, description="Depth of technical/functional knowledge shown (0-10)")
+
+class SkillEvidence(BaseModel):
+    """Quote validation for a skill."""
+    skill: str
+    quote: str = Field(description="Exact quote from transcript proving the skill")
+    confidence: str = Field(description="High/Medium/Low")
+
+class BehavioralProfile(BaseModel):
+    """Soft skills radar chart scores (0-10)."""
+    leadership: int = Field(ge=0, le=10)
+    resilience: int = Field(ge=0, le=10)
+    communication: int = Field(ge=0, le=10)
+    problem_solving: int = Field(ge=0, le=10)
+    coachability: int = Field(ge=0, le=10)
+
+class CommunicationMetrics(BaseModel):
+    """Communication telemetry."""
+    speaking_pace_wpm: int = Field(description="Words per minute")
+    filler_word_frequency: str = Field(description="Low/Medium/High")
+    listen_to_talk_ratio: float = Field(description="Ratio of listening time to speaking time")
+
+class DeepAnalytics(BaseModel):
+    """Comprehensive post-interview analysis."""
+    overall_score: int = Field(ge=0, le=100)
+    recommendation: Literal["Strong Hire", "Hire", "No Hire"]
+    overall_synthesis: str = Field(description="Executive summary combining Resume, JD, and Performance.")
+    question_analytics: List[QuestionAnalytics]
+    skill_evidence: List[SkillEvidence]
+    behavioral_profile: BehavioralProfile
+    communication_metrics: CommunicationMetrics
+    topics_to_probe: List[str] = Field(description="Specific topics for next interviewer")
+
+# ... (Legacy Evaluation model omitted for brevity as it was not targeted by this edit)
+
+# ...
+
+
+# ============================================================================
+# Evaluation Models (Legacy - keeping for backward compatibility if needed)
+# ============================================================================
 class Evaluation(BaseModel):
     """AI evaluation output."""
     score: int = Field(ge=0, le=100, description="Fit score 0-100")
@@ -80,6 +134,7 @@ class Evaluation(BaseModel):
     pros: List[str] = Field(default_factory=list)
     cons: List[str] = Field(default_factory=list)
     reasoning: str = Field(default="")
+    interview_questions: List[str] = Field(default_factory=list, description="3 tailored interview questions")
 
 
 # ============================================================================
@@ -226,6 +281,110 @@ EXTRACT the following information. Return ONLY valid JSON matching this exact sc
 """
 
 
+def build_dynamic_extraction_prompt(enrichment: dict, candidate_name: str, extraction_fields: list) -> str:
+    """Build a dynamic extraction prompt based on JD Compiler fields."""
+    context = {
+        "headline": enrichment.get("headline", ""),
+        "summary": enrichment.get("summary", ""),
+        "current_job": enrichment.get("current_employers", [])[:1],
+        "work_history": enrichment.get("past_employers", [])[:5],
+        "education": enrichment.get("education", [])[:2],
+    }
+    
+    context_str = json.dumps(context, indent=2, default=str)
+    
+    # Build dynamic schema from extraction_fields
+    schema_parts = []
+    for field in extraction_fields:
+        field_name = field.get("field_name", "")
+        field_type = field.get("field_type", "string")
+        description = field.get("description", "")
+        
+        if field_type == "boolean":
+            schema_parts.append(f'    "{field_name}": true/false  // {description}')
+        elif field_type == "number":
+            schema_parts.append(f'    "{field_name}": number or null  // {description}')
+        elif field_type == "string_list":
+            schema_parts.append(f'    "{field_name}": ["list", "of", "values"]  // {description}')
+        else:  # string
+            schema_parts.append(f'    "{field_name}": "text value"  // {description}')
+    
+    schema_str = ",\n".join(schema_parts)
+    
+    return f"""Analyze this LinkedIn profile for {candidate_name} and extract structured data.
+
+PROFILE DATA:
+{context_str}
+
+EXTRACT the following information based on the JOB REQUIREMENTS. Return ONLY valid JSON:
+
+{{
+  "extraction": {{
+    "bio_summary": "WRITE IN FIRST PERSON ('I am...', 'I have...'). 2-3 sentences about achievements and career focus.",
+{schema_str}
+  }},
+  "red_flags": {{
+    "job_hopping": true/false,
+    "title_inflation": true/false,
+    "gaps_in_employment": true/false,
+    "overqualified": true/false,
+    "concerns": ["list of specific concerns"]
+  }}
+}}
+"""
+
+
+async def extract_dynamic_fields(candidate_data: dict, enrichment: dict, extraction_fields: list) -> dict:
+    """Extract dynamic fields using the JD Compiler schema."""
+    prompt = build_dynamic_extraction_prompt(enrichment, candidate_data["name"], extraction_fields)
+    
+    for attempt in range(MAX_RETRIES + 1):
+        try:
+            response = await client.chat.completions.create(
+                model=EXTRACTION_MODEL,
+                messages=[
+                    {"role": "system", "content": "You are a precise data extraction engine. Return only valid JSON."},
+                    {"role": "user", "content": prompt},
+                ],
+                response_format={"type": "json_object"},
+                temperature=0.1,
+            )
+            
+            content = response.choices[0].message.content
+            if not content:
+                raise ValueError("Empty response")
+            
+            data = json.loads(content)
+            extraction = data.get("extraction", {})
+            red_flags = data.get("red_flags", {})
+            
+            # Calculate red flag count
+            red_flag_count = sum([
+                red_flags.get("job_hopping", False),
+                red_flags.get("title_inflation", False),
+                red_flags.get("gaps_in_employment", False),
+                red_flags.get("overqualified", False),
+            ])
+            
+            return {
+                "extraction": extraction,
+                "red_flags": red_flags.get("concerns", []),
+                "red_flag_count": red_flag_count,
+            }
+            
+        except Exception as e:
+            logger.warning(f"Dynamic extraction attempt {attempt + 1} failed for {candidate_data['name']}: {e}")
+            if attempt == MAX_RETRIES:
+                return {
+                    "extraction": {"bio_summary": "Unable to extract profile."},
+                    "red_flags": [],
+                    "red_flag_count": 0,
+                }
+            await asyncio.sleep(1)
+    
+    return {"extraction": {}, "red_flags": [], "red_flag_count": 0}
+
+
 async def extract_semantic(candidate_data: dict, enrichment: dict) -> ExtractionResult:
     """Call LLM to extract semantic data."""
     prompt = build_extraction_prompt(enrichment, candidate_data["name"])
@@ -303,7 +462,7 @@ def calculate_algo_score(candidate: dict) -> int:
     return max(0, min(score, 100))
 
 
-def build_evaluation_prompt(candidate: dict, job_description: str = "") -> str:
+def build_evaluation_prompt(candidate: dict, job_description: str = "", scoring_criteria: list = None, red_flag_indicators: list = None) -> str:
     """Build evaluation prompt for AI scoring with optional job description context."""
     # Build JD context section if provided
     jd_context = ""
@@ -312,6 +471,24 @@ def build_evaluation_prompt(candidate: dict, job_description: str = "") -> str:
 == JOB DESCRIPTION (evaluate candidate against this) ==
 {job_description.strip()}
 
+"""
+
+    # Build Scoring Criteria section
+    criteria_context = ""
+    if scoring_criteria and len(scoring_criteria) > 0:
+        criteria_list = "\n".join([f"- {c}" for c in scoring_criteria])
+        criteria_context = f"""
+== SCORING CRITERIA (PRIORITIZE THESE) ==
+{criteria_list}
+"""
+
+    # Build Red Flags section
+    red_flag_context = ""
+    if red_flag_indicators and len(red_flag_indicators) > 0:
+        flags_list = "\n".join([f"- {f}" for f in red_flag_indicators])
+        red_flag_context = f"""
+== RED FLAGS TO WATCH FOR ==
+{flags_list}
 """
     
     return f"""You are an expert executive recruiter evaluating candidates.
@@ -331,7 +508,7 @@ Skills: {candidate.get('skills', [])[:10]}
 - Enterprise Experience: {candidate.get('enterprise_experience', False)}
 - Max Deal Size: ${candidate.get('max_acv_mentioned') or 'Not mentioned'}
 - Red Flags: {candidate.get('red_flag_count', 0)}
-
+{criteria_context}{red_flag_context}
 == SCORING RUBRIC (be strict) ==
 90-100: Exceptional - Exceeds ALL requirements{' from the JD' if jd_context else ''}
 75-89: Strong - Meets critical requirements
@@ -342,34 +519,66 @@ Skills: {candidate.get('skills', [])[:10]}
 RETURN ONLY VALID JSON:
 {{
   "score": <0-100>,
-  "one_line_summary": "<10-word punchy summary>",
+  "one_line_summary": "<10-word punchy summary (infer from title/exp if bio missing)>",
   "pros": ["strength 1", "strength 2", "strength 3"],
   "cons": ["concern 1", "concern 2", "concern 3"],
-  "reasoning": "<2-3 sentence explanation{' referencing JD requirements' if jd_context else ''}>"
+  "reasoning": "<2-3 sentence explanation{' referencing JD requirements' if jd_context else ''}>",
+  "interview_questions": [
+    "<Specific question about their experience that probes a gap or validates a strength>",
+    "<Behavioral question tailored to their background and the role requirements>",
+    "<Question that explores concerns from their profile or clarifies missing info>"
+  ]
 }}"""
 
 
-async def evaluate_candidate(candidate: dict, job_description: str = "") -> Evaluation:
+def sanitize_json(content: str) -> str:
+    """Sanitize LLM JSON output to fix common errors like trailing commas."""
+    import re
+    # Remove trailing commas before ] or }
+    content = re.sub(r',\s*]', ']', content)
+    content = re.sub(r',\s*}', '}', content)
+    # Fix unescaped quotes within strings (common LLM error)
+    # This is tricky so we just try parsing first
+    return content.strip()
+
+
+async def evaluate_candidate(candidate: dict, job_description: str = "", scoring_criteria: list = None, red_flag_indicators: list = None) -> Evaluation:
     """Get AI evaluation for a candidate with optional job description context."""
-    prompt = build_evaluation_prompt(candidate, job_description)
+    prompt = build_evaluation_prompt(candidate, job_description, scoring_criteria, red_flag_indicators)
     
     for attempt in range(MAX_RETRIES + 1):
         try:
             response = await client.chat.completions.create(
                 model=SCORING_MODEL,
                 messages=[
-                    {"role": "system", "content": "You are an expert recruiter. Return only valid JSON."},
+                    {"role": "system", "content": "You are an expert recruiter. Return only valid JSON. Never include trailing commas."},
                     {"role": "user", "content": prompt},
                 ],
                 response_format={"type": "json_object"},
-                temperature=0.3,
+                temperature=0.4,
             )
             
             content = response.choices[0].message.content
             if not content:
                 raise ValueError("Empty response")
             
-            return Evaluation.model_validate_json(content)
+            # Sanitize JSON before parsing
+            sanitized = sanitize_json(content)
+            
+            try:
+                return Evaluation.model_validate_json(sanitized)
+            except Exception as parse_error:
+                # Try fallback: parse as dict and construct manually
+                logger.warning(f"JSON parse failed, trying fallback for {candidate.get('name')}: {parse_error}")
+                data = json.loads(sanitized)
+                return Evaluation(
+                    score=data.get("score", 50),
+                    one_line_summary=data.get("one_line_summary", "Evaluation parsed with fallback"),
+                    pros=data.get("pros", [])[:5] if isinstance(data.get("pros"), list) else [],
+                    cons=data.get("cons", [])[:5] if isinstance(data.get("cons"), list) else [],
+                    reasoning=data.get("reasoning", ""),
+                    interview_questions=data.get("interview_questions", [])[:3] if isinstance(data.get("interview_questions"), list) else [],
+                )
             
         except Exception as e:
             logger.warning(f"Evaluation failed for {candidate.get('name')}: {e}")
@@ -411,10 +620,11 @@ def get_missing_fields(candidate: dict) -> tuple:
         if is_missing(candidate.get(field_key), field_key):
             missing_preferred.append(field_name)
     
-    total_weight = len(REQUIRED_FIELDS) * 2 + len(PREFERRED_FIELDS)
+    # Calculate completeness based on weighted fields
+    total_weight = len(REQUIRED_FIELDS) * 2 + len(PREFERRED_FIELDS)  # Required fields weighted 2x
     present_weight = (len(REQUIRED_FIELDS) - len(missing_required)) * 2 + \
                      (len(PREFERRED_FIELDS) - len(missing_preferred))
-    completeness = round((present_weight / total_weight) * 100)
+    completeness = round((present_weight / total_weight) * 100) if total_weight > 0 else 0
     
     return missing_required, missing_preferred, completeness
 
@@ -434,20 +644,155 @@ def assign_tier(score: int) -> str:
 
 
 # ============================================================================
+# Deep Analytics Generation
+# ============================================================================
+
+def calculate_telemetry(transcript_text: str) -> CommunicationMetrics:
+    """Calculate basic communication metrics from transcript text."""
+    # This is an approximation since we don't have per-word timestamps in the plain text
+    # Assuming average speaking rate for calculation if duration unknown
+    
+    words = transcript_text.split()
+    word_count = len(words)
+    
+    # Estimate filler words
+    filler_words = ["um", "uh", "like", "you know", "actually", "basically", "literally"]
+    filler_count = sum(1 for w in words if w.lower().strip(",.") in filler_words)
+    filler_ratio = filler_count / max(word_count, 1)
+    
+    filler_freq = "Low"
+    if filler_ratio > 0.05: filler_freq = "High"
+    elif filler_ratio > 0.02: filler_freq = "Medium"
+    
+    # Default values for now - would need deeper audio analysis for true WPM/Interruption
+    return CommunicationMetrics(
+        speaking_pace_wpm=140, # Average placeholder
+        filler_word_frequency=filler_freq,
+        listen_to_talk_ratio=0.4 # Placeholder
+    )
+
+async def generate_deep_analytics(transcript: str, candidate_data: dict, job_description: str = "") -> Optional[DeepAnalytics]:
+    """Generate comprehensive post-interview analytics."""
+    
+    telemetry = calculate_telemetry(transcript)
+    
+    prompt = f"""
+You are an expert Voice Interview Analyst.
+Analyze the following interview transcript for candidate {candidate_data.get('name')}.
+
+CONTEXT:
+Job Description: {job_description[:1000]}...
+Resume Summary: {candidate_data.get('bio_summary')}
+
+TRANSCRIPT:
+{transcript[:15000]}  (Truncated if too long)
+
+TASK:
+Generate a Deep Analytics report in JSON format.
+1. Match specific quotes to skills (Skill Evidence).
+2. Rate soft skills 0-10 (Behavioral Profile).
+3. Analyze each Q&A exchange with MULTI-DIMENSIONAL SCORING (Relevance, Clarity, Depth 0-10).
+4. Synthesize overall performance.
+
+OUTPUT SCHEMA (JSON):
+{{
+  "overall_score": 0-100,
+  "recommendation": "Strong Hire" | "Hire" | "No Hire",
+  "overall_synthesis": "Detailed executive summary...",
+  "question_analytics": [
+    {{
+      "question": "...",
+      "answer_summary": "...",
+      "quality_score": 0-100,
+      "relevance_score": 0-10,
+      "clarity_score": 0-10,
+      "depth_score": 0-10,
+      "key_insight": "...",
+      "topic": "..."
+    }}
+  ],
+  "skill_evidence": [
+    {{
+      "skill": "...",
+      "quote": "...",
+      "confidence": "High"
+    }}
+  ],
+  "behavioral_profile": {{
+    "leadership": 0-10,
+    "resilience": 0-10,
+    "communication": 0-10,
+    "problem_solving": 0-10,
+    "coachability": 0-10
+  }},
+  "topics_to_probe": ["..."]
+}}
+"""
+    for attempt in range(MAX_RETRIES + 1):
+        try:
+            response = await client.chat.completions.create(
+                model=SCORING_MODEL,
+                messages=[
+                    {"role": "system", "content": "You are a precise analytics engine. Output valid JSON."},
+                    {"role": "user", "content": prompt}
+                ],
+                response_format={"type": "json_object"},
+                temperature=0.2
+            )
+            
+            content = response.choices[0].message.content
+            # Sanitize and parse
+            sanitized = sanitize_json(content)
+            data = json.loads(sanitized)
+            
+            # Merge calculated telemetry if not provided by LLM (LLM won't prompt for it, so we add it)
+            data["communication_metrics"] = telemetry.model_dump()
+            
+            return DeepAnalytics.model_validate(data)
+            
+        except Exception as e:
+            logger.error(f"Deep analytics generation failed (Attempt {attempt}): {e}")
+            if attempt == MAX_RETRIES:
+                 # Return a safe fallback
+                 return DeepAnalytics(
+                     overall_score=0,
+                     recommendation="No Hire",
+                     overall_synthesis="Analysis Failed",
+                     question_analytics=[],
+                     skill_evidence=[],
+                     behavioral_profile=BehavioralProfile(leadership=0, resilience=0, communication=0, problem_solving=0, coachability=0),
+                     communication_metrics=telemetry,
+                     topics_to_probe=[]
+                 )
+            await asyncio.sleep(1)
+
+    return None
+
+
+
+# ============================================================================
 # Main Processing Pipeline
 # ============================================================================
 
-async def process_csv_file(file_content: bytes, progress_callback=None, job_description: str = "") -> List[dict]:
+async def process_csv_file(file_content: bytes, progress_callback=None, job_description: str = "", extraction_fields: list = None, skip_ai_scoring: bool = False) -> List[dict]:
     """
     Process a CSV file and return scored candidates.
     
+    NEW FLOW:
+    1. Extract ALL candidates first (fast)
+    2. Calculate ALL algo scores immediately (no API)
+    3. Stream full algo table to frontend
+    4. AI score progressively (one at a time, updates stream in) - UNLESS SKIP_AI_SCORING IS TRUE
+    
     Args:
         file_content: Raw bytes of the CSV file
-        progress_callback: Optional async callback(phase, progress, message)
+        progress_callback: Optional async callback(phase, progress, message, data)
         job_description: Optional job description for contextualized AI scoring
+        extraction_fields: Optional list of dynamic fields from JD Compiler
+        skip_ai_scoring: If True, stop after extraction and algo scoring (Phase 2)
     
     Returns:
-        List of candidate dictionaries with scores
+        List of candidate dictionaries
     """
     from models.candidate import Candidate
     from services.candidate_store import save_candidates, clear_all_candidates
@@ -457,30 +802,106 @@ async def process_csv_file(file_content: bytes, progress_callback=None, job_desc
     df = pd.read_csv(io.BytesIO(file_content))
     total_candidates = len(df)
     
+    # Log extraction fields
+    if extraction_fields:
+        logger.info(f"Rg Received {len(extraction_fields)} extraction fields from JD Compiler:")
+        for field in extraction_fields:
+            logger.info(f"   - {field.get('field_name')} ({field.get('field_type')}): {field.get('description', '')[:50]}...")
+    else:
+        logger.info("Rg No custom extraction fields - using standard extraction")
+    
     if progress_callback:
-        await progress_callback("extracting", 0, f"Processing {total_candidates} candidates...")
+        fields_msg = f" with {len(extraction_fields)} custom fields" if extraction_fields else ""
+        await progress_callback("extracting", 0, f"Extracting {total_candidates} candidates{fields_msg}...", {"total_candidates": total_candidates})
     
     # Clear existing candidates
     clear_all_candidates()
     
-    all_candidates = []
+    # ========================================================================
+    # PHASE 1: Extract ALL candidates (with semantic extraction) - BATCHED
+    # ========================================================================
+    import time
+    all_extracted = []
+    extraction_start = time.time()
     
-    # Process in batches
-    for batch_start in range(0, total_candidates, BATCH_SIZE):
-        batch_end = min(batch_start + BATCH_SIZE, total_candidates)
-        batch_df = df.iloc[batch_start:batch_end]
+    # First pass: deterministic extraction (fast, no API)
+    logger.info(f"⏱️ Starting deterministic extraction for {total_candidates} candidates...")
+    det_start = time.time()
+    
+    candidates_with_enrichment = []
+    for idx, row in df.iterrows():
+        enrichment = parse_enrichment_json(row.get("crustdata_enrichment_data", ""))
+        base_data = extract_deterministic(row, enrichment)
+        base_data["_enrichment"] = enrichment  # Store for later
+        base_data["_idx"] = idx
+        candidates_with_enrichment.append(base_data)
+    
+    logger.info(f"⏱️ Deterministic extraction complete: {time.time() - det_start:.2f}s")
+    
+    # Second pass: semantic extraction in BATCHES
+    logger.info(f"⏱️ Starting semantic extraction (batches of {BATCH_SIZE})...")
+    sem_start = time.time()
+    
+    for i in range(0, len(candidates_with_enrichment), BATCH_SIZE):
+        batch = candidates_with_enrichment[i : i + BATCH_SIZE]
+        batch_start = time.time()
         
-        # Phase 1: Extract data
-        extracted_batch = []
-        for idx, row in batch_df.iterrows():
-            enrichment = parse_enrichment_json(row.get("crustdata_enrichment_data", ""))
-            base_data = extract_deterministic(row, enrichment)
+        # Create extraction tasks for this batch
+        extraction_tasks = []
+        candidate_meta = []  # Store (candidate, enrichment) pairs
+        
+        for candidate in batch:
+            enrichment = candidate.pop("_enrichment")
+            candidate.pop("_idx")
             
-            # Get semantic extraction if we have enrichment
             if enrichment:
-                try:
-                    result = await extract_semantic(base_data, enrichment)
-                    base_data.update({
+                if extraction_fields:
+                    task = extract_dynamic_fields(candidate.copy(), enrichment, extraction_fields)
+                else:
+                    task = extract_semantic(candidate.copy(), enrichment)
+                extraction_tasks.append(task)
+                candidate_meta.append((candidate, enrichment))
+            else:
+                # No enrichment, no API call needed
+                extraction_tasks.append(None)
+                candidate_meta.append((candidate, None))
+        
+        # Run all extractions in parallel using asyncio.gather
+        api_tasks = [t for t in extraction_tasks if t is not None]
+        if api_tasks:
+            api_results = await asyncio.gather(*api_tasks, return_exceptions=True)
+        else:
+            api_results = []
+        
+        # Map results back
+        api_result_iter = iter(api_results)
+        results = []
+        for i, (candidate, enrichment) in enumerate(candidate_meta):
+            if extraction_tasks[i] is not None:
+                result = next(api_result_iter)
+                if isinstance(result, Exception):
+                    logger.error(f"Extraction failed for {candidate['name']}: {result}")
+                    result = None
+                results.append((candidate, enrichment, result))
+            else:
+                results.append((candidate, None, None))
+        
+        # Process results
+        for candidate, enrichment, result in results:
+            if result:
+                if extraction_fields and isinstance(result, dict):
+                    # Dynamic extraction result
+                    extraction = result.get("extraction", {})
+                    candidate["bio_summary"] = extraction.get("bio_summary", "")
+                    for field in extraction_fields:
+                        field_name = field.get("field_name", "")
+                        if field_name in extraction and field_name != "bio_summary":
+                            candidate[field_name] = extraction[field_name]
+                    candidate["red_flags"] = result.get("red_flags", [])
+                    candidate["red_flag_count"] = result.get("red_flag_count", 0)
+                elif hasattr(result, 'extraction'):
+                    # Standard ExtractionResult
+                    candidate.update({
                         "bio_summary": result.extraction.bio_summary,
                         "sold_to_finance": result.extraction.sold_to_finance,
                         "is_founder": result.extraction.is_founder,
@@ -493,101 +914,186 @@ async def process_csv_file(file_content: bytes, progress_callback=None, job_desc
                         "red_flags": result.red_flags.concerns,
                         "red_flag_count": result.red_flags.red_flag_count,
                     })
-                except Exception as e:
-                    logger.error(f"Extraction failed for {base_data['name']}: {e}")
             
-            extracted_batch.append(base_data)
+            # Calculate algo score
+            algo_score = calculate_algo_score(candidate)
+            candidate["algo_score"] = algo_score
+            
+            # Initialize default fields
+            candidate.update({
+                "source": "csv_upload",
+                "created_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow(),
+                "ai_score": 0,
+                "combined_score": algo_score,
+                "tier": "Evaluate",
+                "interview_status": "not_scheduled",
+                "has_enrichment_data": enrichment is not None
+            })
+            
+            all_extracted.append(candidate)
         
-        extracted_count = batch_end
+        batch_time = time.time() - batch_start
+        logger.info(f"⏱️ Batch {i // BATCH_SIZE + 1} extracted: {len(batch)} candidates in {batch_time:.2f}s")
+        
+        # Progress update
         if progress_callback:
-            progress = int((extracted_count / total_candidates) * 50)
-            # Pass extracted batch for streaming algo preview
+            progress = int((len(all_extracted) / total_candidates) * 40)
             await progress_callback(
                 "extracting", 
                 progress, 
-                f"Extracted {extracted_count}/{total_candidates}",
-                {"extracted_batch": extracted_batch}
+                f"Extracted {len(all_extracted)}/{total_candidates}...",
+                {"extracted_batch": all_extracted.copy()}
             )
-        
-        # Phase 2: Score candidates
+    
+    total_extraction_time = time.time() - extraction_start
+    logger.info(f"⏱️ TOTAL EXTRACTION TIME: {total_extraction_time:.2f}s for {total_candidates} candidates ({total_extraction_time/total_candidates:.2f}s/candidate)")
+    
+    # Save extracted candidates
+    candidates_to_save = [Candidate(**c) for c in all_extracted]
+    save_candidates(candidates_to_save)
+    
+    # ========================================================================
+    # PHASE 2: Stream full algo table (all candidates with algo scores)
+    # ========================================================================
+    if progress_callback:
+        await progress_callback(
+            "extracting", 
+            40, 
+            f"All {total_candidates} profiles extracted!",
+            {"extracted_batch": all_extracted, "extraction_complete": True}
+        )
+    
+    # STOP HERE if skip_ai_scoring is True
+    if skip_ai_scoring:
+        logger.info("Skipping AI scoring as requested")
         if progress_callback:
-            await progress_callback("scoring", 50, f"Scoring batch {batch_start}-{batch_end}...")
+            await progress_callback("waiting_confirmation", 40, f"Extraction complete. Waiting for scoring confirmation.", {"extraction_complete": True})
+        return [c.model_dump() for c in candidates_to_save]
+
+    # ========================================================================
+    # PHASE 3: AI score progressively (one candidate at a time)
+    # ========================================================================
+    return await run_ai_scoring(candidates_to_save, progress_callback, job_description)
+
+
+async def run_ai_scoring(candidates_list: List[Any], progress_callback=None, job_description: str = "", scoring_criteria: list = None, red_flag_indicators: list = None) -> List[dict]:
+    """
+    Run AI scoring on a list of already extracted candidates with batch processing.
+    """
+    from services.candidate_store import save_candidates
+    import time
+    
+    total_candidates = len(candidates_list)
+    all_scored = []
+    
+    scoring_start = time.time()
+    logger.info(f"⏱️ Starting AI scoring for {total_candidates} candidates (Batch Size: {BATCH_SIZE})...")
+    
+    # Process in batches
+    for i in range(0, total_candidates, BATCH_SIZE):
+        batch = candidates_list[i : i + BATCH_SIZE]
+        batch_start = time.time()
+        batch_tasks = []
         
-        for candidate_data in extracted_batch:
-            # Calculate algo score
-            algo_score = calculate_algo_score(candidate_data)
+        # Create tasks for the batch
+        for candidate_obj in batch:
+            candidate_data = candidate_obj.model_dump() if hasattr(candidate_obj, "model_dump") else candidate_obj
             
-            # Get AI evaluation with job description context
-            try:
-                evaluation = await evaluate_candidate(candidate_data, job_description)
-                ai_score = evaluation.score
-            except Exception as e:
-                logger.error(f"AI evaluation failed for {candidate_data['name']}: {e}")
-                evaluation = Evaluation(score=50, one_line_summary="Evaluation failed")
-                ai_score = 50
-            
-            # Calculate combined score and tier
-            combined_score = round((algo_score + ai_score) / 2)
-            tier = assign_tier(combined_score)
-            
-            # Get missing fields
-            missing_required, missing_preferred, completeness = get_missing_fields(candidate_data)
-            
-            # Create unified Candidate object
-            candidate = Candidate(
-                id=candidate_data.get("id", str(len(all_candidates))),
-                name=candidate_data.get("name", "Unknown"),
-                job_title=candidate_data.get("job_title"),
-                location_city=candidate_data.get("location_city"),
-                location_state=candidate_data.get("location_state"),
-                years_experience=candidate_data.get("years_experience"),
-                bio_summary=candidate_data.get("bio_summary"),
-                industries=candidate_data.get("industries", []),
-                skills=candidate_data.get("skills", []),
-                sales_methodologies=candidate_data.get("sales_methodologies", []),
-                sold_to_finance=candidate_data.get("sold_to_finance", False),
-                is_founder=candidate_data.get("is_founder", False),
-                startup_experience=candidate_data.get("startup_experience", False),
-                enterprise_experience=candidate_data.get("enterprise_experience", False),
-                max_acv_mentioned=candidate_data.get("max_acv_mentioned"),
-                quota_attainment=candidate_data.get("quota_attainment"),
-                algo_score=algo_score,
-                ai_score=ai_score,
-                combined_score=combined_score,
-                tier=tier,
-                one_line_summary=evaluation.one_line_summary,
-                pros=evaluation.pros,
-                cons=evaluation.cons,
-                reasoning=evaluation.reasoning,
-                missing_required=missing_required,
-                missing_preferred=missing_preferred,
-                red_flags=candidate_data.get("red_flags", []),
-                red_flag_count=candidate_data.get("red_flag_count", 0),
-                completeness=completeness,
-                has_enrichment_data=candidate_data.get("has_enrichment_data", False),
-                source="csv_upload",
-                created_at=datetime.utcnow(),
-                updated_at=datetime.utcnow(),
+            # Create a coroutine for each candidate
+            task = process_single_candidate(
+                candidate_data, 
+                job_description, 
+                scoring_criteria, 
+                red_flag_indicators
             )
-            all_candidates.append(candidate)
+            batch_tasks.append(task)
         
-        scored_count = batch_end
+        # Run batch concurrently
+        batch_results = await asyncio.gather(*batch_tasks)
+        
+        batch_time = time.time() - batch_start
+        logger.info(f"⏱️ Scoring batch {i // BATCH_SIZE + 1} complete: {len(batch)} candidates in {batch_time:.2f}s")
+        
+        # Collect results and update progress
+        for scored_candidate in batch_results:
+            all_scored.append(scored_candidate_obj(scored_candidate))
+
+        # Progress update after batch
         if progress_callback:
-            progress = 50 + int((scored_count / total_candidates) * 50)
+            current_count = len(all_scored)
+            progress = 40 + int((current_count / total_candidates) * 60)
+            
+            # Send the last scored candidate in this batch as the "latest" for the UI preview
+            latest_dict = all_scored[-1].model_dump() if all_scored else {}
+            
             await progress_callback(
                 "scoring", 
                 progress, 
-                f"AI analyzing {scored_count}/{total_candidates}...",
-                {"candidates_scored": scored_count}
+                f"AI scored {current_count}/{total_candidates}...",
+                {"candidates_scored": current_count, "latest_scored": latest_dict}
             )
-    
+        
+        # Save incrementally
+        save_candidates(all_scored + candidates_list[len(all_scored):])
+        
+        # Small delay to respect rate limits if needed, but keeping it fast for user
+        if i + BATCH_SIZE < total_candidates:
+            await asyncio.sleep(0.5)
+
     # Sort by combined score
-    all_candidates.sort(key=lambda c: c.combined_score or 0, reverse=True)
+    all_scored.sort(key=lambda c: c.combined_score or 0, reverse=True)
     
-    # Save to store
-    save_candidates(all_candidates)
+    # Final Save
+    save_candidates(all_scored)
     
     if progress_callback:
-        await progress_callback("complete", 100, f"Processed {len(all_candidates)} candidates")
+        await progress_callback("complete", 100, f"Processed {len(all_scored)} candidates")
     
-    return [c.model_dump() for c in all_candidates]
+    return [c.model_dump() for c in all_scored]
+
+
+def scored_candidate_obj(candidate_data: dict) -> Any:
+    """Helper to convert dict back to Candidate object."""
+    from models.candidate import Candidate
+    return Candidate(**candidate_data)
+
+
+async def process_single_candidate(candidate_data: dict, job_description: str, scoring_criteria: list, red_flag_indicators: list) -> dict:
+    """Helper function to process a single candidate for batching."""
+    algo_score = candidate_data.get("algo_score", 0)
+    
+    # Get AI evaluation
+    try:
+        evaluation = await evaluate_candidate(candidate_data, job_description, scoring_criteria, red_flag_indicators)
+        ai_score = evaluation.score
+    except Exception as e:
+        logger.error(f"AI evaluation failed for {candidate_data.get('name')}: {e}")
+        evaluation = Evaluation(score=50, one_line_summary="Evaluation failed")
+        ai_score = 50
+    
+    # Calculate combined score and tier
+    combined_score = round((algo_score + ai_score) / 2)
+    tier = assign_tier(combined_score)
+    
+    # Get missing fields
+    missing_required, missing_preferred, completeness = get_missing_fields(candidate_data)
+    
+    # Update candidate_data
+    candidate_data.update({
+        "ai_score": ai_score,
+        "combined_score": combined_score,
+        "tier": tier,
+        "one_line_summary": evaluation.one_line_summary,
+        "pros": evaluation.pros,
+        "cons": evaluation.cons,
+        "reasoning": evaluation.reasoning,
+        "interview_questions": evaluation.interview_questions,
+        "missing_required": missing_required,
+        "missing_preferred": missing_preferred,
+        "completeness": completeness,
+        "updated_at": datetime.utcnow(),
+    })
+    
+    return candidate_data
+

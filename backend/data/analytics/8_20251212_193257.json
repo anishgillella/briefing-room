@@ -1,0 +1,63 @@
+{
+  "qa_pairs": [
+    {
+      "question": "Can you describe your experience with the full sales cycle, specifically detail the closing stages and how you contributed to closing deals in your previous roles?",
+      "answer": "The candidate did not provide an answer to this question. The interviewer interjected with '\u01ceo l\u01ceo l\u01ceo l\u01ceo l\u01ceo l\u01ceo' immediately after asking the question, preventing a response.",
+      "question_type": "behavioral",
+      "metrics": {
+        "relevance": 0,
+        "clarity": 0,
+        "depth": 0,
+        "type_specific_metric": 0,
+        "type_specific_label": "STAR Adherence"
+      },
+      "highlight": null
+    },
+    {
+      "question": "Given your background in software development and retailing, how do you envision transitioning to...",
+      "answer": "The candidate did not provide an answer to this question. The interviewer interrupted themselves before completing the question and before the candidate could respond.",
+      "question_type": "situational",
+      "metrics": {
+        "relevance": 0,
+        "clarity": 0,
+        "depth": 0,
+        "type_specific_metric": 0,
+        "type_specific_label": "Problem-Solving"
+      },
+      "highlight": null
+    }
+  ],
+  "overall": {
+    "overall_score": 0,
+    "communication_score": 0.0,
+    "technical_score": 0.0,
+    "cultural_fit_score": 0.0,
+    "total_questions": 2,
+    "avg_response_length": 0,
+    "red_flags": [
+      "Interviewer's behavior made it impossible for the candidate to answer questions.",
+      "Incomplete questions from the interviewer.",
+      "Irrelevant interjections from the interviewer."
+    ],
+    "highlights": [
+      "Candidate's initial greeting was professional despite the lack of engagement from the interviewer."
+    ],
+    "recommendation": "No Hire",
+    "recommendation_reasoning": "It is impossible to make any hiring recommendation as the candidate was not given the opportunity to answer any questions due to the interviewer's behavior and incomplete questions. No assessment of skills or fit can be made.",
+    "confidence": 0
+  },
+  "highlights": {
+    "best_answer": {
+      "quote": null,
+      "context": null
+    },
+    "red_flag": {
+      "quote": "I didn't do it. ... \u01ceo l\u01ceo l\u01ceo l\u01ceo l\u01ceo l\u01ceo ... We'll make it. ... I'm running low.",
+      "context": "These quotes from the interviewer demonstrate a highly unprofessional and disruptive interview environment, preventing any meaningful interaction or assessment of the candidate."
+    },
+    "quotable_moment": "Hello! I'm David Catalano. Thank you for having me today. I'm excited to discuss this opportunity.",
+    "areas_to_probe": [
+      "All aspects of the candidate's experience and qualifications, as none were discussed."
+    ]
+  }
+}

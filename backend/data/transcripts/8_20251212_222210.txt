@@ -1,0 +1,1 @@
+Interviewer: Hello. Candidate: Hi. Interviewer: Tell me about yourself. Candidate: I am David. Interviewer: Do you have sales experience? Candidate: Yes, I sold to finance leaders.

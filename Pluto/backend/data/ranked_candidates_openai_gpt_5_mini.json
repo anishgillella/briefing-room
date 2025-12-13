@@ -1,0 +1,936 @@
+[
+  {
+    "rank": 1,
+    "tier": "\ud83d\udd25 Top Match",
+    "algo_score": 80,
+    "ai_score": 82,
+    "final_score": 81,
+    "one_line_summary": "Fintech founder with proven SaaS sales to finance leaders",
+    "pros": [
+      "Direct experience selling accounting/invoicing AI to finance stakeholders (CFOs/Controllers)",
+      "Founding/startup background demonstrates hustle, product-led selling, and GTM ownership",
+      "Relevant tools and SaaS experience (Salesforce, LinkedIn Navigator) and enterprise exposure"
+    ],
+    "cons": [
+      "No documented quota attainment or clear closed-won metrics provided",
+      "Unclear average and max deal sizes\u2014limits assessment of enterprise closing scale",
+      "Short tenures/multiple roles flagged; potential retention or ramp concerns"
+    ],
+    "reasoning": "Meets the role's critical requirements: fintech/SaaS domain, selling to finance leaders, and strong startup/founder credibility. Lacks concrete performance metrics (quota attainment, deal sizes) and has a red flag for short tenures, so while highly recruitable, further validation in interview and reference checks is needed.",
+    "interview_questions": [
+      "David-Michael, can you walk me through your most recent 12 months of performance: what was your quota, your attainment as a percentage, number of closed\u2011won deals, and the total ACV/ARR you personally sourced and closed?",
+      "For the three largest deals you personally closed in your career, please describe the contract value (ACV or TCV), sales cycle length, the stakeholders involved, and the specific role you played to get them across the line.",
+      "Several roles on your resume are short\u2011tenured \u2014 can you explain the circumstances for each shorter stint, what concrete outcomes you delivered in that time, and the primary reasons you left?",
+      "Give a specific example from an early\u2011stage or resource\u2011constrained environment where you had to build or significantly change the sales motion. What steps did you take, how did you prioritize activities, how quickly did you ramp, and what were the measurable results?",
+      "Tell me about a quarter when you missed quota: what were the root causes, what corrective actions did you take (e.g., deal rescue, pricing/packaging changes, executive involvement), and what was the ultimate outcome?"
+    ],
+    "id": "13",
+    "name": "David-Michael Ajudua",
+    "job_title": "",
+    "location_city": "New York",
+    "location_state": "NY",
+    "years_sales_experience": 3.0,
+    "bio_summary": "I am a Co-Founder of Aiazing, where I have helped grow the user base to several thousand for our low-cost invoicing and accounting tool with AI. I have also gained experience in investment management software and data analytics software.",
+    "industries": "Fintech|AI/ML|SaaS|Investment Management|Data Analytics",
+    "skills": "LinkedIn Sales Navigator|Salesforce Sales Cloud |Microsoft PowerPoint|Microsoft Office|Leadership|Time Management|Microsoft Word|Social Media|Teamwork",
+    "sold_to_finance": true,
+    "is_founder": true,
+    "startup_experience": true,
+    "enterprise_experience": true,
+    "missing_required": [
+      "Job Title"
+    ],
+    "missing_preferred": [
+      "Deal Size/ACV",
+      "Quota %"
+    ],
+    "data_completeness": 71
+  },
+  {
+    "rank": 2,
+    "tier": "\u2705 Strong Fit",
+    "algo_score": 70,
+    "ai_score": 82,
+    "final_score": 76,
+    "one_line_summary": "High-performing SaaS AE with strong finance sell-in",
+    "pros": [
+      "166% quota attainment demonstrates consistent overperformance",
+      "Proven experience selling to finance/CFO stakeholders in enterprise deals",
+      "4 years closing experience across SaaS and fintech with strong technical acumen"
+    ],
+    "cons": [
+      "No prior startup/founding experience \u2014 limited evidence of building GTM from scratch",
+      "Max deal size ~$38K may be low for some mid-market/enterprise targets",
+      "Unclear willingness/availability to travel and attend key in-person events"
+    ],
+    "reasoning": "Yara meets the role's critical requirements\u2014strong closing record, fintech/SaaS background, and direct experience selling to finance leaders\u2014so she is a strong fit for a founding AE. The primary gaps are lack of startup experience and relatively modest deal sizes, which could be addressed with coaching but slightly reduce fit for a pure early-stage GTM builder.",
+    "interview_questions": [
+      "Describe a time you had to design or overhaul a go-to-market motion with minimal existing process or resources. Explain the initial state, the specific steps you took (ICP, positioning, sales motion, enablement), the timeline, the KPIs you set, the quantifiable results, and what you would do differently if asked to build GTM at a seed-stage startup.",
+      "Your largest closed deal is ~ $38K. Walk me through that deal end-to-end: how it was sourced, who the internal and buyer stakeholders were, the length and milestones of the sales cycle, pricing/discounting decisions, implementation complexity, obstacles you overcame, and the specific actions you took that were decisive to closing it.",
+      "If tasked with increasing average contract value from ~$38K to $100K+ within 12\u201318 months, what concrete changes would you propose across product packaging, pricing, target account selection, sales motion, and proof points? Prioritize the highest-impact moves, state assumed resources, and describe trade-offs and risks.",
+      "This role requires regular travel and attendance at key in-person events. What is your current availability and comfort level with travel (for example, % of time or nights/month)? Provide recent examples of events or road trips you led or attended, the outcomes you delivered in-person, and how you manage pipeline and personal commitments while traveling.",
+      "Startups demand wearing many hats and operating in ambiguity. Give two specific examples where you stepped outside your formal role (e.g., owned demand gen, helped shape product messaging, led onboarding or CS remediation). Describe what you delivered, how you prioritized competing tasks, and how you measured success in those situations."
+    ],
+    "id": "9",
+    "name": "Yara Lacerda",
+    "job_title": "Account Executive SMB",
+    "location_city": "Miami",
+    "location_state": "FL",
+    "years_sales_experience": 4.0,
+    "bio_summary": "I have consistently exceeded sales quotas by delivering tailored solutions across the LATAM market, managing a diverse portfolio of 135 accounts and amplifying deal sizes significantly. I am recognized for outstanding sales presentations and strategic outreach, anchored in deep technical acumen and trilingual proficiency, enabling effective communication and coaching within multicultural teams.",
+    "industries": "SaaS|Fintech|E-commerce|E-learning|Healthcare|Cloud Computing|Entertainment|Wellness",
+    "skills": "Sales Presentations|Complex Sales|Financial Operations|Sales Target Management|Business Development|Sales Strategy|Relationship Building|Lead Generation|Client Relations|Account Executive|Technical Sales|Problem Solving|New Business Opportunities|Strategic Relationships|Sales Operations",
+    "sold_to_finance": true,
+    "is_founder": false,
+    "startup_experience": false,
+    "enterprise_experience": true,
+    "missing_required": [],
+    "missing_preferred": [],
+    "data_completeness": 100
+  },
+  {
+    "rank": 3,
+    "tier": "\u2705 Strong Fit",
+    "algo_score": 70,
+    "ai_score": 80,
+    "final_score": 75,
+    "one_line_summary": "Experienced seller to finance; missing measurable SaaS metrics",
+    "pros": [
+      "30 years of sales experience with demonstrated enterprise and startup exposure",
+      "Has sold to finance leaders (CFOs/Controllers) \u2014 matches ICP",
+      "Background includes SaaS and AI-related industries relevant to product"
+    ],
+    "cons": [
+      "No documented quota attainment, ACV, or max deal size \u2014 hard to gauge ramp and performance",
+      "Recent short tenures (5\u201310 months) raise retention/fit questions",
+      "Key sales metrics (pipeline generation, conversion rates) and closing cadence not provided"
+    ],
+    "reasoning": "Candidate is a strong fit for a founding AE given extensive sales experience, demonstrated selling to finance stakeholders, and relevant industry background. However, missing concrete SaaS performance metrics and recent short tenures introduce risk; recommend interview to probe quota history, typical deal sizes, and reasons for job changes.",
+    "interview_questions": [
+      "You haven\u2019t listed quota attainment, ACV, or max deal size \u2014 please walk me through your most recent 12 months of sales performance with concrete numbers: assigned quota vs. attainment by quarter, typical/average ACV, largest closed deal (value and timeline), and time-to-first-close when you joined that role.",
+      "Pick one recent deal you won from your resume and take me step\u2011by\u2011step through it: how the opportunity was sourced, your conversion metrics at each stage (lead \u2192 demo \u2192 proposal \u2192 close), the cadence of your outreach (calls/emails/demos per week), the key objections and how you overcame them, and what role others played in closing it.",
+      "Describe how you consistently build and manage pipeline at your current/most recent role: primary sources (outbound, inbound, partnerships, referrals), monthly/quarterly volume targets you worked to hit (leads, qualified opportunities), your conversion rates by stage, and specific tactics you used when pipeline coverage fell below target.",
+      "Several recent roles were only 5\u201310 months \u2014 help me understand the reasons for those short tenures, what you learned from each experience, and how you would ensure longer tenure and alignment with our team if hired.",
+      "Startups require wearing multiple hats and moving fast with little process. Give a concrete example where you stepped outside a traditional sales role (e.g., product feedback, customer success, ops, hiring, process design), the impact you had, and how you prioritize tasks when resources and time are limited."
+    ],
+    "id": "4",
+    "name": "Parampreet Atwal",
+    "job_title": "Account Executive",
+    "location_city": "Calgary",
+    "location_state": "Alberta",
+    "years_sales_experience": 30.0,
+    "bio_summary": "I have a proven track record of success in sales, consistently exceeding targets and driving revenue growth. I am passionate about transforming industries through innovative technology solutions and building strong client relationships.",
+    "industries": "LegalTech|SaaS|Customer Service|AR/AI|EdTech|Digital Media",
+    "skills": "Microsoft Office|Customer Service|Microsoft Excel|Management|Leadership|Project Management|Microsoft Word|PowerPoint|Strategic Planning|Research",
+    "sold_to_finance": true,
+    "is_founder": false,
+    "startup_experience": true,
+    "enterprise_experience": true,
+    "missing_required": [],
+    "missing_preferred": [
+      "Deal Size/ACV",
+      "Quota %"
+    ],
+    "data_completeness": 86
+  },
+  {
+    "rank": 4,
+    "tier": "\u2705 Strong Fit",
+    "algo_score": 65,
+    "ai_score": 82,
+    "final_score": 74,
+    "one_line_summary": "Fintech/SaaS AE with CFO-sell experience, startup-ready",
+    "pros": [
+      "Direct experience selling to finance leaders (CFOs/Controllers)",
+      "6 years in sales across Fintech, SaaS and data analytics",
+      "Senior AE with enterprise selling experience and startup exposure"
+    ],
+    "cons": [
+      "Short average tenure across roles \u2014 potential job-hopping risk",
+      "No quantifiable performance metrics provided (quota attainment, ACV/deal size)",
+      "Education/finance degree not specified; limited signal on deep FP&A domain expertise"
+    ],
+    "reasoning": "Darrell meets the role's critical requirements\u2014SaaS/fintech background, proven selling to finance stakeholders, and startup experience\u2014making him a strong candidate for a founding AE. The lack of documented quota attainment and deal-size metrics plus short tenures are notable risks; verify consistent performance and reasons for role changes before advancing.",
+    "interview_questions": [
+      "I see relatively short tenures across your recent roles. For each of the last three positions, briefly explain the reason for leaving and, for the final 6\u201312 months in each role, describe the key initiatives you owned and the measurable impact (results, KPIs, timelines) before you departed.",
+      "Pick the most significant achievement on your resume and quantify it: what was the baseline, what specific metric(s) moved (revenue, ACV, ARR, cost savings, margin improvement, quota attainment, etc.), by how much, over what timeframe, and what concrete actions did you take to drive that result?",
+      "Your background does not clearly show a finance/FP&A degree\u2014what is your formal education and any finance-related certifications or coursework? Provide two examples of complex FP&A work you led (e.g., building a forecasting model, variance analysis, budgeting process), including the tools, methodologies, assumptions, and stakeholders involved.",
+      "Imagine you're the FP&A lead at a Series A/B SaaS startup with limited historical data: walk me through how you would build a 12-month rolling revenue and cash forecast. Specify required inputs, how you'd set assumptions, perform sensitivity/scenario analysis, key KPIs to track, and how you'd package and present this to the CEO and investors.",
+      "Startups require wearing many hats and making trade-offs under uncertainty. Give a concrete example where you had to prioritize conflicting requests, operate with constrained resources, and deliver quickly. What trade-offs did you make, how did you communicate with stakeholders, and what was the outcome?"
+    ],
+    "id": "17",
+    "name": "Darrell Sung",
+    "job_title": "Senior Account Executive",
+    "location_city": "Dallas",
+    "location_state": "TX",
+    "years_sales_experience": 6.0,
+    "bio_summary": "I am a driven individual with a proven track record in strategic partnerships, consistently achieving sales goals. I have experience in financial institutions, leading sales efforts and managing accounts.",
+    "industries": "Fintech|SaaS|Data Analytics",
+    "skills": "Public Speaking|Organizational & Writing Skills|Social Media Marketing|Team Leadership|Group Work|Deadline Oriented|Creative Strategy|Microsoft Excel|Microsoft Word|Marketing|Sales|Customer Service|PowerPoint|Teamwork|Microsoft Office",
+    "sold_to_finance": true,
+    "is_founder": false,
+    "startup_experience": true,
+    "enterprise_experience": true,
+    "missing_required": [],
+    "missing_preferred": [
+      "Deal Size/ACV",
+      "Quota %"
+    ],
+    "data_completeness": 86
+  },
+  {
+    "rank": 5,
+    "tier": "\u2705 Strong Fit",
+    "algo_score": 70,
+    "ai_score": 72,
+    "final_score": 71,
+    "one_line_summary": "Experienced founder/enterprise AE, lacks finance-sales proof",
+    "pros": [
+      "3x founder with proven startup grit and scrappy execution",
+      "11 years closing mid-market and enterprise deals (max deal ~$500K)",
+      "Strong full\u2011cycle GTM, partnership development, and enterprise relationship skills"
+    ],
+    "cons": [
+      "No demonstrated track record selling to finance/accounting stakeholders (CFOs, Controllers)",
+      "Short average tenure across roles \u2014 potential job\u2011hopping risk",
+      "Quota attainment not provided, making consistent performance unclear"
+    ],
+    "reasoning": "Candidate is a strong early\u2011stage hire with deep enterprise and founder experience, making them coachable for a founding AE role. However, the lack of explicit wins selling to finance leaders and unclear performance consistency are material gaps for this role, so they warrant an interview but are not an immediate slam dunk fit.",
+    "interview_questions": [
+      "Zachary \u2014 your background doesn\u2019t show a clear track record selling to CFOs or Controllers. Describe a specific instance when you sold (or attempted to sell) to finance/accounting decision\u2011makers: who were the stakeholders, how did you build credibility, what financial metrics or ROI/TCO analysis did you present, what objections arose, and what was the outcome (closed/lost and deal value)? If you don\u2019t have a direct example, outline a concrete, numbers\u2011based pitch you would use to win a CFO today.",
+      "Pick your three largest deals in the last three years and for each provide: ACV/ARR, total deal value, sales cycle length, percent of quota it represented, your primary contributions to winning the deal, and whether that playbook is repeatable\u2014if quota wasn\u2019t formally tracked, explain how success was measured.",
+      "We don\u2019t see quota attainment listed on your profile. Walk me through your quota performance year\u2011by\u2011year for the last 3\u20135 years (percent of quota achieved). Then give one concrete example of a quarter or year you missed target\u2014what caused it, what corrective actions you took, and what you changed in your approach as a result.",
+      "Your roles show relatively short tenures. For each job change in the past five years, explain why you left, what you were seeking that you didn\u2019t get, and what would have needed to be different for you to stay longer. What are the top three factors that would make you commit to a company for at least two years?",
+      "Startups require wearing many hats, working with limited processes, and making trade\u2011offs. Give a concrete example where you were in a resource\u2011constrained or ambiguous situation and had to (a) build or change a GTM approach, (b) align product/engineering/finance to close deals, and (c) deliver measurable impact. How did you prioritize, communicate tradeoffs, and balance short\u2011term revenue needs with long\u2011term product fit?"
+    ],
+    "id": "0",
+    "name": "Zachary Leyden",
+    "job_title": "Mid-Market & Enterprise Account Executive",
+    "location_city": "San Francisco",
+    "location_state": "CA",
+    "years_sales_experience": 11.0,
+    "bio_summary": "I am a 3x exited founder with a proven track record of driving enterprise growth in legacy industries, specializing in bridging relationship-driven markets with modern, scalable sales motions. I excel at leading full-cycle GTM strategies, securing multi-year enterprise contracts, and translating deep sector knowledge into repeatable revenue.",
+    "industries": "AgTech|Equestrian|ERP Software|Non-profit|Government",
+    "skills": "Corporate Partnership Development|Corporate Partnerships|Account Management|Information Technology Infrastructure|Search Engine Optimization (SEO)|Digital Strategy|Enterprise Resource Planning (ERP)|Enterprise Technology Sales|Enterprise Software Sales|Mid-Market|Enterprise Account Management|Product Engineering|Go-to-Market Strategy|CRM Software|End-to-End Sales",
+    "sold_to_finance": false,
+    "is_founder": true,
+    "startup_experience": true,
+    "enterprise_experience": true,
+    "missing_required": [],
+    "missing_preferred": [
+      "Quota %"
+    ],
+    "data_completeness": 93
+  },
+  {
+    "rank": 6,
+    "tier": "\u2705 Strong Fit",
+    "algo_score": 60,
+    "ai_score": 82,
+    "final_score": 71,
+    "one_line_summary": "Fintech AE with CFO traction, enterprise experience lacking",
+    "pros": [
+      "Proven experience selling to finance/CFO stakeholders",
+      "6 years in sales with fintech and AI/ML domain expertise",
+      "Startup experience and demonstrated consultative/C-suite selling"
+    ],
+    "cons": [
+      "No clear mid-market/enterprise deal experience documented",
+      "Missing key metrics (quota attainment, average/max deal size)",
+      "Recent short tenures raise retention/fit concerns"
+    ],
+    "reasoning": "Candidate meets the role's critical requirements\u2014fintech background, selling to finance leaders, and startup hustle\u2014warranting a strong score. However, lack of documented enterprise-level deals, absence of quota and deal-size metrics, and short recent tenures prevent a top-tier rating.",
+    "interview_questions": [
+      "Tell me about the largest mid-market or enterprise deal you have personally owned from first contact to close: who were the stakeholders, what was the deal size, how long was the sales cycle, what obstacles (procurement, legal, technical) did you face, and what specifically did you do to get it over the finish line?",
+      "Your resume references strong revenue results\u2014can you walk me through your quota attainment for the past 2\u20133 years (percent of quota, any over/under performance), your typical and largest deal sizes, and the repeatable actions or strategies you used to achieve those numbers?",
+      "Describe a negotiation with procurement or legal on contract terms that threatened a deal. What concessions did you make, what did you push back on, how did you quantify and mitigate risk, and what was the final outcome (including financial terms if possible)?",
+      "Several of your recent roles are relatively short. What drove those transitions, and what would need to be true in your next role for you to commit long-term? Give a concrete example of when you stayed through ambiguity or a difficult phase and how you contributed to stability or growth.",
+      "Startups require wearing many hats and moving fast. Give a specific example from your experience where you had to take on non-sales responsibilities (product feedback, onboarding customers, process setup, etc.), how you prioritized competing demands, and what the measurable impact was."
+    ],
+    "id": "5",
+    "name": "Armando F.",
+    "job_title": "Account Executive",
+    "location_city": "New York",
+    "location_state": "NY",
+    "years_sales_experience": 6.0,
+    "bio_summary": "I am an Account Executive with a strong background in financial technology sales. I have consistently driven revenue and managed client relationships, focusing on delivering innovative solutions to businesses.",
+    "industries": "Fintech|AI/ML|Financial Services",
+    "skills": "Microsoft Office|Social Media|Teamwork|Leadership|Microsoft Word|Research|Writing|Business Strategy|Sales|C-Suite Selling|C Level Selling",
+    "sold_to_finance": true,
+    "is_founder": false,
+    "startup_experience": true,
+    "enterprise_experience": false,
+    "missing_required": [],
+    "missing_preferred": [
+      "Deal Size/ACV",
+      "Quota %"
+    ],
+    "data_completeness": 86
+  },
+  {
+    "rank": 7,
+    "tier": "\u2705 Strong Fit",
+    "algo_score": 65,
+    "ai_score": 68,
+    "final_score": 66,
+    "one_line_summary": "Startup-experienced AE with strong GTM but lacks finance-sell",
+    "pros": [
+      "Proven startup and GTM experience building sales processes from scratch",
+      "Enterprise deal experience (max deal size up to $2M) and outbound/closing skills",
+      "Strong product/industry fit (AI/ML, software) and consultative selling capabilities"
+    ],
+    "cons": [
+      "No demonstrated track record selling to finance stakeholders (CFOs/Controllers) \u2014 a core job requirement",
+      "Quota attainment not provided, making performance predictability unclear",
+      "Current title 'Sales Consultant' \u2014 limited explicit AE closing pedigree in fintech/finance vertical"
+    ],
+    "reasoning": "Candidate brings relevant startup, enterprise, and GTM strengths that map well to an early-stage AE role, but lacks the critical demonstrated experience selling to finance/accounting leaders. Given the role\u2019s emphasis on engaging CFOs/Controllers, this gap prevents a higher score; candidate is coachable and worth interviewing if finance-stakeholder fit can be validated.",
+    "interview_questions": [
+      "Give a specific example of a deal where you sold to a finance stakeholder (CFO, VP of Finance, Controller). What was the opportunity size (ACV/ARR), your exact role in the sale, length of the sales cycle, the primary objections the finance stakeholder raised, how you addressed them, and whether you closed the deal? If you haven\u2019t closed deals directly with finance leaders, describe step-by-step how you would approach a first meeting with a CFO at a mid-market company.",
+      "Please walk me through your quota history for the last 2\u20133 years: the quota metrics (ACV, ARR, bookings), your quota attainment percentage each period, average deal size, and whether targets were territory- or product-based. For any periods below target, explain root causes and actions you took to recover.",
+      "Your current title is 'Sales Consultant.' Describe the proportion of deals where you owned the full sales cycle end-to-end (prospecting, discovery, negotiation, contract signing) versus those where you played a supporting or pre-sales role. Provide one concrete example of a deal you personally closed and detail the steps you took to get it signed.",
+      "Pick your most impactful claimed achievement (revenue win, ROI case, or customer expansion) and provide the measurable outcomes: baseline metrics, the change delivered, timeline, stakeholders involved, and any customer proof points or references that can verify the result.",
+      "Startups require ambiguity tolerance and cross-functional execution. Give two examples from your experience where you had to operate with limited resources, influence without authority (e.g., with product, finance, or implementation teams), and deliver results quickly. How did you prioritize, what trade-offs did you make, and what would you do differently in a fast-growing fintech startup selling to finance leaders?"
+    ],
+    "id": "14",
+    "name": "Muhammad Qasim Shamim Ali Khan",
+    "job_title": "Sales Consultant",
+    "location_city": "Toronto",
+    "location_state": "ON",
+    "years_sales_experience": 6.0,
+    "bio_summary": "I am a GTM professional with over 8 years of experience in growing revenue for early-stage companies. I have a proven track record of building sales processes from scratch, launching products in new markets, and leading teams to acquire and retain customers.",
+    "industries": "Software Development|AI/ML|Healthcare|Recruitment|IT Services",
+    "skills": "Go-to-Market Strategy|Architecture|Building Information Modeling (BIM)|Interior Design|3D Modeling|Stakeholder Management|Outbound Sales|Data Analysis|Negotiation|IT Strategy|Project Management|Microsoft Office|SPSS|STATA|Statistics",
+    "sold_to_finance": false,
+    "is_founder": false,
+    "startup_experience": true,
+    "enterprise_experience": true,
+    "missing_required": [],
+    "missing_preferred": [
+      "Quota %"
+    ],
+    "data_completeness": 93
+  },
+  {
+    "rank": 8,
+    "tier": "\u26a0\ufe0f Consider",
+    "algo_score": 55,
+    "ai_score": 70,
+    "final_score": 62,
+    "one_line_summary": "High-performing AE lacking finance stakeholder experience",
+    "pros": [
+      "Consistent overachievement\u2014averaged 200% quota at Yelp",
+      "9 years full-cycle sales experience with $20k\u2013$120k deal sizes",
+      "Startup experience and demonstrated scrappiness in fast-paced environments"
+    ],
+    "cons": [
+      "No documented experience selling to finance leaders (CFOs/Controllers)",
+      "Limited enterprise sales exposure and account complexity experience",
+      "Industry background mainly e-commerce/advertising, not fintech/accounting"
+    ],
+    "reasoning": "Alex is a proven closer with strong quota attainment and startup chops, making him likely coachable into this role. However, the lack of direct experience engaging finance stakeholders and limited enterprise experience are material gaps for a Founding AE focused on selling to CFOs/controllers.",
+    "interview_questions": [
+      "Your background is mainly e-commerce/advertising \u2014 give a specific example of either (a) a time you sold to a finance leader (CFO/controller) or (b) if you haven't, describe step-by-step how you would identify, engage, and influence a CFO/Controller in a deal. What metrics, financial models, and collateral would you use to make the business case?",
+      "Describe the most complex, enterprise-level opportunity you've closed or led: account size/ACV, number and types of stakeholders, sales cycle length, your role coordinating contributors, the main technical or organizational obstacles, and the measurable outcome (revenue, retention, ROI). If you inflated any parts of that story on your resume, now is the time to clarify.",
+      "Tell me about a time you had to learn and sell into an unfamiliar or highly regulated industry (for example, finance/accounting). What specific steps did you take to accelerate domain knowledge, how did you change your messaging or materials, and what was the result?",
+      "Startups require people to wear multiple hats and move quickly with incomplete information. Share a concrete example when you took on a non-sales responsibility (product feedback, onboarding, ops, recruiting, etc.). What did you do, why, and what impact did it have on the team or business?",
+      "Imagine a prospective enterprise buyer asks for a 12-month ROI model and wants their controller to validate accounting treatment before signing. Walk me through the exact materials you'd prepare, who on your team and the buyer's team you'd involve, how you'd manage disagreements about pricing/contract terms, and how you'd close the gap to a signed contract."
+    ],
+    "id": "20",
+    "name": "Alex Trujillo",
+    "job_title": "Mid Market Account Executive ",
+    "location_city": "Livermore",
+    "location_state": "CA",
+    "years_sales_experience": 9.0,
+    "bio_summary": "I am a seasoned sales professional with a proven track record of exceeding quotas, including averaging 200% of quota at Yelp. I have experience in full-cycle sales, from prospecting to closing deals ranging from $20k to $120k, and have contributed to significant company growth at Bolt.",
+    "industries": "E-commerce|Advertising",
+    "skills": "MEDDIC Sales Methodology|Customer Service|Leadership|Project Management|Sales|Time Management|Research|Management|Social Media Marketing|Social Media|Marketing|Solar Energy|Microsoft Office|Salesforce.com|sales",
+    "sold_to_finance": false,
+    "is_founder": false,
+    "startup_experience": true,
+    "enterprise_experience": false,
+    "missing_required": [],
+    "missing_preferred": [],
+    "data_completeness": 100
+  },
+  {
+    "rank": 9,
+    "tier": "\u26a0\ufe0f Consider",
+    "algo_score": 50,
+    "ai_score": 68,
+    "final_score": 59,
+    "one_line_summary": "High-performing SaaS AE; missing finance-buyer track record",
+    "pros": [
+      "Consistent quota attainment (112.1% and 108.3%) demonstrating reliable performance",
+      "4 years closing experience in SaaS with startup and enterprise exposure",
+      "Proven ability to drive aggressive growth and collaborate cross-functionally"
+    ],
+    "cons": [
+      "No evidence of selling to finance leaders (CFOs/Controllers), a critical requirement",
+      "Lacks explicit fintech/finance or accounting domain background preferred by role",
+      "Unclear max deal size and relationships with mid-market/enterprise finance stakeholders"
+    ],
+    "reasoning": "Connor shows strong SaaS sales performance, startup scrappiness, and enterprise experience, making him a coachable candidate. However, the role requires proven selling into finance/accounting leaders and domain experience (fintech/finance), which are not demonstrated, preventing a higher score.",
+    "interview_questions": [
+      "Give a specific example of the largest mid\u2011market or enterprise finance deal you closed: state the ACV or total contract value, the length of the sales cycle, which finance stakeholders (CFO, Controller, FP&A, etc.) were decision\u2011makers or influencers, and exactly how you built and leveraged relationships with those contacts.",
+      "Describe a time you engaged a CFO or Controller directly. What was your outreach and engagement strategy, which financial KPIs or ROI arguments did you use to persuade them, what objections did they raise, and how did you overcome those objections to close or advance the deal?",
+      "Pick one high\u2011impact achievement from the past 18 months on your resume and walk me through it: the business problem, your specific role and actions (not team-level credit), the concrete metrics (revenue influenced, ACV, quota attainment, retention), and how repeatable or scalable that outcome was.",
+      "If you have limited fintech/accounting domain experience, describe a 30/60/90 day ramp plan for selling into finance teams (CFOs/Controllers): what domain knowledge you would prioritize, which stakeholders you would map and meet first, what sales materials or proof points you would create, and how you would measure early success.",
+      "Startups require wearing multiple hats and moving fast. Tell me about a time at a high\u2011growth or early\u2011stage company where you took on responsibilities outside of traditional sales (product feedback, implementation, ops, customer success). How did you balance those tasks with quota pressure, and what trade\u2011offs did you make?"
+    ],
+    "id": "11",
+    "name": "Connor Comensoli",
+    "job_title": "Account Executive",
+    "location_city": "Saint Petersburg",
+    "location_state": "FL",
+    "years_sales_experience": 4.0,
+    "bio_summary": "I have consistently achieved high quota attainment, including 112.1% across $1.1m+ CV Territory and 108.3% across $843k+ CV Territory. I am focused on driving aggressive growth targets and building collaborative relationships with clients.",
+    "industries": "SaaS|Technology",
+    "skills": "Leadership|Communication|C++|Teamwork|Sales|Research|Supply Chain Operations|Visual Studio|Python (Programming Language)|HTML|Microsoft Office|Customer Service|Organization Skills",
+    "sold_to_finance": false,
+    "is_founder": false,
+    "startup_experience": true,
+    "enterprise_experience": true,
+    "missing_required": [],
+    "missing_preferred": [
+      "Deal Size/ACV"
+    ],
+    "data_completeness": 93
+  },
+  {
+    "rank": 10,
+    "tier": "\u26a0\ufe0f Consider",
+    "algo_score": 45,
+    "ai_score": 70,
+    "final_score": 58,
+    "one_line_summary": "High-performing fintech AE lacking finance-buyer experience",
+    "pros": [
+      "Strong performance (233% quota attainment) demonstrating consistent overachievement",
+      "5 years full-cycle sales across fintech, AI/ML, ERP and enterprise deals",
+      "Startup experience and enterprise credibility\u2014can thrive in scrappy GTM roles"
+    ],
+    "cons": [
+      "No proven track record selling to finance/accounting leaders (CFOs/Controllers)",
+      "Multiple short-tenure roles raise potential retention risk",
+      "Unclear typical deal size and direct experience selling finance-focused SaaS"
+    ],
+    "reasoning": "Luke is a high-performing, startup-experienced AE with relevant fintech and enterprise background and exceptional quota attainment, making him a strong candidate for a founding AE role. However, the lack of demonstrated selling to finance leaders (a core requirement) and several short stints at prior employers are material concerns that warrant deeper interview probing before hiring.",
+    "interview_questions": [
+      "Give one or two specific deals where you sold to finance or accounting leaders (CFOs, Controllers, VPs of Finance): who were the stakeholders, what was your role, the deal size (ACV/ARR), sales cycle length, the key financial objections they raised, how you addressed them, and the final outcome?",
+      "Walk me through your most significant sales achievement in the last 18\u201324 months: what quota or target you were measured against, your attainment (%), the concrete steps you took to win the business, measurable impact (ARR, retention, ROI), and a verifiable reference or metric we could check?",
+      "What typical deal sizes have you owned and closed? Give two concrete examples (one smaller, one larger) that include the product, contract value, sales cycle, decision\u2011makers involved, and whether you closed as an individual contributor or with a team.",
+      "Your resume shows multiple short-tenure roles \u2014 please explain the reason for each departure, what you learned from those experiences, and why you believe you would commit to and stay longer in a startup role with us?",
+      "Describe a time at a fast-moving company when you had to operate with little process or resources: what hands-on actions did you take to prioritize work, build repeatable processes or influence cross\u2011functional partners, what were the measurable results, and what would be your top priorities in the first 90 days here?"
+    ],
+    "id": "2",
+    "name": "Luke Anderson",
+    "job_title": "Account Executive, Partnerships and Alliances - North America",
+    "location_city": "San Francisco",
+    "location_state": "CA",
+    "years_sales_experience": 5.0,
+    "bio_summary": "I have successfully sold blockchain payment solutions to AI companies and BPOs, managing the full sales cycle. I combine marketing insights with a relationship-driven sales approach to exceed goals.",
+    "industries": "Fintech|AI/ML|ERP|E-commerce|Motorcycle Apparel",
+    "skills": "Enterprise Resource Planning (ERP)|Technical Demonstrations|Consulting|SaaS Sales|Platform as a Service (PAAS)|Software Configuration Management|Customer Relationship Management (CRM)|Business Development|Lucidchart|Account Management|Business Strategy|Sales Prospecting|B2B Commerce|Sales Operations|International Sales",
+    "sold_to_finance": false,
+    "is_founder": false,
+    "startup_experience": true,
+    "enterprise_experience": true,
+    "missing_required": [],
+    "missing_preferred": [
+      "Deal Size/ACV"
+    ],
+    "data_completeness": 93
+  },
+  {
+    "rank": 11,
+    "tier": "\u26a0\ufe0f Consider",
+    "algo_score": 50,
+    "ai_score": 65,
+    "final_score": 58,
+    "one_line_summary": "Startup AE with strong outbound skills; lacks finance sales.",
+    "pros": [
+      "3 years full-cycle AE experience with hunter mentality",
+      "Built outbound motions with 50%+ meeting booked rates",
+      "Startup and enterprise selling experience; strong objection handling"
+    ],
+    "cons": [
+      "No evidence of selling to finance leaders (CFOs/Controllers)",
+      "No documented quota attainment or average/max deal size",
+      "Limited/undefined experience in fintech or accounting-focused products"
+    ],
+    "reasoning": "Joey demonstrates clear strengths as a founding AE\u2014strong outbound chops, startup experience, and enterprise deal exposure\u2014making him coachable for an early-stage go-to-market role. However, the lack of proven sales to finance stakeholders and missing quota/deal-size metrics are meaningful gaps for a role that must engage CFOs/Controllers, so he's a potential hire but carries risk without targeted validation.",
+    "interview_questions": [
+      "Joey Sanford \u2014 Describe a specific deal in which you engaged finance leaders (CFO, VP Finance, or Controller). Who were the stakeholders, what were their primary objections, how did you tailor your value proposition to financial buyers, and what was the final outcome (including deal size and timeline)?",
+      "Please provide your quota attainment for the last three years: annual quota, your actual attainment as a percentage, your average and largest deal sizes during that period, and one tactical change you made when you were off-pace to hit target.",
+      "Tell me about a sale you closed (or pursued) involving a fintech, accounting-focused, or ERP-integrated product. What domain knowledge (accounting workflows, tax/compliance, integrations) was required, how did you build credibility with finance teams, and what measurable business impact did the customer realize?",
+      "Startups require wearing many hats. Give a concrete example from your experience where you created or significantly changed a sales process, pricing strategy, or positioning at an early-stage company. What steps did you take, what tradeoffs did you accept, and what were the measurable results?",
+      "Give an example of a time you worked closely with product/engineering to prioritize a feature request driven by finance-users. How did you articulate ROI to internal stakeholders, manage competing priorities, and what was the ultimate outcome for customers and revenue?"
+    ],
+    "id": "3",
+    "name": "Joey Sanford",
+    "job_title": "Full Cycle Account Executive (Hunter)",
+    "location_city": "New York",
+    "location_state": "NY",
+    "years_sales_experience": 3.0,
+    "bio_summary": "I have built outbound motions from the ground up, achieving over 50% meeting booked rates and consistently exceeding revenue targets. I am focused on driving growth at B2B startups, leveraging advanced objection handling to secure enterprise-level deals and expand market presence.",
+    "industries": "AI/ML|SaaS|Non-profit",
+    "skills": "Sales|Analytical Skills|Teamwork|Logistics Management|Organization Skills|Public Speaking|Data Analysis|Research Skills|Public Relations|Problem Solving|Communication|Political Science|Interpersonal Skills|Time Management|Writing",
+    "sold_to_finance": false,
+    "is_founder": false,
+    "startup_experience": true,
+    "enterprise_experience": true,
+    "missing_required": [],
+    "missing_preferred": [
+      "Deal Size/ACV",
+      "Quota %"
+    ],
+    "data_completeness": 86
+  },
+  {
+    "rank": 12,
+    "tier": "\u26a0\ufe0f Consider",
+    "algo_score": 50,
+    "ai_score": 66,
+    "final_score": 58,
+    "one_line_summary": "Fintech AE with strong quota, lacks CFO/enterprise wins",
+    "pros": [
+      "157.8% quota attainment demonstrating consistent overperformance",
+      "Relevant fintech/financial services background ideal for product domain",
+      "Startup experience and Salesforce/CRM proficiency; scrappy, coachable profile"
+    ],
+    "cons": [
+      "No documented track record selling to finance leaders (CFOs/Controllers)",
+      "Limited enterprise-selling experience; max deal size ~$100k may be below target",
+      "Current role isn't a clear SaaS closing AE role \u2014 closing experience uncertain"
+    ],
+    "reasoning": "Liam shows strong sales performance, fintech domain knowledge, and startup grit that map well to an early-stage AE. However, the absence of proven selling to finance executives and limited enterprise deal history are material gaps for a founding AE targeting mid-market/enterprise finance stakeholders.",
+    "interview_questions": [
+      "Give a specific example of a deal where you engaged a CFO or Controller (or equivalent finance leader): who were the stakeholders, what was your role, what objections did they raise, what was the final outcome, and what were the deal size and sales-cycle length? Tell me the exact metrics or ROI you used to win their buy-in.",
+      "Your max reported deal size is ~ $100k. Walk me through the largest, most complex deal you personally closed: total contract value, number of decision-makers involved, technical integrations or procurement/legal steps, your role at each stage, and one concrete change you would make to scale that to enterprise-level ACVs.",
+      "In your current role, what percentage of opportunities do you personally close end-to-end versus handing off to others? Provide 2\u20133 recent SaaS deals you closed (ACV, sales cycle, quota impact, conversion rate) and explain any gaps between your title/responsibilities and full-cycle AE expectations.",
+      "If you needed to get a skeptical finance executive interested in our product within two meetings, what top three value drivers and supporting numbers would you lead with? Describe the outreach sequence and collateral you would use to secure those meetings with limited prior CFO relationships.",
+      "Startups require cross-functional scrappiness. Describe a time at an early-stage company when you stepped outside traditional AE duties (e.g., helped with onboarding, product roadmap, pricing, or ops). What did you do, what was the measurable outcome, and how comfortable are you operating with minimal process or resources?"
+    ],
+    "id": "19",
+    "name": "Liam Artus, QKS\u2122",
+    "job_title": "Associate, Internal Wholesaler",
+    "location_city": "New York",
+    "location_state": "NY",
+    "years_sales_experience": 3.0,
+    "bio_summary": "I am an accomplished sales professional with a proven track record of exceeding targets, including achieving 157.8% lifetime attainment in a Sales Development Representative role. I have successfully driven deposit growth campaigns, built client relationships, and converted prospects into long-term clients through proactive business development and tailored solutions.",
+    "industries": "Fintech|Financial Services|Banking|Real Estate|Investment Management|Retail",
+    "skills": "Budgeting|Residential Real Estate|Financial Reporting|Microsoft Excel|Microsoft Access|Salesforce|Research Skills|Retail Sales|Customer Engagement|Corporate Finance|Sales|Supervisory Management|Customer Experience|Financial Analysis|Cold Calling",
+    "sold_to_finance": false,
+    "is_founder": false,
+    "startup_experience": true,
+    "enterprise_experience": false,
+    "missing_required": [],
+    "missing_preferred": [],
+    "data_completeness": 100
+  },
+  {
+    "rank": 13,
+    "tier": "\u26a0\ufe0f Consider",
+    "algo_score": 45,
+    "ai_score": 68,
+    "final_score": 56,
+    "one_line_summary": "Fintech-savvy AE with finance relationships, lacks startup grit",
+    "pros": [
+      "4 years sales experience with demonstrated deal closure and quota focus",
+      "Proven track record selling to finance stakeholders (CFOs/Controllers)",
+      "Strong fintech/financial services domain knowledge relevant to ICP"
+    ],
+    "cons": [
+      "No demonstrated startup/founding experience \u2014 important for a founding AE",
+      "Unclear enterprise deal size and quota attainment \u2014 unknown ability to close mid-market/enterprise",
+      "Two employment gaps raise questions about continuity and risk"
+    ],
+    "reasoning": "Candidate meets core requirements: multi-year sales experience and direct selling to finance leaders in fintech/financial services. However, lack of startup experience, no clear enterprise track record or disclosed quota attainment, and employment gaps increase risk for a high-impact founding AE role. Worth interviewing to assess hustle, deal sizes, and fit, but not an immediate \"exceptional\" hire.",
+    "interview_questions": [
+      "Tell me about the largest mid-market or enterprise deal you personally closed: what was the ACV/TCV, how long was the sales cycle, which stakeholders did you engage, what was your role at each stage, what key objections did you overcome, and how did that win impact your quota and team?",
+      "For each of the last three quota years, what was your quota and your actual attainment? For any year you missed or significantly exceeded quota, explain the underlying factors and the specific actions you took to influence the outcome.",
+      "Give a concrete example of a time you had to operate like a founder/first AE\u2014building pipeline, messaging, and processes from scratch with little or no playbook. What exactly did you build, which channels and tactics did you use, what collateral or cross-functional work did you lead, and what were the measurable results (pipeline value, conversion rates, closed deals)?",
+      "There are two employment gaps on your resume. Briefly explain the reason for each gap, what productive activities (e.g., consulting, learning, market research, networking) you undertook during those periods, and how those experiences affect your continuity and risk profile as a hire?",
+      "Imagine you join as the company\u2019s founding AE with a nascent product and limited resources. Outline your 90-day plan to generate qualified pipeline and close the first paying customer: define your target ICP, messaging approach, outreach cadence, key milestones, and the metrics you would use to measure success."
+    ],
+    "id": "16",
+    "name": "Hassan Beydoun",
+    "job_title": "Sales",
+    "location_city": "New York",
+    "location_state": "NY",
+    "years_sales_experience": 4.0,
+    "bio_summary": "I am skilled in building and nurturing client relationships, identifying opportunities, and closing complex deals, consistently exceeding quarterly KPIs through disciplined outreach and personalized follow-up. I am passionate about helping organizations achieve their goals and am currently exploring Sales Executive roles at fintech companies where I can contribute to growth, expand client reach, and help teams win.",
+    "industries": "Financial Services|Fintech|Investment Banking|Private Equity|Hedge Funds|Healthcare|Software|Industrials",
+    "skills": "Deal Closure|Sales Cycle Management|Demos|Equity Research|Financial Advisory|Alternative Investments|Wealth Management Services|Trading|Equities|Asset Management|Cold Calling|Manage client expectations|Sales Prospecting|Lead Generation|Business-to-Business (B2B)",
+    "sold_to_finance": true,
+    "is_founder": false,
+    "startup_experience": false,
+    "enterprise_experience": false,
+    "missing_required": [],
+    "missing_preferred": [
+      "Deal Size/ACV",
+      "Quota %"
+    ],
+    "data_completeness": 86
+  },
+  {
+    "rank": 14,
+    "tier": "\u26a0\ufe0f Consider",
+    "algo_score": 50,
+    "ai_score": 58,
+    "final_score": 54,
+    "one_line_summary": "AI founder with sales background; no proven finance/CFO deals",
+    "pros": [
+      "Founder with startup experience and demonstrated hustle",
+      "Strong AI/ML and product engineering credibility relevant to an AI SaaS marketplace",
+      "2 years of sales experience and enterprise exposure\u2014can engage technical buyers"
+    ],
+    "cons": [
+      "No demonstrated track record selling to finance or CFO stakeholders (critical gap)",
+      "Unclear quota attainment, deal sizes, and closing metrics",
+      "Primary background is technical/founder \u2014 may lack consultative finance sales experience"
+    ],
+    "reasoning": "Tony brings valuable AI, product, and startup experience and has sales exposure, but lacks the critical proof of selling to finance/accounting leaders and measurable quota/closing metrics. That missing, high-priority signal makes him a risky hire for a role that requires proven CFO/finance stakeholder selling, placing him in the 'Weak' range though potentially coachable.",
+    "interview_questions": [
+      "Describe any direct experience you have selling to finance executives (CFO, VP Finance, Controller). If you have examples, walk me through one deal: who the finance stakeholders were, what questions or objections they raised, what financial metrics or models you provided, and the final outcome (ACV/ARR, sales cycle length, and close date). If you haven\u2019t sold to CFOs directly, describe the most finance-oriented buyer you did sell to and how you adapted your approach to appeal to financial decision makers.",
+      "Pick the largest or most important deal on your resume and take me through it end-to-end: how the opportunity was sourced, your role at each stage, the deal size (ACV and/or ARR), sales cycle length, other stakeholders involved, any pricing or contractual concessions you made, and whether the deal was counted against quota. What measurable impact did the customer realize and how was success measured post-close?",
+      "For the last 2\u20133 years, what were your quota targets and your attainment for each quarter/year? Provide concrete metrics: quota, actual attainment (%), win rate, average deal size, typical sales cycle, and pipeline-to-close conversion. If you don\u2019t have exact numbers, explain why and how you reported performance.",
+      "Describe a time when you had to build a financial/business case (ROI, TCO, payback analysis, or similar) to convince a skeptical buyer. What assumptions and KPIs did you include, which stakeholders reviewed the model, how did you validate the numbers, and what was the result? Share any templates or repeatable frameworks you used.",
+      "Startups require wearing multiple hats and moving fast with limited resources. Tell me about a situation at an early-stage company where you had to operate without established processes\u2014what non-sales responsibilities did you take on, what initiative did you lead, how did you prioritize conflicting demands, and how did you influence cross-functional teams (product, engineering, finance) to get things done?"
+    ],
+    "id": "1",
+    "name": "Tony Xavier",
+    "job_title": "Founder",
+    "location_city": "Chicago",
+    "location_state": "IL",
+    "years_sales_experience": 2.0,
+    "bio_summary": "I am a founder with a strong background in AI/ML and engineering, currently innovating in enterprise AI applications. I have a proven track record of building and open-sourcing platforms, and developing patent-pending AI-powered solutions.",
+    "industries": "AI/ML|Consulting|Product Design|Education|Energy|Utilities",
+    "skills": "Search Engine Optimization (SEO)|Mobile Applications|iOS Development|AI Agents|Learning Management Systems|SIS|Large Language Models (LLM)|Optical Character Recognition (OCR)|Start-up Leadership|shadcn/ui|React state management|Node.js|Non-profit Program Development|TypeScript|Next.js",
+    "sold_to_finance": false,
+    "is_founder": true,
+    "startup_experience": true,
+    "enterprise_experience": true,
+    "missing_required": [],
+    "missing_preferred": [
+      "Deal Size/ACV",
+      "Quota %"
+    ],
+    "data_completeness": 86
+  },
+  {
+    "rank": 15,
+    "tier": "\u26a0\ufe0f Consider",
+    "algo_score": 45,
+    "ai_score": 64,
+    "final_score": 54,
+    "one_line_summary": "SaaS AE with startup and enterprise experience",
+    "pros": [
+      "4 years of sales including SaaS and financial services exposure",
+      "Startup experience and demonstrated scrappiness",
+      "Enterprise selling experience and strong communication/organization skills"
+    ],
+    "cons": [
+      "No evidence of selling to finance/CFO stakeholders (critical gap)",
+      "Average tenure under 18 months \u2014 potential retention risk",
+      "Quota attainment and deal size not documented (uncertain performance)"
+    ],
+    "reasoning": "Candidate meets many baseline requirements (SaaS, startup, enterprise experience and consultative skills) but lacks proof of selling to finance/accounting leaders\u2014a core requirement. Missing quantifiable outcomes (quota attainment, deal size) and short tenures reduce confidence, placing her in the 'potential' category worthy of an interview but not a slam-dunk hire.",
+    "interview_questions": [
+      "You have no documented experience selling to finance/CFO stakeholders \u2014 describe a specific deal where you engaged a CFO or finance team: what objections did they raise, what financial metrics or model did you present (ROI, NPV, payback, TCO), how did you tailor your message, what was the outcome, and include dollar values (ACV/ARR) and your role.",
+      "If you haven\u2019t directly closed deals with CFOs, walk me through step-by-step how you would build the business case and financial model to win CFO approval for a six-figure SaaS deal: which metrics would you prioritize, which stakeholders would you involve, what documentation would you deliver, and how would you handle procurement/approval blockers?",
+      "Your average tenure is under 18 months \u2014 please walk me through your last three job changes, the primary reasons for leaving each, what you learned from those moves, and what specific factors would make you commit to staying long-term at a company now.",
+      "Your profile doesn\u2019t document quota attainment or deal sizes \u2014 state your quota attainment for the past three quarters/years (as % of quota), your typical and largest ACV/ARR, average sales cycle length, and give one concrete quarter where you over- or under\u2011performed vs. quota and explain the drivers.",
+      "Startups require wearing multiple hats and moving fast \u2014 give a concrete example where you took on responsibilities outside your title, had to prioritize with limited resources or pivot strategy mid-cycle, what actions you took, and the measurable outcome for the business."
+    ],
+    "id": "7",
+    "name": "Sofia Drabkin",
+    "job_title": "Account Executive",
+    "location_city": "Encinitas",
+    "location_state": "CA",
+    "years_sales_experience": 4.0,
+    "bio_summary": "I am an Account Executive with a focus on driving revenue and optimizing operations for businesses. I have a proven track record in sales, transitioning from account development to commercial and account executive roles.",
+    "industries": "SaaS|Restaurant Technology|IoT|Financial Services|Healthcare",
+    "skills": "Writing|Proofreading|Organization Skills|Time Management|Microsoft Excel|Business Communications|Consumer and Management Relations|Medical Devices|Medical Sales",
+    "sold_to_finance": false,
+    "is_founder": false,
+    "startup_experience": true,
+    "enterprise_experience": true,
+    "missing_required": [],
+    "missing_preferred": [
+      "Deal Size/ACV",
+      "Quota %"
+    ],
+    "data_completeness": 86
+  },
+  {
+    "rank": 16,
+    "tier": "\u26a0\ufe0f Consider",
+    "algo_score": 35,
+    "ai_score": 68,
+    "final_score": 52,
+    "one_line_summary": "High-performing seller lacking finance/enterprise experience",
+    "pros": [
+      "Outstanding quota attainment (up to 321%) demonstrating strong closing ability",
+      "Relevant SaaS and startup experience with outbound sales expertise",
+      "Familiarity with key sales tools (HubSpot, ZoomInfo) and scalable pipeline building"
+    ],
+    "cons": [
+      "No evidence of selling to finance leaders (CFOs, Controllers) \u2014 key ICP mismatch",
+      "No clear enterprise or mid-market deal experience; deal sizes unknown",
+      "Current title is business development, not explicitly an AE closing role"
+    ],
+    "reasoning": "Candidate is a high-performing, startup-savvy salesperson with excellent quota performance and relevant SaaS/outbound skills, but lacks demonstrated experience selling to finance stakeholders and in enterprise/mid-market deals. Those gaps are material for a Founding AE role focused on CFOs and larger accounts, making this a potentially coachable hire rather than an immediate ideal fit.",
+    "interview_questions": [
+      "Tell me about the largest deal you personally closed or were the primary AE on: include ACV or TCV, deal size, sales cycle length, number/title of stakeholders involved (especially any finance leaders), and your specific role in taking it from opportunity to close.",
+      "Give a concrete example of selling to a finance leader (CFO, VP Finance, Controller). What was the finance-specific problem you addressed, how did you quantify value for them, what objections did they raise, and how did you secure their approval?",
+      "Describe a time you converted a business development lead into a closed, revenue-generating contract. What were the handoffs between BD and AE (if applicable), which actions did you personally take to advance and close the deal, and how did that outcome compare to your quota or target?",
+      "For mid-market or enterprise deals you've worked on, walk me through your experience with negotiations, pricing/discount authority, and the legal/procurement process. Where did you drive the deal versus rely on others, and what tactics did you use to overcome long procurement cycles?",
+      "Startups require wearing multiple hats and operating with limited resources. Give a specific example of when you took on responsibilities outside your title (e.g., product feedback, implementation, ops, customer success). How did you prioritize competing demands, and what was the measurable outcome?"
+    ],
+    "id": "8",
+    "name": "David Catalano",
+    "job_title": "Founding Senior Business Development",
+    "location_city": "Rockville",
+    "location_state": "MD",
+    "years_sales_experience": 4.0,
+    "bio_summary": "I have consistently exceeded my sales quotas, achieving up to 321% of target in my roles. My career focus is on leveraging organizational networks to drive scalable business growth and unlock hidden pipeline opportunities.",
+    "industries": "SaaS|Retail Technology|Sales Intelligence",
+    "skills": "Cold Calling|Copywriting|Email Marketing|HubSpot|Zoominfo|Teaching|Interpersonal Skills|Spanish to English|English to Spanish|Outbound Sales|Spanish Translation|Interpreting|Spanish|Arabic|Active Listening",
+    "sold_to_finance": false,
+    "is_founder": false,
+    "startup_experience": true,
+    "enterprise_experience": false,
+    "missing_required": [],
+    "missing_preferred": [
+      "Deal Size/ACV"
+    ],
+    "data_completeness": 93
+  },
+  {
+    "rank": 17,
+    "tier": "\u274c Not a Fit",
+    "algo_score": 30,
+    "ai_score": 65,
+    "final_score": 48,
+    "one_line_summary": "Strong quota achiever; lacks finance/enterprise experience",
+    "pros": [
+      "Consistent overperformance (125% quota attainment)",
+      "3 years closing experience in SaaS and Financial Services",
+      "Strong analytical and communication skill set"
+    ],
+    "cons": [
+      "No demonstrated track record selling to CFOs/finance leaders",
+      "No enterprise or mid-market deal experience noted",
+      "No startup/founding experience \u2014 may struggle in early-stage grit requirements"
+    ],
+    "reasoning": "Paul has solid sales chops and reliable quota overachievement in relevant industries, making him coachable for the role. However, the role demands direct experience selling to finance stakeholders and closing mid-market/enterprise deals\u2014key gaps that prevent a higher score.",
+    "interview_questions": [
+      "Tell me about the largest or most complex deal you personally owned: customer profile (SMB/mid-market/enterprise), deal size, sales cycle length, the stakeholders involved, your specific role, and one concrete challenge you had to overcome to close it.",
+      "Have you sold to CFOs or other finance leaders? If yes, give a specific example: what were their primary concerns, which financial metrics or ROI arguments you used, how you tailored pricing/contract terms, and the outcome. If no, describe step-by-step how you would structure a CFO-facing pitch for a new prospective customer.",
+      "Choose one achievement from your resume where you say you delivered measurable impact. For that example, provide the baseline, the exact actions you took, the timeline, the quantitative result (revenue, ARR, conversion, retention, etc.), and how your approach was replicated or scaled by others.",
+      "Describe a time you worked in an environment with limited resources or high ambiguity (e.g., early-stage team or a cross-functional gap). What additional responsibilities did you take on, how did you prioritize competing demands, how did you persist through setbacks, and what was the final result?",
+      "You join a pre-Series B company selling to finance teams with no existing playbook. What is your 90-day plan? Include key activities, milestones, stakeholders you would recruit internally and externally, the metrics you'd track to prove progress, and how you would iterate if initial experiments failed."
+    ],
+    "id": "18",
+    "name": "Paul Avila",
+    "job_title": "Account Executive",
+    "location_city": "Hoboken",
+    "location_state": "NJ",
+    "years_sales_experience": 3.0,
+    "bio_summary": "I have consistently achieved and exceeded my sales goals, frequently ranking among the top performers in my roles. I am focused on leveraging my proven track record in sales development to excel as an Account Executive.",
+    "industries": "SaaS|Financial Services|Education",
+    "skills": "Data Analysis|Organization Skills|Microsoft Word|Microsoft Excel|Microsoft PowerPoint|Analytical Skills|Data Mining|Communication|Organizational & Writing Skills|SAS|SQL|JMP|Problem Solving",
+    "sold_to_finance": false,
+    "is_founder": false,
+    "startup_experience": false,
+    "enterprise_experience": false,
+    "missing_required": [],
+    "missing_preferred": [
+      "Deal Size/ACV"
+    ],
+    "data_completeness": 93
+  },
+  {
+    "rank": 18,
+    "tier": "\u274c Not a Fit",
+    "algo_score": 30,
+    "ai_score": 62,
+    "final_score": 46,
+    "one_line_summary": "Fintech sales background but lacks proven CFO/enterprise deals",
+    "pros": [
+      "4 years of sales experience in fintech and SaaS environments",
+      "Startup experience and demonstrated scrappiness; adaptable to early-stage roles",
+      "Direct experience coordinating loan origination gives tangible finance domain exposure"
+    ],
+    "cons": [
+      "No documented track record of selling to CFOs/finance leaders (key ICP)",
+      "Multiple short tenures and several employment gaps raise retention concerns",
+      "No evidence of enterprise deals, deal sizes, or quota attainment provided"
+    ],
+    "reasoning": "Candidate brings relevant fintech/SaaS experience and startup grit that make him coachable for a founding AE role. However, the absence of proven sales to finance leaders, lack of enterprise/large-deal evidence, and repeated short tenures/gaps reduce confidence in an immediate hire for a mission-critical founding AE.",
+    "interview_questions": [
+      "Pick the single most significant sales achievement on your resume and walk me through it in detail: target account, your role, sales cycle length, final contract value (ACV or TCV), the key decision\u2011makers involved (noting any finance leaders), the specific actions you took, objections you overcame, and whether/how it counted toward quota (including attainment % and timeline).",
+      "Our ideal customer profile includes CFOs and finance leaders. Describe any direct experience you have selling to or influencing finance executives\u2014give a concrete example including the messaging and financial/ROI metrics you used, which stakeholders you engaged alongside the CFO, and the outcome. If you don\u2019t have direct CFO experience, outline the exact pitch, metrics, and stakeholder map you would use to win a CFO in an enterprise sale for our product.",
+      "Tell me about the largest or most complex enterprise deal you've participated in: what was the deal size, your specific responsibilities and influence on the outcome, length of the sales cycle, and the procurement/technical/legal hurdles you encountered and how you navigated them to close the deal.",
+      "Your background shows multiple short tenures and some employment gaps. For the two most recent short roles or gaps, explain what led to the departure or gap, what you learned from each experience, and what has changed in your approach so that you would commit to a longer tenure here.",
+      "Working at an early\u2011stage startup requires wearing multiple hats, rapid iteration, and prioritizing with limited resources. Give two specific examples where you successfully operated in that kind of environment: what responsibilities you took on beyond your title, what tradeoffs you made, how you measured impact, and what you would prioritize in your first 90 days if hired."
+    ],
+    "id": "12",
+    "name": "Donald Brossman III",
+    "job_title": "Account Executive",
+    "location_city": "Jersey City",
+    "location_state": "NJ",
+    "years_sales_experience": 4.0,
+    "bio_summary": "I am currently coordinating the sale intake division for a private lender debt fund, orchestrating seamless loan origination with precision and efficiency. I have a proven track record in establishing and maintaining strong client relationships, assisting with loan applications, and providing expert advice on financial options.",
+    "industries": "Fintech|SaaS|Real Estate|AI/ML",
+    "skills": "Customer Relationship Management (CRM)|Strategy|Itineraries|Hotel Management|Startups|Executive Administrative Assistance|Calendaring|Communication|Sales Processes|Phone Etiquette|Financial Accounting|Real Estate|Finance|Cold Calling|Problem Solving",
+    "sold_to_finance": false,
+    "is_founder": false,
+    "startup_experience": true,
+    "enterprise_experience": false,
+    "missing_required": [],
+    "missing_preferred": [
+      "Deal Size/ACV",
+      "Quota %"
+    ],
+    "data_completeness": 86
+  },
+  {
+    "rank": 19,
+    "tier": "\u274c Not a Fit",
+    "algo_score": 40,
+    "ai_score": 50,
+    "final_score": 45,
+    "one_line_summary": "SaaS seller, lacks finance/CFO sales experience",
+    "pros": [
+      "3 years in sales with Account Executive title and SaaS exposure",
+      "Startup experience \u2014 likely scrappy and adaptable",
+      "Consultative channel/partnership experience that shows relationship skills"
+    ],
+    "cons": [
+      "No evidence of selling to finance stakeholders (CFOs/Controllers) \u2014 core requirement",
+      "No demonstrated mid-market or enterprise deal experience",
+      "Key metrics missing (quota attainment, average deal size, closed-won examples)"
+    ],
+    "reasoning": "Candidate meets the baseline AE and startup experience and demonstrates consultative partnership skills, but lacks the critical experience selling to finance leaders and has no shown enterprise deal success or performance metrics. That gap makes him a risky hire for a founding AE focused on finance/accounting buyers without further evidence of transferable experience or recent wins in the target ICP.",
+    "interview_questions": [
+      "Give a specific closed\u2011won example where you sold to a finance stakeholder (CFO, Controller or Head of Finance). Describe their role in the deal, the business problem, how you tailored your message to them, who else was involved, the deal size (ACV/ARR), sales cycle length, and the measurable outcomes after implementation.",
+      "Describe the largest mid\u2011market or enterprise deal you\u2019ve managed end\u2011to\u2011end. Include company size, procurement/contract complexity, technical/integration requirements, average deal size, your role in negotiations, and how you navigated internal stakeholders (legal/procurement/IT) to close it.",
+      "Provide your quota attainment for the past three years (target vs. actual), your average deal size and win rate over that period, and one closed\u2011won example that best demonstrates those metrics.",
+      "When selling to finance leaders, what are the top 3 objections or evaluation criteria you encounter from CFOs/Controllers? Give a concrete example of one objection you overcame, the questions you asked, the evidence you provided, and the result.",
+      "Startups require wearing multiple hats and operating with ambiguity. Tell me about a time at an early\u2011stage company where you had to take on responsibilities outside of pure sales (e.g., product feedback, onboarding, ops). What trade\u2011offs did you make, how did you prioritize, and how did that behavior impact the business?"
+    ],
+    "id": "10",
+    "name": "Jacob Hanna",
+    "job_title": "Account Executive",
+    "location_city": "Augusta",
+    "location_state": "GA",
+    "years_sales_experience": 3.0,
+    "bio_summary": "I am an Account Executive focused on helping brands support their retailer channel. I have experience in brand partnerships and associate account executive roles, driving engagement for independent retailers.",
+    "industries": "SaaS|Marketing",
+    "skills": "",
+    "sold_to_finance": false,
+    "is_founder": false,
+    "startup_experience": true,
+    "enterprise_experience": false,
+    "missing_required": [],
+    "missing_preferred": [
+      "Deal Size/ACV",
+      "Quota %"
+    ],
+    "data_completeness": 86
+  },
+  {
+    "rank": 20,
+    "tier": "\u274c Not a Fit",
+    "algo_score": 35,
+    "ai_score": 52,
+    "final_score": 44,
+    "one_line_summary": "Experienced SaaS seller lacking finance/CFO and enterprise wins",
+    "pros": [
+      "8 years of B2B sales experience, including SaaS",
+      "Startup experience \u2014 likely scrappy and adaptable",
+      "Strong consultative selling, CRM, and relationship-management skills"
+    ],
+    "cons": [
+      "No evidence of selling to finance leaders (CFOs/Controllers)",
+      "No demonstrated enterprise deal experience or disclosed large deal sizes",
+      "Multiple short tenures raise retention and consistency concerns"
+    ],
+    "reasoning": "Will has relevant SaaS and startup sales background and the consultative skill set needed for an early-stage AE, but lacks proof of selling into finance stakeholders and enterprise accounts \u2014 both critical for this role. Combined with short tenures and missing quota/deal metrics, this makes him a risky hire without further evidence or a targeted interview to validate fit.",
+    "interview_questions": [
+      "Provide a specific example of a deal where you sold to a finance leader (CFO/Controller). Who were the stakeholders, what were the finance leader's primary concerns, what role did you play in addressing them, what was the deal size (ACV/ARR) and outcome \u2014 and if you haven\u2019t sold directly to finance leaders, explain exactly how you would build credibility with a CFO/Controller and navigate procurement/finance objections to win an enterprise deal.",
+      "Describe the largest enterprise deal you have owned end-to-end: timeline, contract value, procurement/legal hurdles, key internal and customer stakeholders, your negotiating concessions, and one major obstacle you overcame that was critical to closing the deal.",
+      "Pick one achievement on your resume where you claim measurable impact (quota attainment, revenue added, churn reduced, etc.). Walk me through the situation, the concrete actions you took, the before/after metrics, the teammates involved, and how success was measured and attributed.",
+      "I see multiple shorter-tenure roles on your resume. For each short role (under ~2 years), briefly explain the reason for leaving, what you learned from the experience, and what would need to be true about a role/company for you to stay long-term here.",
+      "Startups require wearing many hats and moving quickly with limited resources. Give two examples where you took on non-sales responsibilities (e.g., product feedback, ops, marketing, customer success) to close a deal or scale a process, and explain how you prioritized trade-offs under time/resource constraints."
+    ],
+    "id": "6",
+    "name": "Will Garrison",
+    "job_title": "",
+    "location_city": "Philadelphia",
+    "location_state": "PA",
+    "years_sales_experience": 8.0,
+    "bio_summary": "I have a proven track record in B2B SaaS sales, consistently driving revenue and building strong client relationships. I am adept at navigating complex sales cycles within the healthcare and technology sectors.",
+    "industries": "SaaS|Healthcare|Staffing|Financial Services",
+    "skills": "Negotiation|Business-to-Business (B2B)|Sales Process|Vendor Management|Customer Relationship Management (CRM)|Direct Sales|Customer Retention|Account Management|Consultative Selling|Automotive Sales|Sales Presentations|Facilitation|Vendor Negotiation|Time Management|Leadership",
+    "sold_to_finance": false,
+    "is_founder": false,
+    "startup_experience": true,
+    "enterprise_experience": false,
+    "missing_required": [
+      "Job Title"
+    ],
+    "missing_preferred": [
+      "Deal Size/ACV",
+      "Quota %"
+    ],
+    "data_completeness": 71
+  },
+  {
+    "rank": 21,
+    "tier": "\u274c Not a Fit",
+    "algo_score": 35,
+    "ai_score": 50,
+    "final_score": 42,
+    "one_line_summary": "SaaS AE with startup grit; lacks finance-sales.",
+    "pros": [
+      "Startup experience and progressed from founding BDR to AE",
+      "Relevant SaaS and travel-tech industry exposure",
+      "Demonstrates relationship-building and consultative customer skills"
+    ],
+    "cons": [
+      "No evidence of selling to finance/accounting leaders (CFOs, Controllers)",
+      "Lacks enterprise or large-deal experience and unclear deal sizes",
+      "Short tenures at recent roles raise retention/fit concerns"
+    ],
+    "reasoning": "Candidate shows strong startup SaaS exposure and internal progression, but misses a critical requirement\u2014selling to finance stakeholders\u2014and lacks enterprise/large-deal evidence. Combined with short tenures and no documented quota attainment, this makes them a risky hire for a Founding AE focused on finance buyers, though coachable for other roles.",
+    "interview_questions": [
+      "Describe a specific deal where you sold to a finance or accounting leader (CFO, Controller, Head of FP&A): who were the stakeholders, what were their primary decision criteria, what objections did they raise, what was the deal size (ACV/TCV), and what role did you play in closing it?",
+      "Tell me about the largest enterprise or strategic deal you\u2019ve led: what was the contract value, length of the sales cycle, how many organizational functions were involved, what were the key inflection points, and how did you influence procurement/legal/finance to get to signature?",
+      "Pick one major achievement on your resume and walk me through it step-by-step: what was the baseline metric, what actions did you take, what measurable outcomes resulted (revenue, churn, ARR, pipeline), and how much of that outcome can you directly attribute to your work?",
+      "Several of your recent roles were short tenures; what were the primary reasons you left each role, what lessons did you learn about fit and retention, and what would need to be true in your next role for you to commit long-term?",
+      "Startups often require wearing multiple hats and rapid iteration\u2014give a concrete example where you stepped outside of a traditional sales role (product feedback, implementation, marketing, ops) to solve a business problem, what trade-offs you made, and what the result was."
+    ],
+    "id": "15",
+    "name": "Andrew  Antoniades",
+    "job_title": "Account Executive",
+    "location_city": "San Diego",
+    "location_state": "CA",
+    "years_sales_experience": 3.0,
+    "bio_summary": "I have experience in business development and sales, having progressed from a Founding Business Development Representative to an Account Executive. I have a proven track record of building relationships and driving growth in dynamic environments.",
+    "industries": "SaaS|Travel Technology|Sports Marketing|Hospitality",
+    "skills": "Life Insurance|Health Insurance|Accident Insurance|Strategy|Sports Management|Venue Management|Customer Service|Teamwork|Microsoft Excel",
+    "sold_to_finance": false,
+    "is_founder": false,
+    "startup_experience": true,
+    "enterprise_experience": false,
+    "missing_required": [],
+    "missing_preferred": [
+      "Deal Size/ACV",
+      "Quota %"
+    ],
+    "data_completeness": 86
+  }
+]
