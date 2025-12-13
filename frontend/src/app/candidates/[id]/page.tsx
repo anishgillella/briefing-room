@@ -1,417 +1,427 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Vapi from "@vapi-ai/web";
 import {
     ArrowLeft,
-    MapPin,
-    Briefcase,
-    Building2,
-    ExternalLink,
-    Play,
-    CheckCircle2,
-    AlertTriangle,
-    TrendingUp,
-    Target,
-    Users,
-    Loader2
+    Sparkles,
+    Mic,
+    MicOff,
+    Volume2,
+    PlayCircle,
+    Loader2,
+    AlertTriangle
 } from "lucide-react";
-import { getCandidate, startCandidateInterview } from "@/lib/api";
-import { Candidate, getTierColor, getStatusColor, formatInterviewStatus } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import CandidateProfile from "@/components/CandidateProfile";
+import { Candidate, PreBrief } from "@/types";
 
-interface PageProps {
-    params: Promise<{ id: string }>;
-}
+const API_URL = "http://localhost:8000";
 
-export default function CandidateDetailPage({ params }: PageProps) {
-    const { id } = use(params);
+export default function CandidateDetailPage() {
+    const params = useParams();
     const router = useRouter();
+    const candidateId = params.id as string;
+
     const [candidate, setCandidate] = useState<Candidate | null>(null);
+    const [prebrief, setPrebrief] = useState<PreBrief | null>(null);
     const [loading, setLoading] = useState(true);
+    const [prebriefLoading, setPrebriefLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [startingInterview, setStartingInterview] = useState(false);
 
+    // Voice agent state
+    const [isVoiceActive, setIsVoiceActive] = useState(false);
+    const [isVoiceConnecting, setIsVoiceConnecting] = useState(false);
+    const [voiceTranscript, setVoiceTranscript] = useState<string[]>([]);
+    const vapiRef = useRef<Vapi | null>(null);
+
     useEffect(() => {
-        async function loadCandidate() {
-            try {
-                setLoading(true);
-                const data = await getCandidate(id);
-                setCandidate(data);
-            } catch (err) {
-                setError(err instanceof Error ? err.message : "Failed to load candidate");
-            } finally {
-                setLoading(false);
-            }
+        fetchCandidate();
+    }, [candidateId]);
+
+    const fetchCandidate = async () => {
+        try {
+            const res = await fetch(`${API_URL}/api/pluto/candidates/${candidateId}`);
+            if (!res.ok) throw new Error("Candidate not found");
+            const data = await res.json();
+            setCandidate(data);
+            // Auto-fetch prebrief if available
+            fetchPrebrief();
+        } catch (e: any) {
+            setError(e.message);
+        } finally {
+            setLoading(false);
         }
-        loadCandidate();
-    }, [id]);
+    };
+
+    const fetchPrebrief = async () => {
+        setPrebriefLoading(true);
+        try {
+            const res = await fetch(`${API_URL}/api/pluto/candidates/${candidateId}/prebrief`);
+            if (res.ok) {
+                const data = await res.json();
+                setPrebrief(data.prebrief);
+            }
+        } catch (e) {
+            // Prebrief not available yet, that's okay
+        } finally {
+            setPrebriefLoading(false);
+        }
+    };
+
+    const generatePrebrief = async () => {
+        setPrebriefLoading(true);
+        try {
+            const res = await fetch(`${API_URL}/api/pluto/candidates/${candidateId}/prebrief`);
+            if (res.ok) {
+                const data = await res.json();
+                setPrebrief(data.prebrief);
+            } else {
+                alert("Failed to generate pre-brief");
+            }
+        } catch (e) {
+            alert("Failed to generate pre-brief");
+        } finally {
+            setPrebriefLoading(false);
+        }
+    };
 
     const handleStartInterview = async () => {
-        if (!candidate) return;
+        setStartingInterview(true);
+        try {
+            const res = await fetch(`${API_URL}/api/pluto/candidates/${candidateId}/interview/start`, {
+                method: "POST",
+            });
+            if (res.ok) {
+                const data = await res.json();
+                router.push(`/candidates/${candidateId}/interview?room=${data.room_name}`);
+            } else {
+                const data = await res.json();
+                alert(data.detail || "Failed to start interview");
+            }
+        } catch (e) {
+            alert("Failed to start interview");
+        } finally {
+            setStartingInterview(false);
+        }
+    };
+
+    // Build briefing context for voice agent
+    const buildBriefingContext = useCallback(() => {
+        if (!candidate) return "";
+        const parts = [
+            `Candidate: ${candidate.name}`,
+            candidate.job_title ? `Current Role: ${candidate.job_title}` : "",
+            candidate.years_experience ? `Experience: ${candidate.years_experience} years` : "",
+            candidate.one_line_summary ? `Summary: ${candidate.one_line_summary}` : "",
+            candidate.pros?.length ? `Strengths: ${candidate.pros.join(", ")}` : "",
+            candidate.cons?.length ? `Concerns: ${candidate.cons.join(", ")}` : "",
+            candidate.red_flags?.length ? `Red Flags: ${candidate.red_flags.join(", ")}` : "",
+            candidate.interview_questions?.length ? `Suggested Questions: ${candidate.interview_questions.join(" | ")}` : "",
+        ];
+        return parts.filter(Boolean).join("\n");
+    }, [candidate]);
+
+    // Start voice agent
+    const startVoiceAgent = useCallback(async () => {
+        const vapiKey = process.env.NEXT_PUBLIC_VAPI_WEB_KEY;
+        const assistantId = process.env.NEXT_PUBLIC_VAPI_BRIEFING_ASSISTANT_ID;
+
+        if (!vapiKey) {
+            alert("Voice AI not configured. Add NEXT_PUBLIC_VAPI_WEB_KEY to .env.local");
+            return;
+        }
+
+        setIsVoiceConnecting(true);
+        setVoiceTranscript([]);
 
         try {
-            setStartingInterview(true);
-            const response = await startCandidateInterview(candidate.id);
-            // Navigate to the interview room
-            window.location.href = response.room_url;
+            const vapi = new Vapi(vapiKey);
+            vapiRef.current = vapi;
+
+            vapi.on("call-start", () => {
+                setIsVoiceConnecting(false);
+                setIsVoiceActive(true);
+                setVoiceTranscript(prev => [...prev, "🎙️ Voice assistant connected. Ask me anything about this candidate!"]);
+            });
+
+            vapi.on("call-end", () => {
+                setIsVoiceActive(false);
+                setVoiceTranscript(prev => [...prev, "👋 Voice assistant disconnected."]);
+            });
+
+            vapi.on("message", (msg: any) => {
+                if (msg.type === "transcript" && msg.transcript) {
+                    const role = msg.role === "assistant" ? "🤖" : "🗣️";
+                    setVoiceTranscript(prev => [...prev, `${role} ${msg.transcript}`]);
+                }
+            });
+
+            vapi.on("error", (err: any) => {
+                console.error("VAPI error:", err);
+                setIsVoiceConnecting(false);
+                setIsVoiceActive(false);
+                if (err && Object.keys(err).length > 0) {
+                    setVoiceTranscript(prev => [...prev, `❌ Error: ${err.message || JSON.stringify(err)}`]);
+                }
+            });
+
+            const briefingContext = buildBriefingContext();
+
+            if (assistantId) {
+                await vapi.start(assistantId, {
+                    variableValues: {
+                        candidateName: candidate?.name || "the candidate",
+                        briefingContext: briefingContext,
+                    }
+                });
+            } else {
+                // Inline assistant config
+                await vapi.start({
+                    model: {
+                        provider: "openai",
+                        model: "gpt-4o-mini",
+                        messages: [
+                            {
+                                role: "system",
+                                content: `You are a helpful interview preparation assistant. You're helping a recruiter prepare for an interview with a candidate.
+
+Here's the candidate information:
+${briefingContext}
+
+Help by:
+- Answering questions about the candidate's background
+- Suggesting probing questions based on their experience
+- Highlighting concerns or red flags to explore
+- Providing interviewing tips specific to this candidate
+
+Be concise and helpful. The recruiter has limited time before the interview.`
+                            }
+                        ]
+                    },
+                    voice: {
+                        provider: "11labs",
+                        voiceId: "21m00Tcm4TlvDq8ikWAM"
+                    },
+                    firstMessage: `Hi! I'm ready to help you prepare for your interview with ${candidate?.name || "this candidate"}. What would you like to know?`
+                });
+            }
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Failed to start interview");
-            setStartingInterview(false);
+            console.error("Voice agent failed:", err);
+            setIsVoiceConnecting(false);
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            alert(`Failed to start voice AI: ${errorMsg}`);
+        }
+    }, [candidate, buildBriefingContext]);
+
+    // Stop voice agent
+    const stopVoiceAgent = useCallback(() => {
+        if (vapiRef.current) {
+            vapiRef.current.stop();
+            vapiRef.current = null;
+        }
+        setIsVoiceActive(false);
+    }, []);
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            if (vapiRef.current) {
+                vapiRef.current.stop();
+            }
+        };
+    }, []);
+
+    // Toggle voice
+    const handleVoiceToggle = () => {
+        if (isVoiceActive) {
+            stopVoiceAgent();
+        } else {
+            startVoiceAgent();
         }
     };
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="w-10 h-10 text-purple-400 animate-spin mx-auto mb-4" />
+                    <p className="text-white/60">Loading candidate profile...</p>
+                </div>
             </div>
         );
     }
 
     if (error || !candidate) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white flex items-center justify-center">
+            <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center text-white">
                 <div className="text-center">
-                    <p className="text-destructive mb-4">{error || "Candidate not found"}</p>
+                    <AlertTriangle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+                    <h1 className="text-xl font-bold mb-2">Candidate Not Found</h1>
+                    <p className="text-white/60 mb-4">{error}</p>
                     <button
-                        onClick={() => router.push("/candidates")}
-                        className="text-primary hover:underline"
+                        onClick={() => window.history.length > 1 ? router.back() : router.push("/")}
+                        className="px-4 py-2 bg-purple-600 rounded-lg hover:bg-purple-700 transition"
                     >
-                        ← Back to candidates
+                        Go Back
                     </button>
                 </div>
             </div>
         );
     }
 
-    const tierClass = getTierColor(candidate.tier);
+
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
+        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950/20 to-slate-950 text-white">
             {/* Header */}
-            <header className="sticky top-0 z-50 bg-slate-950/80 backdrop-blur-lg border-b border-white/5">
-                <div className="container mx-auto px-4">
-                    <div className="flex items-center justify-between h-16">
+            <header className="border-b border-white/10 bg-black/40 backdrop-blur-xl sticky top-0 z-50">
+                <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+                    <button
+                        onClick={() => window.history.length > 1 ? router.back() : router.push("/")}
+                        className="flex items-center gap-2 text-white/60 hover:text-white transition group"
+                    >
+                        <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                        Back to Rankings
+                    </button>
+                    <div className="flex gap-3 items-center">
+                        {/* Voice indicator */}
+                        {isVoiceActive && (
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-violet-500/20 border border-violet-500/30 rounded-full animate-pulse">
+                                <Volume2 className="w-4 h-4 text-violet-400" />
+                                <span className="text-sm text-violet-300">AI Listening...</span>
+                            </div>
+                        )}
+                        {/* Voice AI Button */}
                         <button
-                            onClick={() => router.push("/candidates")}
-                            className="flex items-center gap-2 text-muted-foreground hover:text-white transition-colors"
+                            onClick={handleVoiceToggle}
+                            disabled={isVoiceConnecting}
+                            className={`px-4 py-2 rounded-lg transition flex items-center gap-2 ${isVoiceActive
+                                ? "bg-red-500/20 border border-red-500/30 text-red-400 hover:bg-red-500/30"
+                                : "bg-violet-500/20 border border-violet-500/30 text-violet-300 hover:bg-violet-500/30"
+                                } disabled:opacity-50`}
                         >
-                            <ArrowLeft className="w-5 h-5" />
-                            Back to Candidates
+                            {isVoiceConnecting ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : isVoiceActive ? (
+                                <MicOff className="w-4 h-4" />
+                            ) : (
+                                <Mic className="w-4 h-4" />
+                            )}
+                            {isVoiceConnecting ? "Connecting..." : isVoiceActive ? "Stop AI" : "Ask AI"}
                         </button>
-
+                        {!prebrief && !prebriefLoading && (
+                            <button
+                                onClick={generatePrebrief}
+                                className="px-4 py-2 bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 transition flex items-center gap-2"
+                            >
+                                <Sparkles className="w-4 h-4" />
+                                Generate Deep Analysis
+                            </button>
+                        )}
                         <button
                             onClick={handleStartInterview}
-                            disabled={startingInterview || candidate.interview_status === "completed"}
-                            className={cn(
-                                "flex items-center gap-2 px-6 py-2 rounded-lg font-medium transition-all",
-                                "bg-primary text-primary-foreground hover:bg-primary/90",
-                                "disabled:opacity-50 disabled:cursor-not-allowed"
-                            )}
+                            disabled={startingInterview}
+                            className="px-5 py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-700 hover:to-pink-700 transition flex items-center gap-2 font-semibold disabled:opacity-50 shadow-lg shadow-purple-500/25"
                         >
                             {startingInterview ? (
                                 <Loader2 className="w-4 h-4 animate-spin" />
                             ) : (
-                                <Play className="w-4 h-4" />
+                                <PlayCircle className="w-5 h-5" />
                             )}
-                            {candidate.interview_status === "completed" ? "Interview Completed" : "Start Interview"}
+                            Start Interview
                         </button>
                     </div>
                 </div>
             </header>
 
-            <main className="container mx-auto px-4 py-8">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Main Content */}
-                    <div className="lg:col-span-2 space-y-6">
-                        {/* Profile Header */}
-                        <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
-                            <div className="flex items-start gap-4">
-                                {/* Avatar */}
-                                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center text-3xl font-bold text-primary shrink-0">
-                                    {candidate.name.charAt(0).toUpperCase()}
-                                </div>
+            <CandidateProfile
+                candidate={candidate}
+                prebrief={prebrief}
+                loadingPrebrief={prebriefLoading}
+                onStartInterview={handleStartInterview}
+                startingInterview={startingInterview}
+            />
 
-                                <div className="flex-1">
-                                    <div className="flex items-start justify-between">
-                                        <div>
-                                            <h1 className="text-2xl font-bold mb-1">{candidate.name}</h1>
-                                            <p className="text-lg text-muted-foreground">
-                                                {candidate.job_title || "No title"}
-                                            </p>
-                                        </div>
-
-                                        {/* Score Badge */}
-                                        <div className="text-center">
-                                            <div className={cn(
-                                                "text-3xl font-bold px-4 py-2 rounded-xl border",
-                                                tierClass
-                                            )}>
-                                                {candidate.combined_score ?? "—"}
-                                            </div>
-                                            <p className="text-xs text-muted-foreground mt-1">
-                                                {candidate.tier || "Unscored"}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* Meta */}
-                                    <div className="flex flex-wrap items-center gap-4 mt-4 text-sm text-muted-foreground">
-                                        {candidate.location_city && (
-                                            <span className="flex items-center gap-1">
-                                                <MapPin className="w-4 h-4" />
-                                                {candidate.location_city}{candidate.location_state && `, ${candidate.location_state}`}
-                                            </span>
-                                        )}
-                                        {candidate.years_experience != null && (
-                                            <span className="flex items-center gap-1">
-                                                <Briefcase className="w-4 h-4" />
-                                                {candidate.years_experience} years experience
-                                            </span>
-                                        )}
-                                        {candidate.linkedin_url && (
-                                            <a
-                                                href={candidate.linkedin_url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="flex items-center gap-1 text-primary hover:underline"
-                                            >
-                                                <ExternalLink className="w-4 h-4" />
-                                                LinkedIn
-                                            </a>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Summary */}
-                            {candidate.bio_summary && (
-                                <p className="mt-6 text-muted-foreground leading-relaxed">
-                                    {candidate.bio_summary}
-                                </p>
+            {/* Floating Voice Assistant Panel */}
+            {(isVoiceActive || voiceTranscript.length > 0) && (
+                <div className="fixed bottom-6 right-6 w-96 max-h-[400px] bg-slate-900/95 backdrop-blur-xl border border-violet-500/30 rounded-2xl shadow-2xl shadow-violet-500/10 overflow-hidden animate-slideUp z-50">
+                    <div className="p-4 border-b border-white/10 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            {isVoiceActive ? (
+                                <div className="w-3 h-3 bg-violet-400 rounded-full animate-pulse" />
+                            ) : (
+                                <div className="w-3 h-3 bg-gray-500 rounded-full" />
+                            )}
+                            <span className="font-semibold text-white">Voice Assistant</span>
+                        </div>
+                        <div className="flex gap-2">
+                            {isVoiceActive && (
+                                <button
+                                    onClick={stopVoiceAgent}
+                                    className="px-3 py-1 text-xs bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition"
+                                >
+                                    Stop
+                                </button>
+                            )}
+                            {!isVoiceActive && voiceTranscript.length > 0 && (
+                                <button
+                                    onClick={() => setVoiceTranscript([])}
+                                    className="px-3 py-1 text-xs bg-white/10 text-white/60 rounded-lg hover:bg-white/20 transition"
+                                >
+                                    Clear
+                                </button>
                             )}
                         </div>
-
-                        {/* AI Summary */}
-                        {candidate.one_line_summary && (
-                            <div className="bg-primary/5 rounded-xl p-4 border border-primary/20">
-                                <p className="text-primary font-medium">
-                                    "{candidate.one_line_summary}"
-                                </p>
-                            </div>
-                        )}
-
-                        {/* Strengths & Concerns */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {/* Strengths */}
-                            <div className="bg-green-500/5 rounded-xl p-5 border border-green-500/20">
-                                <h3 className="flex items-center gap-2 text-green-400 font-semibold mb-3">
-                                    <CheckCircle2 className="w-5 h-5" />
-                                    Strengths
-                                </h3>
-                                <ul className="space-y-2">
-                                    {candidate.pros.length > 0 ? (
-                                        candidate.pros.map((pro, i) => (
-                                            <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
-                                                <span className="text-green-400 mt-1">•</span>
-                                                {pro}
-                                            </li>
-                                        ))
-                                    ) : (
-                                        <li className="text-sm text-muted-foreground">No strengths identified</li>
-                                    )}
-                                </ul>
-                            </div>
-
-                            {/* Concerns */}
-                            <div className="bg-amber-500/5 rounded-xl p-5 border border-amber-500/20">
-                                <h3 className="flex items-center gap-2 text-amber-400 font-semibold mb-3">
-                                    <AlertTriangle className="w-5 h-5" />
-                                    Concerns
-                                </h3>
-                                <ul className="space-y-2">
-                                    {candidate.cons.length > 0 ? (
-                                        candidate.cons.map((con, i) => (
-                                            <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
-                                                <span className="text-amber-400 mt-1">•</span>
-                                                {con}
-                                            </li>
-                                        ))
-                                    ) : (
-                                        <li className="text-sm text-muted-foreground">No concerns identified</li>
-                                    )}
-                                </ul>
-                            </div>
-                        </div>
-
-                        {/* AI Reasoning */}
-                        {candidate.reasoning && (
-                            <div className="bg-white/5 rounded-xl p-5 border border-white/10">
-                                <h3 className="font-semibold mb-3">AI Assessment</h3>
-                                <p className="text-sm text-muted-foreground leading-relaxed">
-                                    {candidate.reasoning}
-                                </p>
-                            </div>
-                        )}
-
-                        {/* Skills */}
-                        {candidate.skills.length > 0 && (
-                            <div className="bg-white/5 rounded-xl p-5 border border-white/10">
-                                <h3 className="font-semibold mb-3">Skills</h3>
-                                <div className="flex flex-wrap gap-2">
-                                    {candidate.skills.map((skill, i) => (
-                                        <span
-                                            key={i}
-                                            className="px-3 py-1 bg-white/5 rounded-full text-sm text-muted-foreground"
-                                        >
-                                            {skill}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
                     </div>
-
-                    {/* Sidebar */}
-                    <div className="space-y-4">
-                        {/* Score Breakdown */}
-                        <div className="bg-white/5 rounded-xl p-5 border border-white/10">
-                            <h3 className="font-semibold mb-4">Score Breakdown</h3>
-
-                            <div className="space-y-4">
-                                {/* Algo Score */}
-                                <div>
-                                    <div className="flex justify-between text-sm mb-1">
-                                        <span className="text-muted-foreground">Algorithmic</span>
-                                        <span className="font-medium">{candidate.algo_score ?? "—"}</span>
-                                    </div>
-                                    <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                                        <div
-                                            className="h-full bg-blue-500"
-                                            style={{ width: `${candidate.algo_score || 0}%` }}
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* AI Score */}
-                                <div>
-                                    <div className="flex justify-between text-sm mb-1">
-                                        <span className="text-muted-foreground">AI Evaluation</span>
-                                        <span className="font-medium">{candidate.ai_score ?? "—"}</span>
-                                    </div>
-                                    <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                                        <div
-                                            className="h-full bg-purple-500"
-                                            style={{ width: `${candidate.ai_score || 0}%` }}
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Completeness */}
-                                <div>
-                                    <div className="flex justify-between text-sm mb-1">
-                                        <span className="text-muted-foreground">Data Completeness</span>
-                                        <span className="font-medium">{candidate.completeness}%</span>
-                                    </div>
-                                    <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                                        <div
-                                            className="h-full bg-emerald-500"
-                                            style={{ width: `${candidate.completeness}%` }}
-                                        />
-                                    </div>
-                                </div>
+                    <div className="p-4 max-h-[320px] overflow-y-auto space-y-2">
+                        {voiceTranscript.length === 0 && !isVoiceActive && (
+                            <p className="text-white/40 text-sm text-center py-4">
+                                Click &quot;Ask AI&quot; to start voice assistant
+                            </p>
+                        )}
+                        {voiceTranscript.map((line, i) => (
+                            <div
+                                key={i}
+                                className={`text-sm ${line.startsWith("🤖") ? "text-violet-300" :
+                                    line.startsWith("🗣️") ? "text-white/90" :
+                                        line.startsWith("🎙️") ? "text-green-400" :
+                                            line.startsWith("👋") ? "text-yellow-400" :
+                                                line.startsWith("❌") ? "text-red-400" :
+                                                    "text-white/60"
+                                    }`}
+                            >
+                                {line}
                             </div>
-                        </div>
-
-                        {/* Key Signals */}
-                        <div className="bg-white/5 rounded-xl p-5 border border-white/10">
-                            <h3 className="font-semibold mb-4">Key Signals</h3>
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-muted-foreground">Finance Sales</span>
-                                    <span className={cn("text-sm", candidate.sold_to_finance ? "text-green-400" : "text-muted-foreground")}>
-                                        {candidate.sold_to_finance ? "✓ Yes" : "✗ No"}
-                                    </span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-muted-foreground">Founder Experience</span>
-                                    <span className={cn("text-sm", candidate.is_founder ? "text-green-400" : "text-muted-foreground")}>
-                                        {candidate.is_founder ? "✓ Yes" : "✗ No"}
-                                    </span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-muted-foreground">Startup Experience</span>
-                                    <span className={cn("text-sm", candidate.startup_experience ? "text-green-400" : "text-muted-foreground")}>
-                                        {candidate.startup_experience ? "✓ Yes" : "✗ No"}
-                                    </span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-muted-foreground">Enterprise Sales</span>
-                                    <span className={cn("text-sm", candidate.enterprise_experience ? "text-green-400" : "text-muted-foreground")}>
-                                        {candidate.enterprise_experience ? "✓ Yes" : "✗ No"}
-                                    </span>
-                                </div>
-                                {candidate.max_acv_mentioned && (
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm text-muted-foreground">Max Deal Size</span>
-                                        <span className="text-sm text-green-400">
-                                            ${candidate.max_acv_mentioned.toLocaleString()}
-                                        </span>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Missing Data */}
-                        {(candidate.missing_required.length > 0 || candidate.missing_preferred.length > 0) && (
-                            <div className="bg-amber-500/5 rounded-xl p-5 border border-amber-500/20">
-                                <h3 className="font-semibold mb-3 text-amber-400">Missing Data</h3>
-                                {candidate.missing_required.length > 0 && (
-                                    <>
-                                        <p className="text-xs text-muted-foreground mb-2">Required:</p>
-                                        <div className="flex flex-wrap gap-1 mb-2">
-                                            {candidate.missing_required.map((field, i) => (
-                                                <span key={i} className="px-2 py-0.5 bg-amber-500/10 rounded text-xs text-amber-400">
-                                                    {field}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </>
-                                )}
-                                {candidate.missing_preferred.length > 0 && (
-                                    <>
-                                        <p className="text-xs text-muted-foreground mb-2">Preferred:</p>
-                                        <div className="flex flex-wrap gap-1">
-                                            {candidate.missing_preferred.map((field, i) => (
-                                                <span key={i} className="px-2 py-0.5 bg-white/5 rounded text-xs text-muted-foreground">
-                                                    {field}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </>
-                                )}
+                        ))}
+                        {isVoiceActive && (
+                            <div className="flex items-center gap-2 text-violet-400 text-sm animate-pulse">
+                                <Mic className="w-4 h-4" />
+                                <span>Listening...</span>
                             </div>
                         )}
-
-                        {/* Interview Status */}
-                        <div className="bg-white/5 rounded-xl p-5 border border-white/10">
-                            <h3 className="font-semibold mb-3">Interview Status</h3>
-                            <div className={cn(
-                                "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm",
-                                getStatusColor(candidate.interview_status)
-                            )}>
-                                {formatInterviewStatus(candidate.interview_status)}
-                            </div>
-                            {candidate.room_name && (
-                                <p className="mt-3 text-xs text-muted-foreground">
-                                    Room: {candidate.room_name}
-                                </p>
-                            )}
-                        </div>
                     </div>
                 </div>
-            </main>
+            )}
+
+            {/* Animation Styles */}
+            <style jsx>{`
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .animate-fadeIn {
+                    animation: fadeIn 0.3s ease-out;
+                }
+                @keyframes slideUp {
+                    from { opacity: 0; transform: translateY(20px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .animate-slideUp {
+                    animation: slideUp 0.3s ease-out;
+                }
+            `}</style>
         </div>
     );
 }

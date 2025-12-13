@@ -15,14 +15,11 @@ import {
     AlertTriangle,
     MessageSquare,
     Lightbulb,
-    ChevronUp,
-    ChevronDown,
     Clock,
     PlayCircle,
     Loader2,
     Building2,
-    GraduationCap,
-    Award
+    GraduationCap
 } from "lucide-react";
 
 interface CandidateProfileProps {
@@ -37,7 +34,6 @@ interface CandidateProfileProps {
 export default function CandidateProfile({
     candidate,
     prebrief,
-    loadingPrebrief = false,
     isModal = false,
     onStartInterview,
     startingInterview = false,
@@ -166,7 +162,7 @@ export default function CandidateProfile({
                         {[{ id: "overview", label: "Overview" }, { id: "analysis", label: "Deep Analysis" }, { id: "interview", label: "Interview Prep" }].map((tab) => (
                             <button
                                 key={tab.id}
-                                onClick={() => setActiveTab(tab.id as any)}
+                                onClick={() => setActiveTab(tab.id as "overview" | "analysis" | "interview")}
                                 className={`relative z-10 px-8 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${activeTab === tab.id
                                     ? "text-white text-shadow-sm"
                                     : "text-white/40 hover:text-white/80"

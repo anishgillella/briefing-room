@@ -696,7 +696,6 @@ export default function InterviewPage() {
                 `}</style>
 
                 <div className="max-w-6xl mx-auto px-6 py-12 animate-fadeIn">
-
                     {/* Header */}
                     <div className="flex items-center justify-between mb-12">
                         <div>
@@ -733,8 +732,7 @@ export default function InterviewPage() {
                             <div className="flex gap-8 mb-8 border-b border-gray-800">
                                 <button
                                     onClick={() => setActiveTab('analysis')}
-                                    className={`pb-4 text-sm font-medium transition-colors relative ${activeTab === 'analysis' ? 'text-white' : 'text-gray-500 hover:text-gray-300'
-                                        }`}
+                                    className={`pb-4 text-sm font-medium transition-colors relative ${activeTab === 'analysis' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
                                 >
                                     Analysis
                                     {activeTab === 'analysis' && (
@@ -743,8 +741,7 @@ export default function InterviewPage() {
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('transcript')}
-                                    className={`pb-4 text-sm font-medium transition-colors relative ${activeTab === 'transcript' ? 'text-white' : 'text-gray-500 hover:text-gray-300'
-                                        }`}
+                                    className={`pb-4 text-sm font-medium transition-colors relative ${activeTab === 'transcript' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
                                 >
                                     Transcript
                                     {activeTab === 'transcript' && (
@@ -756,215 +753,224 @@ export default function InterviewPage() {
                             {/* TAB: ANALYSIS */}
                             {activeTab === 'analysis' && (
                                 <div className="space-y-8 animate-fadeIn">
-
-                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-
-                                        {/* 1. Overall Score (Large) */}
-                                        <div className="col-span-1 md:col-span-2 row-span-2 glass-panel rounded-3xl p-8 relative overflow-hidden group">
-                                            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity duration-700">
-                                                <TrendingUp className="w-48 h-48 text-white" />
+                                    {/* Executive Summary Card */}
+                                    <div className="glass-panel rounded-3xl p-8">
+                                        <h3 className="text-gray-400 text-sm font-medium tracking-wider uppercase mb-4">Executive Summary</h3>
+                                        <p className="text-lg text-gray-200 font-light leading-relaxed">
+                                            {analytics.overall_synthesis || analytics.summary}
+                                        </p>
+                                        <div className="mt-8 flex items-center gap-8">
+                                            <div className="flex items-center gap-4">
+                                                <div className="text-6xl font-bold text-white">{analytics.overall_score || 0}</div>
+                                                <div className="text-gray-400">/ 100 Match Score</div>
                                             </div>
-                                            <h3 className="text-gray-400 text-sm font-medium tracking-wider uppercase mb-8">Overall Match Score</h3>
-                                            <div className="flex items-end gap-4">
-                                                <span className="text-8xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-400">
-                                                    {analytics.overall_score || 0}
-                                                </span>
-                                                <span className="text-2xl text-gray-500 font-light mb-4">/100</span>
-                                            </div>
-                                            <div className="mt-8 flex gap-2">
-                                                {analytics.recommendation === "Strong Hire" && (
-                                                    <span className="px-4 py-2 rounded-full bg-green-500/20 text-green-300 border border-green-500/30 text-sm font-medium">Strong Hire</span>
-                                                )}
-                                                {analytics.recommendation === "Hire" && (
-                                                    <span className="px-4 py-2 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 text-sm font-medium">Hire</span>
-                                                )}
-                                                {analytics.recommendation === "No Hire" && (
-                                                    <span className="px-4 py-2 rounded-full bg-red-500/20 text-red-300 border border-red-500/30 text-sm font-medium">No Hire</span>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* 2. Behavioral Radar */}
-                                        <div className="col-span-1 md:col-span-2 row-span-2 glass-panel rounded-3xl p-6 flex flex-col items-center justify-center relative">
-                                            <div className="absolute top-6 left-6 text-gray-400 text-sm font-medium tracking-wider uppercase">Soft Skills Profile</div>
-                                            {analytics.behavioral_profile ? (
-                                                <div className="mt-8 transform scale-110 hover:scale-115 transition-transform duration-500">
-                                                    <RadarChart data={analytics.behavioral_profile} />
+                                            {analytics.recommendation && (
+                                                <div className={`px-4 py-2 rounded-full text-sm font-semibold ${analytics.recommendation.includes('Strong Hire') || analytics.recommendation.includes('Hire')
+                                                    ? 'bg-green-500/20 text-green-300 border border-green-500/30'
+                                                    : analytics.recommendation.includes('No Hire')
+                                                        ? 'bg-red-500/20 text-red-300 border border-red-500/30'
+                                                        : 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30'
+                                                    }`}>
+                                                    {analytics.recommendation}
                                                 </div>
-                                            ) : (
-                                                <p className="text-gray-600">No profile data</p>
                                             )}
-                                        </div>
-
-                                        {/* 3. Executive Synthesis */}
-                                        <div className="col-span-1 md:col-span-3 glass-panel rounded-3xl p-8">
-                                            <h3 className="text-gray-400 text-sm font-medium tracking-wider uppercase mb-4 flex items-center gap-2">
-                                                <Sparkles className="w-4 h-4 text-purple-400" /> Executive Synthesis
-                                            </h3>
-                                            <p className="text-lg text-gray-200 font-light leading-relaxed">
-                                                {analytics.overall_synthesis || analytics.summary}
-                                            </p>
-                                        </div>
-
-                                        {/* 4. Communication Stats */}
-                                        <div className="col-span-1 glass-panel rounded-3xl p-6 flex flex-col justify-between">
-                                            <div>
-                                                <h3 className="text-gray-400 text-xs font-medium tracking-wider uppercase mb-1">Speaking Pace</h3>
-                                                <div className="text-3xl font-light text-white">
-                                                    {analytics.communication_metrics?.speaking_pace_wpm || 0} <span className="text-sm text-gray-500">wpm</span>
-                                                </div>
-                                            </div>
-                                            <div className="mt-4">
-                                                <h3 className="text-gray-400 text-xs font-medium tracking-wider uppercase mb-1">Filler Words</h3>
-                                                <div className="text-xl font-light text-white">
-                                                    {analytics.communication_metrics?.filler_word_frequency || "N/A"}
-                                                </div>
-                                            </div>
                                         </div>
                                     </div>
 
-                                    {/* SKILL EVIDENCE & TIMELINE */}
-                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-12">
+                                    {/* Question-by-Question Analysis */}
+                                    {analytics.question_analytics && analytics.question_analytics.length > 0 && (
+                                        <div className="glass-panel rounded-3xl p-8">
+                                            <h3 className="text-gray-400 text-sm font-medium tracking-wider uppercase mb-6 flex items-center gap-2">
+                                                <MessageSquare className="w-4 h-4" /> Question Analysis
+                                            </h3>
+                                            <div className="space-y-6">
+                                                {analytics.question_analytics.map((qa, i) => (
+                                                    <div key={i} className="group relative p-8 rounded-3xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 transition-all duration-500 ease-out">
+                                                        {/* Decorative Gradient Glow */}
+                                                        <div className={`absolute -inset-0.5 rounded-3xl opacity-0 group-hover:opacity-100 transition duration-500 blur-2xl ${qa.quality_score >= 80 ? 'bg-green-500/10' : qa.quality_score >= 50 ? 'bg-yellow-500/10' : 'bg-red-500/10'
+                                                            }`} />
 
-                                        {/* Left Column: Skills */}
-                                        <div className="col-span-1 space-y-6">
-                                            <h2 className="text-2xl font-light text-white mb-6">Verified Skills</h2>
-                                            <div className="max-h-[400px] overflow-y-auto space-y-4 pr-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-                                                {analytics.skill_evidence?.map((evidence, i) => (
-                                                    <div key={i} className="glass-panel p-5 rounded-2xl group hover:bg-white/5 transition-colors">
-                                                        <div className="flex justify-between items-start mb-3">
-                                                            <span className="text-blue-300 font-medium">{evidence.skill}</span>
-                                                            <span className={`text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wide border ${evidence.confidence === 'High' ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-gray-800 border-gray-700 text-gray-400'}`}>
-                                                                {evidence.confidence}
-                                                            </span>
-                                                        </div>
-                                                        <p className="text-gray-400 text-sm font-light italic border-l-2 border-gray-700 pl-3 group-hover:border-blue-500/50 transition-colors">
-                                                            "{evidence.quote}"
-                                                        </p>
-                                                    </div>
-                                                ))}
-                                                {(!analytics.skill_evidence || analytics.skill_evidence.length === 0) && (
-                                                    <p className="text-gray-600 italic">No specific skills verified.</p>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* Right Column: Q&A Timeline */}
-                                        <div className="col-span-1 lg:col-span-2">
-                                            <h2 className="text-2xl font-light text-white mb-6">Conversation Analysis</h2>
-                                            <div className="relative border-l border-gray-800 ml-4 space-y-12">
-                                                {analytics.question_analytics?.map((qa, i) => (
-                                                    <div key={i} className="relative pl-8">
-                                                        {/* Timeline Dot */}
-                                                        <div className="absolute -left-1.5 top-2 w-3 h-3 rounded-full bg-gray-800 border border-gray-600"></div>
-
-                                                        <div className="glass-panel rounded-2xl p-6 hover:bg-white/5 transition-colors group">
-                                                            {/* Header */}
-                                                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-                                                                <div className="flex items-center gap-3">
-                                                                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-white/5 border border-white/10 text-gray-300">
-                                                                        {qa.topic}
-                                                                    </span>
-                                                                    <h4 className="text-lg font-medium text-white">{qa.question}</h4>
+                                                        <div className="relative">
+                                                            {/* Header Section */}
+                                                            <div className="flex justify-between items-start gap-6 mb-6">
+                                                                <div className="space-y-2">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-white/40">
+                                                                            {(qa.topic && qa.topic.toLowerCase() !== "none") ? qa.topic : "General"}
+                                                                        </span>
+                                                                        <div className="h-px w-8 bg-white/10" />
+                                                                    </div>
+                                                                    <h4 className="text-xl font-medium text-white leading-snug tracking-tight">
+                                                                        {qa.question}
+                                                                    </h4>
                                                                 </div>
-                                                                <div className="flex items-center gap-2">
-                                                                    <div className="text-right">
-                                                                        <div className="text-xs text-gray-500 uppercase tracking-widest">Quality</div>
-                                                                        <div className={`text-xl font-bold ${qa.quality_score >= 80 ? 'text-green-400' : qa.quality_score >= 60 ? 'text-yellow-400' : 'text-red-400'}`}>
-                                                                            {qa.quality_score}
-                                                                        </div>
+
+                                                                {/* Big Score Badge */}
+                                                                <div className="flex flex-col items-center">
+                                                                    <div className={`text-4xl font-light tracking-tighter ${qa.quality_score >= 80 ? 'text-green-400' :
+                                                                        qa.quality_score >= 50 ? 'text-yellow-400' : 'text-red-400'
+                                                                        }`}>
+                                                                        {qa.quality_score}
+                                                                    </div>
+                                                                    <div className="text-[10px] font-medium uppercase tracking-widest text-white/30 mt-1">
+                                                                        Match
                                                                     </div>
                                                                 </div>
                                                             </div>
 
-                                                            <p className="text-gray-400 text-sm font-light leading-relaxed mb-6">
-                                                                {qa.answer_summary}
-                                                            </p>
+                                                            {/* Answer Summary */}
+                                                            <div className="mb-8">
+                                                                <p className="text-base text-gray-300 font-light leading-relaxed">
+                                                                    {qa.answer_summary}
+                                                                </p>
+                                                            </div>
 
-                                                            {/* Metrics Grid */}
-                                                            <div className="grid grid-cols-3 gap-4 border-t border-white/5 pt-4">
-                                                                <div>
-                                                                    <div className="text-xs text-gray-500 uppercase tracking-wider mb-2">Relevance</div>
-                                                                    <div className="flex items-end gap-2">
-                                                                        <div className="h-1.5 flex-1 bg-gray-800 rounded-full overflow-hidden">
-                                                                            <div className="h-full bg-indigo-500" style={{ width: `${(qa.relevance_score || 0) * 10}%` }}></div>
+                                                            {/* Footer Grid: Metrics & Insight */}
+                                                            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                                                                {/* Granular Metrics (3 cols) */}
+                                                                <div className="lg:col-span-3 flex justify-between items-center py-4 px-6 rounded-2xl bg-black/20 border border-white/5">
+                                                                    {[
+                                                                        { label: "Relevance", value: qa.relevance_score },
+                                                                        { label: "Clarity", value: qa.clarity_score },
+                                                                        { label: "Depth", value: qa.depth_score }
+                                                                    ].map((metric, idx) => (
+                                                                        <div key={idx} className="flex flex-col items-center w-full px-2">
+                                                                            <span className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-1">
+                                                                                {metric.label}
+                                                                            </span>
+                                                                            <div className="flex items-baseline gap-0.5">
+                                                                                <span className={`text-xl font-medium ${(metric.value ?? 0) >= 8 ? 'text-white' : 'text-white/70'
+                                                                                    }`}>
+                                                                                    {metric.value ?? '-'}
+                                                                                </span>
+                                                                                <span className="text-xs text-white/20">/10</span>
+                                                                            </div>
                                                                         </div>
-                                                                        <span className="text-xs text-indigo-300 font-mono">{qa.relevance_score}/10</span>
-                                                                    </div>
+                                                                    ))}
                                                                 </div>
-                                                                <div>
-                                                                    <div className="text-xs text-gray-500 uppercase tracking-wider mb-2">Clarity</div>
-                                                                    <div className="flex items-end gap-2">
-                                                                        <div className="h-1.5 flex-1 bg-gray-800 rounded-full overflow-hidden">
-                                                                            <div className="h-full bg-cyan-500" style={{ width: `${(qa.clarity_score || 0) * 10}%` }}></div>
+
+                                                                {/* Key Insight (2 cols) */}
+                                                                {qa.key_insight && (
+                                                                    <div className="lg:col-span-2 flex items-center p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10">
+                                                                        <div className="flex gap-3">
+                                                                            <Sparkles className="w-4 h-4 text-blue-400 flex-shrink-0 mt-1" />
+                                                                            <p className="text-xs text-blue-200/90 leading-relaxed font-medium">
+                                                                                {qa.key_insight}
+                                                                            </p>
                                                                         </div>
-                                                                        <span className="text-xs text-cyan-300 font-mono">{qa.clarity_score}/10</span>
                                                                     </div>
-                                                                </div>
-                                                                <div>
-                                                                    <div className="text-xs text-gray-500 uppercase tracking-wider mb-2">Depth</div>
-                                                                    <div className="flex items-end gap-2">
-                                                                        <div className="h-1.5 flex-1 bg-gray-800 rounded-full overflow-hidden">
-                                                                            <div className="h-full bg-purple-500" style={{ width: `${(qa.depth_score || 0) * 10}%` }}></div>
-                                                                        </div>
-                                                                        <span className="text-xs text-purple-300 font-mono">{qa.depth_score}/10</span>
-                                                                    </div>
-                                                                </div>
+                                                                )}
                                                             </div>
                                                         </div>
                                                     </div>
                                                 ))}
                                             </div>
                                         </div>
+                                    )}
+
+                                    {/* Skill Evidence & Behavioral Profile */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {/* Skill Evidence */}
+                                        {analytics.skill_evidence && analytics.skill_evidence.length > 0 && (
+                                            <div className="glass-panel rounded-3xl p-6">
+                                                <h3 className="text-gray-400 text-sm font-medium tracking-wider uppercase mb-4 flex items-center gap-2">
+                                                    <CheckCircle className="w-4 h-4 text-green-400" /> Verified Skills
+                                                </h3>
+                                                <div className="space-y-3">
+                                                    {analytics.skill_evidence.map((skill, i) => (
+                                                        <div key={i} className="p-3 rounded-xl bg-green-500/5 border border-green-500/10">
+                                                            <div className="flex items-center justify-between mb-2">
+                                                                <span className="text-sm font-medium text-green-300">{skill.skill}</span>
+                                                                <span className={`text-xs px-2 py-0.5 rounded ${skill.confidence === 'High' ? 'bg-green-500/20 text-green-300' : 'bg-yellow-500/20 text-yellow-300'
+                                                                    }`}>{skill.confidence}</span>
+                                                            </div>
+                                                            <p className="text-xs text-gray-400 italic">&ldquo;{skill.quote}&rdquo;</p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Behavioral Profile */}
+                                        {analytics.behavioral_profile && (
+                                            <div className="glass-panel rounded-3xl p-6">
+                                                <h3 className="text-gray-400 text-sm font-medium tracking-wider uppercase mb-4 flex items-center gap-2">
+                                                    <TrendingUp className="w-4 h-4 text-purple-400" /> Behavioral Profile
+                                                </h3>
+                                                <div className="flex justify-center">
+                                                    <RadarChart data={analytics.behavioral_profile} />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Communication Metrics & Topics to Probe */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {/* Communication Metrics */}
+                                        {analytics.communication_metrics && (
+                                            <div className="glass-panel rounded-3xl p-6">
+                                                <h3 className="text-gray-400 text-sm font-medium tracking-wider uppercase mb-4 flex items-center gap-2">
+                                                    <Volume2 className="w-4 h-4 text-blue-400" /> Communication Metrics
+                                                </h3>
+                                                <div className="space-y-4">
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-sm text-gray-400">Speaking Pace</span>
+                                                        <span className="text-white font-medium">{analytics.communication_metrics.speaking_pace_wpm} WPM</span>
+                                                    </div>
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-sm text-gray-400">Filler Words</span>
+                                                        <span className={`font-medium ${analytics.communication_metrics.filler_word_frequency === 'Low' ? 'text-green-400' :
+                                                            analytics.communication_metrics.filler_word_frequency === 'Medium' ? 'text-yellow-400' : 'text-red-400'
+                                                            }`}>{analytics.communication_metrics.filler_word_frequency}</span>
+                                                    </div>
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-sm text-gray-400">Listen/Talk Ratio</span>
+                                                        <span className="text-white font-medium">{(analytics.communication_metrics.listen_to_talk_ratio * 100).toFixed(0)}%</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Topics to Probe */}
+                                        {analytics.topics_to_probe && analytics.topics_to_probe.length > 0 && (
+                                            <div className="glass-panel rounded-3xl p-6">
+                                                <h3 className="text-gray-400 text-sm font-medium tracking-wider uppercase mb-4 flex items-center gap-2">
+                                                    <ChevronRight className="w-4 h-4 text-orange-400" /> Follow-Up Topics
+                                                </h3>
+                                                <ul className="space-y-2">
+                                                    {analytics.topics_to_probe.map((topic, i) => (
+                                                        <li key={i} className="flex items-start gap-2 text-sm text-gray-300">
+                                                            <span className="text-orange-400 mt-0.5">•</span>
+                                                            {topic}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             )}
 
                             {/* TAB: TRANSCRIPT */}
                             {activeTab === 'transcript' && (
-                                <div className="space-y-6 max-w-4xl mx-auto animate-fadeIn pb-20">
-                                    {transcript.length === 0 ? (
-                                        <div className="text-center py-20 text-gray-500 font-light">
-                                            No transcript available for this session.
-                                        </div>
-                                    ) : (
-                                        transcript.map((item, i) => (
-                                            <div key={i} className={`flex gap-4 ${item.speaker === 'interviewer' ? 'flex-row-reverse' : ''}`}>
-                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border uppercase text-xs ${item.speaker === 'interviewer' ? 'bg-blue-500/10 border-blue-500/30 text-blue-400' : 'bg-purple-500/10 border-purple-500/30 text-purple-400'
-                                                    }`}>
-                                                    {item.speaker === 'interviewer' ? 'I' : 'C'}
-                                                </div>
-                                                <div className={`glass-panel p-5 rounded-2xl max-w-[85%] ${item.speaker === 'interviewer' ? 'border-l-0 border-r-2 border-r-blue-500/30' : 'border-r-0 border-l-2 border-l-purple-500/30'
-                                                    }`}>
-                                                    <div className={`flex items-center gap-2 mb-2 ${item.speaker === 'interviewer' ? 'justify-end' : ''}`}>
-                                                        <span className={`text-[10px] font-bold uppercase tracking-wider ${item.speaker === 'interviewer' ? 'text-blue-400' : 'text-purple-400'
-                                                            }`}>
-                                                            {item.speaker === 'interviewer' ? 'Interviewer' : candidateName}
-                                                        </span>
-                                                        <span className="text-gray-600 text-[10px]">•</span>
-                                                        <span className="text-gray-600 text-[10px]">{item.timestamp.toLocaleTimeString()}</span>
-                                                    </div>
-                                                    <p className="text-gray-200 font-light leading-relaxed whitespace-pre-wrap text-sm">
-                                                        {item.text}
-                                                    </p>
-                                                </div>
+                                <div className="space-y-4 animate-fadeIn">
+                                    {transcript.map((t, i) => (
+                                        <div key={i} className={`flex gap-4 p-4 rounded-xl ${t.speaker === 'interviewer' ? 'bg-purple-500/5 border border-purple-500/10' : 'bg-white/5 border border-white/5'}`}>
+                                            <div className={`w-24 text-xs font-bold uppercase tracking-wider pt-1 ${t.speaker === 'interviewer' ? 'text-purple-400' : 'text-blue-400'}`}>
+                                                {t.speaker}
                                             </div>
-                                        ))
-                                    )}
+                                            <p className="text-sm font-light leading-relaxed text-white/90">
+                                                {t.text}
+                                            </p>
+                                        </div>
+                                    ))}
                                 </div>
                             )}
-
                         </div>
                     ) : (
-
-                        <div className="flex flex-col items-center justify-center h-[50vh] text-center">
-                            <p className="text-gray-500 font-light mb-6">Analytics data unavailable.</p>
-                            <button
-                                onClick={() => router.push("/")}
-                                className="px-8 py-3 rounded-full bg-white text-black font-medium hover:bg-gray-200 transition"
-                            >
-                                Return to Dashboard
-                            </button>
+                        <div className="text-center py-24 text-gray-500">
+                            <AlertCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                            <p>No analytics generated for this session.</p>
                         </div>
                     )}
                 </div>
@@ -972,276 +978,213 @@ export default function InterviewPage() {
         );
     }
 
-    // Main interview UI
+    // MAIN INTERVIEW UI
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950/20 to-slate-950 text-white font-sans selection:bg-purple-500/30 overflow-hidden flex flex-col">
-            <style jsx global>{`
-                @keyframes pulse-ring {
-                    0% { transform: scale(0.8); opacity: 0.5; }
-                    100% { transform: scale(2); opacity: 0; }
-                }
-                .animate-pulse-ring {
-                    animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-                }
-            `}</style>
+        <div className="min-h-screen bg-[#000000] text-white font-sans overflow-hidden relative selection:bg-purple-500/30">
+            {/* Deep Space Background */}
+            <div className="fixed inset-0 z-0 pointer-events-none">
+                <div className="absolute top-[-20%] left-[-10%] w-[800px] h-[800px] bg-purple-900/20 rounded-full blur-[120px] animate-pulse" />
+                <div className="absolute bottom-[-20%] right-[-10%] w-[800px] h-[800px] bg-blue-900/10 rounded-full blur-[120px] animate-pulse delay-1000" />
+                <div className="absolute inset-0 bg-[url(/grid.svg)] opacity-20" />
+            </div>
+
             {/* Header */}
-            <header className="sticky top-0 z-10 bg-gray-900/80 backdrop-blur-md border-b border-gray-700/50">
-                <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <button
-                            onClick={() => router.back()}
-                            className="p-2 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition"
-                        >
-                            <ArrowLeft className="w-5 h-5" />
-                        </button>
-                        <div>
-                            <h1 className="text-lg font-semibold text-white">
-                                Interview: {candidateName}
-                            </h1>
-                            <p className="text-sm text-gray-400">
-                                {candidate?.job_title || "Candidate"}
-                                {usingLiveKit && (
-                                    <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400 text-xs">
-                                        <Sparkles className="w-3 h-3" />
-                                        LiveKit
-                                    </span>
-                                )}
-                            </p>
+            <header className="fixed top-0 left-0 right-0 z-50 bg-black/40 backdrop-blur-xl border-b border-white/5 h-16 flex items-center justify-between px-6">
+                <div className="flex items-center gap-4">
+                    <button onClick={() => router.back()} className="text-white/50 hover:text-white transition-colors">
+                        <ArrowLeft className="w-5 h-5" />
+                    </button>
+                    <div>
+                        <h1 className="text-sm font-medium text-white tracking-wide">Interview: {candidateName}</h1>
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs text-white/40">Live Session</span>
+                            {usingLiveKit && (
+                                <span className="px-1.5 py-0.5 rounded bg-purple-500/10 border border-purple-500/20 text-[10px] text-purple-400 font-medium">
+                                    AI Powered
+                                </span>
+                            )}
                         </div>
                     </div>
+                </div>
 
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-800 text-gray-300">
-                            <Clock className="w-4 h-4" />
-                            <span className="font-mono">{formatTime(elapsedTime)}</span>
-                        </div>
-
-                        {/* Connection status */}
-                        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${connected ? "bg-green-500/20 text-green-400" :
-                            connecting ? "bg-yellow-500/20 text-yellow-400" :
-                                "bg-red-500/20 text-red-400"
-                            }`}>
-                            <div className={`w-2 h-2 rounded-full ${connected ? "bg-green-400" :
-                                connecting ? "bg-yellow-400 animate-pulse" :
-                                    "bg-red-400"
-                                }`} />
-                            {connected ? "Connected" : connecting ? "Connecting..." : "Disconnected"}
-                        </div>
-
-                        {/* View Profile Button */}
-                        <button
-                            onClick={() => setShowProfilePopup(true)}
-                            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 transition"
-                        >
-                            <User className="w-4 h-4" />
-                            View Profile
-                        </button>
+                <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+                        <div className={`w-2 h-2 rounded-full ${connected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+                        <span className="text-xs font-mono text-white/60">{formatTime(elapsedTime)}</span>
                     </div>
+                    <button
+                        onClick={() => setShowProfilePopup(true)}
+                        className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-white transition-colors flex items-center gap-2"
+                    >
+                        <User className="w-4 h-4" />
+                        View Profile
+                    </button>
+                    <button
+                        onClick={endInterview}
+                        className="px-4 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-xs font-medium text-red-400 transition-colors"
+                    >
+                        End Session
+                    </button>
                 </div>
             </header>
 
-            {/* Main content */}
-            <div className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Left: Voice Interface */}
-                <div className="lg:col-span-2 space-y-6">
-                    {/* Voice status card */}
-                    <div className="bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-700 p-6">
-                        <div className="flex items-center justify-center mb-6">
-                            <div className={`relative w-32 h-32 flex items-center justify-center rounded-full ${aiSpeaking ? "bg-blue-500/20" : "bg-gray-700/50"
-                                }`}>
-                                <Volume2 className={`w-16 h-16 ${aiSpeaking ? "text-blue-500 animate-pulse" : "text-gray-500"
-                                    }`} />
-                                {aiSpeaking && (
-                                    <div className="absolute inset-0 rounded-full border-4 border-blue-500/50 animate-pulse-ring" />
-                                )}
+            {/* Main Bento Grid Layout */}
+            <main className="relative z-10 pt-20 pb-6 px-6 h-screen grid grid-cols-12 gap-6">
+
+                {/* LEFT COLUMN: Voice & Transcript (8 cols) */}
+                <div className="col-span-8 flex flex-col gap-6 h-full min-h-0">
+
+                    {/* Voice Interface (Top - Flex Grow) */}
+                    <div className="flex-1 glass-card-premium rounded-3xl p-8 relative overflow-hidden flex flex-col items-center justify-center min-h-0 bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl">
+                        {/* Audio Visualizer / Avatar */}
+                        <div className="relative mb-8">
+                            <div className={`w-32 h-32 rounded-full border border-white/10 flex items-center justify-center relative z-10 bg-black/50 backdrop-blur-md transition-all duration-300 ${aiSpeaking ? 'shadow-[0_0_50px_rgba(168,85,247,0.4)] border-purple-500/50' : ''}`}>
+                                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center">
+                                    <Volume2 className={`w-10 h-10 ${aiSpeaking ? 'text-purple-400' : 'text-white/20'}`} />
+                                </div>
                             </div>
+                            {/* Ripple Effects during speech */}
+                            {aiSpeaking && (
+                                <>
+                                    <div className="absolute inset-0 rounded-full border border-purple-500/30 animate-ping opacity-20" />
+                                    <div className="absolute inset-[-20%] rounded-full border border-purple-500/10 animate-pulse delay-75" />
+                                </>
+                            )}
                         </div>
 
-                        <div className="text-center mb-6">
-                            <p className="text-lg text-gray-300">
-                                {aiSpeaking ? `${candidateName} is speaking...` :
-                                    userSpeaking ? "Listening to you..." :
-                                        connected ? "Waiting for conversation..." :
-                                            "Connecting..."}
+                        {/* Status Text */}
+                        <div className="text-center">
+                            <h2 className="text-2xl font-light text-white mb-2 tracking-tight">
+                                {aiSpeaking ? "Interviewer is speaking..." : "Listening..."}
+                            </h2>
+                            <p className="text-white/40 text-sm font-light tracking-wide">
+                                {connected ? "Live Session Active" : "Connecting..."}
                             </p>
-                        </div>
-
-                        {/* Controls */}
-                        <div className="flex justify-center gap-4">
-                            <button
-                                onClick={toggleMic}
-                                disabled={!connected}
-                                className={`p-4 rounded-full transition ${micEnabled
-                                    ? "bg-gray-700 text-white hover:bg-gray-600"
-                                    : "bg-red-500/20 text-red-400 hover:bg-red-500/30"
-                                    } disabled:opacity-50`}
-                            >
-                                {micEnabled ? <Mic className="w-6 h-6" /> : <MicOff className="w-6 h-6" />}
-                            </button>
-
-                            <button
-                                onClick={endInterview}
-                                className="p-4 rounded-full bg-red-500 text-white hover:bg-red-600 transition"
-                            >
-                                <PhoneOff className="w-6 h-6" />
-                            </button>
                         </div>
                     </div>
 
-                    {/* Transcript */}
-                    <div className="bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-700 p-4">
-                        <h3 className="text-white font-medium mb-3 flex items-center gap-2">
-                            <FileText className="w-4 h-4" />
-                            Live Transcript
+                    {/* Transcript (Bottom - Fixed Height) */}
+                    <div className="h-64 glass-card-premium rounded-3xl p-6 relative flex flex-col min-h-0 bg-black/40 backdrop-blur-xl border border-white/10">
+                        <h3 className="text-xs font-medium text-white/40 mb-4 uppercase tracking-wider flex items-center gap-2">
+                            <MessageSquare className="w-3 h-3" /> Live Transcript
                         </h3>
-                        <div className="h-64 overflow-y-auto space-y-3 pr-2">
+                        <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
                             {transcript.length === 0 ? (
-                                <p className="text-gray-500 text-center py-8">
-                                    Transcript will appear here as you speak...
-                                </p>
+                                <div className="h-full flex items-center justify-center text-white/20 text-sm italic">
+                                    Conversation will appear here...
+                                </div>
                             ) : (
-                                transcript.map((item, idx) => (
-                                    <div
-                                        key={idx}
-                                        className={`p-3 rounded-lg ${item.speaker === "interviewer"
-                                            ? "bg-blue-500/10 border-l-2 border-blue-500"
-                                            : "bg-purple-500/10 border-l-2 border-purple-500"
-                                            }`}
-                                    >
-                                        <div className="flex items-center gap-2 text-xs text-gray-400 mb-1">
-                                            <span className="font-medium">
-                                                {item.speaker === "interviewer" ? "You" : candidateName}
+                                transcript.map((item, i) => (
+                                    <div key={i} className={`flex flex-col gap-1 ${item.speaker === "interviewer" ? "items-start" : "items-end"}`}>
+                                        <div className="flex items-center gap-2 text-[10px] text-white/30 uppercase tracking-wider">
+                                            <span className={item.speaker === "interviewer" ? "text-purple-400" : "text-blue-400"}>
+                                                {item.speaker === "interviewer" ? "AI Interviewer" : candidateName}
                                             </span>
                                             <span>•</span>
-                                            <span>{item.timestamp.toLocaleTimeString()}</span>
+                                            <span>{item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
                                         </div>
-                                        <p className="text-gray-300">{item.text}</p>
+                                        <div className={`p-3 rounded-2xl max-w-[80%] text-sm leading-relaxed ${item.speaker === "interviewer"
+                                            ? "bg-white/5 text-white/90 rounded-tl-none border border-white/5"
+                                            : "bg-blue-600/20 text-blue-100 rounded-tr-none border border-blue-500/20"
+                                            }`}>
+                                            {item.text}
+                                        </div>
                                     </div>
                                 ))
                             )}
                             <div ref={transcriptEndRef} />
                         </div>
                     </div>
+
                 </div>
 
-                {/* Right: AI Suggestions & Chat */}
-                <div className="space-y-6">
-                    {/* AI Suggestions */}
-                    <div className="bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-700 p-4">
-                        <h3 className="text-white font-medium mb-3 flex items-center gap-2">
-                            <Lightbulb className="w-4 h-4 text-yellow-500" />
-                            AI Suggestions
-                        </h3>
+                {/* RIGHT COLUMN: Chat & Assistant (4 cols) */}
+                <div className="col-span-4 flex flex-col gap-6 h-full min-h-0">
 
-                        <div className="h-[300px] overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+                    {/* Copilot S */}
+                    <div className="flex-1 glass-card-premium rounded-3xl p-6 relative flex flex-col min-h-0 bg-black/40 backdrop-blur-xl border border-white/10">
+                        <h3 className="text-xs font-medium text-white/40 mb-4 uppercase tracking-wider flex items-center gap-2">
+                            <Sparkles className="w-3 h-3 text-yellow-400" /> AI Coach Suggestions
+                        </h3>
+                        <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-3">
                             {aiSuggestions.length === 0 ? (
-                                <p className="text-gray-500 text-sm text-center py-4">
-                                    AI insights will appear here as you interview...
-                                </p>
+                                <div className="h-full flex items-center justify-center text-white/20 text-xs italic text-center px-4">
+                                    AI suggestions will appear here after each interview exchange...
+                                </div>
                             ) : (
-                                aiSuggestions.map((suggestion, idx) => {
-                                    const isAdequate = suggestion.last_question_type === "adequate";
-                                    // Determine colors/icons based on issue type
-                                    let borderColor = isAdequate ? "border-blue-500/30" : "border-amber-500/30";
-                                    let bgColor = isAdequate ? "bg-blue-500/10" : "bg-amber-500/10";
-                                    let iconColor = isAdequate ? "text-blue-400" : "text-amber-400";
-                                    let BadgeIcon = isAdequate ? Sparkles : AlertCircle;
-                                    let title = isAdequate ? "Suggested Next Topic" : "Probing Suggested";
-
-                                    // Special handling for specific issues
-                                    if (suggestion.issue_type === "resume_contradiction") {
-                                        borderColor = "border-red-500/30";
-                                        bgColor = "bg-red-500/10";
-                                        iconColor = "text-red-400";
-                                        BadgeIcon = AlertTriangle; // Assuming AlertTriangle is imported from lucide-react
-                                        title = "Resume Discrepancy";
-                                    } else if (suggestion.issue_type === "missing_star") {
-                                        title = "Missing STAR Result";
-                                    } else if (suggestion.issue_type === "rambling") {
-                                        title = "Rambling Detected";
-                                    }
-
-                                    return (
-                                        <div key={idx} className={`p-4 rounded-xl border ${borderColor} ${bgColor} backdrop-blur-sm transition-all animate-slide-in`}>
-                                            <div className="flex items-start gap-3">
-                                                <div className={`mt-1 ${iconColor}`}>
-                                                    <BadgeIcon className="w-5 h-5" />
-                                                </div>
-                                                <div>
-                                                    <h4 className={`text-sm font-medium mb-1 ${iconColor}`}>
-                                                        {title}
-                                                    </h4>
-                                                    <p className="text-white text-sm mb-2">
-                                                        "{suggestion.suggested_next_question}"
-                                                    </p>
-                                                    {suggestion.reasoning && (
-                                                        <p className="text-gray-400 text-xs italic">
-                                                            {suggestion.reasoning}
-                                                        </p>
-                                                    )}
-                                                </div>
-                                            </div>
+                                aiSuggestions.map((suggestion, i) => (
+                                    <div key={i} className={`p-4 rounded-xl space-y-2 ${suggestion.category === "inadequate"
+                                        ? "bg-red-500/10 border border-red-500/20"
+                                        : suggestion.category === "adequate"
+                                            ? "bg-green-500/10 border border-green-500/20"
+                                            : "bg-purple-500/10 border border-purple-500/20"
+                                        }`}>
+                                        <div className={`text-xs font-bold uppercase tracking-wider ${suggestion.category === "inadequate"
+                                            ? "text-red-300"
+                                            : suggestion.category === "adequate"
+                                                ? "text-green-300"
+                                                : "text-purple-300"
+                                            }`}>
+                                            {suggestion.issue_type || suggestion.category || "Suggestion"}
                                         </div>
-                                    );
-                                })
-                            )}
-                        </div>
-
-                    </div>
-
-                    {/* Chat Bot */}
-                    <div className="bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-700 p-4">
-                        <h3 className="text-white font-medium mb-3 flex items-center gap-2">
-                            <MessageSquare className="w-4 h-4 text-blue-500" />
-                            AI Assistant
-                        </h3>
-
-                        <div className="h-48 overflow-y-auto space-y-2 mb-3">
-                            {chatMessages.length === 0 ? (
-                                <p className="text-gray-500 text-sm text-center py-4">
-                                    Ask anything about the candidate or interview...
-                                </p>
-                            ) : (
-                                chatMessages.map((msg, idx) => (
-                                    <div
-                                        key={idx}
-                                        className={`p-2 rounded-lg text-sm ${msg.role === "user"
-                                            ? "bg-blue-500/20 text-blue-200 ml-4"
-                                            : "bg-gray-700 text-gray-300 mr-4"
-                                            }`}
-                                    >
-                                        {msg.content}
+                                        <p className="text-sm text-white/90 font-light">{suggestion.suggestion}</p>
+                                        {suggestion.reasoning && (
+                                            <p className="text-xs text-white/40 italic mt-2">{suggestion.reasoning}</p>
+                                        )}
                                     </div>
                                 ))
                             )}
-                            {chatLoading && (
-                                <div className="flex items-center gap-2 text-gray-400">
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                    <span className="text-sm">Thinking...</span>
+                        </div>
+                    </div>
+
+                    {/* AI Assistant Chat */}
+                    <div className="h-80 glass-card-premium rounded-3xl p-4 relative flex flex-col min-h-0 bg-black/40 backdrop-blur-xl border border-white/10">
+                        <h3 className="text-xs font-medium text-white/40 mb-3 uppercase tracking-wider flex items-center gap-2 px-2">
+                            <MessageSquare className="w-3 h-3" /> Assistant Chat
+                        </h3>
+
+                        {/* Chat Messages */}
+                        <div className="flex-1 overflow-y-auto space-y-3 pr-2 mb-3 custom-scrollbar px-2">
+                            {chatMessages.length === 0 ? (
+                                <div className="h-full flex items-center justify-center text-white/20 text-xs italic text-center px-4">
+                                    Ask the AI Assistant for help or quick facts...
                                 </div>
+                            ) : (
+                                chatMessages.map((msg, i) => (
+                                    <div key={i} className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}>
+                                        <div className={`py-2 px-3 rounded-xl max-w-[90%] text-xs ${msg.role === "user"
+                                            ? "bg-blue-600 text-white"
+                                            : "bg-white/10 text-white/80"
+                                            }`}>
+                                            {msg.content}
+                                        </div>
+                                    </div>
+                                ))
                             )}
                         </div>
 
+                        {/* Chat Input */}
                         <div className="flex gap-2">
                             <input
                                 type="text"
                                 value={chatInput}
                                 onChange={(e) => setChatInput(e.target.value)}
-                                onKeyPress={(e) => e.key === "Enter" && sendChatMessage()}
-                                placeholder="Ask a question..."
-                                className="flex-1 px-3 py-2 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:outline-none focus:border-blue-500"
+                                onKeyDown={(e) => e.key === "Enter" && sendChatMessage()}
+                                placeholder="Ask AI Assistant..."
+                                className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-white/20 transition-colors"
                             />
                             <button
                                 onClick={sendChatMessage}
                                 disabled={chatLoading || !chatInput.trim()}
-                                className="p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:hover:bg-blue-600 transition"
+                                className="p-2 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:hover:bg-blue-600 text-white transition-colors"
                             >
-                                <Send className="w-5 h-5" />
+                                {chatLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                             </button>
                         </div>
                     </div>
                 </div>
-            </div>
+
+            </main>
 
             {/* Profile Popup */}
             {showProfilePopup && candidate && (
@@ -1263,6 +1206,6 @@ export default function InterviewPage() {
                     </div>
                 </div>
             )}
-        </div >
+        </div>
     );
 }
