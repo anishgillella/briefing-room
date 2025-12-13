@@ -14,9 +14,20 @@ from services.candidate_store import (
     update_candidate,
     delete_candidate,
     get_candidates_count,
+    clear_all_candidates,
 )
 
+import logging
+
 router = APIRouter(prefix="/pluto", tags=["pluto"])
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%H:%M:%S",
+)
+logger = logging.getLogger(__name__)
 
 
 # ============================================================================
@@ -61,6 +72,14 @@ async def pluto_root():
         "description": "AI-powered candidate ranking and management",
         "candidates_count": get_candidates_count()
     }
+
+
+@router.post("/reset")
+async def reset_state():
+    """Reset processing state and clear candidates."""
+    state.reset()
+    clear_all_candidates()
+    return {"status": "reset", "message": "System state cleared"}
 
 
 class AnalyzeJDRequest(BaseModel):
@@ -634,55 +653,115 @@ Industries: {', '.join(candidate.industries) if candidate.industries else 'N/A'}
 
 
 # ============================================================================
-# Enhanced Interview with OpenAI Realtime
+# Enhanced Interview with LiveKit Agent
 # ============================================================================
 
 class FullInterviewResponse(BaseModel):
-    """Response for full interview setup including Realtime session."""
+    """Response for full interview setup with LiveKit."""
     room_name: str
     room_url: str
     token: str
     candidate: dict
-    realtime_session: Optional[dict] = None
+    livekit_url: Optional[str] = None
 
 
 @router.post("/candidates/{candidate_id}/interview/start")
 async def start_full_interview(candidate_id: str) -> FullInterviewResponse:
     """
-    Create an interview room (Daily.co only).
-    OpenAI Realtime session is created by frontend via /api/realtime/session.
+    Create an interview room using LiveKit.
+    LiveKit Agent handles voice AI (avoids OpenAI rate limits).
+    
+    The agent will:
+    - Use OpenRouter LLM (Gemini/GPT-4o-mini)
+    - Deepgram STT for speech recognition
+    - ElevenLabs TTS for voice synthesis
+    - Broadcast transcripts via data channel
     """
+    import os
+    import uuid
+    import json
     
     candidate = get_candidate(candidate_id)
     if not candidate:
         raise HTTPException(status_code=404, detail="Candidate not found")
     
-    # Create Daily.co room
-    from services.daily import daily_service
-    room_data = await daily_service.create_room(expires_in_hours=1)
-    room_name = room_data["name"]
-    room_url = room_data["url"]
+    # Check if LiveKit is configured
+    livekit_url = os.getenv("LIVEKIT_URL", "")
+    livekit_api_key = os.getenv("LIVEKIT_API_KEY", "")
+    livekit_api_secret = os.getenv("LIVEKIT_API_SECRET", "")
     
-    # Generate interviewer token
-    token = await daily_service.create_meeting_token(
-        room_name=room_name,
-        participant_name="Interviewer",
-        participant_type="interviewer",
-        expires_in_hours=1
-    )
+    if not livekit_url or not livekit_api_key or not livekit_api_secret:
+        # Fallback to Daily.co if LiveKit not configured
+        print("[Interview] LiveKit not configured, falling back to Daily.co...")
+        from services.daily import daily_service
+        room_data = await daily_service.create_room(expires_in_hours=1)
+        room_name = room_data["name"]
+        room_url = room_data["url"]
+        
+        token = await daily_service.create_meeting_token(
+            room_name=room_name,
+            participant_name="Interviewer",
+            participant_type="interviewer",
+            expires_in_hours=1
+        )
+        
+        update_candidate(candidate_id, {"interview_status": "in_progress", "room_name": room_name})
+        
+        return FullInterviewResponse(
+            room_name=room_name,
+            room_url=room_url,
+            token=token,
+            candidate=candidate.model_dump(),
+            livekit_url=None
+        )
     
-    # NOTE: OpenAI Realtime session is created by the frontend via /api/realtime/session
-    # Do NOT create a session here to avoid double sessions and rate limit issues
+    # Use LiveKit for voice session
+    import jwt
+    import time
+    
+    room_name = f"interview-{candidate_id[:8]}-{uuid.uuid4().hex[:8]}"
+    
+    # Build room metadata for the agent
+    room_metadata = {
+        "candidate_id": candidate_id,
+        "candidate_name": candidate.name,
+        "mode": "interview",
+        "resume_context": candidate.bio_summary or "",
+        "job_title": candidate.job_title or "",
+        "skills": candidate.skills[:10] if candidate.skills else [],
+    }
+    
+    # Generate LiveKit token for interviewer
+    now = int(time.time())
+    claims = {
+        "iss": livekit_api_key,
+        "exp": now + 3600,
+        "nbf": now,
+        "sub": "interviewer",
+        "name": "Interviewer",
+        "video": {
+            "room": room_name,
+            "roomJoin": True,
+            "canPublish": True,
+            "canSubscribe": True,
+            "canPublishData": True,
+        },
+        "metadata": json.dumps(room_metadata),
+    }
+    
+    token = jwt.encode(claims, livekit_api_secret, algorithm="HS256")
+    
+    print(f"[Interview] Created LiveKit room '{room_name}' for candidate '{candidate.name}'")
     
     # Update candidate status
     update_candidate(candidate_id, {"interview_status": "in_progress", "room_name": room_name})
     
     return FullInterviewResponse(
         room_name=room_name,
-        room_url=room_url,
+        room_url=livekit_url,  # Use LiveKit URL instead of Daily URL
         token=token,
         candidate=candidate.model_dump(),
-        realtime_session=None  # Frontend creates its own session
+        livekit_url=livekit_url
     )
 
 
@@ -703,43 +782,64 @@ async def save_interview_analytics(candidate_id: str, request: SaveAnalyticsRequ
     Updates candidate with interview score and recommendation.
     """
     import json
+    import traceback
     from pathlib import Path
     from datetime import datetime
     
-    candidate = get_candidate(candidate_id)
-    if not candidate:
-        raise HTTPException(status_code=404, detail="Candidate not found")
-    
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    
-    # Save transcript
-    transcript_dir = Path("data/transcripts")
-    transcript_dir.mkdir(parents=True, exist_ok=True)
-    with open(transcript_dir / f"{candidate_id}_{timestamp}.txt", "w") as f:
-        f.write(request.transcript)
-    
-    # Generate analytics if not provided
-    analytics_data = request.analytics
-    if not analytics_data:
-        from routers.analytics import get_interview_analytics, AnalyticsRequest
-        try:
-            req = AnalyticsRequest(transcript=request.transcript, job_description=state.job_description)
-            result = await get_interview_analytics(f"interview-{candidate_id}", req)
-            analytics_data = result.model_dump()
-        except Exception as e:
-            analytics_data = {"error": str(e)}
-    
-    # Save analytics
-    analytics_dir = Path("data/analytics")
-    analytics_dir.mkdir(parents=True, exist_ok=True)
-    with open(analytics_dir / f"{candidate_id}_{timestamp}.json", "w") as f:
-        json.dump(analytics_data, f, indent=2, default=str)
-    
-    # Update candidate
-    update_candidate(candidate_id, {
-        "interview_status": "completed",
-        "interview_score": analytics_data.get("overall_score"),
-        "recommendation": analytics_data.get("recommendation")
-    })
-    
-    return {"status": "saved", "analytics": analytics_data}
+    try:
+        candidate = get_candidate(candidate_id)
+        if not candidate:
+            raise HTTPException(status_code=404, detail="Candidate not found")
+        
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        # Save transcript
+        transcript_dir = Path("data/transcripts")
+        transcript_dir.mkdir(parents=True, exist_ok=True)
+        with open(transcript_dir / f"{candidate_id}_{timestamp}.txt", "w") as f:
+            f.write(request.transcript)
+        
+        # Generate deep analytics
+        analytics_data = request.analytics
+        if not analytics_data:
+            from services.pluto_processor import generate_deep_analytics
+            try:
+                # Get JD context if available (from global state or candidate)
+                jd_text = state.job_description if hasattr(state, 'job_description') else ""
+                
+                logger.info(f"Generating deep analytics for candidate {candidate_id}...")
+                deep_analytics = await generate_deep_analytics(
+                    transcript=request.transcript,
+                    candidate_data=candidate.model_dump(),
+                    job_description=jd_text
+                )
+                
+                if deep_analytics:
+                    analytics_data = deep_analytics.model_dump()
+                else:
+                    analytics_data = {"error": "Failed to generate analytics"}
+                    
+            except Exception as e:
+                logger.error(f"Analytics generation error: {e}")
+                traceback.print_exc()
+                analytics_data = {"error": str(e)}
+        
+        # Save analytics
+        analytics_dir = Path("data/analytics")
+        analytics_dir.mkdir(parents=True, exist_ok=True)
+        with open(analytics_dir / f"{candidate_id}_{timestamp}.json", "w") as f:
+            json.dump(analytics_data, f, indent=2, default=str)
+        
+        # Update candidate with high-level metrics
+        update_data = {
+            "interview_status": "completed",
+            "interview_score": analytics_data.get("overall_score"),
+            "recommendation": analytics_data.get("recommendation")
+        }
+        update_candidate(candidate_id, update_data)
+        
+        return {"status": "saved", "analytics": analytics_data}
+
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")

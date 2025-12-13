@@ -39,64 +39,67 @@ export default function JoinScreen({ roomName, onJoin, isLoading }: JoinScreenPr
     const isInterviewer = participantType === "interviewer";
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white p-4 relative overflow-hidden">
-            {/* Background Gradients */}
-            <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-violet-600/20 rounded-full blur-[120px] pointer-events-none" />
-            <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-emerald-600/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="min-h-screen flex items-center justify-center bg-black text-white p-4 relative overflow-hidden font-sans">
+            {/* Premium Deep Space Background */}
+            <div className="fixed inset-0 z-0">
+                <div className="absolute top-[-20%] left-[-10%] w-[800px] h-[800px] bg-purple-600/20 rounded-full blur-[120px] animate-pulse pointer-events-none" />
+                <div className="absolute bottom-[-20%] right-[-10%] w-[800px] h-[800px] bg-blue-600/10 rounded-full blur-[120px] animate-pulse pointer-events-none delay-1000" />
+                <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20" />
+            </div>
 
-            <div className={`w-full relative z-10 transition-all duration-500 ease-in-out ${isInterviewer ? "max-w-4xl" : "max-w-md"}`}>
+            <div className={`w-full relative z-10 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${isInterviewer ? "max-w-4xl" : "max-w-md"}`}>
 
                 {/* Header Section */}
-                <div className="text-center mb-8 space-y-2">
-                    <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-emerald-400">
-                            {roomName ? "Join Interview" : "Superposition"}
+                <div className="text-center mb-10 space-y-3 animate-fade-up">
+                    <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
+                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-white/50 filter drop-shadow-lg">
+                            {roomName ? "Join Interview" : "Pluto"}
                         </span>
                     </h1>
-                    <p className="text-slate-400 text-lg">
+                    <p className="text-white/60 text-lg font-light tracking-wide">
                         {roomName
                             ? `Entering room: ${roomName}`
-                            : "Next-generation AI-powered interview platform"
+                            : "Advanced AI Interview Intelligence"
                         }
                     </p>
                 </div>
 
-                <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
-                    <div className="p-8 md:p-10">
+                <div className="glass-card-premium p-1 overflow-hidden animate-fade-up delay-100">
+                    <div className="bg-black/40 backdrop-blur-3xl rounded-[30px] p-8 md:p-12 border border-white/5">
                         <form onSubmit={handleSubmit} className="space-y-8">
 
                             {/* Role Selection Tabs */}
-                            <div className="grid grid-cols-2 gap-4 p-1 bg-black/20 rounded-xl">
+                            <div className="grid grid-cols-2 gap-2 p-1.5 bg-white/5 rounded-2xl border border-white/5">
                                 <button
                                     type="button"
                                     onClick={() => setParticipantType("interviewer")}
-                                    className={`relative flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-medium transition-all duration-300 ${isInterviewer
-                                        ? "bg-violet-600 text-white shadow-lg shadow-violet-500/20"
-                                        : "text-slate-400 hover:text-white hover:bg-white/5"
+                                    className={`relative flex items-center justify-center gap-3 py-4 px-6 rounded-xl text-sm font-semibold transition-all duration-300 ${isInterviewer
+                                        ? "bg-white/10 text-white shadow-lg backdrop-blur-md border border-white/10"
+                                        : "text-white/40 hover:text-white hover:bg-white/5"
                                         }`}
                                 >
-                                    <UserCircle2 className="w-4 h-4" />
+                                    <UserCircle2 className={`w-5 h-5 ${isInterviewer ? "text-purple-400" : ""}`} />
                                     Interviewer
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setParticipantType("candidate")}
-                                    className={`relative flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-medium transition-all duration-300 ${!isInterviewer
-                                        ? "bg-emerald-600 text-white shadow-lg shadow-emerald-500/20"
-                                        : "text-slate-400 hover:text-white hover:bg-white/5"
+                                    className={`relative flex items-center justify-center gap-3 py-4 px-6 rounded-xl text-sm font-semibold transition-all duration-300 ${!isInterviewer
+                                        ? "bg-white/10 text-white shadow-lg backdrop-blur-md border border-white/10"
+                                        : "text-white/40 hover:text-white hover:bg-white/5"
                                         }`}
                                 >
-                                    <Code2 className="w-4 h-4" />
+                                    <Code2 className={`w-5 h-5 ${!isInterviewer ? "text-emerald-400" : ""}`} />
                                     Candidate
                                 </button>
                             </div>
 
                             {/* Name Input */}
-                            <div className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="name" className="text-slate-300 ml-1">Your Name</Label>
+                            <div className="space-y-6 animate-fade-up delay-200">
+                                <div className="space-y-3">
+                                    <Label htmlFor="name" className="text-white/60 ml-1 text-sm font-medium tracking-wide">FULL NAME</Label>
                                     <div className="relative group">
-                                        <User className="absolute left-3 top-3 w-5 h-5 text-slate-500 group-focus-within:text-violet-400 transition-colors" />
+                                        <User className="absolute left-4 top-4 w-5 h-5 text-white/30 group-focus-within:text-purple-400 transition-colors" />
                                         <Input
                                             id="name"
                                             type="text"
@@ -105,77 +108,77 @@ export default function JoinScreen({ roomName, onJoin, isLoading }: JoinScreenPr
                                             onChange={(e) => setName(e.target.value)}
                                             required
                                             autoFocus
-                                            className="pl-10 h-11 bg-slate-900/50 border-white/10 text-white placeholder:text-slate-600 focus:border-violet-500 focus:ring-violet-500/20 transition-all font-medium"
+                                            className="pl-12 h-14 bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-purple-500/50 focus:ring-purple-500/20 rounded-2xl transition-all text-lg font-light"
                                         />
                                     </div>
                                 </div>
                             </div>
 
                             {/* Interviewer Context Inputs (Animated Expand) */}
-                            <div className={`space-y-6 transition-all duration-500 ease-in-out overflow-hidden ${isInterviewer ? "opacity-100 max-h-[800px]" : "opacity-0 max-h-0"}`}>
-                                <div className="pt-6 border-t border-white/5">
-                                    <div className="flex items-center gap-2 mb-6">
-                                        <div className="p-2 rounded-full bg-violet-500/10 text-violet-400">
-                                            <Sparkles className="w-4 h-4" />
+                            <div className={`space-y-8 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ${isInterviewer ? "opacity-100 max-h-[800px] pt-4" : "opacity-0 max-h-0 pt-0"}`}>
+                                <div className="border-t border-white/5 pt-8">
+                                    <div className="flex items-center gap-3 mb-8">
+                                        <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                                            <Sparkles className="w-5 h-5" />
                                         </div>
-                                        <h3 className="font-semibold text-white">AI Briefing Setup</h3>
-                                        <span className="text-xs text-slate-500 uppercase tracking-wider font-medium ml-auto">Optional</span>
+                                        <div>
+                                            <h3 className="font-semibold text-white tracking-tight">AI Briefing Setup</h3>
+                                            <p className="text-xs text-white/40 font-light">Configure context for the AI agent</p>
+                                        </div>
+                                        <span className="text-[10px] text-white/20 uppercase tracking-widest font-bold ml-auto px-2 py-1 rounded bg-white/5">Optional</span>
                                     </div>
 
                                     <div className="grid md:grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <Label htmlFor="jobDescription" className="text-slate-300 ml-1">Job Description</Label>
+                                        <div className="space-y-3">
+                                            <Label htmlFor="jobDescription" className="text-white/60 ml-1 text-sm font-medium tracking-wide">JOB DESCRIPTION</Label>
                                             <div className="relative group">
-                                                <Briefcase className="absolute left-3 top-3 w-5 h-5 text-slate-500 group-focus-within:text-violet-400 transition-colors" />
+                                                <Briefcase className="absolute left-4 top-4 w-5 h-5 text-white/30 group-focus-within:text-purple-400 transition-colors" />
                                                 <Textarea
                                                     id="jobDescription"
-                                                    placeholder="Paste the job description here..."
+                                                    placeholder="Paste JD here to enable context-aware questions..."
                                                     value={jobDescription}
                                                     onChange={(e) => setJobDescription(e.target.value)}
-                                                    className="pl-10 min-h-[140px] bg-slate-900/50 border-white/10 text-white placeholder:text-slate-600 focus:border-violet-500 focus:ring-violet-500/20 transition-all resize-none"
+                                                    className="pl-12 pt-4 min-h-[160px] bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-purple-500/50 focus:ring-purple-500/20 rounded-2xl transition-all resize-none text-sm leading-relaxed"
                                                 />
                                             </div>
                                         </div>
 
-                                        <div className="space-y-2">
-                                            <Label htmlFor="candidateResume" className="text-slate-300 ml-1">Candidate Details</Label>
+                                        <div className="space-y-3">
+                                            <Label htmlFor="candidateResume" className="text-white/60 ml-1 text-sm font-medium tracking-wide">CANDIDATE PROFILE</Label>
                                             <div className="relative group">
-                                                <FileText className="absolute left-3 top-3 w-5 h-5 text-slate-500 group-focus-within:text-violet-400 transition-colors" />
+                                                <FileText className="absolute left-4 top-4 w-5 h-5 text-white/30 group-focus-within:text-purple-400 transition-colors" />
                                                 <Textarea
                                                     id="candidateResume"
-                                                    placeholder="Paste resume summary or key notes..."
+                                                    placeholder="Paste resume or key highlights..."
                                                     value={candidateResume}
                                                     onChange={(e) => setCandidateResume(e.target.value)}
-                                                    className="pl-10 min-h-[140px] bg-slate-900/50 border-white/10 text-white placeholder:text-slate-600 focus:border-violet-500 focus:ring-violet-500/20 transition-all resize-none"
+                                                    className="pl-12 pt-4 min-h-[160px] bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-purple-500/50 focus:ring-purple-500/20 rounded-2xl transition-all resize-none text-sm leading-relaxed"
                                                 />
                                             </div>
                                         </div>
                                     </div>
-
-                                    <p className="text-center text-sm text-slate-500 pt-2">
-                                        Our AI will analyze this to generate real-time questions, red flag warnings, and a competency radar chart.
-                                    </p>
                                 </div>
                             </div>
 
                             {/* Submit Button */}
                             <Button
                                 type="submit"
-                                className={`w-full h-12 text-lg font-medium transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] ${isInterviewer
-                                    ? "bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 shadow-lg shadow-violet-500/25"
-                                    : "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 shadow-lg shadow-emerald-500/25"
+                                className={`w-full h-14 text-lg font-semibold transition-all duration-500 rounded-2xl relative overflow-hidden group ${isInterviewer
+                                    ? "bg-gradient-to-r from-purple-600 to-indigo-600 hover:shadow-[0_0_40px_rgba(124,58,237,0.5)]"
+                                    : "bg-gradient-to-r from-emerald-600 to-teal-600 hover:shadow-[0_0_40px_rgba(5,150,105,0.5)]"
                                     }`}
                                 disabled={!name.trim() || isLoading}
                             >
+                                <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 skew-x-12"></div>
                                 {isLoading ? (
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-3">
                                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                        <span>{isInterviewer ? "Setting up Room..." : "Joining..."}</span>
+                                        <span>{isInterviewer ? "Initializing Room..." : "Connecting..."}</span>
                                     </div>
                                 ) : (
-                                    <div className="flex items-center gap-2">
-                                        <span>{isInterviewer ? "Start Interview Session" : "Join Room"}</span>
-                                        <ArrowRight className="w-5 h-5" />
+                                    <div className="flex items-center gap-3">
+                                        <span>{isInterviewer ? "Start Session" : "Join Room"}</span>
+                                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                                     </div>
                                 )}
                             </Button>
@@ -185,16 +188,16 @@ export default function JoinScreen({ roomName, onJoin, isLoading }: JoinScreenPr
                 </div>
 
                 {/* Footer */}
-                <div className="text-center mt-8 space-y-3">
+                <div className="text-center mt-10 space-y-4 animate-fade-up delay-300">
                     <a
                         href="/candidates"
-                        className="inline-flex items-center gap-2 text-violet-400 hover:text-violet-300 transition-colors font-medium"
+                        className="inline-flex items-center gap-2 text-white/40 hover:text-white transition-colors text-sm font-medium tracking-wide group"
                     >
-                        <User className="w-4 h-4" />
+                        <User className="w-4 h-4 group-hover:scale-110 transition-transform" />
                         View Candidate Pipeline
                     </a>
-                    <p className="text-slate-500 text-sm">
-                        Powered by <span className="text-slate-400 font-medium">Daily.co</span> & <span className="text-slate-400 font-medium">OpenAI Realtime</span>
+                    <p className="text-white/20 text-xs tracking-wider uppercase font-semibold">
+                        Powered by Daily.co & OpenAI Realtime
                     </p>
                 </div>
             </div>

@@ -1,0 +1,169 @@
+{
+  "candidate_name": "Tony Xavier",
+  "current_role": "Founder at N/A",
+  "years_experience": 4.0,
+  "overall_fit_score": 65,
+  "fit_summary": "Tony presents a strong entrepreneurial and AI/ML background, but lacks direct, verifiable closing experience as an AE, especially in the target industry.",
+  "score_breakdown": {
+    "technical_skills": 90,
+    "experience_relevance": 40,
+    "leadership_potential": 70,
+    "communication_signals": 60,
+    "culture_fit_signals": 80,
+    "growth_trajectory": 90
+  },
+  "skill_matches": [
+    {
+      "skill": "Artificial Intelligence",
+      "required_level": "Proficient",
+      "candidate_level": "expert",
+      "evidence": "Specializing in AI/ML, researching and building enterprise AI applications, AI-powered academic success platform.",
+      "is_match": true
+    },
+    {
+      "skill": "Enterprise AI",
+      "required_level": "Proficient",
+      "candidate_level": "expert",
+      "evidence": "Experience researching and building enterprise AI applications.",
+      "is_match": true
+    },
+    {
+      "skill": "Strategy Consulting",
+      "required_level": "Competent",
+      "candidate_level": "proficient",
+      "evidence": "Background includes strategy consulting.",
+      "is_match": true
+    },
+    {
+      "skill": "No-code Development",
+      "required_level": "Competent",
+      "candidate_level": "proficient",
+      "evidence": "Previously founded a no-code editor.",
+      "is_match": true
+    },
+    {
+      "skill": "Startup experience",
+      "required_level": "Preferred",
+      "candidate_level": "expert",
+      "evidence": "Stealth founder, previously founded a no-code editor and an AI-powered academic success platform.",
+      "is_match": true
+    },
+    {
+      "skill": "Selling to finance/accounting leaders",
+      "required_level": "Required",
+      "candidate_level": "not_found",
+      "evidence": "No explicit mention of sales or selling to finance/accounting leaders.",
+      "is_match": false
+    }
+  ],
+  "experience_highlights": [
+    {
+      "company": "N/A (Founder)",
+      "role": "Stealth Founder",
+      "duration": "Current",
+      "key_achievement": "Implied development of new ventures, specializing in AI/ML and enterprise AI applications.",
+      "relevance": "Directly aligns with the 'Founding AE' title and startup environment, demonstrating initiative and product development capabilities."
+    },
+    {
+      "company": "N/A (Founder)",
+      "role": "Founder",
+      "duration": "Previous",
+      "key_achievement": "Founded a no-code editor and an AI-powered academic success platform.",
+      "relevance": "Shows entrepreneurial drive, ability to build and launch products, and experience with AI/SaaS concepts."
+    }
+  ],
+  "strengths": [
+    {
+      "strength": "Strong AI/ML and Enterprise AI background",
+      "evidence": "Specializing in AI/ML, experience researching and building enterprise AI applications, AI-powered academic success platform.",
+      "how_to_verify": "Ask about specific AI projects, their role, and the business impact of those applications."
+    },
+    {
+      "strength": "Entrepreneurial drive and startup experience",
+      "evidence": "Stealth founder, previously founded a no-code editor and an AI-powered academic success platform.",
+      "how_to_verify": "Discuss motivations for founding companies, challenges faced, and lessons learned from startup ventures."
+    },
+    {
+      "strength": "Diverse analytical and strategic skills",
+      "evidence": "Background includes strategy consulting, investment analysis, and data analysis.",
+      "how_to_verify": "Ask how these skills would translate to understanding customer needs and shaping go-to-market strategy for an AI SaaS product."
+    },
+    {
+      "strength": "Potential for understanding product deeply",
+      "evidence": "Strong background in Computer Science, AI/ML, and experience building applications.",
+      "how_to_verify": "Ask how they would leverage their technical understanding to sell complex AI solutions to non-technical buyers."
+    }
+  ],
+  "concerns": [
+    {
+      "concern": "Lack of explicit closing experience as an AE",
+      "evidence": "Resume lists 'Founder' as current role and does not mention 'Account Executive' or sales closing experience.",
+      "suggested_question": "Can you walk me through your experience with the full sales cycle, specifically focusing on how you've closed deals in previous roles?",
+      "severity": "high"
+    },
+    {
+      "concern": "No direct experience selling to finance/accounting leaders",
+      "evidence": "No mention of engaging with CFOs, Controllers, or similar stakeholders.",
+      "suggested_question": "Describe any experience you have engaging with finance or accounting leaders, even if not in a direct sales capacity. How would you approach building rapport and understanding their specific needs?",
+      "severity": "high"
+    },
+    {
+      "concern": "Limited evidence of 'consultative selling skills'",
+      "evidence": "While 'strategy consulting' is listed, there's no direct evidence of applying these skills in a sales context.",
+      "suggested_question": "Tell me about a time you had to deeply understand a client's problem and tailor a solution for them, even if it wasn't a direct sale.",
+      "severity": "medium"
+    },
+    {
+      "concern": "Transition from founder/technical roles to AE",
+      "evidence": "Current and past roles are founder/technical, not sales-focused.",
+      "suggested_question": "What specifically motivates your shift from founding and building products to a pure sales role as a Founding Account Executive?",
+      "severity": "medium"
+    }
+  ],
+  "suggested_questions": [
+    {
+      "question": "The job requires 1+ years of closing experience as an Account Executive. Can you detail your direct experience in closing deals, including specific metrics or achievements?",
+      "category": "experience",
+      "purpose": "Directly address the primary experience gap.",
+      "follow_up": "What was the average deal size and sales cycle in those instances?"
+    },
+    {
+      "question": "Our target ICP includes CFOs and Controllers. What experience do you have engaging with these types of stakeholders, and how would you approach building trust and demonstrating value to them?",
+      "category": "experience",
+      "purpose": "Assess relevance to target audience.",
+      "follow_up": "Can you give an example of a complex financial problem you helped a client solve?"
+    },
+    {
+      "question": "As a founder, you've likely had to 'sell' your vision and product. How do you see that experience translating into owning a full sales cycle for an established (though early-stage) product?",
+      "category": "behavioral",
+      "purpose": "Bridge the gap between founder and AE roles.",
+      "follow_up": "What aspects of the sales cycle do you anticipate being most challenging for you, coming from a founder background?"
+    },
+    {
+      "question": "Given your strong AI/ML background, how would you leverage that technical depth to effectively sell our AI-powered SaaS marketplace to both technical and non-technical buyers?",
+      "category": "technical/sales strategy",
+      "purpose": "Explore how their technical strength can be an asset in sales.",
+      "follow_up": "How would you simplify complex AI concepts for a busy CFO?"
+    },
+    {
+      "question": "The role requires thriving with minimal structure and proactively solving problems. Can you provide an example from your founder experience where you demonstrated these qualities in a high-pressure situation?",
+      "category": "behavioral/culture fit",
+      "purpose": "Assess startup readiness and problem-solving skills.",
+      "follow_up": "What was the outcome, and what did you learn about yourself?"
+    },
+    {
+      "question": "What is your understanding of a 'Founding Account Executive' role in an AI SaaS marketplace, and what specific contributions do you envision making to our go-to-market strategy?",
+      "category": "motivation/strategy",
+      "purpose": "Gauge understanding of the role and strategic thinking.",
+      "follow_up": "How would you prioritize your efforts in the first 90 days?"
+    }
+  ],
+  "topics_to_avoid": [],
+  "tldr": "Highly entrepreneurial candidate with strong AI/ML and product building experience. Significant concern regarding direct sales closing experience, especially to finance leaders. Interview needs to heavily probe sales track record and motivation for an AE role.",
+  "key_things_to_remember": [
+    "Candidate is a 'stealth founder' \u2013 probe what this entails and if it conflicts with AE role.",
+    "Strong technical background in AI/ML is a unique asset if they can translate it to sales.",
+    "No explicit sales experience on resume \u2013 this is the biggest gap.",
+    "Demonstrated 'scrappiness/hustle' through founding multiple ventures."
+  ]
+}

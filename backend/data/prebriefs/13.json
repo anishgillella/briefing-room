@@ -1,0 +1,176 @@
+{
+  "candidate_name": "David-Michael Ajudua",
+  "current_role": "N/A",
+  "years_experience": 4.0,
+  "overall_fit_score": 75,
+  "fit_summary": "David-Michael presents a strong foundational fit due to his co-founding experience in an AI-driven fintech company and direct experience in financial technology, aligning well with the role's requirements for startup mentality and industry knowledge.",
+  "score_breakdown": {
+    "technical_skills": 70,
+    "experience_relevance": 85,
+    "leadership_potential": 75,
+    "communication_signals": 60,
+    "culture_fit_signals": 80,
+    "growth_trajectory": 85
+  },
+  "skill_matches": [
+    {
+      "skill": "Closing Experience (Account Executive)",
+      "required_level": "Competent",
+      "candidate_level": "not_found",
+      "evidence": "Resume mentions 'business development professional' and co-founding a company, but lacks explicit AE closing experience.",
+      "is_match": false
+    },
+    {
+      "skill": "Selling to Finance/Accounting Leaders",
+      "required_level": "Competent",
+      "candidate_level": "competent",
+      "evidence": "Co-founded a company focused on 'low-cost invoicing and accounting tools with AI' and experience in 'financial technology'.",
+      "is_match": true
+    },
+    {
+      "skill": "SaaS/Fintech/Recruiting Tech Experience",
+      "required_level": "Competent",
+      "candidate_level": "proficient",
+      "evidence": "Experience in 'financial technology', 'investment management software', and 'data analytics software'. Co-founded an 'AI' company.",
+      "is_match": true
+    },
+    {
+      "skill": "Startup Experience/Scrappiness",
+      "required_level": "Competent",
+      "candidate_level": "proficient",
+      "evidence": "Co-founded a company, indicating direct startup experience and a likely 'scrappy' approach.",
+      "is_match": true
+    },
+    {
+      "skill": "AI Knowledge",
+      "required_level": "Beginner",
+      "candidate_level": "competent",
+      "evidence": "Co-founded a company focused on 'low-cost invoicing and accounting tools with AI'.",
+      "is_match": true
+    },
+    {
+      "skill": "Full Sales Cycle Ownership",
+      "required_level": "Competent",
+      "candidate_level": "not_found",
+      "evidence": "Resume doesn't explicitly detail full sales cycle ownership; 'business development professional' is broad.",
+      "is_match": false
+    }
+  ],
+  "experience_highlights": [
+    {
+      "company": "Co-founded Company",
+      "role": "Co-founder",
+      "duration": "N/A (implied recent)",
+      "key_achievement": "Developed low-cost invoicing and accounting tools with AI",
+      "relevance": "Directly aligns with the company's AI-driven SaaS marketplace and target ICP (finance/accounting)."
+    },
+    {
+      "company": "N/A (Previous roles)",
+      "role": "N/A (Business Development)",
+      "duration": "N/A",
+      "key_achievement": "Experience in investment management software and data analytics software",
+      "relevance": "Provides relevant industry context and understanding of software sales environments."
+    },
+    {
+      "company": "N/A (Overall)",
+      "role": "Business Development Professional",
+      "duration": "4 years",
+      "key_achievement": "Experience across financial technology, investment management, and data analytics",
+      "relevance": "Demonstrates a broad understanding of relevant tech sectors and potential for consultative selling."
+    }
+  ],
+  "strengths": [
+    {
+      "strength": "Direct Industry Relevance",
+      "evidence": "Co-founded a company focused on 'low-cost invoicing and accounting tools with AI' and has experience in 'financial technology'.",
+      "how_to_verify": "Ask about the specific problems his co-founded company solved for finance/accounting teams and how he identified those needs."
+    },
+    {
+      "strength": "Startup Mentality & Drive",
+      "evidence": "The act of co-founding a company strongly indicates ambition, problem-solving ability, and comfort with minimal structure.",
+      "how_to_verify": "Ask about the biggest challenges faced as a co-founder and how they were overcome with limited resources."
+    },
+    {
+      "strength": "Understanding of Target ICP",
+      "evidence": "Focus on 'invoicing and accounting tools' and 'financial technology' suggests familiarity with the needs of CFOs/Controllers.",
+      "how_to_verify": "Ask about specific pain points he observed or addressed for finance/accounting leaders in his previous roles."
+    },
+    {
+      "strength": "AI Familiarity",
+      "evidence": "His co-founded company utilized 'AI', which is central to the job description.",
+      "how_to_verify": "Ask about the role of AI in his previous venture and how he sees AI impacting the finance/accounting sector."
+    }
+  ],
+  "concerns": [
+    {
+      "concern": "Lack of Explicit AE Closing Experience",
+      "evidence": "Resume states 'business development professional' and co-founder, but doesn't explicitly mention 'Account Executive' or 'closing deals'.",
+      "suggested_question": "Can you walk me through your experience owning the full sales cycle, from prospecting to closing, in your previous roles?",
+      "severity": "high"
+    },
+    {
+      "concern": "Limited Detail on Sales Metrics/Achievements",
+      "evidence": "The summary is high-level and lacks specific quantifiable achievements (e.g., quota attainment, deal size, revenue generated).",
+      "suggested_question": "In your business development roles or as a co-founder, what were your key performance indicators, and how did you measure your success?",
+      "severity": "medium"
+    },
+    {
+      "concern": "Ambiguity in 'Business Development' Role",
+      "evidence": "The term 'business development professional' can encompass various activities, not always direct closing.",
+      "suggested_question": "Describe a typical day or week in your most impactful business development role. What percentage of your time was spent directly selling and closing?",
+      "severity": "medium"
+    },
+    {
+      "concern": "No Mention of Outbound Sales or Prospecting",
+      "evidence": "The resume doesn't highlight experience in driving outbound sales calls or converting leads.",
+      "suggested_question": "Tell me about your experience with outbound prospecting and lead generation. What strategies have you found most effective?",
+      "severity": "medium"
+    }
+  ],
+  "suggested_questions": [
+    {
+      "question": "The job requires owning the full sales cycle, including closing deals. Can you describe your direct experience with closing sales, including specific examples of deals you've personally closed?",
+      "category": "experience",
+      "purpose": "Verify direct closing experience, which is a core requirement.",
+      "follow_up": "What was the average deal size and sales cycle length for those deals?"
+    },
+    {
+      "question": "As a co-founder of an AI-driven invoicing and accounting tool, what was your specific role in customer acquisition and revenue generation? What was your personal contribution to sales targets?",
+      "category": "experience",
+      "purpose": "Understand the extent of his sales involvement in his own startup.",
+      "follow_up": "How did you identify and engage with your initial target customers?"
+    },
+    {
+      "question": "The job emphasizes selling to finance and accounting leaders. Can you share a specific example of how you identified a need for a CFO or Controller and successfully presented a solution?",
+      "category": "behavioral/experience",
+      "purpose": "Assess consultative selling skills and understanding of the ICP.",
+      "follow_up": "What challenges did you face in that sale, and how did you overcome them?"
+    },
+    {
+      "question": "Our company is a fast-growing startup. Can you describe a time when you had to operate with minimal structure and proactively solve a significant problem without clear guidance?",
+      "category": "behavioral",
+      "purpose": "Gauge ability to thrive in a startup environment.",
+      "follow_up": "What was the outcome, and what did you learn from that experience?"
+    },
+    {
+      "question": "What metrics did you track to measure your success in your previous business development or co-founder roles, and how did you consistently meet or exceed those targets?",
+      "category": "experience/performance",
+      "purpose": "Uncover quantifiable achievements and performance orientation.",
+      "follow_up": "Can you give me an example of a time you missed a target and what you did to get back on track?"
+    },
+    {
+      "question": "Given your background in AI-driven accounting tools, how do you see our AI SaaS marketplace revolutionizing how go-to-market teams connect and grow, and what unique perspective would you bring?",
+      "category": "motivation/fit",
+      "purpose": "Assess understanding of the company's mission and how his experience translates.",
+      "follow_up": "What excites you most about the intersection of AI and B2B sales?"
+    }
+  ],
+  "topics_to_avoid": [],
+  "tldr": "David-Michael has strong industry relevance and startup experience from co-founding an AI-driven fintech company, which aligns well with the job's domain and culture. The primary concern is the lack of explicit, detailed closing experience as an Account Executive, which needs thorough probing.",
+  "key_things_to_remember": [
+    "Co-founded an AI-driven accounting tool company \u2013 this is a major plus for industry and AI relevance.",
+    "Experience is described as 'business development professional' \u2013 need to clarify if this included direct closing responsibilities.",
+    "No explicit mention of sales quotas or revenue achievements \u2013 crucial to probe for these.",
+    "Strong potential for cultural fit due to startup background and ambition."
+  ]
+}

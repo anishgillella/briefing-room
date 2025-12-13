@@ -8,7 +8,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "AI Recruiting | Intelligent Candidate Ranking",
+  title: "Superposition | AI-Native Talent Intelligence",
   description: "AI-powered candidate matching and ranking system for sales professionals",
 };
 

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import rooms, realtime, analytics, coach, prebrief, pluto
+from routers import rooms, realtime, analytics, coach, prebrief, pluto, livekit_router
 from typing import Annotated, Optional
 
 app = FastAPI(
@@ -25,6 +25,7 @@ app.include_router(analytics.router, prefix="/api")
 app.include_router(coach.router, prefix="/api")
 app.include_router(prebrief.router, prefix="/api")
 app.include_router(pluto.router, prefix="/api")
+app.include_router(livekit_router.router, prefix="/api")
 
 
 @app.get("/health")
