@@ -83,7 +83,7 @@ class QuestionAnalytics(BaseModel):
     answer_summary: str
     quality_score: int = Field(ge=0, le=100, description="Overall quality 0-100")
     key_insight: str = Field(description="One sentence takeaway")
-    topic: str = Field(description="Primary topic (e.g. Sales, Python)")
+    topic: str = Field(description="Primary skill or competency area demonstrated (e.g. Leadership, Problem Solving, Technical Skills, Communication, Strategic Thinking, Domain Expertise)")
     relevance_score: int = Field(ge=0, le=10, description="How relevant the answer was to the question (0-10)")
     clarity_score: int = Field(ge=0, le=10, description="How clear/concise the answer was (0-10)")
     depth_score: int = Field(ge=0, le=10, description="Depth of technical/functional knowledge shown (0-10)")
@@ -141,20 +141,19 @@ class Evaluation(BaseModel):
 # Required and Preferred Fields for Completeness
 # ============================================================================
 
+# Generic profile fields - applicable to any role
 REQUIRED_FIELDS = [
-    ("years_experience", "Years Experience"),
-    ("sold_to_finance", "CFO/Finance Sales"),
-    ("bio_summary", "Bio Summary"),
-    ("job_title", "Job Title"),
+    ("years_experience", "Years of Experience"),
+    ("bio_summary", "Professional Summary"),
+    ("job_title", "Current/Target Role"),
 ]
 
 PREFERRED_FIELDS = [
-    ("max_acv_mentioned", "Deal Size/ACV"),
-    ("quota_attainment", "Quota %"),
-    ("enterprise_experience", "Enterprise Sales"),
     ("industries", "Industry Background"),
-    ("startup_experience", "Startup Experience"),
-    ("skills", "Skills/Methodologies"),
+    ("skills", "Key Skills"),
+    ("education", "Education"),
+    ("notable_achievements", "Notable Achievements"),
+    ("certifications", "Certifications"),
 ]
 
 
@@ -676,58 +675,54 @@ async def generate_deep_analytics(transcript: str, candidate_data: dict, job_des
     
     telemetry = calculate_telemetry(transcript)
     
-    prompt = f"""
-You are an expert Voice Interview Analyst.
-Analyze the following interview transcript for candidate {candidate_data.get('name')}.
+    # Generate JSON schema from Pydantic models (excluding communication_metrics as it's calculated)
+    schema_for_llm = {
+        "overall_score": "integer 0-100",
+        "recommendation": "Strong Hire | Hire | No Hire",
+        "overall_synthesis": "string (executive summary)",
+        "question_analytics": [QuestionAnalytics.model_json_schema()],
+        "skill_evidence": [SkillEvidence.model_json_schema()],
+        "behavioral_profile": BehavioralProfile.model_json_schema(),
+        "topics_to_probe": ["string (follow-up topics)"]
+    }
+    
+    prompt = f"""You are an expert Interview Analyst evaluating candidate performance.
 
 CONTEXT:
-Job Description: {job_description[:1000]}...
-Resume Summary: {candidate_data.get('bio_summary')}
+- Candidate: {candidate_data.get('name', 'Unknown')}
+- Role: {candidate_data.get('job_title', 'Not specified')}
+- Job Description: {job_description[:2000] if job_description else 'Not provided'}
+- Resume Summary: {candidate_data.get('bio_summary', 'Not provided')}
 
 TRANSCRIPT:
-{transcript[:15000]}  (Truncated if too long)
+{transcript[:15000]}
 
 TASK:
-Generate a Deep Analytics report in JSON format.
-1. Match specific quotes to skills (Skill Evidence).
-2. Rate soft skills 0-10 (Behavioral Profile).
-3. Analyze each Q&A exchange with MULTI-DIMENSIONAL SCORING (Relevance, Clarity, Depth 0-10).
-4. Synthesize overall performance.
+Generate a comprehensive Deep Analytics report in JSON format:
 
-OUTPUT SCHEMA (JSON):
-{{
-  "overall_score": 0-100,
-  "recommendation": "Strong Hire" | "Hire" | "No Hire",
-  "overall_synthesis": "Detailed executive summary...",
-  "question_analytics": [
-    {{
-      "question": "...",
-      "answer_summary": "...",
-      "quality_score": 0-100,
-      "relevance_score": 0-10,
-      "clarity_score": 0-10,
-      "depth_score": 0-10,
-      "key_insight": "...",
-      "topic": "..."
-    }}
-  ],
-  "skill_evidence": [
-    {{
-      "skill": "...",
-      "quote": "...",
-      "confidence": "High"
-    }}
-  ],
-  "behavioral_profile": {{
-    "leadership": 0-10,
-    "resilience": 0-10,
-    "communication": 0-10,
-    "problem_solving": 0-10,
-    "coachability": 0-10
-  }},
-  "topics_to_probe": ["..."]
-}}
-"""
+1. **Question Analytics**: For EACH question-answer exchange in the transcript, analyze:
+   - The exact question asked
+   - Summary of the candidate's answer
+   - Quality score (0-100)
+   - Relevance score (0-10): How well the answer addressed the question
+   - Clarity score (0-10): How clear and concise the response was
+   - Depth score (0-10): Level of expertise/insight demonstrated
+   - Key insight: One-sentence takeaway
+   - Topic: Primary competency area (e.g., Leadership, Problem Solving, Technical Skills, Communication, Strategic Thinking, Domain Expertise, Collaboration, Adaptability)
+
+2. **Skill Evidence**: Extract specific quotes that prove claimed skills
+
+3. **Behavioral Profile**: Rate soft skills 0-10 (leadership, resilience, communication, problem_solving, coachability)
+
+4. **Overall**: Synthesize into score (0-100), recommendation, and executive summary
+
+5. **Topics to Probe**: Suggest follow-up areas for next interview round
+
+OUTPUT SCHEMA:
+{json.dumps(schema_for_llm, indent=2)}
+
+Return ONLY valid JSON matching this schema."""
+
     for attempt in range(MAX_RETRIES + 1):
         try:
             response = await client.chat.completions.create(

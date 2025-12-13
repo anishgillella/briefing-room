@@ -46,3 +46,8 @@ __pycache__/
 .Python
 *.egg-info/
 .pytest_cache/
+
+# Backend session data (not committed)
+backend/data/analytics/
+backend/data/transcripts/
+backend/data/prebriefs/
