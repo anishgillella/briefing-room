@@ -18,8 +18,16 @@ async def list_interviewers():
     
     # Filter to those who can interview (role = 'interviewer' or 'both')
     interviewers = [m for m in managers if m.get("role") in ["interviewer", "both", None]]
+
+    # Deduplicate by Name (since we have multiple IDs for same person in DB)
+    unique_interviewers = []
+    seen_names = set()
+    for interviewer in interviewers:
+        if interviewer["name"] not in seen_names:
+            unique_interviewers.append(interviewer)
+            seen_names.add(interviewer["name"])
     
-    return {"interviewers": interviewers}
+    return {"interviewers": unique_interviewers}
 
 
 @router.get("/analytics/team")
@@ -120,6 +128,18 @@ async def get_interviewer_analytics_history(interviewer_id: str, limit: int = 20
     analytics_repo = get_interviewer_analytics_repository()
     history = analytics_repo.get_by_interviewer(interviewer_id, limit=limit)
     return {"history": history}
+
+
+@router.get("/interviews/{interview_id}/analytics")
+async def get_interview_analytics(interview_id: str):
+    """Get interviewer analytics for a specific interview."""
+    analytics_repo = get_interviewer_analytics_repository()
+    analytics = analytics_repo.get_by_interview(interview_id)
+    
+    if not analytics:
+        raise HTTPException(status_code=404, detail="Analytics not found for this interview")
+    
+    return {"analytics": analytics}
 
 
 @router.post("/interviews/{interview_id}/analyze")

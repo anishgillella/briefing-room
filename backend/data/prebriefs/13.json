@@ -1,176 +1,159 @@
 {
   "candidate_name": "David-Michael Ajudua",
-  "current_role": "N/A",
+  "current_role": "Co-Founder",
   "years_experience": 4.0,
-  "overall_fit_score": 75,
-  "fit_summary": "David-Michael presents a strong foundational fit due to his co-founding experience in an AI-driven fintech company and direct experience in financial technology, aligning well with the role's requirements for startup mentality and industry knowledge.",
+  "overall_fit_score": 85,
+  "fit_summary": "This candidate is an exceptional fit, possessing direct founder experience in AI-driven fintech and a proven background selling/building solutions for finance/accounting stakeholders.",
   "score_breakdown": {
-    "technical_skills": 70,
-    "experience_relevance": 85,
-    "leadership_potential": 75,
-    "communication_signals": 60,
-    "culture_fit_signals": 80,
-    "growth_trajectory": 85
+    "technical_skills": 90,
+    "experience_relevance": 95,
+    "leadership_potential": 80,
+    "communication_signals": 85,
+    "culture_fit_signals": 95,
+    "growth_trajectory": 90
   },
   "skill_matches": [
     {
-      "skill": "Closing Experience (Account Executive)",
-      "required_level": "Competent",
-      "candidate_level": "not_found",
-      "evidence": "Resume mentions 'business development professional' and co-founding a company, but lacks explicit AE closing experience.",
-      "is_match": false
-    },
-    {
-      "skill": "Selling to Finance/Accounting Leaders",
-      "required_level": "Competent",
-      "candidate_level": "competent",
-      "evidence": "Co-founded a company focused on 'low-cost invoicing and accounting tools with AI' and experience in 'financial technology'.",
+      "skill": "Selling to Finance/Accounting (CFOs, Controllers)",
+      "required_level": "Proficient",
+      "candidate_level": "proficient",
+      "evidence": "Co-founded Aiazing, an 'AI-driven invoicing and accounting tool' serving 'several thousand users.' This implies direct engagement with the ICP.",
       "is_match": true
     },
     {
-      "skill": "SaaS/Fintech/Recruiting Tech Experience",
+      "skill": "SaaS/Fintech Closing Experience",
       "required_level": "Competent",
       "candidate_level": "proficient",
-      "evidence": "Experience in 'financial technology', 'investment management software', and 'data analytics software'. Co-founded an 'AI' company.",
+      "evidence": "Co-founded Aiazing (AI-driven invoicing/accounting tool) and worked at BlackRock (Investment Management Software) and Imply (Data Analytics Software).",
       "is_match": true
     },
     {
-      "skill": "Startup Experience/Scrappiness",
+      "skill": "Startup/Scrappiness/Hustle",
+      "required_level": "Proficient",
+      "candidate_level": "expert",
+      "evidence": "Co-founded Aiazing, an early-stage company, which is the ultimate signal of scrappiness and ability to thrive with minimal structure.",
+      "is_match": true
+    },
+    {
+      "skill": "AI/Technology Focus",
       "required_level": "Competent",
       "candidate_level": "proficient",
-      "evidence": "Co-founded a company, indicating direct startup experience and a likely 'scrappy' approach.",
+      "evidence": "Co-founded 'AI-driven invoicing and accounting tool, Aiazing.'",
       "is_match": true
     },
     {
-      "skill": "AI Knowledge",
-      "required_level": "Beginner",
+      "skill": "Full Sales Cycle Ownership (AE)",
+      "required_level": "Proficient",
       "candidate_level": "competent",
-      "evidence": "Co-founded a company focused on 'low-cost invoicing and accounting tools with AI'.",
+      "evidence": "The resume implies full GTM ownership as a Co-Founder, but lacks explicit 'AE closing' titles/metrics. Needs verification.",
       "is_match": true
-    },
-    {
-      "skill": "Full Sales Cycle Ownership",
-      "required_level": "Competent",
-      "candidate_level": "not_found",
-      "evidence": "Resume doesn't explicitly detail full sales cycle ownership; 'business development professional' is broad.",
-      "is_match": false
     }
   ],
   "experience_highlights": [
     {
-      "company": "Co-founded Company",
-      "role": "Co-founder",
-      "duration": "N/A (implied recent)",
-      "key_achievement": "Developed low-cost invoicing and accounting tools with AI",
-      "relevance": "Directly aligns with the company's AI-driven SaaS marketplace and target ICP (finance/accounting)."
+      "company": "Aiazing (Co-Founder)",
+      "role": "Co-Founder",
+      "duration": "Implied 1+ years (current focus)",
+      "key_achievement": "Built and scaled an AI-driven invoicing and accounting tool to 'several thousand users.'",
+      "relevance": "Directly relevant to the job's ICP (accounting/finance), technology (AI/SaaS), and stage (Founding role)."
     },
     {
-      "company": "N/A (Previous roles)",
-      "role": "N/A (Business Development)",
+      "company": "BlackRock",
+      "role": "N/A (Implied technical/financial role)",
       "duration": "N/A",
-      "key_achievement": "Experience in investment management software and data analytics software",
-      "relevance": "Provides relevant industry context and understanding of software sales environments."
+      "key_achievement": "Experience with 'Investment Management Software.'",
+      "relevance": "Provides enterprise-level financial technology context, which is valuable for selling to mid-market/enterprise finance leaders."
     },
     {
-      "company": "N/A (Overall)",
-      "role": "Business Development Professional",
-      "duration": "4 years",
-      "key_achievement": "Experience across financial technology, investment management, and data analytics",
-      "relevance": "Demonstrates a broad understanding of relevant tech sectors and potential for consultative selling."
+      "company": "Citi (Internships)",
+      "role": "Investment Banking Intern",
+      "duration": "N/A",
+      "key_achievement": "Background in Investment Banking.",
+      "relevance": "Strong financial acumen and understanding of corporate finance pain points, enhancing consultative selling ability."
     }
   ],
   "strengths": [
     {
-      "strength": "Direct Industry Relevance",
-      "evidence": "Co-founded a company focused on 'low-cost invoicing and accounting tools with AI' and has experience in 'financial technology'.",
-      "how_to_verify": "Ask about the specific problems his co-founded company solved for finance/accounting teams and how he identified those needs."
+      "strength": "Deep ICP and Domain Expertise",
+      "evidence": "Co-founded an accounting/invoicing tool and worked in Investment Management/Banking. They speak the finance leader's language.",
+      "how_to_verify": "Ask them to diagnose a common pain point for a Controller using their product (Aiazing) as context."
     },
     {
-      "strength": "Startup Mentality & Drive",
-      "evidence": "The act of co-founding a company strongly indicates ambition, problem-solving ability, and comfort with minimal structure.",
-      "how_to_verify": "Ask about the biggest challenges faced as a co-founder and how they were overcome with limited resources."
+      "strength": "Founding/GTM Mindset (Culture Fit)",
+      "evidence": "As a Co-Founder, they have demonstrated the ability to 'shape the go-to-market strategy' and 'thrive with minimal structure,' which is critical for a Founding AE.",
+      "how_to_verify": "Ask about their biggest GTM mistake at Aiazing and what they learned."
     },
     {
-      "strength": "Understanding of Target ICP",
-      "evidence": "Focus on 'invoicing and accounting tools' and 'financial technology' suggests familiarity with the needs of CFOs/Controllers.",
-      "how_to_verify": "Ask about specific pain points he observed or addressed for finance/accounting leaders in his previous roles."
+      "strength": "AI/SaaS Product Fluency",
+      "evidence": "The product they built is 'AI-driven.' They can credibly sell complex AI solutions.",
+      "how_to_verify": "Ask them to explain the difference between a feature-based sale and a platform sale in the context of AI."
     },
     {
-      "strength": "AI Familiarity",
-      "evidence": "His co-founded company utilized 'AI', which is central to the job description.",
-      "how_to_verify": "Ask about the role of AI in his previous venture and how he sees AI impacting the finance/accounting sector."
+      "strength": "Proven Ambition and Drive",
+      "evidence": "Transitioned from BlackRock/Citi background to co-founding a startup, signaling high risk tolerance and 'hunger to succeed.'",
+      "how_to_verify": "Ask: 'Why leave the stability of a big firm to start Aiazing, and why are you now looking to join another startup?'"
     }
   ],
   "concerns": [
     {
-      "concern": "Lack of Explicit AE Closing Experience",
-      "evidence": "Resume states 'business development professional' and co-founder, but doesn't explicitly mention 'Account Executive' or 'closing deals'.",
-      "suggested_question": "Can you walk me through your experience owning the full sales cycle, from prospecting to closing, in your previous roles?",
+      "concern": "Lack of Explicit AE Closing Metrics/Title",
+      "evidence": "The resume lists 'Co-Founder' and 'Business Development' skills, but not 'Account Executive' or specific quota attainment/closing metrics.",
+      "suggested_question": "As a Co-Founder at Aiazing, what was your personal revenue target, and what was your closing ratio on qualified leads?",
       "severity": "high"
     },
     {
-      "concern": "Limited Detail on Sales Metrics/Achievements",
-      "evidence": "The summary is high-level and lacks specific quantifiable achievements (e.g., quota attainment, deal size, revenue generated).",
-      "suggested_question": "In your business development roles or as a co-founder, what were your key performance indicators, and how did you measure your success?",
-      "severity": "medium"
+      "concern": "Sales Cycle Ownership vs. Product/Biz Dev",
+      "evidence": "It's unclear if their role at Aiazing was primarily product development, technical sales, or pure closing/quota-carrying AE.",
+      "suggested_question": "Walk me through the last $50k deal you personally closed at Aiazing. Who sourced it, what was the timeline, and what was the biggest objection?",
+      "severity": "high"
     },
     {
-      "concern": "Ambiguity in 'Business Development' Role",
-      "evidence": "The term 'business development professional' can encompass various activities, not always direct closing.",
-      "suggested_question": "Describe a typical day or week in your most impactful business development role. What percentage of your time was spent directly selling and closing?",
-      "severity": "medium"
-    },
-    {
-      "concern": "No Mention of Outbound Sales or Prospecting",
-      "evidence": "The resume doesn't highlight experience in driving outbound sales calls or converting leads.",
-      "suggested_question": "Tell me about your experience with outbound prospecting and lead generation. What strategies have you found most effective?",
+      "concern": "Experience Selling a Marketplace Model",
+      "evidence": "Their experience is in selling a single SaaS tool (invoicing/accounting), not a two-sided marketplace model.",
+      "suggested_question": "How does selling a single SaaS product differ from selling a marketplace solution, and what challenges do you anticipate?",
       "severity": "medium"
     }
   ],
   "suggested_questions": [
     {
-      "question": "The job requires owning the full sales cycle, including closing deals. Can you describe your direct experience with closing sales, including specific examples of deals you've personally closed?",
-      "category": "experience",
-      "purpose": "Verify direct closing experience, which is a core requirement.",
-      "follow_up": "What was the average deal size and sales cycle length for those deals?"
+      "question": "As a Founding AE, you must build the playbook. Based on your experience at Aiazing, what are the first three steps you would take to establish our outbound sales motion?",
+      "category": "strategy",
+      "purpose": "Assess strategic thinking and ability to build structure from scratch.",
+      "follow_up": "How would you measure the success of those steps in the first 90 days?"
     },
     {
-      "question": "As a co-founder of an AI-driven invoicing and accounting tool, what was your specific role in customer acquisition and revenue generation? What was your personal contribution to sales targets?",
-      "category": "experience",
-      "purpose": "Understand the extent of his sales involvement in his own startup.",
-      "follow_up": "How did you identify and engage with your initial target customers?"
+      "question": "Tell me about the most complex deal you personally closed at Aiazing. Specifically, who was the economic buyer, and what was the biggest competitive threat?",
+      "category": "closing_skills",
+      "purpose": "Verify closing experience and ability to navigate enterprise sales cycles.",
+      "follow_up": "What was the average contract value (ACV) of your closed deals?"
     },
     {
-      "question": "The job emphasizes selling to finance and accounting leaders. Can you share a specific example of how you identified a need for a CFO or Controller and successfully presented a solution?",
-      "category": "behavioral/experience",
-      "purpose": "Assess consultative selling skills and understanding of the ICP.",
-      "follow_up": "What challenges did you face in that sale, and how did you overcome them?"
+      "question": "Our ICP is finance leaders. If a CFO told you, 'We already use [Competitor X] for our accounting needs,' how would you pivot the conversation to focus on the value of our AI marketplace?",
+      "category": "consultative_selling",
+      "purpose": "Test domain knowledge and ability to handle complex objections.",
+      "follow_up": "How do you handle procurement and legal review in a mid-market deal?"
     },
     {
-      "question": "Our company is a fast-growing startup. Can you describe a time when you had to operate with minimal structure and proactively solve a significant problem without clear guidance?",
-      "category": "behavioral",
-      "purpose": "Gauge ability to thrive in a startup environment.",
-      "follow_up": "What was the outcome, and what did you learn from that experience?"
+      "question": "You have experience in both large finance firms (BlackRock/Citi) and a startup (Aiazing). How will you leverage your 'big company' understanding to sell to enterprise clients, while maintaining the 'startup hustle' required here?",
+      "category": "culture_fit",
+      "purpose": "Assess self-awareness and ability to bridge corporate and startup environments.",
+      "follow_up": "What is the biggest difference between selling to a startup vs. a Fortune 500 finance team?"
     },
     {
-      "question": "What metrics did you track to measure your success in your previous business development or co-founder roles, and how did you consistently meet or exceed those targets?",
-      "category": "experience/performance",
-      "purpose": "Uncover quantifiable achievements and performance orientation.",
-      "follow_up": "Can you give me an example of a time you missed a target and what you did to get back on track?"
-    },
-    {
-      "question": "Given your background in AI-driven accounting tools, how do you see our AI SaaS marketplace revolutionizing how go-to-market teams connect and grow, and what unique perspective would you bring?",
-      "category": "motivation/fit",
-      "purpose": "Assess understanding of the company's mission and how his experience translates.",
-      "follow_up": "What excites you most about the intersection of AI and B2B sales?"
+      "question": "The job requires collaborating closely with founders to refine the GTM. Describe a time you had to deliver difficult feedback to a co-founder or executive regarding product-market fit or sales process.",
+      "category": "collaboration/influence",
+      "purpose": "Evaluate communication skills and ability to influence strategy.",
+      "follow_up": "What was the outcome, and how did you ensure the relationship remained strong?"
     }
   ],
-  "topics_to_avoid": [],
-  "tldr": "David-Michael has strong industry relevance and startup experience from co-founding an AI-driven fintech company, which aligns well with the job's domain and culture. The primary concern is the lack of explicit, detailed closing experience as an Account Executive, which needs thorough probing.",
+  "topics_to_avoid": [
+    "Do not dwell on the specifics of the Aiazing product's technical architecture unless they bring it up; focus strictly on the sales/GTM aspects."
+  ],
+  "tldr": "Exceptional domain expertise (Fintech, Accounting, AI) and clear founder-level drive. The primary risk is verifying that 'Co-Founder' translates directly into 1+ years of quota-carrying AE closing experience. Focus the interview on specific closing metrics, deal ownership, and GTM strategy building.",
   "key_things_to_remember": [
-    "Co-founded an AI-driven accounting tool company \u2013 this is a major plus for industry and AI relevance.",
-    "Experience is described as 'business development professional' \u2013 need to clarify if this included direct closing responsibilities.",
-    "No explicit mention of sales quotas or revenue achievements \u2013 crucial to probe for these.",
-    "Strong potential for cultural fit due to startup background and ambition."
+    "He has built the product (Aiazing) he would be selling against/alongside\u2014a huge advantage.",
+    "The 'Founding AE' title aligns perfectly with his Co-Founder background.",
+    "He meets the 1+ year closing experience requirement only if his Co-Founder role included direct sales.",
+    "Strong signals for selling to the required ICP (CFOs/Controllers)."
   ]
 }

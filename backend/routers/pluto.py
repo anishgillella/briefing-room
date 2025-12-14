@@ -838,7 +838,69 @@ async def save_interview_analytics(candidate_id: str, request: SaveAnalyticsRequ
         }
         update_candidate(candidate_id, update_data)
         
-        return {"status": "saved", "analytics": analytics_data}
+        # Create or get interview record for analytics linking
+        interview_id = None
+        
+        try:
+            from repositories.interview_repository import InterviewRepository
+            interview_repo = InterviewRepository()
+            
+            # Check if interview already exists for this candidate
+            existing_interviews = interview_repo.get_candidate_interviews(candidate_id)
+            active_interview = next(
+                (i for i in existing_interviews if i.get("status") == "active"),
+                None
+            )
+            
+            if active_interview:
+                # Complete existing interview and use its ID
+                interview_repo.complete_interview(active_interview["id"])
+                interview_id = active_interview["id"]
+            else:
+                # Create a new interview record
+                new_interview = interview_repo.create({
+                    "candidate_id": candidate_id,
+                    "stage": "round_1",
+                    "status": "completed",
+                })
+                if new_interview:
+                    interview_id = new_interview["id"]
+        except Exception as e:
+            logger.warning(f"Failed to create/update interview record: {e}")
+        
+        # Fallback: generate a deterministic interview_id if DB failed
+        if not interview_id:
+            import hashlib
+            fallback_id = hashlib.md5(f"{candidate_id}_{timestamp}".encode()).hexdigest()
+            interview_id = f"{fallback_id[:8]}-{fallback_id[8:12]}-{fallback_id[12:16]}-{fallback_id[16:20]}-{fallback_id[20:32]}"
+            logger.info(f"Using fallback interview_id: {interview_id}")
+        
+        # Generate interviewer analytics if we have analytics data
+        interviewer_analytics = None
+        if analytics_data and "error" not in analytics_data:
+            try:
+                from services.interviewer_analyzer import get_interviewer_analyzer
+                from repositories.interviewer_analytics_repository import get_interviewer_analytics_repository
+                
+                analyzer = get_interviewer_analyzer()
+                questions_list = []
+                
+                # Extract questions from analytics
+                if "question_analytics" in analytics_data:
+                    questions_list = [qa.get("question", "") for qa in analytics_data.get("question_analytics", [])]
+                
+                if questions_list or request.transcript:
+                    logger.info(f"Generating interviewer analytics for interview {interview_id[:8]}...")
+                    interviewer_result = await analyzer.analyze_interview(
+                        transcript=request.transcript,
+                        questions=questions_list
+                    )
+                    interviewer_analytics = interviewer_result.model_dump()
+                    logger.info(f"Interviewer analytics generated. Score: {interviewer_result.overall_score}")
+            except Exception as e:
+                logger.warning(f"Failed to generate interviewer analytics: {e}")
+        
+        return {"status": "saved", "analytics": analytics_data, "interview_id": interview_id, "interviewer_analytics": interviewer_analytics}
 
     except Exception as e:
         traceback.print_exc()

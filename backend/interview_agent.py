@@ -297,21 +297,27 @@ Say: "Hi, thank you for having me! I'm {candidate_name.split()[0]}, excited to b
         suggestion: str,
         category: str = "general",
         issue_type: str = "none",
-        reasoning: str = ""
+        reasoning: str = "",
+        question_type: str = "general",
+        probe_recommendation: str = "stay_on_topic",
+        topic_to_explore: str = None
     ) -> str:
         """Send an AI suggestion to the interviewer's panel."""
         global current_room
         
-        logger.info(f"🤖 AI Suggestion ({category}): {suggestion}")
+        logger.info(f"🤖 AI Suggestion ({category}/{question_type}): {suggestion}")
         
         if current_room and current_room.local_participant:
             try:
                 payload = {
                     "type": "AI_SUGGESTION",
                     "suggestion": suggestion,
-                    "category": category,
+                    "category": category,  # STRONG/ADEQUATE/WEAK/NEEDS_PROBING
                     "issue_type": issue_type,
-                    "reasoning": reasoning
+                    "reasoning": reasoning,
+                    "question_type": question_type,  # technical/behavioral/cultural_fit/etc
+                    "probe_recommendation": probe_recommendation,  # stay_on_topic/probe_deeper/change_topic
+                    "topic_to_explore": topic_to_explore
                 }
                 
                 message = json.dumps(payload)
@@ -344,6 +350,9 @@ Say: "Hi, thank you for having me! I'm {candidate_name.split()[0]}, excited to b
         # Get last 3 exchanges (6 items)
         recent_context = history[-6:] 
         
+        # Count how many exchanges on current topic (simple heuristic)
+        exchange_count = len(history) // 2
+        
         prompt = f"""
 You are an expert Interview Coach. Analyze the Candidate's most recent answer.
 
@@ -352,26 +361,26 @@ Candidate: {candidate_name}
 Job: {job_title}
 Resume: {resume_context[:500]}...
 
+CONVERSATION HISTORY (last 3 exchanges):
+{json.dumps(recent_context, indent=2)}
+
+TOTAL EXCHANGES SO FAR: {exchange_count}
+
 ANALYSIS CRITERIA:
 1. FACT CHECK: Direct contradictions with Resume? (e.g. wrong dates/roles).
 2. BEHAVIORAL: If telling a story, did they use S.T.A.R. (Situation, Task, Action, Result)? If "Result" is missing, that's an issue.
 3. QUALITY: Is the answer vague or rambling?
-
-TASK:
-Output a JSON response following this reasoning:
-- Verdict: "INADEQUATE" if any check fails (Fact Check, Missing STAR, Rambling). Else "ADEQUATE".
-- Issue Type: categorized based on the failure.
-- Suggestion:
-    - If INADEQUATE: Specific verbatim PROBING question to fix the issue (e.g. "What was the Result?").
-    - If ADEQUATE: A specific verbatim NEW question for the next logical topic based on the job description. DO NOT write "Move to next topic". Write the actual question.
-- Reasoning: Brief analysis of the previous answer AND why the new question is relevant.
+4. TOPIC: Classify the question type and suggest if we should change topics after 2-3 exchanges.
 
 OUTPUT JSON SCHEMA:
 {{
-    "verdict": "ADEQUATE" | "INADEQUATE",
-    "issue_type": "none" | "resume_contradiction" | "missing_star" | "rambling" | "vague",
+    "verdict": "STRONG" | "ADEQUATE" | "WEAK" | "NEEDS_PROBING",
+    "question_type": "technical" | "behavioral" | "cultural_fit" | "problem_solving" | "situational" | "opening",
+    "issue_type": "none" | "resume_contradiction" | "missing_star" | "rambling" | "vague" | "off_topic",
     "reasoning": "Analysis of answer + Rationale for next question.",
-    "suggestion": "Verbatim question text to display to interviewer."
+    "suggestion": "Verbatim question text to display to interviewer.",
+    "probe_recommendation": "stay_on_topic" | "probe_deeper" | "change_topic",
+    "topic_to_explore": "If changing topic, what area: technical_skills | leadership | teamwork | challenges | achievements | culture_fit | null"
 }}
 """
         try:
@@ -381,20 +390,23 @@ OUTPUT JSON SCHEMA:
                     {"role": "system", "content": "You are a helpful interview copilot. Output valid JSON matching the schema."},
                     {"role": "user", "content": prompt}
                 ],
-                max_tokens=150,
+                max_tokens=250,
                 response_format={"type": "json_object"}
             )
             
-            # Parse with Pydantic
+            # Parse JSON
             json_str = response.choices[0].message.content.strip()
-            insight = CopilotInsight.model_validate_json(json_str)
+            insight = json.loads(json_str)
             
             # Send structured data with full details
             await send_ai_suggestion(
-                suggestion=insight.suggestion, 
-                category=insight.verdict.lower(), # "adequate" or "inadequate"
-                issue_type=insight.issue_type,
-                reasoning=insight.reasoning
+                suggestion=insight.get("suggestion", "Continue with follow-up question."), 
+                category=insight.get("verdict", "ADEQUATE"),
+                issue_type=insight.get("issue_type", "none"),
+                reasoning=insight.get("reasoning", ""),
+                question_type=insight.get("question_type", "general"),
+                probe_recommendation=insight.get("probe_recommendation", "stay_on_topic"),
+                topic_to_explore=insight.get("topic_to_explore")
             )
                 
         except Exception as e:

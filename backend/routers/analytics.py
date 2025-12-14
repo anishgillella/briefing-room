@@ -14,6 +14,8 @@ from models.analytics import InterviewAnalytics, QuestionAnswer, QuestionMetrics
 # Database repositories for saving analytics
 from repositories.interview_repository import InterviewRepository
 from repositories.analytics_repository import AnalyticsRepository
+from repositories.interviewer_analytics_repository import get_interviewer_analytics_repository
+from services.interviewer_analyzer import get_interviewer_analyzer
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 logger = logging.getLogger(__name__)
@@ -21,6 +23,7 @@ logger = logging.getLogger(__name__)
 # Initialize repositories
 interview_repo = InterviewRepository()
 analytics_repo = AnalyticsRepository()
+interviewer_analytics_repo = get_interviewer_analytics_repository()
 
 
 class AnalyticsRequest(BaseModel):
@@ -239,6 +242,35 @@ async def get_interview_analytics(room_name: str, request: AnalyticsRequest) -> 
                                 for qa in analytics.qa_pairs
                             ]
                             analytics_repo.bulk_add_questions(interview["id"], question_data)
+                        
+                            # ===== INTERVIEWER ANALYTICS =====
+                            # Trigger interviewer analytics if interviewer is assigned
+                            interviewer_id = interview.get("interviewer_id")
+                            if interviewer_id:
+                                try:
+                                    logger.info(f"[Analytics] Generating interviewer analytics for {interviewer_id[:8]}...")
+                                    analyzer = get_interviewer_analyzer()
+                                    
+                                    # Extract questions for the analyzer
+                                    questions_list = [qa.question for qa in analytics.qa_pairs]
+                                    
+                                    # Analyze interviewer performance
+                                    interviewer_result = await analyzer.analyze_interview(
+                                        transcript=request.transcript,
+                                        questions=questions_list
+                                    )
+                                    
+                                    # Save to interviewer_analytics table
+                                    interviewer_analytics_repo.save_analytics(
+                                        interview_id=interview["id"],
+                                        interviewer_id=interviewer_id,
+                                        analytics=interviewer_result
+                                    )
+                                    logger.info(f"[Analytics] Interviewer analytics saved. Score: {interviewer_result.overall_score}")
+                                except Exception as int_err:
+                                    logger.warning(f"[Analytics] Interviewer analytics failed (non-critical): {int_err}")
+                            else:
+                                logger.info(f"[Analytics] No interviewer assigned - skipping interviewer analytics")
                         else:
                             logger.info(f"[Analytics] Room {room_name} not linked to DB interview - skipping DB save")
                     except Exception as db_err:

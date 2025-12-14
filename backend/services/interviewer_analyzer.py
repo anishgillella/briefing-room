@@ -4,11 +4,15 @@ Uses a single LLM call with Pydantic structured output to analyze interview qual
 """
 import json
 import logging
+import os
 from typing import Optional
 from openai import AsyncOpenAI
 from models.interviewer_analytics import InterviewerAnalyticsResult
 
 logger = logging.getLogger(__name__)
+
+# Get API key from environment
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
 
 
 ANALYSIS_PROMPT = """You are an expert interview analyst. Analyze this interview transcript and interviewer's questions to provide detailed feedback.
@@ -20,25 +24,31 @@ ANALYSIS_PROMPT = """You are an expert interview analyst. Analyze this interview
 {questions}
 
 ## Your Task:
-Analyze the interviewer's performance and provide scores and feedback in these areas:
+Analyze the interviewer's performance comprehensively. Rate each area on a 0-100 scale:
 
-1. **Question Quality** (0-100): Rate the relevance, depth, and follow-up quality of questions
-2. **Topic Coverage** (0-100): Rate how well they covered technical, behavioral, culture fit, and problem-solving areas
-3. **Consistency** (0-100): Based on the interview structure and scoring, rate consistency (use 70 as baseline)
-4. **Bias Score** (0-100): 0 = no bias detected, higher = more concerning patterns. Look for:
-   - Leading questions
-   - Unfair assumptions
-   - Inconsistent treatment
-5. **Candidate Experience** (0-100): Rate rapport, pace, clarity, and fairness
-6. **Overall Score** (0-100): Weighted average considering all factors
+### Core Metrics (0-100):
+1. **Question Quality**: Relevance, depth, follow-up quality, open-ended vs closed
+2. **Topic Coverage**: How well they covered technical, behavioral, culture fit, and problem-solving areas
+3. **Consistency**: Interview structure, pacing, and scoring alignment
+4. **Bias Score**: 0 = no bias, higher = more concerning (leading questions, unfair assumptions)
+5. **Candidate Experience**: Rapport building, pace control, clarity, fairness
+6. **Overall Score**: Weighted composite score
 
-Also provide:
-- Detailed breakdowns for question quality and topic coverage
-- Any bias indicators detected
-- 2-4 specific improvement suggestions
-- One-line summary
+### Detailed Breakdowns:
+- Question Quality: relevance, depth, follow_up_quality scores
+- Topics Covered: technical, behavioral, culture_fit, problem_solving percentages
+- Bias Indicators: specific flags, severity level, sentiment balance
 
-Return your analysis as valid JSON matching this schema exactly:
+### Additional Analysis:
+- Time management assessment
+- Active listening indicators
+- Probing technique quality
+- Professional communication score
+- Candidate engagement level observed
+
+Provide 3-5 specific, actionable improvement suggestions.
+
+Return your analysis as valid JSON:
 {{
     "question_quality_score": <int 0-100>,
     "topic_coverage_score": <int 0-100>,
@@ -62,7 +72,7 @@ Return your analysis as valid JSON matching this schema exactly:
         "severity": "none" | "low" | "medium" | "high",
         "sentiment_balance": <int 0-100, 50 = balanced>
     }},
-    "improvement_suggestions": [<2-4 specific suggestions>],
+    "improvement_suggestions": [<3-5 specific, actionable suggestions>],
     "summary": "<one-line performance summary>"
 }}
 """
@@ -73,7 +83,8 @@ class InterviewerAnalyzer:
 
     def __init__(self, client: Optional[AsyncOpenAI] = None):
         self.client = client or AsyncOpenAI(
-            base_url="https://openrouter.ai/api/v1"
+            base_url="https://openrouter.ai/api/v1",
+            api_key=OPENROUTER_API_KEY
         )
         self.model = "google/gemini-2.0-flash-001"
 

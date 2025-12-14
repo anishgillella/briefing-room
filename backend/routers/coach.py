@@ -146,3 +146,77 @@ async def get_coach_suggestion(request: CoachRequest) -> CoachSuggestion:
             should_change_topic=False,
             topic_suggestion=None
         )
+
+
+# ============================================================================
+# Chat Endpoint - for AI Assistant during interviews
+# ============================================================================
+
+class ChatRequest(BaseModel):
+    messages: list  # Chat history [{role: "user", content: "..."}, ...]
+    context: Optional[str] = None  # Candidate context
+    room_name: Optional[str] = None
+
+
+class ChatResponse(BaseModel):
+    response: str
+
+
+@router.post("/chat")
+async def coach_chat(request: ChatRequest) -> ChatResponse:
+    """
+    Chat with the AI coach during an interview.
+    This is a general-purpose chat for asking questions about the candidate.
+    """
+    if not OPENROUTER_API_KEY:
+        raise HTTPException(status_code=500, detail="OPENROUTER_API_KEY not configured")
+    
+    system_message = f"""You are an expert interview coach assistant. You're helping an interviewer during a live interview session.
+
+Context about the candidate:
+{request.context or "No specific context provided"}
+
+Your role:
+- Answer questions about interviewing best practices
+- Suggest follow-up questions based on the candidate's responses
+- Help interpret candidate answers
+- Provide guidance on what to probe deeper
+- Be concise and actionable in your responses
+
+Keep your responses brief and practical - the interviewer is in a live session."""
+
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            # Build messages with system prompt
+            messages = [{"role": "system", "content": system_message}]
+            messages.extend(request.messages[-10:])  # Last 10 messages for context
+            
+            response = await client.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                    "Content-Type": "application/json",
+                    "HTTP-Referer": "http://localhost:3000",
+                    "X-Title": "Briefing Room Coach Chat"
+                },
+                json={
+                    "model": GEMINI_ANALYTICS_MODEL,
+                    "messages": messages,
+                    "temperature": 0.7,
+                    "max_tokens": 500
+                }
+            )
+            
+            if response.status_code != 200:
+                print(f"[Coach Chat] OpenRouter error: {response.status_code} - {response.text}")
+                return ChatResponse(response="I'm having trouble connecting right now. Please try again.")
+            
+            result = response.json()
+            content = result["choices"][0]["message"]["content"]
+            
+            return ChatResponse(response=content)
+            
+    except Exception as e:
+        print(f"[Coach Chat] Error: {e}")
+        return ChatResponse(response="Sorry, I encountered an error. Please try again.")
+

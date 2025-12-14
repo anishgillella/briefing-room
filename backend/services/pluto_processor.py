@@ -27,8 +27,9 @@ logger = logging.getLogger(__name__)
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 EXTRACTION_MODEL = LLM_MODEL  # Controlled via LLM_MODEL env var
 SCORING_MODEL = LLM_MODEL     # Controlled via LLM_MODEL env var
-BATCH_SIZE = 5
+BATCH_SIZE = 15
 MAX_RETRIES = 2
+RATE_LIMIT_RETRY_DELAY = 1.0  # Base delay for rate limit retries
 
 # Initialize OpenRouter client
 client = AsyncOpenAI(
@@ -155,6 +156,32 @@ PREFERRED_FIELDS = [
     ("notable_achievements", "Notable Achievements"),
     ("certifications", "Certifications"),
 ]
+
+
+# ============================================================================
+# Rate Limit Retry Helper
+# ============================================================================
+
+async def with_rate_limit_retry(coro, max_retries: int = MAX_RETRIES, context: str = ""):
+    """
+    Execute a coroutine with retry logic for rate limit errors.
+    Uses exponential backoff: 1s, 2s, 4s...
+    """
+    for attempt in range(max_retries + 1):
+        try:
+            return await coro
+        except Exception as e:
+            error_str = str(e).lower()
+            is_rate_limit = "rate" in error_str or "limit" in error_str or "429" in error_str
+            
+            if is_rate_limit and attempt < max_retries:
+                delay = RATE_LIMIT_RETRY_DELAY * (2 ** attempt)
+                logger.warning(f"Rate limit hit for {context}, retrying in {delay}s (attempt {attempt + 1}/{max_retries})")
+                await asyncio.sleep(delay)
+                continue
+            
+            # Not a rate limit error, or exhausted retries
+            raise
 
 
 # ============================================================================
@@ -530,68 +557,31 @@ RETURN ONLY VALID JSON:
 }}"""
 
 
-def sanitize_json(content: str) -> str:
-    """Sanitize LLM JSON output to fix common errors like trailing commas."""
-    import re
-    # Remove trailing commas before ] or }
-    content = re.sub(r',\s*]', ']', content)
-    content = re.sub(r',\s*}', '}', content)
-    # Fix unescaped quotes within strings (common LLM error)
-    # This is tricky so we just try parsing first
-    return content.strip()
-
-
 async def evaluate_candidate(candidate: dict, job_description: str = "", scoring_criteria: list = None, red_flag_indicators: list = None) -> Evaluation:
     """Get AI evaluation for a candidate with optional job description context."""
     prompt = build_evaluation_prompt(candidate, job_description, scoring_criteria, red_flag_indicators)
     
-    for attempt in range(MAX_RETRIES + 1):
-        try:
-            response = await client.chat.completions.create(
-                model=SCORING_MODEL,
-                messages=[
-                    {"role": "system", "content": "You are an expert recruiter. Return only valid JSON. Never include trailing commas."},
-                    {"role": "user", "content": prompt},
-                ],
-                response_format={"type": "json_object"},
-                temperature=0.4,
-            )
-            
-            content = response.choices[0].message.content
-            if not content:
-                raise ValueError("Empty response")
-            
-            # Sanitize JSON before parsing
-            sanitized = sanitize_json(content)
-            
-            try:
-                return Evaluation.model_validate_json(sanitized)
-            except Exception as parse_error:
-                # Try fallback: parse as dict and construct manually
-                logger.warning(f"JSON parse failed, trying fallback for {candidate.get('name')}: {parse_error}")
-                data = json.loads(sanitized)
-                return Evaluation(
-                    score=data.get("score", 50),
-                    one_line_summary=data.get("one_line_summary", "Evaluation parsed with fallback"),
-                    pros=data.get("pros", [])[:5] if isinstance(data.get("pros"), list) else [],
-                    cons=data.get("cons", [])[:5] if isinstance(data.get("cons"), list) else [],
-                    reasoning=data.get("reasoning", ""),
-                    interview_questions=data.get("interview_questions", [])[:3] if isinstance(data.get("interview_questions"), list) else [],
-                )
-            
-        except Exception as e:
-            logger.warning(f"Evaluation failed for {candidate.get('name')}: {e}")
-            if attempt == MAX_RETRIES:
-                return Evaluation(
-                    score=50,
-                    one_line_summary="Evaluation incomplete - manual review needed",
-                    pros=["Profile available"],
-                    cons=["Auto-evaluation failed"],
-                    reasoning="AI evaluation failed. Manual review recommended.",
-                )
-            await asyncio.sleep(1)
-    
-    return Evaluation(score=50, one_line_summary="Evaluation failed")
+    try:
+        completion = await client.beta.chat.completions.parse(
+            model=SCORING_MODEL,
+            messages=[
+                {"role": "system", "content": "You are an expert recruiter. Return precise JSON."},
+                {"role": "user", "content": prompt},
+            ],
+            response_format=Evaluation,
+            temperature=0.4,
+        )
+        return completion.choices[0].message.parsed
+
+    except Exception as e:
+        logger.warning(f"Evaluation failed for {candidate.get('name')}: {e}")
+        return Evaluation(
+            score=50,
+            one_line_summary="Evaluation incomplete - manual review needed",
+            pros=["Profile available"],
+            cons=["Auto-evaluation failed"],
+            reasoning="AI evaluation failed. Manual review recommended.",
+        )
 
 
 def get_missing_fields(candidate: dict) -> tuple:
@@ -675,17 +665,6 @@ async def generate_deep_analytics(transcript: str, candidate_data: dict, job_des
     
     telemetry = calculate_telemetry(transcript)
     
-    # Generate JSON schema from Pydantic models (excluding communication_metrics as it's calculated)
-    schema_for_llm = {
-        "overall_score": "integer 0-100",
-        "recommendation": "Strong Hire | Hire | No Hire",
-        "overall_synthesis": "string (executive summary)",
-        "question_analytics": [QuestionAnalytics.model_json_schema()],
-        "skill_evidence": [SkillEvidence.model_json_schema()],
-        "behavioral_profile": BehavioralProfile.model_json_schema(),
-        "topics_to_probe": ["string (follow-up topics)"]
-    }
-    
     prompt = f"""You are an expert Interview Analyst evaluating candidate performance.
 
 CONTEXT:
@@ -698,70 +677,49 @@ TRANSCRIPT:
 {transcript[:15000]}
 
 TASK:
-Generate a comprehensive Deep Analytics report in JSON format:
+Analyze the interview transcript and populate the response fields comprehensively.
+1. Question Analytics: Evaluate every Question-Answer exchange.
+2. Skill Evidence: Extract specific quotes for claimed skills.
+3. Behavioral Profile: Rate soft skills (0-10).
+4. Topics to Probe: Suggest specific areas for follow-up.
+"""
 
-1. **Question Analytics**: For EACH question-answer exchange in the transcript, analyze:
-   - The exact question asked
-   - Summary of the candidate's answer
-   - Quality score (0-100)
-   - Relevance score (0-10): How well the answer addressed the question
-   - Clarity score (0-10): How clear and concise the response was
-   - Depth score (0-10): Level of expertise/insight demonstrated
-   - Key insight: One-sentence takeaway
-   - Topic: Primary competency area (e.g., Leadership, Problem Solving, Technical Skills, Communication, Strategic Thinking, Domain Expertise, Collaboration, Adaptability)
-
-2. **Skill Evidence**: Extract specific quotes that prove claimed skills
-
-3. **Behavioral Profile**: Rate soft skills 0-10 (leadership, resilience, communication, problem_solving, coachability)
-
-4. **Overall**: Synthesize into score (0-100), recommendation, and executive summary
-
-5. **Topics to Probe**: Suggest follow-up areas for next interview round
-
-OUTPUT SCHEMA:
-{json.dumps(schema_for_llm, indent=2)}
-
-Return ONLY valid JSON matching this schema."""
-
-    for attempt in range(MAX_RETRIES + 1):
-        try:
-            response = await client.chat.completions.create(
-                model=SCORING_MODEL,
-                messages=[
-                    {"role": "system", "content": "You are a precise analytics engine. Output valid JSON."},
-                    {"role": "user", "content": prompt}
-                ],
-                response_format={"type": "json_object"},
-                temperature=0.2
-            )
+    try:
+        # Use OpenAI Structured Outputs for reliable Pydantic validation
+        completion = await client.beta.chat.completions.parse(
+            model=SCORING_MODEL,
+            messages=[
+                {"role": "system", "content": "You are a precise analytics engine."},
+                {"role": "user", "content": prompt}
+            ],
+            response_format=DeepAnalytics,
+            temperature=0.2
+        )
+        
+        # Get parsed Pydantic object
+        analytics = completion.choices[0].message.parsed
+        
+        # Inject calculated metrics (not generated by LLM)
+        analytics.communication_metrics = telemetry
+        
+        return analytics
             
-            content = response.choices[0].message.content
-            # Sanitize and parse
-            sanitized = sanitize_json(content)
-            data = json.loads(sanitized)
+    except Exception as e:
+        logger.error(f"Deep analytics generation failed: {e}")
+        # Fallback will be handled by the caller or retry logic if we wanted, 
+        # but here we return safe fallback immediately to avoid crashing.
+        return DeepAnalytics(
+             overall_score=0,
+             recommendation="No Hire",
+             overall_synthesis=f"Analysis Failed: {str(e)}",
+             question_analytics=[],
+             skill_evidence=[],
+             behavioral_profile=BehavioralProfile(leadership=0, resilience=0, communication=0, problem_solving=0, coachability=0),
+             communication_metrics=telemetry,
+             topics_to_probe=[]
+        )
             
-            # Merge calculated telemetry if not provided by LLM (LLM won't prompt for it, so we add it)
-            data["communication_metrics"] = telemetry.model_dump()
-            
-            return DeepAnalytics.model_validate(data)
-            
-        except Exception as e:
-            logger.error(f"Deep analytics generation failed (Attempt {attempt}): {e}")
-            if attempt == MAX_RETRIES:
-                 # Return a safe fallback
-                 return DeepAnalytics(
-                     overall_score=0,
-                     recommendation="No Hire",
-                     overall_synthesis="Analysis Failed",
-                     question_analytics=[],
-                     skill_evidence=[],
-                     behavioral_profile=BehavioralProfile(leadership=0, resilience=0, communication=0, problem_solving=0, coachability=0),
-                     communication_metrics=telemetry,
-                     topics_to_probe=[]
-                 )
-            await asyncio.sleep(1)
 
-    return None
 
 
 
@@ -1031,10 +989,6 @@ async def run_ai_scoring(candidates_list: List[Any], progress_callback=None, job
         
         # Save incrementally
         save_candidates(all_scored + candidates_list[len(all_scored):])
-        
-        # Small delay to respect rate limits if needed, but keeping it fast for user
-        if i + BATCH_SIZE < total_candidates:
-            await asyncio.sleep(0.5)
 
     # Sort by combined score
     all_scored.sort(key=lambda c: c.combined_score or 0, reverse=True)

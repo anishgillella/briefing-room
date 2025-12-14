@@ -33,6 +33,8 @@ import {
 } from "lucide-react";
 import CandidateProfile from "@/components/CandidateProfile";
 import InterviewerSelector from "@/components/InterviewerSelector";
+import InterviewerAnalyticsTab from "@/components/InterviewerAnalyticsTab";
+import TranscriptTab from "@/components/TranscriptTab";
 import { Candidate, PreBrief } from "@/types";
 import { getSelectedInterviewerId, triggerInterviewAnalysis } from "@/lib/interviewerApi";
 
@@ -51,10 +53,13 @@ interface TranscriptItem {
 
 interface CoachSuggestion {
     suggestion: string;
-    category: string;
+    category: string; // This now maps to 'verdict' from backend
     issue_type?: string;
     reasoning?: string;
-    // Legacy fields if needed for older code
+    question_type?: string;     // technical/behavioral/etc
+    probe_recommendation?: string; // stay_on_topic/probe_deeper
+
+    // Legacy mapping (kept for safety)
     last_question_type?: string;
     answer_quality?: "strong" | "adequate" | "weak" | "unclear";
     suggested_next_question?: string;
@@ -276,7 +281,7 @@ export default function InterviewPage() {
     const [interviewEnded, setInterviewEnded] = useState(false);
     const [savingAnalytics, setSavingAnalytics] = useState(false);
     const [analytics, setAnalytics] = useState<Analytics | null>(null);
-    const [activeTab, setActiveTab] = useState<'analysis' | 'transcript'>('analysis');
+    const [activeTab, setActiveTab] = useState<'analysis' | 'interviewer' | 'transcript'>('analysis');
     const [currentRoomName, setCurrentRoomName] = useState<string>("");
     const [interviewStartTime] = useState<number>(Date.now());
     const [livekitUrl, setLivekitUrl] = useState<string>("");
@@ -295,6 +300,8 @@ export default function InterviewPage() {
 
     // Interviewer state
     const [interviewerId, setInterviewerId] = useState<string | null>(null);
+    const [currentInterviewId, setCurrentInterviewId] = useState<string | null>(null);
+    const [interviewerAnalytics, setInterviewerAnalytics] = useState<Record<string, unknown> | null>(null);
     const [showInterviewerSelector, setShowInterviewerSelector] = useState(false);
 
     // Refs
@@ -539,6 +546,16 @@ export default function InterviewPage() {
         setConnected(false);
     }, []);
 
+    const [backUrl, setBackUrl] = useState("/");
+
+    // Get back URL (rankings session) on mount
+    useEffect(() => {
+        const sessionId = sessionStorage.getItem("currentSessionId");
+        if (sessionId) {
+            setBackUrl(`/rankings/${sessionId}`);
+        }
+    }, []);
+
     // Initialize on mount
     useEffect(() => {
         if (candidateId && !hasStartedRef.current) {
@@ -584,14 +601,25 @@ export default function InterviewPage() {
                     const data = await res.json();
                     setAnalytics(data.analytics);
 
-                    // Trigger interviewer analytics if an interviewer was selected
-                    const selectedInterviewerId = getSelectedInterviewerId();
-                    if (selectedInterviewerId && data.interview_id) {
-                        try {
-                            await triggerInterviewAnalysis(data.interview_id);
-                            console.log("[Analytics] Interviewer analysis triggered");
-                        } catch (err) {
-                            console.error("Failed to trigger interviewer analysis:", err);
+                    // Store interview ID for InterviewerAnalyticsTab
+                    if (data.interview_id) {
+                        setCurrentInterviewId(data.interview_id);
+                    }
+
+                    // Store interviewer analytics if returned
+                    if (data.interviewer_analytics) {
+                        setInterviewerAnalytics(data.interviewer_analytics);
+                        console.log("[Analytics] Interviewer analytics received");
+                    } else {
+                        // Trigger interviewer analytics if an interviewer was selected and not already generated
+                        const selectedInterviewerId = getSelectedInterviewerId();
+                        if (selectedInterviewerId && data.interview_id) {
+                            try {
+                                await triggerInterviewAnalysis(data.interview_id);
+                                console.log("[Analytics] Interviewer analysis triggered");
+                            } catch (err) {
+                                console.error("Failed to trigger interviewer analysis:", err);
+                            }
                         }
                     }
                 }
@@ -765,6 +793,26 @@ export default function InterviewPage() {
                                         <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
                                     )}
                                 </button>
+                                <button
+                                    onClick={() => setActiveTab('interviewer')}
+                                    className={`pb-4 text-sm font-medium transition-colors relative ${activeTab === 'interviewer' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                                >
+                                    Interviewer
+                                    {activeTab === 'interviewer' && (
+                                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.5)]"></div>
+                                    )}
+                                </button>
+
+                                {/* Back to Rankings - Always visible */}
+                                <div className="ml-auto">
+                                    <button
+                                        onClick={() => router.push(backUrl)}
+                                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 text-indigo-400 hover:text-indigo-300 transition-colors"
+                                    >
+                                        <ArrowLeft className="w-4 h-4" />
+                                        Back to Rankings
+                                    </button>
+                                </div>
                             </div>
 
                             {/* TAB: ANALYSIS */}
@@ -772,7 +820,16 @@ export default function InterviewPage() {
                                 <div className="space-y-8 animate-fadeIn">
                                     {/* Executive Summary Card */}
                                     <div className="glass-panel rounded-3xl p-8">
-                                        <h3 className="text-gray-400 text-sm font-medium tracking-wider uppercase mb-4">Executive Summary</h3>
+                                        <div className="flex justify-between items-start mb-4">
+                                            <h3 className="text-gray-400 text-sm font-medium tracking-wider uppercase">Executive Summary</h3>
+                                            <button
+                                                onClick={() => router.push(backUrl)}
+                                                className="flex items-center gap-2 text-indigo-400 hover:text-indigo-300 transition-colors text-sm font-medium"
+                                            >
+                                                <ArrowLeft className="w-4 h-4" />
+                                                Back to Rankings
+                                            </button>
+                                        </div>
                                         <p className="text-lg text-gray-200 font-light leading-relaxed">
                                             {analytics.overall_synthesis || analytics.summary}
                                         </p>
@@ -968,20 +1025,17 @@ export default function InterviewPage() {
                                 </div>
                             )}
 
+                            {/* TAB: INTERVIEWER ANALYTICS */}
+                            {activeTab === 'interviewer' && (
+                                <InterviewerAnalyticsTab
+                                    interviewId={currentInterviewId || undefined}
+                                    analyticsData={interviewerAnalytics as Parameters<typeof InterviewerAnalyticsTab>[0]['analyticsData']}
+                                />
+                            )}
+
                             {/* TAB: TRANSCRIPT */}
                             {activeTab === 'transcript' && (
-                                <div className="space-y-4 animate-fadeIn">
-                                    {transcript.map((t, i) => (
-                                        <div key={i} className={`flex gap-4 p-4 rounded-xl ${t.speaker === 'interviewer' ? 'bg-purple-500/5 border border-purple-500/10' : 'bg-white/5 border border-white/5'}`}>
-                                            <div className={`w-24 text-xs font-bold uppercase tracking-wider pt-1 ${t.speaker === 'interviewer' ? 'text-purple-400' : 'text-blue-400'}`}>
-                                                {t.speaker}
-                                            </div>
-                                            <p className="text-sm font-light leading-relaxed text-white/90">
-                                                {t.text}
-                                            </p>
-                                        </div>
-                                    ))}
-                                </div>
+                                <TranscriptTab transcript={transcript} />
                             )}
                         </div>
                     ) : (
@@ -1008,7 +1062,7 @@ export default function InterviewPage() {
             {/* Header */}
             <header className="fixed top-0 left-0 right-0 z-50 bg-black/40 backdrop-blur-xl border-b border-white/5 h-16 flex items-center justify-between px-6">
                 <div className="flex items-center gap-4">
-                    <button onClick={() => router.back()} className="text-white/50 hover:text-white transition-colors">
+                    <button onClick={() => router.push(backUrl)} className="text-white/50 hover:text-white transition-colors">
                         <ArrowLeft className="w-5 h-5" />
                     </button>
                     <div>
@@ -1029,17 +1083,22 @@ export default function InterviewPage() {
                         <div className={`w-2 h-2 rounded-full ${connected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
                         <span className="text-xs font-mono text-white/60">{formatTime(elapsedTime)}</span>
                     </div>
-                    <InterviewerSelector
-                        label="Interviewing as"
-                        onInterviewerChange={(id) => setInterviewerId(id)}
-                        className="min-w-[200px]"
-                    />
                     <button
                         onClick={() => setShowProfilePopup(true)}
                         className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-white transition-colors flex items-center gap-2"
                     >
                         <User className="w-4 h-4" />
                         View Profile
+                    </button>
+                    <button
+                        onClick={toggleMic}
+                        className={`px-4 py-1.5 rounded-lg border text-xs font-medium transition-colors flex items-center gap-2 ${micEnabled
+                            ? 'bg-green-500/10 hover:bg-green-500/20 border-green-500/20 text-green-400'
+                            : 'bg-red-500/10 hover:bg-red-500/20 border-red-500/20 text-red-400'
+                            }`}
+                    >
+                        {micEnabled ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
+                        {micEnabled ? 'Mute' : 'Unmute'}
                     </button>
                     <button
                         onClick={endInterview}
@@ -1134,27 +1193,62 @@ export default function InterviewPage() {
                                     AI suggestions will appear here after each interview exchange...
                                 </div>
                             ) : (
-                                aiSuggestions.map((suggestion, i) => (
-                                    <div key={i} className={`p-4 rounded-xl space-y-2 ${suggestion.category === "inadequate"
-                                        ? "bg-red-500/10 border border-red-500/20"
-                                        : suggestion.category === "adequate"
-                                            ? "bg-green-500/10 border border-green-500/20"
-                                            : "bg-purple-500/10 border border-purple-500/20"
-                                        }`}>
-                                        <div className={`text-xs font-bold uppercase tracking-wider ${suggestion.category === "inadequate"
-                                            ? "text-red-300"
-                                            : suggestion.category === "adequate"
-                                                ? "text-green-300"
-                                                : "text-purple-300"
-                                            }`}>
-                                            {suggestion.issue_type || suggestion.category || "Suggestion"}
+                                aiSuggestions.map((suggestion, i) => {
+                                    // Determine color based on verdict/category
+                                    const verdict = (suggestion.category || "ADEQUATE").toUpperCase();
+                                    let colorClass = "bg-purple-500/10 border-purple-500/20 text-purple-300";
+                                    let titleColor = "text-purple-300";
+
+                                    if (["STRONG", "ADEQUATE"].includes(verdict)) {
+                                        colorClass = "bg-green-500/10 border-green-500/20 text-green-300";
+                                        titleColor = "text-green-300";
+                                    } else if (verdict === "NEEDS_PROBING") {
+                                        colorClass = "bg-orange-500/10 border-orange-500/20 text-orange-300";
+                                        titleColor = "text-orange-300";
+                                    } else if (["WEAK", "INADEQUATE"].includes(verdict)) {
+                                        colorClass = "bg-red-500/10 border-red-500/20 text-red-300";
+                                        titleColor = "text-red-300";
+                                    }
+
+                                    return (
+                                        <div key={i} className={`p-4 rounded-xl space-y-3 border ${colorClass}`}>
+                                            {/* Header: Verdict & Question Type */}
+                                            <div className="flex justify-between items-start border-b border-white/5 pb-2">
+                                                <div className={`text-xs font-bold uppercase tracking-wider ${titleColor}`}>
+                                                    {verdict}
+                                                </div>
+                                                {suggestion.issue_type && suggestion.issue_type !== "none" && (
+                                                    <div className="text-[10px] uppercase tracking-wider text-white/50 bg-white/5 px-2 py-0.5 rounded">
+                                                        {suggestion.issue_type.replace(/_/g, " ")}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Main Suggestion */}
+                                            <div>
+                                                <p className="text-sm text-white/90 font-medium leading-relaxed">
+                                                    "{suggestion.suggestion}"
+                                                </p>
+                                            </div>
+
+                                            {/* Footer: Reasoning & Type */}
+                                            {(suggestion.reasoning || suggestion.last_question_type) && (
+                                                <div className="pt-2 border-t border-white/5 flex flex-col gap-1">
+                                                    {suggestion.last_question_type && (
+                                                        <div className="text-[10px] uppercase tracking-wider text-white/40">
+                                                            Type: <span className="text-white/60">{suggestion.last_question_type}</span>
+                                                        </div>
+                                                    )}
+                                                    {suggestion.reasoning && (
+                                                        <p className="text-xs text-white/50 italic leading-snug">
+                                                            {suggestion.reasoning}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
-                                        <p className="text-sm text-white/90 font-light">{suggestion.suggestion}</p>
-                                        {suggestion.reasoning && (
-                                            <p className="text-xs text-white/40 italic mt-2">{suggestion.reasoning}</p>
-                                        )}
-                                    </div>
-                                ))
+                                    );
+                                })
                             )}
                         </div>
                     </div>
