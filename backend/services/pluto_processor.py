@@ -13,7 +13,7 @@ import pandas as pd
 from openai import AsyncOpenAI
 from pydantic import BaseModel, Field
 
-from config import OPENROUTER_API_KEY
+from config import OPENROUTER_API_KEY, LLM_MODEL
 
 # Configure logging
 logging.basicConfig(
@@ -25,8 +25,8 @@ logger = logging.getLogger(__name__)
 
 # OpenRouter configuration
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
-EXTRACTION_MODEL = "google/gemini-2.5-flash"
-SCORING_MODEL = "google/gemini-2.5-flash"
+EXTRACTION_MODEL = LLM_MODEL  # Controlled via LLM_MODEL env var
+SCORING_MODEL = LLM_MODEL     # Controlled via LLM_MODEL env var
 BATCH_SIZE = 5
 MAX_RETRIES = 2
 

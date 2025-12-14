@@ -7,7 +7,7 @@ import logging
 from openai import OpenAI
 from pydantic import BaseModel
 from typing import Optional
-from config import OPENROUTER_API_KEY
+from config import OPENROUTER_API_KEY, LLM_MODEL
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ client = OpenAI(
     api_key=OPENROUTER_API_KEY,
 )
 
-ANALYZER_MODEL = "google/gemini-2.5-flash"
+ANALYZER_MODEL = LLM_MODEL  # Controlled via LLM_MODEL env var
 
 
 class ExtractionField(BaseModel):

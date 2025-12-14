@@ -14,6 +14,7 @@ import {
     AlertTriangle
 } from "lucide-react";
 import CandidateProfile from "@/components/CandidateProfile";
+import InterviewHistory from "@/components/InterviewHistory";
 import { Candidate, PreBrief } from "@/types";
 
 const API_URL = "http://localhost:8000";
@@ -29,6 +30,7 @@ export default function CandidateDetailPage() {
     const [prebriefLoading, setPrebriefLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [startingInterview, setStartingInterview] = useState(false);
+    const [activeTab, setActiveTab] = useState<'profile' | 'history'>('profile');
 
     // Voice agent state
     const [isVoiceActive, setIsVoiceActive] = useState(false);
@@ -279,7 +281,7 @@ Be concise and helpful. The recruiter has limited time before the interview.`
             <header className="border-b border-white/10 bg-black/40 backdrop-blur-xl sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
                     <button
-                        onClick={() => window.history.length > 1 ? router.back() : router.push("/")}
+                        onClick={() => router.push("/")}
                         className="flex items-center gap-2 text-white/60 hover:text-white transition group"
                     >
                         <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
@@ -336,13 +338,51 @@ Be concise and helpful. The recruiter has limited time before the interview.`
                 </div>
             </header>
 
-            <CandidateProfile
-                candidate={candidate}
-                prebrief={prebrief}
-                loadingPrebrief={prebriefLoading}
-                onStartInterview={handleStartInterview}
-                startingInterview={startingInterview}
-            />
+            {/* Tab Navigation */}
+            <div className="max-w-7xl mx-auto px-6 pt-6">
+                <div className="flex gap-1 bg-white/5 p-1 rounded-xl w-fit">
+                    <button
+                        onClick={() => setActiveTab('profile')}
+                        className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'profile'
+                            ? 'bg-purple-600 text-white shadow-lg'
+                            : 'text-white/60 hover:text-white hover:bg-white/10'
+                            }`}
+                    >
+                        Profile & Pre-Brief
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('history')}
+                        className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'history'
+                            ? 'bg-purple-600 text-white shadow-lg'
+                            : 'text-white/60 hover:text-white hover:bg-white/10'
+                            }`}
+                    >
+                        Interview History
+                    </button>
+                </div>
+            </div>
+
+            {/* Tab Content */}
+            {activeTab === 'profile' ? (
+                <CandidateProfile
+                    candidate={candidate}
+                    prebrief={prebrief}
+                    loadingPrebrief={prebriefLoading}
+                    onStartInterview={handleStartInterview}
+                    startingInterview={startingInterview}
+                />
+            ) : (
+                <div className="max-w-7xl mx-auto px-6 py-6">
+                    <InterviewHistory
+                        candidateId={candidateId}
+                        candidateName={candidate.name}
+                        onStartInterview={(roomUrl, token, stage) => {
+                            // Navigate to interview room
+                            router.push(`/candidates/${candidateId}/interview?room=live&stage=${stage}`);
+                        }}
+                    />
+                </div>
+            )}
 
             {/* Floating Voice Assistant Panel */}
             {(isVoiceActive || voiceTranscript.length > 0) && (

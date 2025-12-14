@@ -32,7 +32,9 @@ import {
     Sparkles,
 } from "lucide-react";
 import CandidateProfile from "@/components/CandidateProfile";
+import InterviewerSelector from "@/components/InterviewerSelector";
 import { Candidate, PreBrief } from "@/types";
+import { getSelectedInterviewerId, triggerInterviewAnalysis } from "@/lib/interviewerApi";
 
 const API_URL = "http://localhost:8000";
 
@@ -290,6 +292,10 @@ export default function InterviewPage() {
     const [aiSuggestions, setAiSuggestions] = useState<CoachSuggestion[]>([]);
     const [loadingSuggestions, setLoadingSuggestions] = useState(false);
     const [showSuggestions, setShowSuggestions] = useState(true);
+
+    // Interviewer state
+    const [interviewerId, setInterviewerId] = useState<string | null>(null);
+    const [showInterviewerSelector, setShowInterviewerSelector] = useState(false);
 
     // Refs
     const roomRef = useRef<Room | null>(null);
@@ -577,6 +583,17 @@ export default function InterviewPage() {
                 if (res.ok) {
                     const data = await res.json();
                     setAnalytics(data.analytics);
+
+                    // Trigger interviewer analytics if an interviewer was selected
+                    const selectedInterviewerId = getSelectedInterviewerId();
+                    if (selectedInterviewerId && data.interview_id) {
+                        try {
+                            await triggerInterviewAnalysis(data.interview_id);
+                            console.log("[Analytics] Interviewer analysis triggered");
+                        } catch (err) {
+                            console.error("Failed to trigger interviewer analysis:", err);
+                        }
+                    }
                 }
             } catch (err) {
                 console.error("Failed to save analytics:", err);
@@ -1012,6 +1029,11 @@ export default function InterviewPage() {
                         <div className={`w-2 h-2 rounded-full ${connected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
                         <span className="text-xs font-mono text-white/60">{formatTime(elapsedTime)}</span>
                     </div>
+                    <InterviewerSelector
+                        label="Interviewing as"
+                        onInterviewerChange={(id) => setInterviewerId(id)}
+                        className="min-w-[200px]"
+                    />
                     <button
                         onClick={() => setShowProfilePopup(true)}
                         className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-white transition-colors flex items-center gap-2"

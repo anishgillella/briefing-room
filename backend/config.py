@@ -16,10 +16,17 @@ DAILY_API_URL = "https://api.daily.co/v1"
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
-# OpenRouter
+# OpenRouter / LLM Configuration
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "google/gemini-2.5-flash")
-GEMINI_ANALYTICS_MODEL = "google/gemini-2.5-flash"
+
+# Single LLM model env var for the entire stack
+# Default: google/gemini-2.0-flash-exp:free (free tier)
+# Other options: google/gemini-2.5-flash, openai/gpt-4o-mini, anthropic/claude-3-haiku
+LLM_MODEL = os.getenv("LLM_MODEL", "google/gemini-2.0-flash-exp:free")
+
+# Legacy aliases (for backward compatibility)
+OPENROUTER_MODEL = LLM_MODEL
+GEMINI_ANALYTICS_MODEL = LLM_MODEL
 
 # OpenAI (for Realtime API)
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")

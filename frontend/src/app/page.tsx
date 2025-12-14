@@ -669,7 +669,19 @@ export default function Home() {
             </div>
           </div>
           {(step === "results" || (step === "processing" && results.length > 0)) && (
-            <div className="flex gap-3">
+            <div className="flex gap-3 items-center">
+              <a
+                href="/dashboard/manager"
+                className="text-xs font-medium text-gray-400 hover:text-white transition-colors uppercase tracking-wider"
+              >
+                Manager Dashboard
+              </a>
+              <a
+                href="/dashboard/interviewer"
+                className="text-xs font-medium text-gray-400 hover:text-white transition-colors uppercase tracking-wider"
+              >
+                Interviewer Analytics
+              </a>
               <button onClick={handleDownload} className="text-xs font-medium text-gray-400 hover:text-white transition-colors uppercase tracking-wider">
                 Export CSV
               </button>

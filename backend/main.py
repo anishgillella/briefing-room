@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import rooms, realtime, analytics, coach, prebrief, pluto, livekit_router
+from routers import rooms, realtime, analytics, coach, prebrief, pluto, livekit_router, db_interviews, db_managers, db_interviewers
 from typing import Annotated, Optional
 
 app = FastAPI(
@@ -26,6 +26,9 @@ app.include_router(coach.router, prefix="/api")
 app.include_router(prebrief.router, prefix="/api")
 app.include_router(pluto.router, prefix="/api")
 app.include_router(livekit_router.router, prefix="/api")
+app.include_router(db_interviews.router)  # Multi-stage interview routes
+app.include_router(db_managers.router)    # Manager dashboard routes
+app.include_router(db_interviewers.router)  # Interviewer analytics routes
 
 
 @app.get("/health")

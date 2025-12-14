@@ -6,11 +6,21 @@ from pydantic import BaseModel
 from typing import Optional
 import httpx
 import json
+import logging
 
 from config import OPENROUTER_API_KEY, GEMINI_ANALYTICS_MODEL
 from models.analytics import InterviewAnalytics, QuestionAnswer, QuestionMetrics, OverallMetrics
 
+# Database repositories for saving analytics
+from repositories.interview_repository import InterviewRepository
+from repositories.analytics_repository import AnalyticsRepository
+
 router = APIRouter(prefix="/analytics", tags=["analytics"])
+logger = logging.getLogger(__name__)
+
+# Initialize repositories
+interview_repo = InterviewRepository()
+analytics_repo = AnalyticsRepository()
 
 
 class AnalyticsRequest(BaseModel):
@@ -193,6 +203,48 @@ async def get_interview_analytics(room_name: str, request: AnalyticsRequest) -> 
                     
                     analytics = InterviewAnalytics(**analytics_data)
                     print(f"[Analytics] Successfully analyzed {analytics.overall.total_questions} Q&A pairs (attempt {attempt + 1})")
+                    
+                    # Save to database if this room is linked to an interview
+                    try:
+                        interview = interview_repo.get_by_room_name(room_name)
+                        if interview:
+                            # Prepare analytics for DB
+                            db_analytics = {
+                                "interview_id": interview["id"],
+                                "overall_score": analytics.overall.overall_score,
+                                "recommendation": analytics.overall.recommendation,
+                                "synthesis": analytics.overall.recommendation_reasoning,
+                                "question_analytics": [qa.model_dump() for qa in analytics.qa_pairs],
+                                "skill_evidence": [],
+                                "behavioral_profile": {},
+                                "topics_to_probe": analytics.highlights.areas_to_probe if analytics.highlights else [],
+                            }
+                            
+                            # Save or update analytics
+                            existing = analytics_repo.get_analytics_by_interview(interview["id"])
+                            if existing:
+                                analytics_repo.update_analytics(interview["id"], db_analytics)
+                                logger.info(f"[Analytics] Updated DB for interview {interview['id'][:8]}...")
+                            else:
+                                analytics_repo.create_analytics(db_analytics)
+                                logger.info(f"[Analytics] Saved to DB for interview {interview['id'][:8]}...")
+                            
+                            # Save questions to questions_asked table
+                            question_data = [
+                                {
+                                    "question": qa.question,
+                                    "topic": qa.question_type,
+                                    "quality_score": int((qa.metrics.relevance + qa.metrics.clarity + qa.metrics.depth) / 3 * 10)
+                                }
+                                for qa in analytics.qa_pairs
+                            ]
+                            analytics_repo.bulk_add_questions(interview["id"], question_data)
+                        else:
+                            logger.info(f"[Analytics] Room {room_name} not linked to DB interview - skipping DB save")
+                    except Exception as db_err:
+                        # Don't fail the request if DB save fails
+                        logger.warning(f"[Analytics] DB save failed (non-critical): {db_err}")
+                    
                     return analytics
                     
                 except json.JSONDecodeError as e:
