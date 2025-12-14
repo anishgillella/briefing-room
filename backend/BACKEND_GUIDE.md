@@ -10,12 +10,16 @@ backend/
 ├── main.py           # FastAPI app entry point, CORS config
 ├── config.py         # Environment variables loader
 ├── requirements.txt  # Python dependencies
+├── interview_agent.py # LiveKit voice agent for candidates
 ├── routers/          # API route handlers
-│   └── rooms.py      # All room-related endpoints
+│   ├── rooms.py      # Room management endpoints
+│   ├── analytics.py  # Interview analytics
+│   ├── pluto.py      # Candidate processing & ranking
+│   └── ...           # Other routers
 └── services/         # Business logic & external integrations
     ├── daily.py      # Daily.co video room management
-    ├── llm.py        # OpenRouter/LLM integration
-    └── vapi.py       # Vapi voice agent (deprecated for candidate)
+    ├── pluto_processor.py # Candidate extraction & scoring
+    └── interviewer_analyzer.py # Interviewer performance analysis
 ```
 
 ## Key Files

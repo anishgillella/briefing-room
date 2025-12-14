@@ -51,3 +51,7 @@ __pycache__/
 backend/data/analytics/
 backend/data/transcripts/
 backend/data/prebriefs/
+
+# Sample/upload data
+candidates.csv
+*.csv
