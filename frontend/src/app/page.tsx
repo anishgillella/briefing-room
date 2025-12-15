@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
+import ProcessingDashboard from "@/components/ProcessingDashboard";
 
 // Types
 interface Candidate {
@@ -99,61 +102,6 @@ interface Status {
   logs?: string[]; // New field
 }
 
-const ProcessingTerminal = ({ logs, status }: { logs: string[], status: Status }) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [logs]);
-
-  return (
-    <div className="w-full max-w-3xl mx-auto">
-      <div className="glass-panel border-white/10 overflow-hidden flex flex-col h-[500px] relative font-mono text-sm">
-        {/* Header */}
-        <div className="h-10 border-b border-white/10 bg-white/5 flex items-center justify-between px-4">
-          <div className="flex gap-2">
-            <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50" />
-            <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50" />
-            <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50" />
-          </div>
-          <div className="text-xs text-white/30 uppercase tracking-widest">
-            SUPERPOSITION_ENGINE_V2.0 :: {status.phase.toUpperCase()}
-          </div>
-          <div className="w-10" />
-        </div>
-
-        {/* Scan line effect */}
-        <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-10 bg-[length:100%_2px,3px_100%] opacity-20" />
-
-        {/* Logs */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-1 custom-scrollbar relative z-0">
-          {logs.map((log, i) => (
-            <div key={i} className={`font-mono ${log.includes("ERROR") ? "text-red-400" : log.includes("SUCCESS") || log.includes("COMPLETE") ? "text-green-400" : "text-blue-300/80"}`}>
-              <span className="opacity-30 mr-3">[{new Date().toLocaleTimeString().split(' ')[0]}]</span>
-              &gt; {log}
-            </div>
-          ))}
-          <div className="animate-pulse text-blue-400 mt-2">_</div>
-        </div>
-
-        {/* Footer Stats */}
-        <div className="h-12 border-t border-white/10 bg-black/40 backdrop-blur-md flex items-center justify-between px-6 text-xs font-mono text-blue-400">
-          <div>
-            RAM: {(Math.random() * 20 + 40).toFixed(1)}%
-            <span className="mx-3 text-white/10">|</span>
-            CPU: {(Math.random() * 30 + 10).toFixed(1)}%
-          </div>
-          <div className="flex items-center gap-4">
-            <span>EXTRACTED: {status.candidates_extracted}/{status.candidates_total}</span>
-            <span>SCORED: {status.candidates_scored}/{status.candidates_total}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const API_URL = "http://localhost:8000";
 
@@ -174,6 +122,7 @@ const RECRUITMENT_TIPS = [
 ];
 
 export default function Home() {
+  const router = useRouter();
   const [step, setStep] = useState<"landing" | "upload" | "configure" | "processing" | "results" | "checking_session">("checking_session");
   const [file, setFile] = useState<File | null>(null);
   const [jobDescription, setJobDescription] = useState<string>("");
@@ -184,7 +133,6 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [currentTipIndex, setCurrentTipIndex] = useState(0);
   const [loadingQuestions, setLoadingQuestions] = useState(false);
-  const [processingLogs, setProcessingLogs] = useState<string[]>([]);
 
   // JD Compiler - Extraction Criteria
   const [extractionFields, setExtractionFields] = useState<ExtractionField[]>([]);
@@ -251,92 +199,14 @@ export default function Home() {
   }, [status?.algo_ranked, sortColumn, sortDirection, calculateWeightedPriority]);
 
 
-  // Persistence: Fetch existing candidates on load
+  // Home page always shows upload form - rankings are at /rankings/[sessionId]
   useEffect(() => {
-    const fetchCandidates = async () => {
-      try {
-        console.log("Checking for active session...");
-        const res = await fetch(`${API_URL}/api/pluto/candidates`);
-        if (res.ok) {
-          const data: Candidate[] = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
-            console.log("Restoring session with", data.length, "candidates");
-            const processed = data.map(c => ({
-              ...c,
-              final_score: c.final_score || Math.round(((c.algo_score || 0) + (c.ai_score || 0)) / 2)
-            }));
-
-            setResults(processed);
-
-            // Reconstruct status for Table view compatibility
-            setStatus({
-              msg: "Session restored",
-              status: "complete",
-              phase: "completed",
-              candidates_processed: processed.length,
-              candidates_total: processed.length,
-              candidates_extracted: processed.length,
-              candidates_scored: processed.length,
-              message: "Session restored",
-              error: null,
-              extracted_preview: [],
-              scored_candidates: processed,
-              algo_ranked: processed.map(c => ({
-                id: c.id,
-                name: c.name,
-                job_title: c.job_title,
-                bio_summary: c.bio_summary,
-                algo_score: c.algo_score,
-                sold_to_finance: c.sold_to_finance,
-                is_founder: c.is_founder,
-                startup_experience: c.startup_experience,
-                enterprise_experience: c.enterprise_experience,
-                years_experience: c.years_experience
-              }))
-            });
-
-            setStep("results");
-            return;
-          }
-        }
-      } catch (e) {
-        console.warn("Failed to fetch initial candidates:", e);
-      }
-
-      // If we get here, no session was restored
-      setStep("upload");
-    };
-
-    fetchCandidates();
+    setStep("upload");
   }, []); // Run once on mount
 
 
 
-  // Simulated logs
-  useEffect(() => {
-    if (step !== "processing" || !status || status.status === "waiting_confirmation") return;
 
-    const extractionLogs = [
-      "Initializing PDF parser...", "Detecting named entities...", "Vectorizing candidate skills...",
-      "Identifying education history...", "Parsing work experience...", "Looking for founder signals...",
-      "Analyzing employment gaps...", "Checking LinkedIn URLs...", "Sanitizing input data...",
-      "Creating candidate embeddings...", "Connecting to vector database..."
-    ];
-
-    const scoringLogs = [
-      "Loading ranking model M8...", "Evaluating candidate tier...", "Comparing against job description...",
-      "Calculating semantic distance...", "Scoring leadership potential...", "Measuring cultural fit...",
-      "Checking required qualifications...", "Optimizing ranking weights...", "Generating reasoning summary..."
-    ];
-
-    const interval = setInterval(() => {
-      const pool = status.phase === "extracting" ? extractionLogs : scoringLogs;
-      const randomLog = pool[Math.floor(Math.random() * pool.length)];
-      setProcessingLogs(prev => [...prev.slice(-50), randomLog]); // Keep last 50
-    }, 400); // Fast updates
-
-    return () => clearInterval(interval);
-  }, [step, status?.phase, status?.status]);
 
   // Poll for status during processing
   useEffect(() => {
@@ -355,14 +225,7 @@ export default function Home() {
           return data;
         });
 
-        if (data.logs && data.logs.length > 0) {
-          const newLogsFromApi = data.logs;
-          setProcessingLogs(prev => {
-            // Only add new logs that aren't already present
-            const newLogs = newLogsFromApi.filter(log => !prev.includes(log));
-            return [...prev.slice(-50), ...newLogs];
-          });
-        }
+
 
         // Update results as they stream in (only relevant for phase 2 scoring)
         if (data.scored_candidates && data.scored_candidates.length > 0) {
@@ -375,18 +238,26 @@ export default function Home() {
 
         if (data.status === "complete") {
           clearInterval(interval);
-          setStep("results");
-          setProcessingLogs(prev => [...prev, "SUCCESS: Processing complete!"]);
+          // Store extraction fields for the rankings page
+          if (extractionFields.length > 0) {
+            sessionStorage.setItem("extractionFields", JSON.stringify(extractionFields));
+          }
+          // Generate session ID and redirect to rankings
+          const newSessionId = sessionStorage.getItem("currentSessionId") || crypto.randomUUID();
+          sessionStorage.setItem("currentSessionId", newSessionId);
+          router.push(`/rankings/${newSessionId}`);
+          return;
+
         } else if (data.status === "error") {
           clearInterval(interval);
           setError(data.error || "Unknown error");
-          setProcessingLogs(prev => [...prev, `ERROR: ${data.error || "Unknown error"}`]);
+
         }
         // Note: We intentionally stay in "processing" loop for "waiting_confirmation"
         // The UI will handle showing the "Start Scoring" button based on this status
       } catch (e) {
         console.error(e);
-        setProcessingLogs(prev => [...prev, "ERROR: Failed to fetch status. Retrying..."]);
+
       }
     }, 1000);
 
@@ -485,7 +356,7 @@ export default function Home() {
       setError(null);
       setCurrentTipIndex(0);
       setResults([]);
-      setProcessingLogs(["Starting file upload and extraction..."]);
+
       setStatus({
         msg: "Starting extraction...",
         status: "processing",
@@ -538,7 +409,7 @@ export default function Home() {
       // Status polling will take over
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed");
-      setProcessingLogs(prev => [...prev, `ERROR: Upload failed - ${e instanceof Error ? e.message : "Unknown error"}`]);
+
       setStep("upload");
     }
   };
@@ -547,7 +418,7 @@ export default function Home() {
   const handleStartScoring = async () => {
     try {
       setStep("processing"); // Ensure we are in processing view
-      setProcessingLogs(prev => [...prev, "Starting AI scoring phase..."]);
+
       setStatus(prev => prev ? { ...prev, msg: "Starting AI scoring...", phase: "scoring", status: "processing" } : null);
 
       const res = await fetch(`${API_URL}/api/pluto/score`, {
@@ -559,7 +430,7 @@ export default function Home() {
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed into initiate scoring");
-      setProcessingLogs(prev => [...prev, `ERROR: Failed to initiate scoring - ${e instanceof Error ? e.message : "Unknown error"}`]);
+
     }
   };
 
@@ -586,7 +457,7 @@ export default function Home() {
     setCompareSelection([]);
     setComparisonResult(null);
     setShowWeights(false);
-    setProcessingLogs([]); // Reset logs
+
   };
 
   // Toggle compare mode selection
@@ -658,7 +529,7 @@ export default function Home() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#000000]/80 backdrop-blur-md border-b border-white/5 py-4">
         <div className="flex items-center justify-between max-w-7xl mx-auto px-6">
-          <div className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center border border-white/10">
               <span className="text-sm">⚛️</span>
             </div>
@@ -667,9 +538,21 @@ export default function Home() {
                 Superposition
               </h1>
             </div>
-          </div>
+          </Link>
           {(step === "results" || (step === "processing" && results.length > 0)) && (
-            <div className="flex gap-3">
+            <div className="flex gap-3 items-center">
+              <a
+                href="/dashboard/manager"
+                className="text-xs font-medium text-gray-400 hover:text-white transition-colors uppercase tracking-wider"
+              >
+                Manager Dashboard
+              </a>
+              <a
+                href="/dashboard/interviewer"
+                className="text-xs font-medium text-gray-400 hover:text-white transition-colors uppercase tracking-wider"
+              >
+                Interviewer Analytics
+              </a>
               <button onClick={handleDownload} className="text-xs font-medium text-gray-400 hover:text-white transition-colors uppercase tracking-wider">
                 Export CSV
               </button>
@@ -915,21 +798,7 @@ export default function Home() {
         {/* Processing Step */}
         {step === "processing" && status && (
           <div className="max-w-5xl mx-auto pt-10">
-            <ProcessingTerminal logs={processingLogs} status={status} />
-
-            {/* Waiting Confirmation CTA */}
-            {status.status === "waiting_confirmation" && (
-              <div className="mt-8 animate-fade-in max-w-xl mx-auto text-center">
-                <p className="text-green-400 font-mono text-sm mb-6"> &gt; EXTRACTION_COMPLETE. AWAITING_USER_INPUT_</p>
-                <button
-                  onClick={handleStartScoring}
-                  className="w-full btn-primary py-4 text-lg shadow-2xl shadow-indigo-500/30 flex items-center justify-center gap-3 font-mono"
-                >
-                  <span>./start_scoring_engine.sh</span>
-                  <span>→</span>
-                </button>
-              </div>
-            )}
+            <ProcessingDashboard status={status} onStartScoring={handleStartScoring} />
           </div>
         )}
 
@@ -1144,16 +1013,19 @@ export default function Home() {
                   <table className="w-full text-sm text-left">
                     <thead className="bg-white/5 text-gray-400 text-[10px] uppercase tracking-widest font-medium">
                       <tr>
-                        <th className="px-6 py-4 font-normal sticky left-0 bg-[#1a1a20] z-10">Candidate</th>
-                        <th className="px-6 py-4 font-normal">Role</th>
-                        <th className="px-6 py-4 font-normal">Tier</th>
-                        <th className="px-6 py-4 text-right font-normal">Score</th>
-                        <th className="px-6 py-4 text-right font-normal">Exp</th>
-                        <th className="px-6 py-4 text-right font-normal">Completeness</th>
-                        {/* Dynamic columns from extraction fields */}
-                        {extractionFields.filter(f => !['bio_summary', 'years_experience', 'industries', 'skills'].includes(f.field_name)).slice(0, 8).map(field => (
-                          <th key={field.field_name} className="px-4 py-4 font-normal whitespace-nowrap" title={field.description}>
-                            {field.field_name.replace(/_/g, ' ').split(' ').slice(0, 3).join(' ')}
+                        {/* Fixed base columns */}
+                        <th className="px-4 py-4 font-normal sticky left-0 bg-[#1a1a20] z-10">Candidate</th>
+                        <th className="px-4 py-4 font-normal">Role</th>
+                        <th className="px-4 py-4 font-normal">Tier</th>
+                        <th className="px-3 py-4 text-right font-normal">Final</th>
+                        <th className="px-3 py-4 text-right font-normal">Algo</th>
+                        <th className="px-3 py-4 text-right font-normal">AI</th>
+                        <th className="px-3 py-4 text-right font-normal">Exp</th>
+                        <th className="px-3 py-4 text-right font-normal">Complete</th>
+                        {/* ALL dynamic extraction fields from JD Compiler */}
+                        {extractionFields.filter(f => !['bio_summary'].includes(f.field_name)).map(field => (
+                          <th key={field.field_name} className="px-3 py-4 font-normal whitespace-nowrap text-center" title={field.description}>
+                            {field.field_name.replace(/_/g, ' ').slice(0, 15)}
                           </th>
                         ))}
                       </tr>
@@ -1165,19 +1037,22 @@ export default function Home() {
                           onClick={() => setSelectedCandidate(candidate)}
                           className="hover:bg-white/5 cursor-pointer transition-colors group"
                         >
-                          <td className="px-6 py-5 font-medium text-white group-hover:text-blue-200 transition-colors sticky left-0 bg-[#0d0d0f] group-hover:bg-[#1a1a20]">{candidate.name}</td>
-                          <td className="px-6 py-5 text-gray-400 font-light">{candidate.job_title}</td>
-                          <td className="px-6 py-5">
+                          {/* Fixed base columns */}
+                          <td className="px-4 py-4 font-medium text-white group-hover:text-blue-200 transition-colors sticky left-0 bg-[#0d0d0f] group-hover:bg-[#1a1a20]">{candidate.name}</td>
+                          <td className="px-4 py-4 text-gray-400 font-light text-xs">{candidate.job_title}</td>
+                          <td className="px-4 py-4">
                             <span className={`text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wide border ${candidate.tier.includes("Top") ? 'bg-amber-500/10 border-amber-500/30 text-amber-300' :
                               candidate.tier.includes("Strong") ? 'bg-green-500/10 border-green-500/30 text-green-300' :
                                 'bg-gray-800 border-gray-700 text-gray-400'
                               }`}>{candidate.tier}</span>
                           </td>
-                          <td className="px-6 py-5 text-right font-light tracking-tight text-white">{candidate.final_score}</td>
-                          <td className="px-6 py-5 text-right text-gray-400 font-light">{candidate.years_experience}y</td>
-                          <td className="px-6 py-5 text-right text-gray-500 font-mono text-xs">{candidate.data_completeness}%</td>
-                          {/* Dynamic field values */}
-                          {extractionFields.filter(f => !['bio_summary', 'years_experience', 'industries', 'skills'].includes(f.field_name)).slice(0, 8).map(field => {
+                          <td className="px-3 py-4 text-right font-medium text-white">{candidate.final_score}</td>
+                          <td className="px-3 py-4 text-right text-gray-400 font-mono text-xs">{candidate.algo_score}</td>
+                          <td className="px-3 py-4 text-right text-gray-400 font-mono text-xs">{candidate.ai_score}</td>
+                          <td className="px-3 py-4 text-right text-gray-400 text-xs">{candidate.years_experience || candidate.years_sales_experience || 0}y</td>
+                          <td className="px-3 py-4 text-right text-gray-500 font-mono text-xs">{candidate.data_completeness || 0}%</td>
+                          {/* ALL dynamic extraction field values */}
+                          {extractionFields.filter(f => !['bio_summary'].includes(f.field_name)).map(field => {
                             const value = candidate[field.field_name];
                             let displayValue: React.ReactNode = '—';
 
@@ -1191,16 +1066,20 @@ export default function Home() {
                               } else if (field.field_type === 'number') {
                                 displayValue = <span className="font-mono">{String(value)}</span>;
                               } else if (field.field_type === 'string_list' && Array.isArray(value)) {
-                                displayValue = value.length > 0 ? `${value.length} items` : '—';
+                                displayValue = value.length > 0 ? `${value.length}` : '—';
                               } else if (typeof value === 'string') {
-                                displayValue = value.length > 20 ? value.slice(0, 20) + '...' : value;
+                                displayValue = value.length > 15 ? value.slice(0, 15) + '…' : value;
+                              } else if (Array.isArray(value)) {
+                                displayValue = value.length > 0 ? `${value.length}` : '—';
+                              } else if (typeof value === 'boolean') {
+                                displayValue = value ? <span className="text-green-400">✓</span> : <span className="text-red-400/50">✗</span>;
                               } else {
-                                displayValue = String(value);
+                                displayValue = String(value).slice(0, 15);
                               }
                             }
 
                             return (
-                              <td key={field.field_name} className="px-4 py-5 text-center text-xs text-gray-400">
+                              <td key={field.field_name} className="px-3 py-4 text-center text-xs text-gray-400">
                                 {displayValue}
                               </td>
                             );

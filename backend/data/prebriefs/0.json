@@ -1,176 +1,159 @@
 {
   "candidate_name": "Zachary Leyden",
   "current_role": "Mid-Market & Enterprise Account Executive at N/A",
-  "years_experience": 15.0,
-  "overall_fit_score": 65,
-  "fit_summary": "Zachary brings extensive sales experience and a founder's mindset, but his industry focus and lack of explicit SaaS/FinTech AE experience are significant areas to explore.",
+  "years_experience": 8.0,
+  "overall_fit_score": 75,
+  "fit_summary": "Zachary is a high-potential, non-traditional candidate with significant entrepreneurial experience (3x exited founder) and enterprise sales background, but lacks explicit evidence of selling to finance/accounting stakeholders or in AI/Fintech SaaS.",
   "score_breakdown": {
-    "technical_skills": 30,
-    "experience_relevance": 60,
-    "leadership_potential": 80,
-    "communication_signals": 70,
-    "culture_fit_signals": 85,
-    "growth_trajectory": 75
+    "technical_skills": 50,
+    "experience_relevance": 70,
+    "leadership_potential": 90,
+    "communication_signals": 85,
+    "culture_fit_signals": 95,
+    "growth_trajectory": 90
   },
   "skill_matches": [
     {
-      "skill": "Account Executive closing experience",
+      "skill": "Closing Experience (AE)",
       "required_level": "1+ years",
       "candidate_level": "proficient",
-      "evidence": "Current Role: Mid-Market & Enterprise Account Executive",
+      "evidence": "Current Role: Mid-Market & Enterprise Account Executive; 8 years experience; 'full-cycle Go-to-Market leadership'",
       "is_match": true
     },
     {
-      "skill": "GTM strategy",
-      "required_level": "Contribute to GTM strategy",
+      "skill": "Startup/Scrappiness",
+      "required_level": "Demonstrated drive/ambition; minimal structure",
       "candidate_level": "expert",
-      "evidence": "Skills: GTM strategy; Summary: 3x exited founder",
+      "evidence": "3x exited founder; military veteran; specializing in 'driving enterprise growth in legacy industries'",
       "is_match": true
     },
     {
-      "skill": "Corporate partnerships",
-      "required_level": "Relationship-building",
+      "skill": "Enterprise/Mid-Market Sales",
+      "required_level": "Mid-market and enterprise clients",
       "candidate_level": "expert",
-      "evidence": "Skills: Corporate partnerships; Summary: bridging the gap between relationship-driven markets",
+      "evidence": "Mid-Market & Enterprise Account Executive; securing high-ACV deals ($50k-$500k+)",
       "is_match": true
     },
     {
-      "skill": "Process optimization",
-      "required_level": "Refine sales processes",
-      "candidate_level": "proficient",
-      "evidence": "Skills: Process optimization",
-      "is_match": true
+      "skill": "SaaS/Fintech/Recruiting Tech",
+      "required_level": "AE experience in SaaS, fintech, or recruiting tech",
+      "candidate_level": "not_found",
+      "evidence": "Industries listed: Enterprise Software, AgTech, Equestrian, Non-Profit, Government, Military. No explicit SaaS/Fintech mention.",
+      "is_match": false
     },
     {
-      "skill": "Fundraising",
-      "required_level": "Startup environment, backed by top investors",
-      "candidate_level": "proficient",
-      "evidence": "Skills: Fundraising; Summary: 3x exited founder",
-      "is_match": true
-    },
-    {
-      "skill": "Startup experience/scrappiness",
-      "required_level": "Thrive with minimal structure, fast-paced startup",
+      "skill": "GTM Strategy/Process Refinement",
+      "required_level": "Collaborate to refine sales processes and GTM strategy",
       "candidate_level": "expert",
-      "evidence": "Summary: 3x exited founder",
+      "evidence": "3x exited founder; Skills: GTM Strategy, Process Optimization, Revenue Operations",
       "is_match": true
     }
   ],
   "experience_highlights": [
     {
-      "company": "N/A (Current Role)",
-      "role": "Mid-Market & Enterprise Account Executive",
-      "duration": "Current",
-      "key_achievement": "Implied full sales cycle ownership",
-      "relevance": "Directly matches the core AE responsibility of owning the full sales cycle for mid-market and enterprise clients."
+      "company": "N/A (Founder roles implied)",
+      "role": "Founder/AE",
+      "duration": "Implied 8 years",
+      "key_achievement": "3x exited founder",
+      "relevance": "Directly signals high drive, ambition, and ability to build/scale from zero, crucial for a Founding AE role."
     },
     {
-      "company": "3x exited founder",
-      "role": "Founder",
-      "duration": "N/A",
-      "key_achievement": "Proven track record of driving enterprise growth",
-      "relevance": "Highly relevant for shaping go-to-market strategy, building a sales culture, and thriving in a high-growth, early-stage environment."
+      "company": "N/A (Implied)",
+      "role": "AE/Sales Leader",
+      "duration": "Implied 8 years",
+      "key_achievement": "Securing high-ACV deals ($50k-$500k+)",
+      "relevance": "Demonstrates ability to handle complex, high-value sales cycles, fitting the enterprise client focus."
     },
     {
-      "company": "Various (implied)",
-      "role": "Founder/Sales Leader",
-      "duration": "15 years",
-      "key_achievement": "Specializes in bridging the gap between relationship-driven markets and modern, scalable sales motions",
-      "relevance": "Crucial for a founding AE role that requires both relationship building and scaling sales processes."
+      "company": "N/A (Implied)",
+      "role": "GTM Leader",
+      "duration": "Implied 8 years",
+      "key_achievement": "Translating relationship-driven markets into scalable, repeatable revenue streams",
+      "relevance": "Highly relevant to shaping the early GTM strategy and building repeatable processes for the AI marketplace."
     }
   ],
   "strengths": [
     {
-      "strength": "Extensive Sales Experience",
-      "evidence": "15.0 Years of Experience, Current Role: Mid-Market & Enterprise Account Executive",
-      "how_to_verify": "Ask about specific sales methodologies used and deal sizes managed in previous roles."
+      "strength": "Founding AE Mindset (Hustle)",
+      "evidence": "3x exited founder and military veteran. This signals extreme resilience, ownership, and comfort with ambiguity.",
+      "how_to_verify": "Ask about the biggest failure in one of his exits and how he recovered."
     },
     {
-      "strength": "Founder's Mindset & Startup Acumen",
-      "evidence": "Summary: 3x exited founder; Skills: GTM strategy, Fundraising, Business strategy",
-      "how_to_verify": "Ask about challenges faced as a founder, how they built initial sales processes, and their comfort with ambiguity."
+      "strength": "High-ACV Enterprise Sales",
+      "evidence": "Securing high-ACV deals ($50k-$500k+). This suggests experience navigating complex procurement and multiple stakeholders.",
+      "how_to_verify": "Ask him to walk through the stakeholder map for a recent $200k deal."
     },
     {
-      "strength": "Strategic Go-to-Market Contributor",
-      "evidence": "Skills: GTM strategy, Process optimization, Revenue operations",
-      "how_to_verify": "Ask about their experience defining and executing GTM strategies in previous ventures."
+      "strength": "Strategic GTM Builder",
+      "evidence": "Skills include GTM Strategy, ERP Implementation, Process Optimization, and Revenue Operations.",
+      "how_to_verify": "Ask how he would structure the first 90 days of the sales process for a new AI product."
     },
     {
-      "strength": "Relationship-Driven Sales Approach",
-      "evidence": "Summary: bridging the gap between relationship-driven markets and modern, scalable sales motions",
-      "how_to_verify": "Ask for examples of complex deals closed primarily through relationship building."
+      "strength": "Digital Transformation Experience",
+      "evidence": "Skills list Digital Transformation and ERP Implementation, suggesting comfort selling complex software solutions.",
+      "how_to_verify": "Ask how he convinced a 'legacy industry' client to adopt a new ERP system."
     }
   ],
   "concerns": [
     {
-      "concern": "Lack of explicit SaaS/FinTech/Recruiting Tech AE experience",
-      "evidence": "Industries: AgTech, Equestrian, Agriculture, B2B, Non-profit, Government, Military. No mention of SaaS, FinTech, or Recruiting Tech.",
-      "suggested_question": "Your background is primarily in AgTech and related industries. How do you see your sales experience translating directly to selling an AI-powered SaaS marketplace solution, particularly to finance and accounting leaders?",
+      "concern": "Lack of Finance/Accounting ICP Evidence",
+      "evidence": "The resume does not mention selling to CFOs, Controllers, or finance leaders, which is a key requirement.",
+      "suggested_question": "Describe your experience selling to finance and accounting leaders. What are their unique motivations compared to operations or IT?",
       "severity": "high"
     },
     {
-      "concern": "No explicit mention of selling to finance/accounting leaders (CFOs, Controllers)",
-      "evidence": "No specific ICPs mentioned in resume, only 'enterprise growth in legacy industries'.",
-      "suggested_question": "Can you walk me through your experience engaging with finance and accounting leaders (like CFOs or Controllers) in your previous roles? What specific challenges did you help them solve?",
-      "severity": "high"
-    },
-    {
-      "concern": "Ambiguity around 'N/A' for current company",
-      "evidence": "Current Role: Mid-Market & Enterprise Account Executive at N/A",
-      "suggested_question": "Could you elaborate on your current role and the company you're working with, as it's listed as 'N/A' on your resume?",
+      "concern": "Industry Relevance Gap (AI/Fintech)",
+      "evidence": "Experience is primarily in AgTech and Equestrian, not the required SaaS, Fintech, or Recruiting Tech.",
+      "suggested_question": "How do you plan to rapidly bridge the knowledge gap required to sell an AI SaaS marketplace solution to finance teams?",
       "severity": "medium"
     },
     {
-      "concern": "Potential for over-seniority/cultural fit for a 'founding' AE role",
-      "evidence": "15.0 Years of Experience, 3x exited founder. This role is 'Founding AE' not 'Head of Sales'.",
-      "suggested_question": "Given your extensive experience and founder background, what excites you most about stepping into a hands-on, individual contributor Founding AE role, rather than a more senior leadership position?",
-      "severity": "low"
+      "concern": "AE Closing Experience Specifics",
+      "evidence": "The current role is listed as 'Mid-Market & Enterprise Account Executive at N/A' with no company or tenure details, making it hard to verify recent closing performance.",
+      "suggested_question": "Can you share your quota attainment and average deal size over the last 4 quarters in your most recent AE role?",
+      "severity": "medium"
     }
   ],
   "suggested_questions": [
     {
-      "question": "Your resume highlights experience in AgTech and related sectors. Can you describe a complex sales cycle you managed in those industries, focusing on how you identified needs, presented solutions, and ultimately closed the deal, particularly if it involved financial stakeholders?",
-      "category": "experience",
-      "purpose": "Assess direct sales process relevance and ability to sell to finance in non-SaaS context.",
-      "follow_up": "What were the key differences in selling to those stakeholders compared to what you anticipate selling to CFOs/Controllers in a SaaS environment?"
+      "question": "The job requires selling to CFOs and Controllers. Walk me through a recent deal where you successfully navigated the finance approval process and addressed their specific concerns (e.g., ROI, budget allocation).",
+      "category": "fit_check",
+      "purpose": "Directly verify the most critical requirement (selling to finance stakeholders).",
+      "follow_up": "What is the single biggest difference between selling to a CFO versus a Head of Operations?"
     },
     {
-      "question": "As a 3x exited founder, you've likely built sales processes from the ground up. Can you share an example of how you established a sales motion in one of your ventures, including how you defined your ICP, developed messaging, and scaled your efforts?",
-      "category": "behavioral/strategic",
-      "purpose": "Evaluate GTM strategy capabilities and comfort with early-stage ambiguity.",
-      "follow_up": "What was the biggest challenge in that process, and how did you overcome it?"
+      "question": "As a 3x founder, you're used to being the CEO. How do you transition that mindset to collaborate effectively with our founders and execute their vision, even when you might disagree with the GTM strategy?",
+      "category": "culture/collaboration",
+      "purpose": "Assess coachability and ability to be a team player in a non-CEO role.",
+      "follow_up": "Describe a time you had to execute a sales process you didn't design."
     },
     {
-      "question": "The job requires selling an AI-powered SaaS marketplace. What's your experience with AI, SaaS, or marketplace models, either from a sales perspective or as a user/founder?",
-      "category": "technical/domain",
-      "purpose": "Gauge familiarity with core product/market.",
-      "follow_up": "How do you approach learning new complex technologies to effectively sell them?"
+      "question": "You have experience in AgTech and Equestrian. How will you apply your experience translating 'relationship-driven markets' into scalable revenue streams for a fast-moving, AI-powered SaaS marketplace?",
+      "category": "relevance/transferability",
+      "purpose": "Determine how he plans to leverage his unique background to meet the job's demands.",
+      "follow_up": "What is the biggest risk in applying your past sales methodologies to an AI product?"
     },
     {
-      "question": "Tell me about a time you had to adapt your sales approach significantly due to market changes or a shift in product strategy. How did you handle it, and what was the outcome?",
-      "category": "behavioral",
-      "purpose": "Assess adaptability and problem-solving in a dynamic environment.",
-      "follow_up": "What did you learn from that experience that you'd apply here?"
+      "question": "We need a Founding AE who thrives with minimal structure. Give me an example of a time you had to build a sales process (prospecting, qualification, CRM hygiene) from scratch, and what metrics you used to measure success.",
+      "category": "process/scrappiness",
+      "purpose": "Verify ability to build infrastructure and processes, not just execute existing ones.",
+      "follow_up": "If you had no SDR support for 6 months, how would you prioritize your outbound efforts?"
     },
     {
-      "question": "This is a Founding AE role, meaning significant individual contribution and collaboration with founders on strategy. How do you balance the need to hit individual sales targets with contributing to broader strategic initiatives and refining processes?",
-      "category": "culture fit/role clarity",
-      "purpose": "Understand their expectations for the role and ability to wear multiple hats.",
-      "follow_up": "Can you give an example of a time you successfully influenced a strategic decision while also maintaining your core responsibilities?"
-    },
-    {
-      "question": "Given your extensive experience, what are your expectations regarding compensation, growth opportunities, and the level of autonomy in this Founding AE role?",
-      "category": "logistics/expectations",
-      "purpose": "Align on role expectations and career trajectory.",
-      "follow_up": "What does 'accelerating your career' mean to you at this stage?"
+      "question": "Your high-ACV deals are impressive. Tell me about a deal you lost that was over $100k. What was the core reason, and what did you implement afterward to prevent that loss vector?",
+      "category": "behavioral/learning",
+      "purpose": "Assess self-awareness, learning agility, and ability to handle failure.",
+      "follow_up": "How did you communicate that loss to your leadership team?"
     }
   ],
-  "topics_to_avoid": [],
-  "tldr": "Zachary is a highly experienced sales professional and 3x founder with strong GTM and strategic skills. Key concerns are his lack of explicit SaaS/FinTech AE experience and direct sales to finance/accounting leaders. The interview should focus heavily on bridging this industry gap and understanding his current role.",
+  "topics_to_avoid": [
+    "Do not dwell on the military experience unless he brings it up as a relevant skill (e.g., discipline, process). Focus on the founder/sales experience."
+  ],
+  "tldr": "Exceptional entrepreneurial drive and enterprise sales experience ($500k+ ACV). Ideal culture fit for a 'Founding AE' role. Major risk is zero explicit evidence of selling to finance/accounting leaders (CFOs/Controllers). Must verify this ICP fit immediately.",
   "key_things_to_remember": [
-    "15 years experience, but not in target industries.",
-    "3x exited founder \u2013 strong signal for drive and startup fit.",
-    "Current role listed as 'N/A' needs clarification.",
-    "Probe deeply on experience selling to finance/accounting stakeholders, even if not in SaaS."
+    "He is a 3x exited founder \u2013 this is a massive signal of ambition and ownership.",
+    "He has experience with complex, high-ACV deals, which is required.",
+    "The biggest gap is the ICP (finance leaders) and industry (AI/Fintech SaaS).",
+    "His skills list includes GTM Strategy and Revenue Operations, suggesting he can contribute beyond just closing deals."
   ]
 }
