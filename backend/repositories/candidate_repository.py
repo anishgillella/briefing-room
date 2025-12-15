@@ -92,8 +92,16 @@ class CandidateRepository:
     def update(self, candidate_id: str, data: dict) -> Optional[dict]:
         """Update a candidate."""
         try:
-            # Remove None values
-            clean_data = {k: v for k, v in data.items() if v is not None}
+            from datetime import datetime
+            
+            # Remove None values and convert datetime to string
+            clean_data = {}
+            for k, v in data.items():
+                if v is not None:
+                    if isinstance(v, datetime):
+                        clean_data[k] = v.isoformat()
+                    else:
+                        clean_data[k] = v
             
             result = self._get_db().table(self.table_name)\
                 .update(clean_data)\
@@ -175,4 +183,33 @@ class CandidateRepository:
             return result.count or 0
         except Exception as e:
             logger.error(f"Error counting candidates: {e}")
+            return 0
+    
+    def delete_all(self) -> int:
+        """Delete all candidates. Returns count of deleted records."""
+        try:
+            # Delete all records by matching any id (neq empty string won't match any real UUID)
+            result = self._get_db().table(self.table_name)\
+                .delete()\
+                .neq("id", "00000000-0000-0000-0000-000000000000")\
+                .execute()
+            deleted_count = len(result.data) if result.data else 0
+            logger.info(f"Deleted {deleted_count} candidates")
+            return deleted_count
+        except Exception as e:
+            logger.error(f"Error deleting all candidates: {e}")
+            return 0
+    
+    def delete_by_job_posting(self, job_posting_id: str) -> int:
+        """Delete all candidates for a specific job posting. Returns count of deleted records."""
+        try:
+            result = self._get_db().table(self.table_name)\
+                .delete()\
+                .eq("job_posting_id", job_posting_id)\
+                .execute()
+            deleted_count = len(result.data) if result.data else 0
+            logger.info(f"Deleted {deleted_count} candidates for job_posting_id={job_posting_id}")
+            return deleted_count
+        except Exception as e:
+            logger.error(f"Error deleting candidates for job posting {job_posting_id}: {e}")
             return 0

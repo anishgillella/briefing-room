@@ -6,12 +6,14 @@ import { getInterviewers, getSelectedInterviewerId, setSelectedInterviewerId, In
 
 interface InterviewerSelectorProps {
     onInterviewerChange?: (interviewerId: string) => void;
+    selectedId?: string | null;
     label?: string;
     className?: string;
 }
 
 export default function InterviewerSelector({
     onInterviewerChange,
+    selectedId,
     label = "Interviewer",
     className = ""
 }: InterviewerSelectorProps) {
@@ -24,15 +26,24 @@ export default function InterviewerSelector({
         loadInterviewers();
     }, []);
 
+    useEffect(() => {
+        if (selectedId && interviewers.length > 0) {
+            const found = interviewers.find(i => i.id === selectedId);
+            if (found && found.id !== selectedInterviewer?.id) {
+                setSelectedInterviewer(found);
+            }
+        }
+    }, [selectedId, interviewers]);
+
     const loadInterviewers = async () => {
         try {
             const data = await getInterviewers();
             setInterviewers(data);
 
-            // Check for previously selected interviewer
-            const savedId = getSelectedInterviewerId();
-            if (savedId) {
-                const saved = data.find(i => i.id === savedId);
+            // Initial load strategy: prop > localStorage
+            const targetId = selectedId || getSelectedInterviewerId();
+            if (targetId) {
+                const saved = data.find(i => i.id === targetId);
                 if (saved) {
                     setSelectedInterviewer(saved);
                 }

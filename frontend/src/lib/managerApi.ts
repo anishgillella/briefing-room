@@ -91,34 +91,36 @@ export async function getManagerRecommendations(managerId: string): Promise<{ re
     return response.json();
 }
 
-// Team-wide metrics (consolidated view)
-export interface TeamMetrics {
+// Consolidated Report Types
+export interface ConsolidatedReport {
     period_days: number;
-    total_managers: number;
-    metrics: {
-        funnel: {
-            reviewed: number;
-            interviewed: number;
-            offered: number;
-            hired: number;
-        };
-        timing: {
-            time_to_first_interview: number;
-            time_in_pipeline: number;
-            interviews_per_candidate: number;
-        };
-        rates: {
-            interview_rate: number;
-            offer_rate: number;
-            hire_rate: number;
-        };
+    summary: {
+        total_interviewers: number;
+        total_interviews_completed: number;
+        team_avg_interview_score: number;
+        team_avg_overall_rating: number;
+        active_interviewers: number;
     };
+    leaderboard: LeaderboardEntry[];
+    all_interviewers: LeaderboardEntry[];
 }
 
-export async function getTeamMetrics(days: number = 90): Promise<TeamMetrics> {
-    const response = await fetch(`${API_BASE}/api/managers/metrics/team?days=${days}`);
+export interface LeaderboardEntry {
+    interviewer_id: string;
+    name: string;
+    team?: string;
+    department?: string;
+    total_interviews: number;
+    avg_interview_score: number;
+    avg_overall_rating: number;
+    avg_question_quality: number;
+    avg_candidate_experience: number;
+}
+
+export async function getConsolidatedTeamReport(days: number = 90): Promise<ConsolidatedReport> {
+    const response = await fetch(`${API_BASE}/api/managers/metrics/consolidated?days=${days}`);
     if (!response.ok) {
-        throw new Error('Failed to fetch team metrics');
+        throw new Error('Failed to fetch consolidated team report');
     }
     return response.json();
 }

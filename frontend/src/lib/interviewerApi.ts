@@ -107,35 +107,71 @@ export async function triggerInterviewAnalysis(interviewId: string): Promise<{ s
     return response.json();
 }
 
-// Team Analytics Types (for Manager Dashboard)
-export interface TeamInterviewerData {
-    interviewer: {
+// Interview List & Detail Types
+export interface InterviewerSession {
+    interview_id: string;
+    candidate_id: string;
+    candidate_name: string;
+    candidate_title?: string;
+    candidate_company?: string;
+    candidate_score?: number;
+    interview_score?: number;
+    stage: string;
+    status: string;
+    started_at?: string;
+    ended_at?: string;
+    duration_sec?: number;
+}
+
+export interface FullInterviewDetails {
+    interview: {
+        id: string;
+        stage: string;
+        status: string;
+        score?: number;
+        started_at?: string;
+        ended_at?: string;
+        duration_sec?: number;
+    };
+    candidate: {
         id: string;
         name: string;
-        team?: string;
-        department?: string;
+        email?: string;
+        job_title?: string;
+        current_company?: string;
+        bio_summary?: string;
+        combined_score?: number;
+        interview_score?: number;
+        recommendation?: string;
     };
-    metrics: InterviewerMetrics;
+    transcript: {
+        turns: Array<{
+            speaker: string;
+            text: string;
+            timestamp?: number;
+        }>;
+        full_text?: string;
+    };
+    candidate_analytics?: {
+        overall_score: number;
+        recommendation: string;
+        synthesis: string;
+        skill_evidence: any[];
+        behavioral_profile: any;
+    };
+    interviewer_analytics?: InterviewAnalytics;
 }
 
-export interface TeamAnalyticsResponse {
-    team_averages: {
-        total_interviews: number;
-        avg_question_quality: number;
-        avg_topic_coverage: number;
-        avg_consistency: number;
-        avg_bias_score: number;
-        avg_candidate_experience: number;
-        avg_overall: number;
-    };
-    interviewers: TeamInterviewerData[];
+// New API Functions
+export async function getInterviewerInterviews(interviewerId: string): Promise<{ interviews: InterviewerSession[], total: number }> {
+    const response = await fetch(`${API_BASE}/api/interviewers/${interviewerId}/interviews`);
+    if (!response.ok) throw new Error('Failed to fetch interviews');
+    return response.json();
 }
 
-export async function getTeamAnalytics(): Promise<TeamAnalyticsResponse> {
-    const response = await fetch(`${API_BASE}/api/interviewers/analytics/team`);
-    if (!response.ok) {
-        throw new Error('Failed to fetch team analytics');
-    }
+export async function getFullInterviewDetails(interviewId: string): Promise<FullInterviewDetails> {
+    const response = await fetch(`${API_BASE}/api/interviewers/interviews/${interviewId}/full`);
+    if (!response.ok) throw new Error('Failed to fetch interview details');
     return response.json();
 }
 

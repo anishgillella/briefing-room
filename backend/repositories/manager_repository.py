@@ -34,18 +34,26 @@ class ManagerRepository:
 
     def calculate_metrics(self, manager_id: str, days: int = 90) -> dict:
         """Calculate hiring funnel metrics for a manager over a time period."""
+        import logging
+        logger = logging.getLogger(__name__)
         
         start_date = (datetime.now() - timedelta(days=days)).isoformat()
         
         # Get all interviews conducted by this manager
+        logger.info(f"[MANAGER_REPO] Querying interviews for manager_id={manager_id}")
         interviews_result = self.db.table("interviews").select(
-            "id, candidate_id, status, started_at, ended_at, stage"
+            "id, candidate_id, status, started_at, ended_at, stage, hiring_manager_id, interviewer_id, score"
         ).eq("hiring_manager_id", manager_id).gte("created_at", start_date).execute()
         
         interviews = interviews_result.data or []
+        logger.info(f"[MANAGER_REPO] Found {len(interviews)} interviews for manager {manager_id}")
+        if interviews:
+            for i in interviews[:3]:  # Log first 3 for debugging
+                logger.info(f"[MANAGER_REPO]   → Interview: {i.get('id', 'N/A')[:8]}..., status={i.get('status')}, score={i.get('score')}")
         
         # Get unique candidates from those interviews
         candidate_ids = list(set(i["candidate_id"] for i in interviews))
+        logger.info(f"[MANAGER_REPO] Unique candidates: {len(candidate_ids)}")
         
         # Get candidate data
         candidates = []
@@ -54,6 +62,7 @@ class ManagerRepository:
                 "id, pipeline_status, final_decision, created_at, decided_at"
             ).in_("id", candidate_ids).execute()
             candidates = candidates_result.data or []
+            logger.info(f"[MANAGER_REPO] Retrieved {len(candidates)} candidate records")
         
         # Calculate funnel metrics
         reviewed = len(candidates)

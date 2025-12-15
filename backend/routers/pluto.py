@@ -56,6 +56,7 @@ class ProcessingState:
         self.red_flag_indicators = [] # Custom red flags
         self.extraction_complete = False  # True when all candidates extracted
         self.latest_scored = None  # Latest AI-scored candidate for streaming
+        self.job_posting_id = None  # Current job posting ID for scoping candidates
 
 state = ProcessingState()
 
@@ -118,13 +119,18 @@ async def upload_csv(
     job_description: Annotated[Optional[str], Form()] = None,
     extraction_fields: Annotated[Optional[str], Form()] = None,
     scoring_criteria: Annotated[Optional[str], Form()] = None,
-    red_flag_indicators: Annotated[Optional[str], Form()] = None
+    red_flag_indicators: Annotated[Optional[str], Form()] = None,
+    job_posting_id: Annotated[Optional[str], Form()] = None
 ):
     """
     Upload a CSV file of candidates and process them.
     Step 1: Extracts and runs Algo Scoring ONLY.
     Step 2: Frontend must call /score to trigger AI scoring.
+    
+    If job_posting_id is provided, only clears candidates for that job (preserves other jobs).
+    If not provided, generates a new job_posting_id.
     """
+    import uuid
     
     if not file.filename.endswith('.csv'):
         raise HTTPException(status_code=400, detail="Invalid file format. Please upload a CSV file.")
@@ -145,9 +151,14 @@ async def upload_csv(
         except json.JSONDecodeError:
             pass
     
-    # Store JD in state for use in scoring
+    # Generate job_posting_id if not provided
+    if not job_posting_id:
+        job_posting_id = str(uuid.uuid4())
+    
+    # Store JD and job_posting_id in state for use in scoring
     state.reset()
     state.job_description = job_description
+    state.job_posting_id = job_posting_id
     state.status = "extracting"
     state.message = "Starting extraction..."
     
@@ -164,14 +175,15 @@ async def upload_csv(
         except:
             pass
             
-    # Start background processing with skip_ai_scoring=True
-    background_tasks.add_task(run_processing_pipeline, content, job_description, parsed_fields, True)
+    # Start background processing with skip_ai_scoring=True and job_posting_id
+    background_tasks.add_task(run_processing_pipeline, content, job_description, parsed_fields, True, job_posting_id)
     
     return {
         "status": "started",
         "message": f"Extracting candidates from {file.filename}...",
         "job_description_provided": bool(job_description),
         "extraction_fields_provided": bool(parsed_fields),
+        "job_posting_id": job_posting_id,
         "check_status_at": "/api/pluto/status"
     }
 
@@ -196,6 +208,7 @@ async def start_scoring(background_tasks: BackgroundTasks):
     # Update state
     state.status = "scoring"
     state.message = "Starting AI scoring..."
+    state.candidates_scored = 0  # Reset scored counter
     
     # Get candidates to score (from memory/store)
     candidates_to_score = []
@@ -209,6 +222,9 @@ async def start_scoring(background_tasks: BackgroundTasks):
     
     if not candidates_to_score:
         raise HTTPException(status_code=404, detail="No candidates found to score")
+
+    # Update candidates_total to match what we're actually scoring
+    state.candidates_total = len(candidates_to_score)
 
     # Start independent scoring task
     background_tasks.add_task(
@@ -252,7 +268,7 @@ async def run_scoring_pipeline(candidates, job_description, scoring_criteria=Non
         state.error = str(e)
 
 
-async def run_processing_pipeline(content: bytes, job_description: str = "", extraction_fields: list = None, skip_ai_scoring: bool = False):
+async def run_processing_pipeline(content: bytes, job_description: str = "", extraction_fields: list = None, skip_ai_scoring: bool = False, job_posting_id: str = None):
     """Background task to process CSV with optional JD for scoring context and dynamic extraction fields."""
     from services.pluto_processor import process_csv_file, calculate_algo_score
     
@@ -288,12 +304,13 @@ async def run_processing_pipeline(content: bytes, job_description: str = "", ext
                         "max_acv_mentioned": c.get("max_acv_mentioned"),
                         "quota_attainment": c.get("quota_attainment"),
                     }
-                    # Copy dynamic fields
+                    # Copy dynamic fields from custom_fields
                     if extraction_fields:
+                        custom = c.get("custom_fields", {})
                         for field in extraction_fields:
                             field_name = field.get("field_name", "")
-                            if field_name and field_name in c:
-                                preview[field_name] = c[field_name]
+                            if field_name and field_name in custom:
+                                preview[field_name] = custom[field_name]
                                 
                     algo_ranked.append(preview)
                 # Sort by algo_score descending
@@ -319,7 +336,7 @@ async def run_processing_pipeline(content: bytes, job_description: str = "", ext
     
     try:
         # Pass job_description and extraction_fields to processor
-        candidates = await process_csv_file(content, progress_callback, job_description, extraction_fields, skip_ai_scoring)
+        candidates = await process_csv_file(content, progress_callback, job_description, extraction_fields, skip_ai_scoring, job_posting_id)
         
         # If we skipped scoring, we are done with this task for now
         if skip_ai_scoring:
@@ -350,7 +367,7 @@ async def run_processing_pipeline(content: bytes, job_description: str = "", ext
         state.message = f"Processing failed: {str(e)}"
         
     # Correct implementation of the try block logic:
-    candidates = await process_csv_file(content, progress_callback, job_description, extraction_fields, skip_ai_scoring)
+    candidates = await process_csv_file(content, progress_callback, job_description, extraction_fields, skip_ai_scoring, job_posting_id)
     
     if skip_ai_scoring:
         return
@@ -388,12 +405,13 @@ async def run_processing_pipeline(content: bytes, job_description: str = "", ext
                 "skills": "|".join(c.get("skills", [])) if isinstance(c.get("skills"), list) else "",
                 "interview_questions": c.get("interview_questions", []),
             }
-             # Add dynamic fields from extraction_fields if provided
+             # Add dynamic fields from custom_fields if provided
              if extraction_fields:
+                custom = c.get("custom_fields", {})
                 for field in extraction_fields:
                     field_name = field.get("field_name", "")
-                    if field_name and field_name in c:
-                        candidate_dict[field_name] = c[field_name]
+                    if field_name and field_name in custom:
+                        candidate_dict[field_name] = custom[field_name]
             
              ranked.append(candidate_dict)
             
@@ -425,12 +443,19 @@ async def get_status():
 
 @router.get("/results")
 async def get_results() -> List[dict]:
-    """Get ranked candidates in Pluto frontend format."""
+    """Get ranked candidates in Pluto frontend format for current job posting."""
     # Return scored_candidates from state (Pluto format with final_score)
     if state.scored_candidates:
         return state.scored_candidates
-    # Fallback: convert from store
-    candidates = get_all_candidates()
+    
+    # Fallback: convert from store, filtered by current job_posting_id
+    from services.candidate_store import get_candidates_by_job
+    
+    if state.job_posting_id:
+        candidates = get_candidates_by_job(state.job_posting_id)
+    else:
+        candidates = get_all_candidates()
+    
     return [
         {
             "rank": i + 1,
@@ -467,7 +492,13 @@ async def list_candidates(
     - limit: Max results (default 50)
     - offset: Pagination offset
     """
-    candidates = get_all_candidates()
+    from services.candidate_store import get_candidates_by_job
+    
+    # Get candidates filtered by current job posting
+    if state.job_posting_id:
+        candidates = get_candidates_by_job(state.job_posting_id)
+    else:
+        candidates = get_all_candidates()
     
     # Apply filters
     if tier:
@@ -773,6 +804,7 @@ class SaveAnalyticsRequest(BaseModel):
     """Request body for saving interview analytics."""
     transcript: str
     analytics: Optional[dict] = None
+    interviewer_id: Optional[str] = None
 
 
 @router.post("/candidates/{candidate_id}/analytics")
@@ -845,39 +877,99 @@ async def save_interview_analytics(candidate_id: str, request: SaveAnalyticsRequ
             from repositories.interview_repository import InterviewRepository
             interview_repo = InterviewRepository()
             
-            # Check if interview already exists for this candidate
-            existing_interviews = interview_repo.get_candidate_interviews(candidate_id)
-            active_interview = next(
-                (i for i in existing_interviews if i.get("status") == "active"),
-                None
-            )
+            # Check if this is a valid UUID (Supabase candidate)
+            is_uuid = len(candidate_id) > 20
             
-            if active_interview:
-                # Complete existing interview and use its ID
-                interview_repo.complete_interview(active_interview["id"])
-                interview_id = active_interview["id"]
-            else:
-                # Create a new interview record
-                new_interview = interview_repo.create({
-                    "candidate_id": candidate_id,
-                    "stage": "round_1",
-                    "status": "completed",
-                })
-                if new_interview:
-                    interview_id = new_interview["id"]
+            real_candidate_id = candidate_id
+            
+            if not is_uuid:
+                # Try to resolve from mapping file
+                try:
+                    import json
+                    from pathlib import Path
+                    mapping_path = Path(__file__).parent.parent / "data" / "id_mapping.json"
+                    if mapping_path.exists():
+                        with open(mapping_path) as f:
+                            mapping = json.load(f)
+                            if candidate_id in mapping:
+                                real_candidate_id = mapping[candidate_id]
+                                is_uuid = True
+                                logger.info(f"Resolved legacy ID {candidate_id} to {real_candidate_id}")
+                except Exception as e:
+                    logger.error(f"Failed to resolve legacy ID: {e}")
+            
+            logger.info(f"Saving interview for candidate {real_candidate_id}")
+            
+            if is_uuid:
+                # Check for active interview
+                existing_interviews = interview_repo.get_candidate_interviews(real_candidate_id)
+                active_interview = next(
+                    (i for i in existing_interviews if i.get("status") == "active"),
+                    None
+                )
+                
+                # Get selected interviewer from request or default
+                interviewer_id = request.interviewer_id
+                logger.info(f"[INTERVIEW_SAVE] Interviewer ID from request: {interviewer_id}")
+                
+                # If no interviewer specified, pick first available to ensure data shows in dashboard
+                if not interviewer_id:
+                    from repositories.db_interviewers_repository import InterviewerRepository
+                    interviewers = InterviewerRepository().get_all()
+                    if interviewers:
+                        interviewer_id = interviewers[0]["id"]
+                        logger.info(f"[INTERVIEW_SAVE] No interviewer specified, using default: {interviewer_id}")
+            
+                if active_interview:
+                    # Complete existing interview
+                    logger.info(f"[INTERVIEW_SAVE] Completing active interview: {active_interview['id']}")
+                    logger.info(f"[INTERVIEW_SAVE] Score to save: {analytics_data.get('overall_score')}")
+                    interview_repo.complete_interview(
+                        active_interview["id"],
+                        score=analytics_data.get("overall_score")
+                    )
+                    interview_id = active_interview["id"]
+                    logger.info(f"[INTERVIEW_SAVE] ✅ Completed interview {interview_id}")
+                else:
+                    # Create new completed interview
+                    interview_data = {
+                        "candidate_id": real_candidate_id,
+                        "interviewer_id": interviewer_id,
+                        "hiring_manager_id": interviewer_id,
+                        "stage": "round_1",
+                        "status": "completed", 
+                        "started_at": datetime.utcnow().isoformat(),
+                        "ended_at": datetime.utcnow().isoformat(),
+                        "score": analytics_data.get("overall_score")
+                    }
+                    logger.info(f"[INTERVIEW_SAVE] Creating new interview with data:")
+                    for key, value in interview_data.items():
+                        logger.info(f"  → {key}: {value}")
+                    
+                    new_interview = interview_repo.create(interview_data)
+                    if new_interview:
+                        interview_id = new_interview["id"]
+                        logger.info(f"[INTERVIEW_SAVE] ✅ Created interview {interview_id}")
+                    else:
+                        logger.error(f"[INTERVIEW_SAVE] ❌ Failed to create interview!")
         except Exception as e:
-            logger.warning(f"Failed to create/update interview record: {e}")
+            logger.error(f"[INTERVIEW_SAVE] ❌ Exception: {e}")
+            import traceback
+            traceback.print_exc()
         
         # Fallback: generate a deterministic interview_id if DB failed
         if not interview_id:
             import hashlib
             fallback_id = hashlib.md5(f"{candidate_id}_{timestamp}".encode()).hexdigest()
             interview_id = f"{fallback_id[:8]}-{fallback_id[8:12]}-{fallback_id[12:16]}-{fallback_id[16:20]}-{fallback_id[20:32]}"
-            logger.info(f"Using fallback interview_id: {interview_id}")
+            logger.warning(f"[INTERVIEW_SAVE] Using fallback interview_id: {interview_id}")
         
         # Generate interviewer analytics if we have analytics data
         interviewer_analytics = None
-        if analytics_data and "error" not in analytics_data:
+        # Ensure we have an interviewer_id (handle scope issue)
+        target_interviewer_id = locals().get('interviewer_id')
+        
+        if analytics_data and "error" not in analytics_data and target_interviewer_id:
             try:
                 from services.interviewer_analyzer import get_interviewer_analyzer
                 from repositories.interviewer_analytics_repository import get_interviewer_analytics_repository
@@ -890,15 +982,24 @@ async def save_interview_analytics(candidate_id: str, request: SaveAnalyticsRequ
                     questions_list = [qa.get("question", "") for qa in analytics_data.get("question_analytics", [])]
                 
                 if questions_list or request.transcript:
-                    logger.info(f"Generating interviewer analytics for interview {interview_id[:8]}...")
+                    logger.info(f"[INTERVIEW_SAVE] Generating interviewer analytics for interview {interview_id[:8]}...")
                     interviewer_result = await analyzer.analyze_interview(
                         transcript=request.transcript,
                         questions=questions_list
                     )
                     interviewer_analytics = interviewer_result.model_dump()
-                    logger.info(f"Interviewer analytics generated. Score: {interviewer_result.overall_score}")
+                    
+                    # SAVE TO DB (Critical for Dashboard!)
+                    logger.info(f"[INTERVIEW_SAVE] Saving interviewer analytics for interviewer {target_interviewer_id}")
+                    ia_repo = get_interviewer_analytics_repository()
+                    ia_repo.save_analytics(interview_id, target_interviewer_id, interviewer_result)
+                    logger.info(f"[INTERVIEW_SAVE] ✅ Interviewer analytics saved. Score: {interviewer_result.overall_score}")
             except Exception as e:
-                logger.warning(f"Failed to generate interviewer analytics: {e}")
+                logger.error(f"[INTERVIEW_SAVE] ❌ Failed to generate/save interviewer analytics: {e}")
+                import traceback
+                traceback.print_exc()
+        elif not target_interviewer_id:
+             logger.warning(f"[INTERVIEW_SAVE] ⚠️ Skipping interviewer analytics - Unknown interviewer ID")
         
         return {"status": "saved", "analytics": analytics_data, "interview_id": interview_id, "interviewer_analytics": interviewer_analytics}
 

@@ -175,8 +175,8 @@ class InterviewRepository:
             "started_at": datetime.utcnow().isoformat()
         })
     
-    def complete_interview(self, interview_id: str) -> Optional[dict]:
-        """Mark interview as completed."""
+    def complete_interview(self, interview_id: str, score: Optional[int] = None) -> Optional[dict]:
+        """Mark interview as completed with optional score."""
         interview = self.get_by_id(interview_id)
         if not interview:
             return None
@@ -190,11 +190,16 @@ class InterviewRepository:
             except:
                 pass
         
-        return self.update(interview_id, {
+        update_data = {
             "status": "completed",
             "ended_at": datetime.utcnow().isoformat(),
             "duration_sec": duration_sec
-        })
+        }
+        
+        if score is not None:
+            update_data["score"] = score
+        
+        return self.update(interview_id, update_data)
     
     def get_questions_asked(self, candidate_id: str) -> List[dict]:
         """Get all questions asked to a candidate across all stages."""

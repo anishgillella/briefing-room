@@ -3,8 +3,8 @@ Unified Candidate model for Pluto integration.
 Combines scoring fields from Pluto with interview tracking from Briefing Room.
 """
 
-from pydantic import BaseModel, Field
-from typing import Optional, List, Literal
+from pydantic import BaseModel, Field, field_validator
+from typing import Optional, List, Literal, Union, Any
 from datetime import datetime
 import uuid
 
@@ -29,7 +29,7 @@ class Candidate(BaseModel):
     bio_summary: Optional[str] = None
     industries: List[str] = Field(default_factory=list)
     skills: List[str] = Field(default_factory=list)
-    education: Optional[str] = None
+    education: Optional[Union[str, List[Any]]] = None
     sales_methodologies: List[str] = Field(default_factory=list)
     
     # Pluto Scoring Signals
@@ -61,7 +61,7 @@ class Candidate(BaseModel):
     completeness: int = 0  # 0-100%
     
     # Interview Tracking (Briefing Room)
-    interview_status: Literal["not_scheduled", "briefing", "in_progress", "completed"] = "not_scheduled"
+    interview_status: Optional[str] = "not_scheduled"
     room_name: Optional[str] = None
     interview_score: Optional[int] = None
     recommendation: Optional[str] = None  # "Strong Hire", "Hire", etc.
@@ -71,6 +71,9 @@ class Candidate(BaseModel):
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     source: Literal["csv_upload", "manual", "voice_enriched"] = "csv_upload"
     has_enrichment_data: bool = False
+    
+    # Dynamic Fields (job-specific extraction fields stored as JSONB)
+    custom_fields: dict = Field(default_factory=dict)
     
     class Config:
         extra = "allow"

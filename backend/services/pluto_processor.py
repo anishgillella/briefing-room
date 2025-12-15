@@ -727,7 +727,7 @@ Analyze the interview transcript and populate the response fields comprehensivel
 # Main Processing Pipeline
 # ============================================================================
 
-async def process_csv_file(file_content: bytes, progress_callback=None, job_description: str = "", extraction_fields: list = None, skip_ai_scoring: bool = False) -> List[dict]:
+async def process_csv_file(file_content: bytes, progress_callback=None, job_description: str = "", extraction_fields: list = None, skip_ai_scoring: bool = False, job_posting_id: str = None) -> List[dict]:
     """
     Process a CSV file and return scored candidates.
     
@@ -743,6 +743,7 @@ async def process_csv_file(file_content: bytes, progress_callback=None, job_desc
         job_description: Optional job description for contextualized AI scoring
         extraction_fields: Optional list of dynamic fields from JD Compiler
         skip_ai_scoring: If True, stop after extraction and algo scoring (Phase 2)
+        job_posting_id: ID of the job posting to scope candidates to
     
     Returns:
         List of candidate dictionaries
@@ -767,8 +768,8 @@ async def process_csv_file(file_content: bytes, progress_callback=None, job_desc
         fields_msg = f" with {len(extraction_fields)} custom fields" if extraction_fields else ""
         await progress_callback("extracting", 0, f"Extracting {total_candidates} candidates{fields_msg}...", {"total_candidates": total_candidates})
     
-    # Clear existing candidates
-    clear_all_candidates()
+    # Clear existing candidates for this job posting only (preserves other jobs' data)
+    clear_all_candidates(job_posting_id)
     
     # ========================================================================
     # PHASE 1: Extract ALL candidates (with semantic extraction) - BATCHED
@@ -843,13 +844,18 @@ async def process_csv_file(file_content: bytes, progress_callback=None, job_desc
         for candidate, enrichment, result in results:
             if result:
                 if extraction_fields and isinstance(result, dict):
-                    # Dynamic extraction result
+                    # Dynamic extraction result - store in custom_fields JSONB
                     extraction = result.get("extraction", {})
                     candidate["bio_summary"] = extraction.get("bio_summary", "")
+                    
+                    # Store dynamic fields in custom_fields dict (not as top-level keys)
+                    custom_fields = {}
                     for field in extraction_fields:
                         field_name = field.get("field_name", "")
                         if field_name in extraction and field_name != "bio_summary":
-                            candidate[field_name] = extraction[field_name]
+                            custom_fields[field_name] = extraction[field_name]
+                    candidate["custom_fields"] = custom_fields
+                    
                     candidate["red_flags"] = result.get("red_flags", [])
                     candidate["red_flag_count"] = result.get("red_flag_count", 0)
                 elif hasattr(result, 'extraction'):
@@ -881,7 +887,8 @@ async def process_csv_file(file_content: bytes, progress_callback=None, job_desc
                 "combined_score": algo_score,
                 "tier": "Evaluate",
                 "interview_status": "not_scheduled",
-                "has_enrichment_data": enrichment is not None
+                "has_enrichment_data": enrichment is not None,
+                "job_posting_id": job_posting_id  # Scope to current job posting
             })
             
             all_extracted.append(candidate)

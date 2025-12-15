@@ -134,6 +134,9 @@ export default function Home() {
   const [currentTipIndex, setCurrentTipIndex] = useState(0);
   const [loadingQuestions, setLoadingQuestions] = useState(false);
 
+  // Job Posting ID - tracks which job we're working on (for re-uploads)
+  const [jobPostingId, setJobPostingId] = useState<string | null>(null);
+
   // JD Compiler - Extraction Criteria
   const [extractionFields, setExtractionFields] = useState<ExtractionField[]>([]);
   const [jdAnalysis, setJdAnalysis] = useState<JDAnalysisResult | null>(null);
@@ -393,6 +396,11 @@ export default function Home() {
         }
       }
 
+      // Pass job_posting_id if we have one (re-upload same job clears only that job's candidates)
+      if (jobPostingId) {
+        formData.append("job_posting_id", jobPostingId);
+      }
+
       // Append file LAST
       formData.append("file", file);
 
@@ -404,6 +412,14 @@ export default function Home() {
 
       if (!res.ok) {
         throw new Error("Upload failed");
+      }
+
+      // Store the job_posting_id from response for future re-uploads
+      const data = await res.json();
+      if (data.job_posting_id) {
+        setJobPostingId(data.job_posting_id);
+        // Also persist to sessionStorage in case of page refresh
+        sessionStorage.setItem("currentJobPostingId", data.job_posting_id);
       }
 
       // Status polling will take over
@@ -458,6 +474,12 @@ export default function Home() {
     setComparisonResult(null);
     setShowWeights(false);
 
+    // Clear job posting ID so next upload creates a new job
+    setJobPostingId(null);
+    sessionStorage.removeItem("currentJobPostingId");
+    setJobDescription("");
+    setExtractionFields([]);
+    setJdAnalysis(null);
   };
 
   // Toggle compare mode selection
@@ -591,9 +613,9 @@ export default function Home() {
                 </span>
               </h2>
               <p className="text-xl text-white/60 max-w-2xl mx-auto leading-relaxed">
-                Superposition uses multi-modal AI to analyze candidates beyond keywords.
+                Redefining how companies discover exceptional talent.
                 <br />
-                Upload resumes, analyze specific job needs, and conduct AI interviews.
+                The recruiting industry will never be the same.
               </p>
             </div>
 

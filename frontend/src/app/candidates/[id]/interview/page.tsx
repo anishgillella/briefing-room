@@ -591,10 +591,14 @@ export default function InterviewPage() {
                     .map(t => `${t.speaker}: ${t.text}`)
                     .join("\n");
 
+                const selectedInterviewerId = getSelectedInterviewerId();
                 const res = await fetch(`${API_URL}/api/pluto/candidates/${candidateId}/analytics`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ transcript: transcriptText }),
+                    body: JSON.stringify({
+                        transcript: transcriptText,
+                        interviewer_id: selectedInterviewerId
+                    }),
                 });
 
                 if (res.ok) {

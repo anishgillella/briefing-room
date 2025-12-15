@@ -1,58 +1,80 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
     Loader2,
     TrendingUp,
-    TrendingDown,
     AlertTriangle,
     CheckCircle,
     MessageSquare,
     Target,
     Users,
     Shield,
-    Lightbulb
+    Lightbulb,
+    Calendar,
+    ChevronRight,
+    Award
 } from "lucide-react";
-import { getInterviewerAnalytics, getSelectedInterviewerId, InterviewerAnalyticsResponse } from "@/lib/interviewerApi";
+import {
+    getInterviewerAnalytics,
+    getInterviewerInterviews,
+    InterviewerAnalyticsResponse,
+    InterviewerSession
+} from "@/lib/interviewerApi";
 import InterviewerSelector from "./InterviewerSelector";
+import InterviewDetailsModal from "./InterviewDetailsModal";
 
-export default function InterviewerDashboard() {
-    const [data, setData] = useState<InterviewerAnalyticsResponse | null>(null);
-    const [loading, setLoading] = useState(true);
+function DashboardContent() {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const [analytics, setAnalytics] = useState<InterviewerAnalyticsResponse | null>(null);
+    const [sessions, setSessions] = useState<InterviewerSession[]>([]);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [interviewerId, setInterviewerId] = useState<string | null>(null);
+    const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+
+    // Get ID from URL
+    const interviewerId = searchParams.get('id');
 
     useEffect(() => {
-        const savedId = getSelectedInterviewerId();
-        if (savedId) {
-            setInterviewerId(savedId);
-            loadAnalytics(savedId);
+        if (interviewerId) {
+            loadData(interviewerId);
         } else {
-            setLoading(false);
+            // Reset if no ID
+            setAnalytics(null);
+            setSessions([]);
         }
-    }, []);
+    }, [interviewerId]);
 
-    const loadAnalytics = async (id: string) => {
+    const loadData = async (id: string) => {
         try {
             setLoading(true);
             setError(null);
-            const analytics = await getInterviewerAnalytics(id);
-            setData(analytics);
+
+            // Parallel fetch
+            const [analyticsData, sessionsData] = await Promise.all([
+                getInterviewerAnalytics(id),
+                getInterviewerInterviews(id)
+            ]);
+
+            setAnalytics(analyticsData);
+            setSessions(sessionsData.interviews);
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Failed to load analytics");
+            console.error(err);
+            setError(err instanceof Error ? err.message : "Failed to load dashboard data");
         } finally {
             setLoading(false);
         }
     };
 
     const handleInterviewerChange = (id: string) => {
-        setInterviewerId(id);
-        loadAnalytics(id);
+        // Update URL to trigger fetch via useEffect
+        router.push(`?id=${id}`);
     };
 
     const getScoreColor = (score: number, inverted: boolean = false) => {
         if (inverted) {
-            // Lower is better (bias score)
             if (score <= 20) return 'text-green-400';
             if (score <= 50) return 'text-yellow-400';
             return 'text-red-400';
@@ -73,7 +95,7 @@ export default function InterviewerDashboard() {
         return 'bg-red-500/10 border-red-500/20';
     };
 
-    if (loading) {
+    if (loading && !analytics) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
                 <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
@@ -82,21 +104,25 @@ export default function InterviewerDashboard() {
     }
 
     return (
-        <div className="space-y-8 animate-fade-in">
+        <div className="space-y-8 animate-fade-in relative hidden-scrollbar">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-semibold text-white tracking-tight">Interviewer Analytics</h1>
-                    <p className="text-white/40 mt-1">Performance insights and quality metrics</p>
+                    <p className="text-white/40 mt-1">Detailed performance metrics and interview history</p>
                 </div>
-                <InterviewerSelector onInterviewerChange={handleInterviewerChange} />
+                <InterviewerSelector
+                    selectedId={interviewerId}
+                    onInterviewerChange={handleInterviewerChange}
+                    className="w-64"
+                />
             </div>
 
             {!interviewerId && (
-                <div className="glass-card-premium p-12 text-center">
+                <div className="glass-card-premium p-12 text-center border border-white/5">
                     <Users className="w-16 h-16 text-white/20 mx-auto mb-4" />
                     <h2 className="text-xl text-white/60 mb-2">Select an Interviewer</h2>
-                    <p className="text-white/40">Choose an interviewer from the dropdown above to view their analytics.</p>
+                    <p className="text-white/40">Choose an interviewer to view their performance report and history.</p>
                 </div>
             )}
 
@@ -106,149 +132,156 @@ export default function InterviewerDashboard() {
                 </div>
             )}
 
-            {data && (
+            {analytics && (
                 <>
-                    {/* Summary Stats */}
-                    {data.aggregated.total_interviews === 0 ? (
-                        <div className="glass-card-premium p-12 text-center">
-                            <MessageSquare className="w-16 h-16 text-white/20 mx-auto mb-4" />
-                            <h2 className="text-xl text-white/60 mb-2">No Analytics Yet</h2>
-                            <p className="text-white/40">Complete interviews with this interviewer to see analytics.</p>
-                        </div>
-                    ) : (
-                        <>
-                            {/* Score Cards */}
-                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                                {[
-                                    { key: 'avg_question_quality', label: 'Question Quality', icon: MessageSquare },
-                                    { key: 'avg_topic_coverage', label: 'Topic Coverage', icon: Target },
-                                    { key: 'avg_consistency', label: 'Consistency', icon: TrendingUp },
-                                    { key: 'avg_bias_score', label: 'Bias Score', icon: Shield, inverted: true },
-                                    { key: 'avg_candidate_experience', label: 'Candidate Exp', icon: Users }
-                                ].map((metric) => {
-                                    const value = data.aggregated[metric.key as keyof typeof data.aggregated] as number;
-                                    const inverted = metric.inverted || false;
-                                    return (
-                                        <div
-                                            key={metric.key}
-                                            className={`glass-card-premium p-5 border ${getScoreBg(value, inverted)}`}
-                                        >
-                                            <div className="flex items-center gap-2 mb-3">
-                                                <metric.icon className="w-4 h-4 text-white/40" />
-                                                <span className="text-xs text-white/40 uppercase tracking-wider">{metric.label}</span>
-                                            </div>
-                                            <div className={`text-3xl font-light ${getScoreColor(value, inverted)}`}>
-                                                {value.toFixed(0)}
-                                                <span className="text-lg text-white/20">/100</span>
-                                            </div>
-                                            {inverted && value <= 20 && (
-                                                <div className="mt-2 text-xs text-green-400 flex items-center gap-1">
-                                                    <CheckCircle className="w-3 h-3" /> Low bias detected
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-
-                            {/* Topic Coverage Breakdown */}
-                            <div className="glass-card-premium p-8">
-                                <h2 className="text-sm font-bold uppercase tracking-widest text-white/40 mb-6">
-                                    Topic Coverage Breakdown
-                                </h2>
-                                <div className="grid grid-cols-4 gap-6">
-                                    {Object.entries(data.aggregated.topic_breakdown).map(([topic, score]) => (
-                                        <div key={topic} className="text-center">
-                                            <div className="relative w-24 h-24 mx-auto mb-3">
-                                                <svg className="w-24 h-24 transform -rotate-90">
-                                                    <circle
-                                                        cx="48"
-                                                        cy="48"
-                                                        r="40"
-                                                        strokeWidth="8"
-                                                        fill="none"
-                                                        className="stroke-white/10"
-                                                    />
-                                                    <circle
-                                                        cx="48"
-                                                        cy="48"
-                                                        r="40"
-                                                        strokeWidth="8"
-                                                        fill="none"
-                                                        strokeLinecap="round"
-                                                        className={score >= 70 ? 'stroke-green-500' : score >= 50 ? 'stroke-yellow-500' : 'stroke-red-500'}
-                                                        strokeDasharray={`${(score / 100) * 251.2} 251.2`}
-                                                    />
-                                                </svg>
-                                                <div className="absolute inset-0 flex items-center justify-center">
-                                                    <span className="text-xl font-light text-white">{score}</span>
-                                                </div>
-                                            </div>
-                                            <div className="text-sm text-white/60 capitalize">{topic.replace('_', ' ')}</div>
-                                        </div>
-                                    ))}
+                    {/* Aggregated Stats Section */}
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        {[
+                            { key: 'avg_question_quality', label: 'Question Quality', icon: MessageSquare },
+                            { key: 'avg_topic_coverage', label: 'Topic Coverage', icon: Target },
+                            { key: 'avg_consistency', label: 'Consistency', icon: TrendingUp },
+                            { key: 'avg_bias_score', label: 'Bias Score', icon: Shield, inverted: true },
+                            { key: 'avg_candidate_experience', label: 'Candidate Exp', icon: Users }
+                        ].map((metric) => {
+                            const value = analytics.aggregated[metric.key as keyof typeof analytics.aggregated] as number;
+                            const inverted = metric.inverted || false;
+                            return (
+                                <div
+                                    key={metric.key}
+                                    className={`glass-card-premium p-5 border ${getScoreBg(value, inverted)}`}
+                                >
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <metric.icon className="w-4 h-4 text-white/40" />
+                                        <span className="text-xs text-white/40 uppercase tracking-wider">{metric.label}</span>
+                                    </div>
+                                    <div className={`text-3xl font-light ${getScoreColor(value, inverted)}`}>
+                                        {value.toFixed(0)}
+                                        <span className="text-lg text-white/20">/100</span>
+                                    </div>
                                 </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* Content Grid */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {/* Left Column: Interview History */}
+                        <div className="lg:col-span-2 space-y-6">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-lg font-semibold text-white">Interview History</h2>
+                                <span className="text-xs text-white/40 bg-white/5 px-2 py-1 rounded">
+                                    {sessions.length} Sessions
+                                </span>
                             </div>
 
-                            {/* Recommendations / Suggestions */}
-                            {data.aggregated.common_suggestions.length > 0 && (
-                                <div className="glass-card-premium p-8 border-l-4 border-yellow-500/50">
-                                    <h2 className="text-yellow-400 font-semibold mb-6 flex items-center gap-2 text-lg">
-                                        <Lightbulb className="w-5 h-5" />
-                                        Common Improvement Areas
-                                    </h2>
-                                    <div className="space-y-4">
-                                        {data.aggregated.common_suggestions.map((suggestion, i) => (
-                                            <div key={i} className="flex items-start gap-4 text-white/80">
-                                                <div className="w-6 h-6 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                                    <span className="text-yellow-400 text-xs font-bold">{i + 1}</span>
+                            <div className="space-y-3">
+                                {sessions.length === 0 ? (
+                                    <div className="glass-card-premium p-8 text-center text-white/40">
+                                        No interviews found for this interviewer.
+                                    </div>
+                                ) : (
+                                    sessions.map((session) => (
+                                        <button
+                                            key={session.interview_id}
+                                            onClick={() => setSelectedSessionId(session.interview_id)}
+                                            className="w-full glass-card-premium p-4 flex items-center justify-between hover:bg-white/5 transition-all text-left group border border-white/5 hover:border-white/10"
+                                        >
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/40 group-hover:bg-blue-500/20 group-hover:text-blue-400 transition-colors">
+                                                    <Award className="w-5 h-5" />
                                                 </div>
-                                                <p className="leading-relaxed">{suggestion}</p>
+                                                <div>
+                                                    <div className="text-white font-medium">{session.candidate_name}</div>
+                                                    <div className="text-xs text-white/40 flex items-center gap-2">
+                                                        <span>{session.candidate_title || 'Candidate'}</span>
+                                                        <span>•</span>
+                                                        <Calendar className="w-3 h-3" />
+                                                        <span>
+                                                            {session.started_at
+                                                                ? new Date(session.started_at).toLocaleDateString()
+                                                                : 'Unknown Date'}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-6">
+                                                <div className="text-right">
+                                                    <div className="text-xs text-white/40 uppercase tracking-wider">Score</div>
+                                                    <div className={`font-mono font-medium ${(session.interview_score || 0) >= 70 ? 'text-green-400' : 'text-white'
+                                                        }`}>
+                                                        {session.interview_score || '--'}
+                                                    </div>
+                                                </div>
+                                                <ChevronRight className="w-5 h-5 text-white/20 group-hover:text-white/60 transition-colors" />
+                                            </div>
+                                        </button>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Right Column: Insights & Recommendations */}
+                        <div className="space-y-6">
+                            {/* Recommendations */}
+                            {analytics.aggregated.common_suggestions.length > 0 && (
+                                <div className="glass-card-premium p-6 border-l-4 border-yellow-500/50">
+                                    <h2 className="text-yellow-400 font-semibold mb-4 flex items-center gap-2">
+                                        <Lightbulb className="w-4 h-4" />
+                                        Areas for Improvement
+                                    </h2>
+                                    <div className="space-y-3">
+                                        {analytics.aggregated.common_suggestions.slice(0, 5).map((suggestion, i) => (
+                                            <div key={i} className="flex items-start gap-3 text-white/70 text-sm">
+                                                <span className="text-yellow-500 mt-1">•</span>
+                                                <p>{suggestion}</p>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
                             )}
 
-                            {/* Bias Flags */}
-                            {data.aggregated.bias_flags.length > 0 && (
-                                <div className="glass-card-premium p-8 border-l-4 border-red-500/50">
-                                    <h2 className="text-red-400 font-semibold mb-6 flex items-center gap-2 text-lg">
-                                        <AlertTriangle className="w-5 h-5" />
-                                        Bias Indicators Detected
+                            {/* Bias Indicators */}
+                            {analytics.aggregated.bias_flags.length > 0 && (
+                                <div className="glass-card-premium p-6 border-l-4 border-red-500/50">
+                                    <h2 className="text-red-400 font-semibold mb-4 flex items-center gap-2">
+                                        <AlertTriangle className="w-4 h-4" />
+                                        Bias Patterns
                                     </h2>
                                     <div className="space-y-2">
-                                        {data.aggregated.bias_flags.map((flag, i) => (
-                                            <div key={i} className="flex items-center gap-3 text-white/70">
-                                                <div className="w-2 h-2 rounded-full bg-red-500" />
+                                        {analytics.aggregated.bias_flags.slice(0, 3).map((flag, i) => (
+                                            <div key={i} className="flex items-center gap-2 text-white/70 text-sm">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
                                                 <span>{flag}</span>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
                             )}
-
-                            {/* No issues state */}
-                            {data.aggregated.common_suggestions.length === 0 && data.aggregated.bias_flags.length === 0 && (
-                                <div className="glass-card-premium p-8 border-l-4 border-green-500/50">
-                                    <h2 className="text-green-400 font-semibold mb-2 flex items-center gap-2 text-lg">
-                                        <CheckCircle className="w-5 h-5" />
-                                        Excellent Performance
-                                    </h2>
-                                    <p className="text-white/60">
-                                        No significant improvement areas or bias indicators detected. Keep up the great work!
-                                    </p>
-                                </div>
-                            )}
-
-                            {/* Interview Count */}
-                            <div className="text-center text-white/30 text-sm">
-                                Based on {data.aggregated.total_interviews} analyzed interview{data.aggregated.total_interviews !== 1 ? 's' : ''}
-                            </div>
-                        </>
-                    )}
+                        </div>
+                    </div>
                 </>
             )}
+
+            {/* Detail Modal */}
+            {selectedSessionId && (
+                <InterviewDetailsModal
+                    interviewId={selectedSessionId}
+                    onClose={() => setSelectedSessionId(null)}
+                />
+            )}
         </div>
+    );
+}
+
+export default function InterviewerDashboard() {
+    return (
+        <Suspense fallback={
+            <div className="flex items-center justify-center min-h-screen">
+                <Loader2 className="w-8 h-8 animate-spin text-white/20" />
+            </div>
+        }>
+            <DashboardContent />
+        </Suspense>
     );
 }
