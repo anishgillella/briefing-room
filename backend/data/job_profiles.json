@@ -1753,5 +1753,476 @@
       "interview_stages"
     ],
     "parallel_research_status": "complete"
+  },
+  "8cc7ee65-3feb-40a3-a0e0-a0ac6b036265": {
+    "id": "8cc7ee65-3feb-40a3-a0e0-a0ac6b036265",
+    "created_at": "2025-12-16T21:07:25.417691",
+    "updated_at": "2025-12-16T21:09:41.674241",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": "Different By Design",
+      "funding_stage": "series_d_plus",
+      "total_raised": null,
+      "last_round_date": "December 2025",
+      "investors": [],
+      "product_description": "Ramp provides spend management, corporate cards, and accounts payable solutions for businesses.",
+      "problem_solved": "They aim to modernize and streamline finance operations for businesses.",
+      "target_customers": "Businesses, especially those in the Tech industry.",
+      "industry": "Fintech",
+      "founders": [],
+      "founder_backgrounds": null,
+      "team_size": null,
+      "headquarters": null,
+      "office_locations": [],
+      "competitors": [],
+      "differentiators": "They are \"Different By Design\" and focus on built-to-scale FinOps solutions for the tech industry.",
+      "recent_news": [
+        "Ramp raised $500M to build the future of finance",
+        "Ramp Reaches $32 Billion Valuation",
+        "Ramp at $32 billion: Money talks. Now It thinks."
+      ],
+      "hiring_signals": null,
+      "tech_stack_hints": [],
+      "culture_keywords": [],
+      "glassdoor_sentiment": null,
+      "interesting_facts": [
+        "Ramp reached a $32 billion valuation in late 2025.",
+        "The company doubled its revenue and customer base in the year leading up to its $32 billion valuation.",
+        "Ramp raised $500 million to continue building the future of finance."
+      ],
+      "potential_selling_points": [
+        "The company is a high-growth Fintech leader, recently valued at $32 billion.",
+        "Ramp is focused on modernizing finance operations and building the future of finance.",
+        "The company has demonstrated rapid market traction, doubling revenue and customers in a single year."
+      ]
+    },
+    "requirements": {
+      "job_title": "Senior Product Manager",
+      "location_type": null,
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": 7,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": null,
+      "equity_range": null,
+      "bonus_structure": null
+    },
+    "traits": [
+      {
+        "id": "d9f4d99e-715f-4922-ae32-c6321508c1a5",
+        "name": "Product Strategy and Lifecycle Management",
+        "description": "The ability to lead the end-to-end product lifecycle, defining vision, prioritizing features, and driving execution from concept through launch and iteration.",
+        "priority": "must_have",
+        "signals": [
+          "Proven track record of launching and scaling successful products",
+          "Managing the end-to-end product lifecycle",
+          "Defining product vision and prioritizing features",
+          "Leading strategy, development, and execution of key product initiatives"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "5c794e05-67c9-4dbc-a4f4-d435ec8ef982",
+        "name": "Domain Expertise (Fintech/SaaS)",
+        "description": "A deep understanding of the financial technology landscape, including financial operations, payment systems, or complex enterprise software.",
+        "priority": "must_have",
+        "signals": [
+          "7+ years of product management experience, preferably in fintech or SaaS",
+          "Deep understanding of financial operations",
+          "Experience with payment systems or enterprise software"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "510bb693-c70f-4864-b9fe-63d2ac0b4b4b",
+        "name": "Data-Driven Decision Making",
+        "description": "Strong analytical skills required to conduct market research, analyze user feedback, define key product metrics, and use data to inform strategic decisions.",
+        "priority": "must_have",
+        "signals": [
+          "Strong analytical skills",
+          "Ability to make data-driven decisions",
+          "Define and track key product metrics",
+          "Conduct market research and analyze user feedback"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "61b13c18-f38b-41ed-a1cd-5df1c4ebe53b",
+        "name": "Cross-Functional Leadership and Communication",
+        "description": "Excellent ability to lead teams, mentor junior staff, and communicate complex product roadmaps and requirements effectively to diverse stakeholders across the organization.",
+        "priority": "must_have",
+        "signals": [
+          "Excellent communication and leadership abilities",
+          "Collaborate with engineering, design, finance, and business teams",
+          "Communicate product roadmaps, requirements, and updates to stakeholders",
+          "Mentor and guide junior product managers"
+        ],
+        "anti_signals": []
+      }
+    ],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": "This role is critical to shaping Ramp\u2019s core financial platform and ensuring it meets the evolving needs of modern finance teams.",
+      "selling_points": [
+        "Lead the strategy and execution of key product initiatives within Ramp\u2019s critical financial platform.",
+        "Work cross-functionally with engineering, design, finance, and business teams at a high-growth Fintech company.",
+        "Opportunity to mentor and guide junior product managers, fostering leadership growth.",
+        "Drive business growth and customer satisfaction by managing the end-to-end product lifecycle."
+      ],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "jd_paste",
+    "field_confidence": [
+      {
+        "field_name": "job_title",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "location",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "experience",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "compensation",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "visa",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "equity",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "traits",
+        "confidence": 0.9,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "interview_stages",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      }
+    ],
+    "is_complete": false,
+    "missing_required_fields": [
+      "location_type",
+      "compensation",
+      "visa_sponsorship",
+      "equity",
+      "interview_stages"
+    ],
+    "parallel_research_status": "complete"
+  },
+  "8c98da83-b9fc-49fe-bb24-d5272f36765f": {
+    "id": "8c98da83-b9fc-49fe-bb24-d5272f36765f",
+    "created_at": "2025-12-16T21:13:05.195567",
+    "updated_at": "2025-12-16T21:13:27.182996",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": "Spend Management, Corporate Cards & Accounts Payable Solutions",
+      "funding_stage": "series_d_plus",
+      "total_raised": null,
+      "last_round_date": "December 2025",
+      "investors": [],
+      "product_description": "Ramp offers spend management, corporate cards, and accounts payable solutions on one intuitive platform to power finance operations.",
+      "problem_solved": "They aim to streamline finance operations and spend management for businesses.",
+      "target_customers": "Tech companies (FinOps)",
+      "industry": "Fintech",
+      "founders": [],
+      "founder_backgrounds": null,
+      "team_size": null,
+      "headquarters": null,
+      "office_locations": [],
+      "competitors": [],
+      "differentiators": null,
+      "recent_news": [
+        "We raised $500M to build the future of finance",
+        "Ramp Reaches $32 Billion Valuation, Doubling Revenue and Customers in Past Year",
+        "Ramp raises $300M, valuation soars to $32B"
+      ],
+      "hiring_signals": null,
+      "tech_stack_hints": [],
+      "culture_keywords": [],
+      "glassdoor_sentiment": null,
+      "interesting_facts": [
+        "Ramp recently reached a $32 billion valuation.",
+        "The company doubled its revenue and customer base in the past year.",
+        "They raised $500M in a recent funding round to build the future of finance."
+      ],
+      "potential_selling_points": [
+        "The company is experiencing rapid growth, having doubled revenue and customers in the past year.",
+        "Ramp is highly valued at $32 billion, indicating strong market confidence and stability.",
+        "Employees can work on building the 'future of finance' using a single intuitive platform."
+      ]
+    },
+    "requirements": {
+      "job_title": "Senior Product Manager",
+      "location_type": null,
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": 7,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": null,
+      "equity_range": null,
+      "bonus_structure": null
+    },
+    "traits": [
+      {
+        "id": "f300f922-8aba-4415-87b0-a9b479102dfd",
+        "name": "Product Management Expertise",
+        "description": "The ability to lead the strategy, development, and execution of key product initiatives, managing the end-to-end product lifecycle from concept through iteration.",
+        "priority": "must_have",
+        "signals": [
+          "7+ years of product management experience",
+          "Proven track record of launching and scaling successful products",
+          "Manage the end-to-end product lifecycle, from concept and planning through launch and iteration"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "4fef04cf-f7c2-4cca-b86b-1a8ec71994af",
+        "name": "Domain Knowledge",
+        "description": "A deep understanding of the specific industry and software types relevant to Ramp's platform, ensuring the product meets the needs of modern finance teams.",
+        "priority": "must_have",
+        "signals": [
+          "Preferably in fintech or SaaS",
+          "Deep understanding of financial operations, payment systems, or enterprise software"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "0c66cd16-8eb9-4412-8787-c01ad7e4eec1",
+        "name": "Analytical and Data-Driven Decision Making",
+        "description": "The capability to use data, market research, and user feedback to define product metrics, measure success, and inform future product decisions.",
+        "priority": "must_have",
+        "signals": [
+          "Strong analytical skills and ability to make data-driven decisions",
+          "Conduct market research, analyze user feedback, and identify opportunities for innovation",
+          "Define and track key product metrics to measure success and inform future decisions"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "9bcb53e9-af94-45b0-94a1-4a3b712366cc",
+        "name": "Leadership and Collaboration",
+        "description": "The ability to effectively communicate, collaborate, and lead cross-functional teams (engineering, design, finance, business) and mentor junior staff.",
+        "priority": "must_have",
+        "signals": [
+          "Excellent communication and leadership abilities",
+          "Collaborate with engineering, design, finance, and business teams to define product vision, prioritize features, and deliver solutions",
+          "Communicate product roadmaps, requirements, and updates to stakeholders across the organization",
+          "Mentor and guide junior product managers, fostering a culture of ownership and collaboration"
+        ],
+        "anti_signals": []
+      }
+    ],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": "This role is critical to shaping Ramp\u2019s financial platform and ensuring it meets the evolving needs of modern finance teams.",
+      "selling_points": [
+        "Lead the strategy, development, and execution of key product initiatives within Ramp\u2019s financial platform.",
+        "Opportunity to drive business growth and customer satisfaction through product innovation.",
+        "Work in a highly collaborative environment with engineering, design, finance, and business teams."
+      ],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "jd_paste",
+    "field_confidence": [
+      {
+        "field_name": "job_title",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "location",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "experience",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "compensation",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "visa",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "equity",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "traits",
+        "confidence": 0.9,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "interview_stages",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      }
+    ],
+    "is_complete": false,
+    "missing_required_fields": [
+      "location_type",
+      "compensation",
+      "visa_sponsorship",
+      "equity",
+      "interview_stages"
+    ],
+    "parallel_research_status": "complete"
+  },
+  "b9d7df0f-0720-4f92-a710-eb70c8ed8888": {
+    "id": "b9d7df0f-0720-4f92-a710-eb70c8ed8888",
+    "created_at": "2025-12-16T21:14:07.081600",
+    "updated_at": "2025-12-16T21:14:17.101275",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": "Spend Management, Corporate Cards & Accounts Payable Solutions",
+      "funding_stage": "series_d_plus",
+      "total_raised": null,
+      "last_round_date": "December 2025",
+      "investors": [
+        "Iconiq"
+      ],
+      "product_description": "Ramp provides a unified platform for finance operations, offering spend management, corporate cards, and accounts payable solutions.",
+      "problem_solved": null,
+      "target_customers": null,
+      "industry": "Fintech",
+      "founders": [],
+      "founder_backgrounds": null,
+      "team_size": null,
+      "headquarters": null,
+      "office_locations": [],
+      "competitors": [],
+      "differentiators": null,
+      "recent_news": [
+        "Ramp raises $500M to deepen product innovation & expand AI for finance",
+        "Ramp Reaches $32 Billion Valuation, Doubling Revenue and Customers in Past Year",
+        "Ramp announces Series D-2 capital raise"
+      ],
+      "hiring_signals": null,
+      "tech_stack_hints": [],
+      "culture_keywords": [],
+      "glassdoor_sentiment": null,
+      "interesting_facts": [
+        "Ramp reached a $32 billion valuation.",
+        "The company doubled its revenue and customer base in the year leading up to November 2025.",
+        "Ramp raised $500M specifically to expand AI capabilities for finance."
+      ],
+      "potential_selling_points": [
+        "The company is a high-growth fintech unicorn with a $32 billion valuation.",
+        "Recent significant funding ($500M) is earmarked for product innovation and AI expansion.",
+        "Ramp is focused on modernizing finance operations through a unified platform."
+      ]
+    },
+    "requirements": {
+      "job_title": "",
+      "location_type": null,
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": null,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": null,
+      "equity_range": null,
+      "bonus_structure": null
+    },
+    "traits": [],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": null,
+      "selling_points": [],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "conversation",
+    "field_confidence": [],
+    "is_complete": false,
+    "missing_required_fields": [
+      "job_title",
+      "location_type",
+      "experience_min_years",
+      "compensation",
+      "visa_sponsorship",
+      "equity",
+      "traits",
+      "interview_stages"
+    ],
+    "parallel_research_status": "complete"
   }
 }
