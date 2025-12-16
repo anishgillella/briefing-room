@@ -113,65 +113,99 @@ async def analyze_jd(request: AnalyzeJDRequest):
 
 @router.post("/upload")
 async def upload_csv(
-    background_tasks: BackgroundTasks, 
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     job_description: Annotated[Optional[str], Form()] = None,
     extraction_fields: Annotated[Optional[str], Form()] = None,
     scoring_criteria: Annotated[Optional[str], Form()] = None,
-    red_flag_indicators: Annotated[Optional[str], Form()] = None
+    red_flag_indicators: Annotated[Optional[str], Form()] = None,
+    job_profile_id: Annotated[Optional[str], Form()] = None
 ):
     """
     Upload a CSV file of candidates and process them.
     Step 1: Extracts and runs Algo Scoring ONLY.
     Step 2: Frontend must call /score to trigger AI scoring.
+
+    Optional: Pass job_profile_id to use a voice-ingest profile for context.
+    This will override job_description, extraction_fields, scoring_criteria, and red_flags.
     """
-    
+    import json
+
     if not file.filename.endswith('.csv'):
         raise HTTPException(status_code=400, detail="Invalid file format. Please upload a CSV file.")
-    
+
     # Check if already processing
     if state.status in ["extracting", "scoring"]:
         raise HTTPException(status_code=409, detail="Processing already in progress")
-    
+
     # Read file content
     content = await file.read()
-    
+
+    # If job_profile_id is provided, load context from voice ingest profile
+    if job_profile_id:
+        try:
+            from repositories import job_profile_repo
+            from services.profile_converter import convert_profile_to_scoring_context, build_enhanced_jd
+
+            # Fetch the job profile (sync wrapper for async)
+            import asyncio
+            profile = asyncio.get_event_loop().run_until_complete(job_profile_repo.get(job_profile_id))
+            if not profile:
+                raise HTTPException(status_code=404, detail=f"Job profile '{job_profile_id}' not found")
+
+            logger.info(f"Using voice ingest profile: {profile.requirements.job_title or job_profile_id}")
+
+            # Convert profile to scoring context
+            profile_jd, profile_criteria, profile_red_flags, profile_fields = convert_profile_to_scoring_context(profile)
+
+            # Override provided values with profile values
+            job_description = build_enhanced_jd(profile)
+            scoring_criteria = json.dumps(profile_criteria)
+            red_flag_indicators = json.dumps(profile_red_flags)
+            extraction_fields = json.dumps(profile_fields)
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Failed to load job profile: {e}")
+            raise HTTPException(status_code=500, detail=f"Failed to load job profile: {str(e)}")
+
     # Parse extraction_fields if provided
     parsed_fields = None
     if extraction_fields and isinstance(extraction_fields, str) and extraction_fields.strip():
         try:
-            import json
             parsed_fields = json.loads(extraction_fields)
         except json.JSONDecodeError:
             pass
-    
+
     # Store JD in state for use in scoring
     state.reset()
     state.job_description = job_description
     state.status = "extracting"
     state.message = "Starting extraction..."
-    
+
     # Parse and store criteria/red flags if provided
     if scoring_criteria:
         try:
-            state.scoring_criteria = json.loads(scoring_criteria)
+            state.scoring_criteria = json.loads(scoring_criteria) if isinstance(scoring_criteria, str) else scoring_criteria
         except:
             pass
-            
+
     if red_flag_indicators:
         try:
-            state.red_flag_indicators = json.loads(red_flag_indicators)
+            state.red_flag_indicators = json.loads(red_flag_indicators) if isinstance(red_flag_indicators, str) else red_flag_indicators
         except:
             pass
-            
+
     # Start background processing with skip_ai_scoring=True
     background_tasks.add_task(run_processing_pipeline, content, job_description, parsed_fields, True)
-    
+
     return {
         "status": "started",
         "message": f"Extracting candidates from {file.filename}...",
         "job_description_provided": bool(job_description),
         "extraction_fields_provided": bool(parsed_fields),
+        "job_profile_id": job_profile_id,
         "check_status_at": "/api/pluto/status"
     }
 

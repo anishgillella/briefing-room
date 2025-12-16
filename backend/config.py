@@ -31,16 +31,24 @@ GEMINI_ANALYTICS_MODEL = LLM_MODEL
 # OpenAI (for Realtime API)
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# LiveKit (for Voice Agent)
+# LiveKit (for Voice Agent) - DEPRECATED, using Vapi instead
 LIVEKIT_URL = os.getenv("LIVEKIT_URL")
 LIVEKIT_API_KEY = os.getenv("LIVEKIT_API_KEY")
 LIVEKIT_API_SECRET = os.getenv("LIVEKIT_API_SECRET")
+
+# Vapi (Voice AI Platform)
+VAPI_API_KEY = os.getenv("VAPI_API_KEY")  # Private API key for server-side calls
+VAPI_PUBLIC_KEY = os.getenv("VAPI_PUBLIC_KEY")  # Public key for frontend SDK
 
 # Deepgram (STT)
 DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
 
 # ElevenLabs (TTS)
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
+
+# Parallel.ai (Company Research)
+PARALLEL_API_KEY = os.getenv("PARALLEL_API_KEY")
+PARALLEL_API_URL = os.getenv("PARALLEL_API_URL", "https://api.parallel.ai/v1")
 
 # App
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
