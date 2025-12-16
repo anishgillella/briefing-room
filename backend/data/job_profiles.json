@@ -1,0 +1,2228 @@
+{
+  "03b0009a-04f4-443d-a875-d0b68b03911a": {
+    "id": "03b0009a-04f4-443d-a875-d0b68b03911a",
+    "created_at": "2025-12-16T06:39:13.512694",
+    "updated_at": "2025-12-16T06:39:15.239149",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": null,
+      "funding_stage": null,
+      "total_raised": null,
+      "last_round_date": null,
+      "investors": [],
+      "product_description": null,
+      "problem_solved": null,
+      "target_customers": null,
+      "industry": null,
+      "founders": [],
+      "founder_backgrounds": null,
+      "team_size": null,
+      "headquarters": null,
+      "office_locations": [],
+      "competitors": [],
+      "differentiators": null,
+      "recent_news": [],
+      "hiring_signals": null,
+      "tech_stack_hints": [],
+      "culture_keywords": [],
+      "glassdoor_sentiment": null,
+      "interesting_facts": [
+        "Visit https://ramp.com/ for more information"
+      ],
+      "potential_selling_points": [
+        "Growing company with exciting opportunities"
+      ]
+    },
+    "requirements": {
+      "job_title": "",
+      "location_type": null,
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": null,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": null,
+      "equity_range": null,
+      "bonus_structure": null
+    },
+    "traits": [],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": null,
+      "selling_points": [],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "conversation",
+    "field_confidence": [],
+    "is_complete": false,
+    "missing_required_fields": [
+      "job_title",
+      "location_type",
+      "experience_min_years",
+      "compensation",
+      "visa_sponsorship",
+      "equity",
+      "traits",
+      "interview_stages"
+    ],
+    "parallel_research_status": "complete"
+  },
+  "3552383d-66f9-4b9c-97ef-10b440e9cc63": {
+    "id": "3552383d-66f9-4b9c-97ef-10b440e9cc63",
+    "created_at": "2025-12-16T06:42:52.873848",
+    "updated_at": "2025-12-16T06:44:09.871969",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": null,
+      "funding_stage": null,
+      "total_raised": null,
+      "last_round_date": null,
+      "investors": [],
+      "product_description": null,
+      "problem_solved": null,
+      "target_customers": null,
+      "industry": null,
+      "founders": [],
+      "founder_backgrounds": null,
+      "team_size": null,
+      "headquarters": null,
+      "office_locations": [],
+      "competitors": [],
+      "differentiators": null,
+      "recent_news": [],
+      "hiring_signals": null,
+      "tech_stack_hints": [],
+      "culture_keywords": [],
+      "glassdoor_sentiment": null,
+      "interesting_facts": [],
+      "potential_selling_points": []
+    },
+    "requirements": {
+      "job_title": "Senior Product Manager, Spend Management",
+      "location_type": "hybrid",
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": 5,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": null,
+      "equity_range": null,
+      "bonus_structure": null
+    },
+    "traits": [
+      {
+        "id": "dee9ba6a-3df9-49c0-b4df-b570342ae15e",
+        "name": "Product Management Experience",
+        "description": "The candidate must have substantial experience managing B2B SaaS products, particularly those serving mid-market or enterprise customers.",
+        "priority": "must_have",
+        "signals": [
+          "5+ years of product management experience in B2B SaaS",
+          "Experience in fintech, payments, or finance/ERP tools",
+          "Experience supporting mid-market or enterprise customers"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "ac84d5ab-09fb-4049-a5b9-c61a59644cdf",
+        "name": "Domain Expertise in Spend Management",
+        "description": "Familiarity with financial workflows related to corporate spending, including cards, accounts payable, and accounting processes.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Experience with corporate cards",
+          "Experience with spend management",
+          "Experience with accounts payable automation",
+          "Experience with accounting workflows (e.g., closing the books, expense reconciliation)"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "4dcd86da-1553-4776-8d16-a552e9e0114e",
+        "name": "Product Strategy and Execution",
+        "description": "Ability to define product strategy, own the roadmap, and execute launches from discovery through iteration, maintaining high quality and compliance standards.",
+        "priority": "must_have",
+        "signals": [
+          "Track record of owning 0\u21921 or major 1\u2192N launches",
+          "Ability to simplify complex workflows or highly regulated domains",
+          "Work day-to-day with engineering and design to prioritize, scope, and ship high-impact features quickly"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "2e2555d7-0151-4bbb-8f87-4317f5cc6b1d",
+        "name": "Technical Acumen and Data Handling",
+        "description": "Comfort working with engineers on complex, data-heavy problems, especially those involving sensitive financial data and third-party integrations.",
+        "priority": "must_have",
+        "signals": [
+          "Comfort working through technical and data-heavy problems with engineers",
+          "Experience with systems that handle sensitive financial data",
+          "Experience with integrations with third-party tools (ERPs, HRIS)"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "3a366b5c-af4b-4c66-b1d1-6df768d3c871",
+        "name": "Stakeholder Management and Communication",
+        "description": "Excellent ability to communicate clearly, influence multiple internal and external stakeholders, and advocate for product decisions.",
+        "priority": "must_have",
+        "signals": [
+          "Excellent written and verbal communication skills",
+          "Ability to navigate and influence multiple stakeholders",
+          "Ability to influence C-suite executives at customer organizations"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "e03499d2-6734-4e64-aa2a-87017aa3004b",
+        "name": "Bias Toward Action and Ownership",
+        "description": "A proactive, results-oriented mindset suitable for a fast-paced, high-growth environment, focusing on measurable outcomes.",
+        "priority": "must_have",
+        "signals": [
+          "Bias toward action, hustle, and ownership",
+          "Focus on measurable outcomes for customers and the business",
+          "Work in a fast-paced, high-growth environment"
+        ],
+        "anti_signals": []
+      }
+    ],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": "Own and scale core spend management workflows (cards, expense management, AP) for a platform that helps customers save time and money and drives tens of billions of dollars in spend.",
+      "selling_points": [
+        "Opportunity to drive product decisions affecting tens of billions of dollars in spend each year.",
+        "Work in a high-ownership, hybrid culture centered on mentorship and empowerment.",
+        "Ramp is the ultimate platform for modern finance teams, automating manual processes and helping businesses run healthier.",
+        "Focus on eliminating financial waste and busywork for finance teams."
+      ],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "jd_paste",
+    "field_confidence": [
+      {
+        "field_name": "job_title",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "location",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "experience",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "compensation",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "visa",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "equity",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "traits",
+        "confidence": 0.9,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "interview_stages",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      }
+    ],
+    "is_complete": false,
+    "missing_required_fields": [
+      "compensation",
+      "visa_sponsorship",
+      "equity",
+      "interview_stages"
+    ],
+    "parallel_research_status": "complete"
+  },
+  "660d98af-5355-4684-91ac-41f432416778": {
+    "id": "660d98af-5355-4684-91ac-41f432416778",
+    "created_at": "2025-12-16T20:03:44.173236",
+    "updated_at": "2025-12-16T20:05:00.869864",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": null,
+      "funding_stage": null,
+      "total_raised": null,
+      "last_round_date": null,
+      "investors": [],
+      "product_description": null,
+      "problem_solved": null,
+      "target_customers": null,
+      "industry": null,
+      "founders": [],
+      "founder_backgrounds": null,
+      "team_size": null,
+      "headquarters": null,
+      "office_locations": [],
+      "competitors": [],
+      "differentiators": null,
+      "recent_news": [],
+      "hiring_signals": null,
+      "tech_stack_hints": [],
+      "culture_keywords": [],
+      "glassdoor_sentiment": null,
+      "interesting_facts": [],
+      "potential_selling_points": []
+    },
+    "requirements": {
+      "job_title": "Software Engineer",
+      "location_type": null,
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": 3,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": true,
+      "equity_range": null,
+      "bonus_structure": null
+    },
+    "traits": [
+      {
+        "id": "7fa367b2-d31d-4464-b1fa-e39b52237c64",
+        "name": "Backend Engineering",
+        "description": "The ability to design, implement, and operate scalable backend services and data pipelines using modern programming languages.",
+        "priority": "must_have",
+        "signals": [
+          "3+ years of professional software engineering experience building production systems",
+          "Strong experience with at least one backend language such as Python, Go, or Java",
+          "Familiarity with modern web technologies",
+          "Design and implement scalable backend services and data pipelines"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "189c216f-9cae-45a0-aa70-50451ecbeb03",
+        "name": "Cloud Infrastructure and Operations",
+        "description": "Experience designing and operating scalable services on major cloud providers, including familiarity with core infrastructure components and ensuring system reliability and observability.",
+        "priority": "must_have",
+        "signals": [
+          "Experience designing and operating scalable services on a major cloud provider (AWS, GCP, or Azure)",
+          "Experience with databases, queues, and container orchestration",
+          "Continuously improve code quality, reliability, observability, and performance across the stack",
+          "Take part in the on-call rotation to ensure high availability and rapid incident response for critical systems"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "e501467e-a58f-4ad0-b7ce-0d6006f677e5",
+        "name": "Product Delivery and Collaboration",
+        "description": "The capability to work cross-functionally with product managers and designers to scope, build, and launch high-quality features from ideation to production.",
+        "priority": "must_have",
+        "signals": [
+          "Collaborate with engineers, product managers, and designers to scope, build, and ship features",
+          "Proven track record of delivering high-quality features from ideation through launch in a fast-moving environment",
+          "Excellent communication skills and a collaborative, low-ego approach to working with cross-functional teams"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "2e859626-bc05-475f-90a4-7bfefd93a729",
+        "name": "System Architecture and Technical Leadership",
+        "description": "The ability to participate in high-level technical discussions, drive architectural decisions, and lead complex engineering projects.",
+        "priority": "must_have",
+        "signals": [
+          "Participate in technical discussions, drive architectural decisions, and lead complex projects from design to production",
+          "Mentor less experienced engineers through code reviews, pairing, and design feedback"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "13cef9ce-45b2-46d6-b8c4-80b8da1137a2",
+        "name": "Data and Integrations",
+        "description": "Comfort working with data models, APIs, and integrating with internal or external third-party platforms.",
+        "priority": "must_have",
+        "signals": [
+          "Comfortable working with data models, APIs, and integrations with third-party tools or internal platforms",
+          "Data pipelines that power reporting, automation, and real-time decisioning"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "89b1b88d-08ba-4ea3-958b-1999f33c82f5",
+        "name": "Fintech/B2B SaaS Domain Experience",
+        "description": "Prior professional experience working within the financial technology, B2B software, or financial operations space.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Experience in fintech, B2B SaaS, or financial operations products (e.g., payments, cards, accounting, or spend management)"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "5adb8104-92f3-44cb-8fe9-cc80c709b7cf",
+        "name": "Infrastructure as Code (IaC) and Observability",
+        "description": "Familiarity with tools used for managing infrastructure programmatically and advanced observability stacks for large-scale systems.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Familiarity with Infrastructure-as-Code tools such as Terraform",
+          "Observability stacks for large-scale systems"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "83280f37-2eba-4e03-b8d4-e91b6b3858b9",
+        "name": "Full-Stack/Frontend Capability",
+        "description": "The ability to contribute to the frontend stack when necessary, demonstrating versatility across the entire application.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Frontend experience with React or similar frameworks to contribute across the stack when needed"
+        ],
+        "anti_signals": []
+      }
+    ],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": "Help build the next generation of finance automation products used by thousands of businesses to manage spend, close their books faster, and operate more efficiently.",
+      "selling_points": [
+        "Opportunity to shape products that help companies save time and money by automating spend management and accounting workflows.",
+        "Culture focused on ownership, high impact, and long-term growth.",
+        "Mentorship from experienced operators and engineers.",
+        "Competitive compensation, meaningful equity, and tailored benefits."
+      ],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "jd_paste",
+    "field_confidence": [
+      {
+        "field_name": "job_title",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "location",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "experience",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "compensation",
+        "confidence": 0.7,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "visa",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "equity",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "traits",
+        "confidence": 0.9,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "interview_stages",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      }
+    ],
+    "is_complete": false,
+    "missing_required_fields": [
+      "location_type",
+      "compensation",
+      "visa_sponsorship",
+      "interview_stages"
+    ],
+    "parallel_research_status": "complete"
+  },
+  "113a8547-cb42-49ad-8497-d5ec13b42b3d": {
+    "id": "113a8547-cb42-49ad-8497-d5ec13b42b3d",
+    "created_at": "2025-12-16T20:12:26.349084",
+    "updated_at": "2025-12-16T20:12:45.396557",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": null,
+      "funding_stage": null,
+      "total_raised": null,
+      "last_round_date": null,
+      "investors": [],
+      "product_description": null,
+      "problem_solved": null,
+      "target_customers": null,
+      "industry": null,
+      "founders": [],
+      "founder_backgrounds": null,
+      "team_size": null,
+      "headquarters": null,
+      "office_locations": [],
+      "competitors": [],
+      "differentiators": null,
+      "recent_news": [],
+      "hiring_signals": null,
+      "tech_stack_hints": [],
+      "culture_keywords": [],
+      "glassdoor_sentiment": null,
+      "interesting_facts": [],
+      "potential_selling_points": []
+    },
+    "requirements": {
+      "job_title": "Software Engineer",
+      "location_type": null,
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": 3,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": true,
+      "equity_range": null,
+      "bonus_structure": null
+    },
+    "traits": [
+      {
+        "id": "dd1e86ea-b1e0-49e2-938b-84502376d65e",
+        "name": "Backend Engineering",
+        "description": "The ability to design, implement, and operate scalable backend services and data pipelines using modern programming languages.",
+        "priority": "must_have",
+        "signals": [
+          "3+ years of professional software engineering experience building production systems",
+          "Strong experience with at least one backend language such as Python, Go, or Java",
+          "Experience designing and operating scalable services on a major cloud provider (AWS, GCP, or Azure)",
+          "Experience with databases, queues, and container orchestration"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "0cfbf56f-758f-46c9-b825-d2a12f2998fd",
+        "name": "System Design and Architecture",
+        "description": "The capability to drive architectural decisions, lead complex projects, and continuously improve the reliability and performance of the entire stack.",
+        "priority": "must_have",
+        "signals": [
+          "Design and implement scalable backend services and data pipelines",
+          "Continuously improve code quality, reliability, observability, and performance across the stack",
+          "Participate in technical discussions, drive architectural decisions, and lead complex projects from design to production"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "f7f41e1d-2795-49ec-bf3e-d6467ffe44ca",
+        "name": "Product Delivery and Collaboration",
+        "description": "The skill set required to work effectively with cross-functional teams (Product, Design) to ship high-impact features end-to-end in a fast-paced environment.",
+        "priority": "must_have",
+        "signals": [
+          "Proven track record of delivering high-quality features from ideation through launch in a fast-moving environment",
+          "Excellent communication skills and a collaborative, low-ego approach to working with cross-functional teams",
+          "Comfortable working with data models, APIs, and integrations with third-party tools or internal platforms"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "61effc07-4d51-4849-9f72-abfbd48940c1",
+        "name": "Operational Excellence and Mentorship",
+        "description": "Willingness to ensure system availability through on-call participation and a commitment to elevating the skills of less experienced team members.",
+        "priority": "must_have",
+        "signals": [
+          "Take part in the on-call rotation to ensure high availability and rapid incident response for critical systems",
+          "Mentor less experienced engineers through code reviews, pairing, and design feedback"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "9a43768e-bf4b-4f50-84c0-f834081c6afe",
+        "name": "Fintech Domain Experience",
+        "description": "Prior experience working within the financial technology sector, particularly with B2B SaaS products related to financial operations.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Experience in fintech, B2B SaaS, or financial operations products (e.g., payments, cards, accounting, or spend management)"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "f5b42394-d5a3-4fb8-a4e0-30b804107aba",
+        "name": "DevOps and Observability",
+        "description": "Familiarity with modern infrastructure management practices and tools used for monitoring and maintaining large-scale systems.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Familiarity with Infrastructure-as-Code tools such as Terraform",
+          "Familiarity with observability stacks for large-scale systems"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "965a9c90-d941-4ca5-9f3a-a6ca4720c71b",
+        "name": "Full-Stack Capability",
+        "description": "The ability to contribute to the frontend stack when necessary, complementing core backend responsibilities.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Frontend experience with React or similar frameworks to contribute across the stack when needed"
+        ],
+        "anti_signals": []
+      }
+    ],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": "Help build the next generation of finance automation products used by thousands of businesses to manage spend, close their books faster, and operate more efficiently.",
+      "selling_points": [
+        "Opportunity to shape products that help companies save time and money by automating spend management and accounting workflows.",
+        "A culture focused on ownership, high impact, and long-term growth.",
+        "Mentorship from experienced operators and engineers.",
+        "Competitive compensation, meaningful equity, and tailored benefits."
+      ],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "jd_paste",
+    "field_confidence": [
+      {
+        "field_name": "job_title",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "location",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "experience",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "compensation",
+        "confidence": 0.5,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "visa",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "equity",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "traits",
+        "confidence": 0.9,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "interview_stages",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      }
+    ],
+    "is_complete": false,
+    "missing_required_fields": [
+      "location_type",
+      "compensation",
+      "visa_sponsorship",
+      "interview_stages"
+    ],
+    "parallel_research_status": "complete"
+  },
+  "c1200789-b36b-46cb-a564-c60545ad573b": {
+    "id": "c1200789-b36b-46cb-a564-c60545ad573b",
+    "created_at": "2025-12-16T20:16:43.673778",
+    "updated_at": "2025-12-16T20:17:13.130147",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": null,
+      "funding_stage": null,
+      "total_raised": null,
+      "last_round_date": null,
+      "investors": [],
+      "product_description": null,
+      "problem_solved": null,
+      "target_customers": null,
+      "industry": null,
+      "founders": [],
+      "founder_backgrounds": null,
+      "team_size": null,
+      "headquarters": null,
+      "office_locations": [],
+      "competitors": [],
+      "differentiators": null,
+      "recent_news": [],
+      "hiring_signals": null,
+      "tech_stack_hints": [],
+      "culture_keywords": [],
+      "glassdoor_sentiment": null,
+      "interesting_facts": [],
+      "potential_selling_points": []
+    },
+    "requirements": {
+      "job_title": "Software Engineer",
+      "location_type": null,
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": 3,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": true,
+      "equity_range": null,
+      "bonus_structure": null
+    },
+    "traits": [
+      {
+        "id": "02f3a8ba-d4c9-4fe4-93f0-0814aa5f2cbf",
+        "name": "Backend Engineering",
+        "description": "The ability to design, implement, and operate scalable backend services and data pipelines for reporting, automation, and real-time decisioning.",
+        "priority": "must_have",
+        "signals": [
+          "3+ years of professional software engineering experience building production systems",
+          "Strong experience with at least one backend language such as Python, Go, or Java",
+          "Experience designing and operating scalable services on a major cloud provider (AWS, GCP, or Azure)",
+          "Experience with databases, queues, and container orchestration"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "f1ecfa38-18bb-4b28-a5a2-97260f25244c",
+        "name": "System Reliability and Architecture",
+        "description": "A commitment to improving system quality, reliability, and performance, including participating in architectural decisions and leading complex projects.",
+        "priority": "must_have",
+        "signals": [
+          "Continuously improve code quality, reliability, observability, and performance across the stack",
+          "Participate in technical discussions, drive architectural decisions, and lead complex projects from design to production",
+          "Take part in the on-call rotation to ensure high availability and rapid incident response for critical systems"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "349a5e9c-dfd4-4d44-87d0-d384555977a0",
+        "name": "Cross-Functional Collaboration",
+        "description": "The skill to work effectively with product managers, designers, and other engineers to scope, build, and ship high-impact features end-to-end.",
+        "priority": "must_have",
+        "signals": [
+          "Excellent communication skills",
+          "A collaborative, low-ego approach to working with cross-functional teams",
+          "Proven track record of delivering high-quality features from ideation through launch in a fast-moving environment"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "34d0cc0c-90d1-4958-a66b-86127a3013c3",
+        "name": "Data and Integration",
+        "description": "Familiarity with working with data models, APIs, and integrating with both third-party tools and internal platforms.",
+        "priority": "must_have",
+        "signals": [
+          "Comfortable working with data models, APIs, and integrations with third-party tools or internal platforms"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "323dc06f-cb6b-4a4f-a547-6589024ed8ce",
+        "name": "Mentorship and Leadership",
+        "description": "The capacity to mentor less experienced engineers and provide constructive feedback through code reviews and design discussions.",
+        "priority": "must_have",
+        "signals": [
+          "Mentor less experienced engineers through code reviews, pairing, and design feedback"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "e5064f43-feb4-413e-83bf-c55da9fe70ad",
+        "name": "Fintech Domain Experience",
+        "description": "Prior experience working within the financial technology, B2B SaaS, or financial operations space.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Experience in fintech, B2B SaaS, or financial operations products (e.g., payments, cards, accounting, or spend management)"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "cc7ddd4c-6a47-4695-aa3f-f8e6b42e06f4",
+        "name": "DevOps and Observability",
+        "description": "Familiarity with modern infrastructure-as-code practices and tools for monitoring large-scale systems.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Familiarity with Infrastructure-as-Code tools such as Terraform",
+          "Familiarity with observability stacks for large-scale systems"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "c352bb68-aec1-4975-b35f-5aba3dfc99ad",
+        "name": "Full-Stack Capability",
+        "description": "The ability to contribute to the frontend stack when necessary, complementing core backend skills.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Frontend experience with React or similar frameworks to contribute across the stack when needed"
+        ],
+        "anti_signals": []
+      }
+    ],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": "Help build the next generation of finance automation products used by thousands of businesses to manage spend, close their books faster, and operate more efficiently.",
+      "selling_points": [
+        "Opportunity to shape products that help companies save time and money by automating spend management and accounting workflows.",
+        "Culture focused on ownership, high impact, and long-term growth.",
+        "Mentorship from experienced operators and engineers.",
+        "Competitive compensation, meaningful equity, and tailored benefits."
+      ],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "jd_paste",
+    "field_confidence": [
+      {
+        "field_name": "job_title",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "location",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "experience",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "compensation",
+        "confidence": 0.5,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "visa",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "equity",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "traits",
+        "confidence": 0.9,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "interview_stages",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      }
+    ],
+    "is_complete": false,
+    "missing_required_fields": [
+      "location_type",
+      "compensation",
+      "visa_sponsorship",
+      "interview_stages"
+    ],
+    "parallel_research_status": "complete"
+  },
+  "8b10ae23-ec16-42ad-9bac-f72ffa20cd4e": {
+    "id": "8b10ae23-ec16-42ad-9bac-f72ffa20cd4e",
+    "created_at": "2025-12-16T20:22:36.566595",
+    "updated_at": "2025-12-16T20:22:57.769081",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": null,
+      "funding_stage": null,
+      "total_raised": null,
+      "last_round_date": null,
+      "investors": [],
+      "product_description": null,
+      "problem_solved": null,
+      "target_customers": null,
+      "industry": null,
+      "founders": [],
+      "founder_backgrounds": null,
+      "team_size": null,
+      "headquarters": null,
+      "office_locations": [],
+      "competitors": [],
+      "differentiators": null,
+      "recent_news": [],
+      "hiring_signals": null,
+      "tech_stack_hints": [],
+      "culture_keywords": [],
+      "glassdoor_sentiment": null,
+      "interesting_facts": [],
+      "potential_selling_points": []
+    },
+    "requirements": {
+      "job_title": "Software Engineer",
+      "location_type": null,
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": 3,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": true,
+      "equity_range": null,
+      "bonus_structure": null
+    },
+    "traits": [
+      {
+        "id": "d8a70f1f-1bcd-4da1-a79b-225b2034941e",
+        "name": "Backend Engineering",
+        "description": "The ability to design, implement, and operate scalable backend services and data pipelines using modern programming languages.",
+        "priority": "must_have",
+        "signals": [
+          "3+ years of professional software engineering experience building production systems",
+          "Strong experience with at least one backend language such as Python, Go, or Java",
+          "Familiarity with modern web technologies",
+          "Design and implement scalable backend services and data pipelines"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "937f018a-d120-40ed-995e-aa49e09c93bd",
+        "name": "Cloud Infrastructure and Operations",
+        "description": "Experience designing and operating scalable services on major cloud providers, including familiarity with core infrastructure components and ensuring system reliability and observability.",
+        "priority": "must_have",
+        "signals": [
+          "Experience designing and operating scalable services on a major cloud provider (AWS, GCP, or Azure)",
+          "Experience with databases, queues, and container orchestration",
+          "Continuously improve code quality, reliability, observability, and performance across the stack",
+          "Take part in the on-call rotation to ensure high availability and rapid incident response for critical systems"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "c4055b53-8018-42fd-a7b7-ca042174dd45",
+        "name": "Cross-Functional Collaboration and Delivery",
+        "description": "The capacity to work effectively with product managers, designers, and other engineers to scope, build, and ship high-quality features end-to-end in a fast-paced environment.",
+        "priority": "must_have",
+        "signals": [
+          "Collaborate with engineers, product managers, and designers to scope, build, and ship features",
+          "Proven track record of delivering high-quality features from ideation through launch in a fast-moving environment",
+          "Excellent communication skills and a collaborative, low-ego approach to working with cross-functional teams"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "7e53723e-b2b1-48a3-9652-a5e85514fd8d",
+        "name": "System Architecture and Technical Leadership",
+        "description": "Ability to participate in high-level technical discussions, drive architectural decisions, and lead complex projects from initial design through to production deployment.",
+        "priority": "must_have",
+        "signals": [
+          "Participate in technical discussions, drive architectural decisions, and lead complex projects from design to production",
+          "Mentor less experienced engineers through code reviews, pairing, and design feedback"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "a2f42e64-49b4-4af3-97e9-243c45e77c46",
+        "name": "Data and Integration",
+        "description": "Comfort working with data models, APIs, and integrating with both internal and external third-party tools to power reporting and automation.",
+        "priority": "must_have",
+        "signals": [
+          "Comfortable working with data models, APIs, and integrations with third-party tools or internal platforms",
+          "Design and implement scalable backend services and data pipelines that power reporting, automation, and real-time decisioning"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "e868ba25-0612-4ffc-899b-031603cbbccc",
+        "name": "Fintech and B2B SaaS Domain Knowledge",
+        "description": "Prior experience working within the financial technology, B2B software-as-a-service, or financial operations space.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Experience in fintech, B2B SaaS, or financial operations products (e.g., payments, cards, accounting, or spend management)"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "7d4740ec-3a64-43f9-846f-830a03d6beae",
+        "name": "Infrastructure as Code and Observability",
+        "description": "Familiarity with tools used to manage infrastructure programmatically and experience setting up monitoring and logging for large-scale systems.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Familiarity with Infrastructure-as-Code tools such as Terraform",
+          "Familiarity with observability stacks for large-scale systems"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "e8ef5f75-b2c1-4123-8057-5b04e9c94fd4",
+        "name": "Full-Stack Capability",
+        "description": "The ability to contribute to frontend development when necessary, using modern JavaScript frameworks.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Frontend experience with React or similar frameworks to contribute across the stack when needed"
+        ],
+        "anti_signals": []
+      }
+    ],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": "Help build the next generation of finance automation products used by thousands of businesses to manage spend, close their books faster, and operate more efficiently.",
+      "selling_points": [
+        "Opportunity to shape products that help companies save time and money by automating spend management and accounting workflows.",
+        "A culture focused on ownership, high impact, and long-term growth.",
+        "Mentorship from experienced operators and engineers.",
+        "Competitive compensation, meaningful equity, and tailored benefits."
+      ],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "jd_paste",
+    "field_confidence": [
+      {
+        "field_name": "job_title",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "location",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "experience",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "compensation",
+        "confidence": 0.7,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "visa",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "equity",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "traits",
+        "confidence": 0.9,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "interview_stages",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      }
+    ],
+    "is_complete": false,
+    "missing_required_fields": [
+      "location_type",
+      "compensation",
+      "visa_sponsorship",
+      "interview_stages"
+    ],
+    "parallel_research_status": "complete"
+  },
+  "fd5ca090-70be-4651-975f-511036894ab8": {
+    "id": "fd5ca090-70be-4651-975f-511036894ab8",
+    "created_at": "2025-12-16T20:29:51.989610",
+    "updated_at": "2025-12-16T20:31:17.065340",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": null,
+      "funding_stage": null,
+      "total_raised": null,
+      "last_round_date": null,
+      "investors": [],
+      "product_description": null,
+      "problem_solved": null,
+      "target_customers": null,
+      "industry": null,
+      "founders": [],
+      "founder_backgrounds": null,
+      "team_size": null,
+      "headquarters": null,
+      "office_locations": [],
+      "competitors": [],
+      "differentiators": null,
+      "recent_news": [],
+      "hiring_signals": null,
+      "tech_stack_hints": [],
+      "culture_keywords": [],
+      "glassdoor_sentiment": null,
+      "interesting_facts": [],
+      "potential_selling_points": []
+    },
+    "requirements": {
+      "job_title": "Software Engineer",
+      "location_type": null,
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": 3,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": true,
+      "equity_range": null,
+      "bonus_structure": null
+    },
+    "traits": [
+      {
+        "id": "2d8dfd07-4d51-42a8-adbf-a9c08a1cf579",
+        "name": "Backend Engineering",
+        "description": "The ability to design, implement, and operate scalable backend services and data pipelines using modern programming languages.",
+        "priority": "must_have",
+        "signals": [
+          "3+ years of professional software engineering experience building production systems",
+          "Strong experience with at least one backend language such as Python, Go, or Java",
+          "Familiarity with modern web technologies",
+          "Design and implement scalable backend services and data pipelines"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "376cf6c7-20bb-4c96-bf32-fa09fc8a8518",
+        "name": "Cloud Infrastructure and Operations",
+        "description": "Experience deploying and managing scalable services on major cloud providers, including familiarity with core infrastructure components and ensuring system reliability.",
+        "priority": "must_have",
+        "signals": [
+          "Experience designing and operating scalable services on a major cloud provider (AWS, GCP, or Azure)",
+          "Experience with databases, queues, and container orchestration",
+          "Continuously improve code quality, reliability, observability, and performance across the stack",
+          "Take part in the on-call rotation to ensure high availability and rapid incident response for critical systems"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "0f434859-b920-49ea-898e-bcc09fb434f6",
+        "name": "Product Delivery and Execution",
+        "description": "The capability to take features from initial concept through to production launch, working effectively with cross-functional teams in a fast-paced environment.",
+        "priority": "must_have",
+        "signals": [
+          "Proven track record of delivering high-quality features from ideation through launch in a fast-moving environment",
+          "Collaborate with engineers, product managers, and designers to scope, build, and ship features",
+          "Comfortable working with data models, APIs, and integrations with third-party tools or internal platforms"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "a3438903-2e82-48c2-bb72-12acab092fbf",
+        "name": "Technical Leadership and Mentorship",
+        "description": "The capacity to drive complex technical decisions, lead architectural discussions, and guide less experienced engineers.",
+        "priority": "must_have",
+        "signals": [
+          "Participate in technical discussions, drive architectural decisions, and lead complex projects from design to production",
+          "Mentor less experienced engineers through code reviews, pairing, and design feedback"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "d199d8d9-2cfd-453e-aa0a-9e381d4cee2a",
+        "name": "Collaboration and Communication",
+        "description": "The ability to communicate effectively and work collaboratively with a low-ego approach across engineering, product, and design teams.",
+        "priority": "must_have",
+        "signals": [
+          "Excellent communication skills and a collaborative, low-ego approach to working with cross-functional teams"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "4acbe335-604e-4fd4-9c40-1eea4c2282a9",
+        "name": "Fintech and B2B SaaS Domain Knowledge",
+        "description": "Prior experience working within the financial technology, business-to-business software, or financial operations space.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Experience in fintech, B2B SaaS, or financial operations products (e.g., payments, cards, accounting, or spend management)"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "b3f951c6-4df0-4169-bcce-4af651c58044",
+        "name": "Infrastructure as Code and Observability",
+        "description": "Familiarity with modern tools used for managing infrastructure programmatically and monitoring large-scale system health.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Familiarity with Infrastructure-as-Code tools such as Terraform",
+          "Familiarity with observability stacks for large-scale systems"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "6459a9aa-c97b-45a0-819e-c3809acfc74c",
+        "name": "Full-Stack Capability",
+        "description": "The ability to contribute to the frontend stack when necessary, typically using modern JavaScript frameworks.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Frontend experience with React or similar frameworks to contribute across the stack when needed"
+        ],
+        "anti_signals": []
+      }
+    ],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": "Help build the next generation of finance automation products used by thousands of businesses to manage spend, close their books faster, and operate more efficiently.",
+      "selling_points": [
+        "Opportunity to shape products that help companies save time and money by automating spend management and accounting workflows.",
+        "A culture focused on ownership, high impact, and long-term growth.",
+        "Mentorship from experienced operators and engineers.",
+        "Competitive compensation, meaningful equity, and benefits tailored to support you."
+      ],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "jd_paste",
+    "field_confidence": [
+      {
+        "field_name": "job_title",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "location",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "experience",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "compensation",
+        "confidence": 0.7,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "visa",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "equity",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "traits",
+        "confidence": 0.9,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "interview_stages",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      }
+    ],
+    "is_complete": false,
+    "missing_required_fields": [
+      "location_type",
+      "compensation",
+      "visa_sponsorship",
+      "interview_stages"
+    ],
+    "parallel_research_status": "complete"
+  },
+  "c59c09c5-ce61-491f-9532-7679deac9fc7": {
+    "id": "c59c09c5-ce61-491f-9532-7679deac9fc7",
+    "created_at": "2025-12-16T20:38:46.426871",
+    "updated_at": "2025-12-16T20:39:53.392006",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": "Spend Management, Corporate Cards & Accounts Payable",
+      "funding_stage": "series_d_plus",
+      "total_raised": null,
+      "last_round_date": "December 2025",
+      "investors": [],
+      "product_description": "Ramp provides a platform for spend management, corporate cards, and accounts payable.",
+      "problem_solved": "It powers finance operations on one intuitive platform.",
+      "target_customers": "Businesses, particularly those in the tech industry looking for FinOps solutions.",
+      "industry": "Fintech",
+      "founders": [],
+      "founder_backgrounds": null,
+      "team_size": null,
+      "headquarters": null,
+      "office_locations": [],
+      "competitors": [],
+      "differentiators": "Different by design.",
+      "recent_news": [
+        "Ramp Reaches $32 Billion Valuation, Doubling Revenue and Customers in Past Year",
+        "Ramp raises $300M, valuation soars to $32B",
+        "We raised $500M to build the future of finance"
+      ],
+      "hiring_signals": null,
+      "tech_stack_hints": [],
+      "culture_keywords": [],
+      "glassdoor_sentiment": null,
+      "interesting_facts": [
+        "Ramp reached a $32 billion valuation, doubling its revenue and customer base in the year leading up to November 2025.",
+        "The company raised $500M to build the future of finance."
+      ],
+      "potential_selling_points": [
+        "Working at a company valued at $32 billion that is rapidly doubling its revenue and customer base.",
+        "Opportunity to build the future of finance on a unified spend management platform."
+      ]
+    },
+    "requirements": {
+      "job_title": "Software Engineer, Growth (Mid-Level)",
+      "location_type": "hybrid",
+      "location_city": "New York, NY",
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": 3,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": null,
+      "equity_range": null,
+      "bonus_structure": null
+    },
+    "traits": [
+      {
+        "id": "6970a1ea-8097-40a9-95e0-8d9990d21b48",
+        "name": "Software Engineering Experience",
+        "description": "The candidate must have professional experience building and shipping reliable applications using modern development tools and infrastructure.",
+        "priority": "must_have",
+        "signals": [
+          "3+ years of professional experience in a software engineering role.",
+          "Experience shipping fast, reliable applications using modern development tools and infrastructure."
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "7c9c4ab5-df0c-4120-a4bf-128c3ae4bf3f",
+        "name": "Startup Adaptability and Pace",
+        "description": "The ability to thrive in a fast-paced startup environment, iterate quickly, and respond effectively to new information and ambiguous situations.",
+        "priority": "must_have",
+        "signals": [
+          "Ability to thrive in a fast-paced startup environment and iterate quickly in response to new information.",
+          "A bias toward pragmatic, impact-focused solutions over idealized architectures in ambiguous situations."
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "63664579-2fd6-4492-be1f-060fce319193",
+        "name": "Problem Solving and Pragmatism",
+        "description": "Strong skills in solving complex problems, improvising when standard methods fail, and prioritizing pragmatic, impact-focused solutions.",
+        "priority": "must_have",
+        "signals": [
+          "Strong problem-solving skills and comfort improvising when standard approaches do not work.",
+          "A bias toward pragmatic, impact-focused solutions over idealized architectures in ambiguous situations.",
+          "Make pragmatic build-vs-buy decisions for tools and systems that support growth operations."
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "af0587f2-f0f5-4a42-bd6a-a0f70e9e9ab3",
+        "name": "Growth and Sales Tooling Experience",
+        "description": "Prior experience working specifically within growth engineering, or building tools for sales and marketing teams.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Prior experience in growth, sales tooling, or marketing engineering."
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "5d731b61-e9e1-4b8b-bf7d-4b96a7cb6a8c",
+        "name": "Data and Experimentation",
+        "description": "Familiarity with the platforms and pipelines used to support growth teams, including running experiments and analyzing data.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Familiarity with experimentation platforms, analytics tooling, and data pipelines that support growth teams.",
+          "Design and run experiments, using metrics to guide iteration and investment decisions."
+        ],
+        "anti_signals": []
+      }
+    ],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": "Build the applications that power nearly every growth channel at Ramp, directly impacting user and revenue growth.",
+      "selling_points": [
+        "Work on systems at the frontier of sales technology, turning raw data into actionable insights.",
+        "Opportunity to build software that helps Ramp reach its next millions of users across self-serve and sales-led channels.",
+        "Scale sales and marketing functions through custom internal applications, automation, and AI-assisted workflows.",
+        "High ownership and measurable business impact in a fast-paced startup environment."
+      ],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "jd_paste",
+    "field_confidence": [
+      {
+        "field_name": "job_title",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "location",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "experience",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "compensation",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "visa",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "equity",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "traits",
+        "confidence": 0.9,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "interview_stages",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      }
+    ],
+    "is_complete": false,
+    "missing_required_fields": [
+      "compensation",
+      "visa_sponsorship",
+      "equity",
+      "interview_stages"
+    ],
+    "parallel_research_status": "complete"
+  },
+  "aa282ad7-e01c-401d-806b-6a18fe370577": {
+    "id": "aa282ad7-e01c-401d-806b-6a18fe370577",
+    "created_at": "2025-12-16T20:45:26.770631",
+    "updated_at": "2025-12-16T20:45:50.944890",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": "Spend Management, Corporate Cards & Accounts Payable",
+      "funding_stage": "series_d_plus",
+      "total_raised": "$500M",
+      "last_round_date": "July 2025",
+      "investors": [
+        "Iconiq"
+      ],
+      "product_description": "Ramp provides a platform for spend management, corporate cards, and accounts payable.",
+      "problem_solved": "It helps businesses power their finance operations on one intuitive platform.",
+      "target_customers": "Businesses",
+      "industry": "Fintech",
+      "founders": [],
+      "founder_backgrounds": null,
+      "team_size": null,
+      "headquarters": null,
+      "office_locations": [],
+      "competitors": [],
+      "differentiators": null,
+      "recent_news": [
+        "Ramp Reaches $32 Billion Valuation, Doubling Revenue and Customers in Past Year",
+        "Ramp raises $300M, valuation soars to $32B",
+        "Fueled By AI, Fintech Ramp Raises $500M at a $22.5B Valuation"
+      ],
+      "hiring_signals": null,
+      "tech_stack_hints": [],
+      "culture_keywords": [],
+      "glassdoor_sentiment": null,
+      "interesting_facts": [
+        "Ramp reached a $32 billion valuation, doubling its revenue and customer base in the past year.",
+        "The company raised $500 million to build the future of finance."
+      ],
+      "potential_selling_points": [
+        "The company is a rapidly growing fintech unicorn with a recent valuation of $32 billion.",
+        "Ramp is focused on building the future of finance, utilizing AI in its platform."
+      ]
+    },
+    "requirements": {
+      "job_title": "Software Engineer, Growth (Mid-Level)",
+      "location_type": "hybrid",
+      "location_city": "New York, NY",
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": 3,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": null,
+      "equity_range": null,
+      "bonus_structure": null
+    },
+    "traits": [
+      {
+        "id": "5a82f1c8-c24a-4b77-8292-2d894cb820a3",
+        "name": "Core Software Engineering",
+        "description": "Requires foundational experience in professional software development and the ability to deliver high-quality, fast, and reliable applications using modern infrastructure.",
+        "priority": "must_have",
+        "signals": [
+          "3+ years of professional experience in a software engineering role",
+          "Experience shipping fast, reliable applications",
+          "Familiarity with modern development tools and infrastructure"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "4a76256d-dca0-4cd7-a824-9867a4f1365f",
+        "name": "Pragmatism and Business Impact Focus",
+        "description": "The ability to prioritize solutions based on measurable business impact, focusing on pragmatic outcomes over idealized architectural perfection, and making sound build-vs-buy decisions.",
+        "priority": "must_have",
+        "signals": [
+          "A bias toward pragmatic, impact-focused solutions",
+          "Make pragmatic build-vs-buy decisions for tools and systems",
+          "Design and run experiments, using metrics to guide iteration"
+        ],
+        "anti_signals": [
+          "Focusing on idealized architectures over timely delivery"
+        ]
+      },
+      {
+        "id": "0ccc86e0-9ada-408e-9aa3-833c2d8ba582",
+        "name": "Adaptability and Problem Solving",
+        "description": "The capacity to operate effectively in a fast-paced, ambiguous startup environment, solving novel problems and iterating quickly based on new information.",
+        "priority": "must_have",
+        "signals": [
+          "Ability to thrive in a fast-paced startup environment",
+          "Iterate quickly in response to new information",
+          "Strong problem-solving skills",
+          "Comfort improvising when standard approaches do not work"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "235b0ba1-91ff-453f-858b-cb51a6ff8a15",
+        "name": "Cross-Functional Collaboration",
+        "description": "The ability to partner closely with diverse stakeholders across product, data, design, sales, marketing, and finance to ship features end-to-end.",
+        "priority": "must_have",
+        "signals": [
+          "Collaborate with cross-functional partners in product, data, and design",
+          "Partner closely with product, data, design, and business stakeholders"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "a66a8d82-1205-4cd1-a080-6c9bdf4a2788",
+        "name": "Growth Domain Experience",
+        "description": "Familiarity with the specific tools, processes, and data infrastructure used to drive user acquisition and revenue growth.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Prior experience in growth, sales tooling, or marketing engineering",
+          "Familiarity with experimentation platforms, analytics tooling, and data pipelines that support growth teams"
+        ],
+        "anti_signals": []
+      }
+    ],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": "Own the systems at the frontier of sales technology and build custom internal applications, automation, and AI-assisted workflows that directly accelerate Ramp\u2019s user and revenue growth.",
+      "selling_points": [
+        "Directly impact Ramp's user and revenue growth across self-serve and sales-led channels.",
+        "High ownership and emphasis on experimentation and measurable business impact.",
+        "Opportunity to scale sales and marketing functions using custom internal applications and AI.",
+        "Work in a fast-paced, successful Series D+ Fintech environment."
+      ],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "jd_paste",
+    "field_confidence": [
+      {
+        "field_name": "job_title",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "location",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "experience",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "compensation",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "visa",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "equity",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "traits",
+        "confidence": 0.9,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "interview_stages",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      }
+    ],
+    "is_complete": false,
+    "missing_required_fields": [
+      "compensation",
+      "visa_sponsorship",
+      "equity",
+      "interview_stages"
+    ],
+    "parallel_research_status": "complete"
+  },
+  "8cc7ee65-3feb-40a3-a0e0-a0ac6b036265": {
+    "id": "8cc7ee65-3feb-40a3-a0e0-a0ac6b036265",
+    "created_at": "2025-12-16T21:07:25.417691",
+    "updated_at": "2025-12-16T21:09:41.674241",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": "Different By Design",
+      "funding_stage": "series_d_plus",
+      "total_raised": null,
+      "last_round_date": "December 2025",
+      "investors": [],
+      "product_description": "Ramp provides spend management, corporate cards, and accounts payable solutions for businesses.",
+      "problem_solved": "They aim to modernize and streamline finance operations for businesses.",
+      "target_customers": "Businesses, especially those in the Tech industry.",
+      "industry": "Fintech",
+      "founders": [],
+      "founder_backgrounds": null,
+      "team_size": null,
+      "headquarters": null,
+      "office_locations": [],
+      "competitors": [],
+      "differentiators": "They are \"Different By Design\" and focus on built-to-scale FinOps solutions for the tech industry.",
+      "recent_news": [
+        "Ramp raised $500M to build the future of finance",
+        "Ramp Reaches $32 Billion Valuation",
+        "Ramp at $32 billion: Money talks. Now It thinks."
+      ],
+      "hiring_signals": null,
+      "tech_stack_hints": [],
+      "culture_keywords": [],
+      "glassdoor_sentiment": null,
+      "interesting_facts": [
+        "Ramp reached a $32 billion valuation in late 2025.",
+        "The company doubled its revenue and customer base in the year leading up to its $32 billion valuation.",
+        "Ramp raised $500 million to continue building the future of finance."
+      ],
+      "potential_selling_points": [
+        "The company is a high-growth Fintech leader, recently valued at $32 billion.",
+        "Ramp is focused on modernizing finance operations and building the future of finance.",
+        "The company has demonstrated rapid market traction, doubling revenue and customers in a single year."
+      ]
+    },
+    "requirements": {
+      "job_title": "Senior Product Manager",
+      "location_type": null,
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": 7,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": null,
+      "equity_range": null,
+      "bonus_structure": null
+    },
+    "traits": [
+      {
+        "id": "d9f4d99e-715f-4922-ae32-c6321508c1a5",
+        "name": "Product Strategy and Lifecycle Management",
+        "description": "The ability to lead the end-to-end product lifecycle, defining vision, prioritizing features, and driving execution from concept through launch and iteration.",
+        "priority": "must_have",
+        "signals": [
+          "Proven track record of launching and scaling successful products",
+          "Managing the end-to-end product lifecycle",
+          "Defining product vision and prioritizing features",
+          "Leading strategy, development, and execution of key product initiatives"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "5c794e05-67c9-4dbc-a4f4-d435ec8ef982",
+        "name": "Domain Expertise (Fintech/SaaS)",
+        "description": "A deep understanding of the financial technology landscape, including financial operations, payment systems, or complex enterprise software.",
+        "priority": "must_have",
+        "signals": [
+          "7+ years of product management experience, preferably in fintech or SaaS",
+          "Deep understanding of financial operations",
+          "Experience with payment systems or enterprise software"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "510bb693-c70f-4864-b9fe-63d2ac0b4b4b",
+        "name": "Data-Driven Decision Making",
+        "description": "Strong analytical skills required to conduct market research, analyze user feedback, define key product metrics, and use data to inform strategic decisions.",
+        "priority": "must_have",
+        "signals": [
+          "Strong analytical skills",
+          "Ability to make data-driven decisions",
+          "Define and track key product metrics",
+          "Conduct market research and analyze user feedback"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "61b13c18-f38b-41ed-a1cd-5df1c4ebe53b",
+        "name": "Cross-Functional Leadership and Communication",
+        "description": "Excellent ability to lead teams, mentor junior staff, and communicate complex product roadmaps and requirements effectively to diverse stakeholders across the organization.",
+        "priority": "must_have",
+        "signals": [
+          "Excellent communication and leadership abilities",
+          "Collaborate with engineering, design, finance, and business teams",
+          "Communicate product roadmaps, requirements, and updates to stakeholders",
+          "Mentor and guide junior product managers"
+        ],
+        "anti_signals": []
+      }
+    ],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": "This role is critical to shaping Ramp\u2019s core financial platform and ensuring it meets the evolving needs of modern finance teams.",
+      "selling_points": [
+        "Lead the strategy and execution of key product initiatives within Ramp\u2019s critical financial platform.",
+        "Work cross-functionally with engineering, design, finance, and business teams at a high-growth Fintech company.",
+        "Opportunity to mentor and guide junior product managers, fostering leadership growth.",
+        "Drive business growth and customer satisfaction by managing the end-to-end product lifecycle."
+      ],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "jd_paste",
+    "field_confidence": [
+      {
+        "field_name": "job_title",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "location",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "experience",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "compensation",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "visa",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "equity",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "traits",
+        "confidence": 0.9,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "interview_stages",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      }
+    ],
+    "is_complete": false,
+    "missing_required_fields": [
+      "location_type",
+      "compensation",
+      "visa_sponsorship",
+      "equity",
+      "interview_stages"
+    ],
+    "parallel_research_status": "complete"
+  },
+  "8c98da83-b9fc-49fe-bb24-d5272f36765f": {
+    "id": "8c98da83-b9fc-49fe-bb24-d5272f36765f",
+    "created_at": "2025-12-16T21:13:05.195567",
+    "updated_at": "2025-12-16T21:13:27.182996",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": "Spend Management, Corporate Cards & Accounts Payable Solutions",
+      "funding_stage": "series_d_plus",
+      "total_raised": null,
+      "last_round_date": "December 2025",
+      "investors": [],
+      "product_description": "Ramp offers spend management, corporate cards, and accounts payable solutions on one intuitive platform to power finance operations.",
+      "problem_solved": "They aim to streamline finance operations and spend management for businesses.",
+      "target_customers": "Tech companies (FinOps)",
+      "industry": "Fintech",
+      "founders": [],
+      "founder_backgrounds": null,
+      "team_size": null,
+      "headquarters": null,
+      "office_locations": [],
+      "competitors": [],
+      "differentiators": null,
+      "recent_news": [
+        "We raised $500M to build the future of finance",
+        "Ramp Reaches $32 Billion Valuation, Doubling Revenue and Customers in Past Year",
+        "Ramp raises $300M, valuation soars to $32B"
+      ],
+      "hiring_signals": null,
+      "tech_stack_hints": [],
+      "culture_keywords": [],
+      "glassdoor_sentiment": null,
+      "interesting_facts": [
+        "Ramp recently reached a $32 billion valuation.",
+        "The company doubled its revenue and customer base in the past year.",
+        "They raised $500M in a recent funding round to build the future of finance."
+      ],
+      "potential_selling_points": [
+        "The company is experiencing rapid growth, having doubled revenue and customers in the past year.",
+        "Ramp is highly valued at $32 billion, indicating strong market confidence and stability.",
+        "Employees can work on building the 'future of finance' using a single intuitive platform."
+      ]
+    },
+    "requirements": {
+      "job_title": "Senior Product Manager",
+      "location_type": null,
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": 7,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": null,
+      "equity_range": null,
+      "bonus_structure": null
+    },
+    "traits": [
+      {
+        "id": "f300f922-8aba-4415-87b0-a9b479102dfd",
+        "name": "Product Management Expertise",
+        "description": "The ability to lead the strategy, development, and execution of key product initiatives, managing the end-to-end product lifecycle from concept through iteration.",
+        "priority": "must_have",
+        "signals": [
+          "7+ years of product management experience",
+          "Proven track record of launching and scaling successful products",
+          "Manage the end-to-end product lifecycle, from concept and planning through launch and iteration"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "4fef04cf-f7c2-4cca-b86b-1a8ec71994af",
+        "name": "Domain Knowledge",
+        "description": "A deep understanding of the specific industry and software types relevant to Ramp's platform, ensuring the product meets the needs of modern finance teams.",
+        "priority": "must_have",
+        "signals": [
+          "Preferably in fintech or SaaS",
+          "Deep understanding of financial operations, payment systems, or enterprise software"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "0c66cd16-8eb9-4412-8787-c01ad7e4eec1",
+        "name": "Analytical and Data-Driven Decision Making",
+        "description": "The capability to use data, market research, and user feedback to define product metrics, measure success, and inform future product decisions.",
+        "priority": "must_have",
+        "signals": [
+          "Strong analytical skills and ability to make data-driven decisions",
+          "Conduct market research, analyze user feedback, and identify opportunities for innovation",
+          "Define and track key product metrics to measure success and inform future decisions"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "9bcb53e9-af94-45b0-94a1-4a3b712366cc",
+        "name": "Leadership and Collaboration",
+        "description": "The ability to effectively communicate, collaborate, and lead cross-functional teams (engineering, design, finance, business) and mentor junior staff.",
+        "priority": "must_have",
+        "signals": [
+          "Excellent communication and leadership abilities",
+          "Collaborate with engineering, design, finance, and business teams to define product vision, prioritize features, and deliver solutions",
+          "Communicate product roadmaps, requirements, and updates to stakeholders across the organization",
+          "Mentor and guide junior product managers, fostering a culture of ownership and collaboration"
+        ],
+        "anti_signals": []
+      }
+    ],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": "This role is critical to shaping Ramp\u2019s financial platform and ensuring it meets the evolving needs of modern finance teams.",
+      "selling_points": [
+        "Lead the strategy, development, and execution of key product initiatives within Ramp\u2019s financial platform.",
+        "Opportunity to drive business growth and customer satisfaction through product innovation.",
+        "Work in a highly collaborative environment with engineering, design, finance, and business teams."
+      ],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "jd_paste",
+    "field_confidence": [
+      {
+        "field_name": "job_title",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "location",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "experience",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "compensation",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "visa",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "equity",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "traits",
+        "confidence": 0.9,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "interview_stages",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      }
+    ],
+    "is_complete": false,
+    "missing_required_fields": [
+      "location_type",
+      "compensation",
+      "visa_sponsorship",
+      "equity",
+      "interview_stages"
+    ],
+    "parallel_research_status": "complete"
+  },
+  "b9d7df0f-0720-4f92-a710-eb70c8ed8888": {
+    "id": "b9d7df0f-0720-4f92-a710-eb70c8ed8888",
+    "created_at": "2025-12-16T21:14:07.081600",
+    "updated_at": "2025-12-16T21:14:17.101275",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": "Spend Management, Corporate Cards & Accounts Payable Solutions",
+      "funding_stage": "series_d_plus",
+      "total_raised": null,
+      "last_round_date": "December 2025",
+      "investors": [
+        "Iconiq"
+      ],
+      "product_description": "Ramp provides a unified platform for finance operations, offering spend management, corporate cards, and accounts payable solutions.",
+      "problem_solved": null,
+      "target_customers": null,
+      "industry": "Fintech",
+      "founders": [],
+      "founder_backgrounds": null,
+      "team_size": null,
+      "headquarters": null,
+      "office_locations": [],
+      "competitors": [],
+      "differentiators": null,
+      "recent_news": [
+        "Ramp raises $500M to deepen product innovation & expand AI for finance",
+        "Ramp Reaches $32 Billion Valuation, Doubling Revenue and Customers in Past Year",
+        "Ramp announces Series D-2 capital raise"
+      ],
+      "hiring_signals": null,
+      "tech_stack_hints": [],
+      "culture_keywords": [],
+      "glassdoor_sentiment": null,
+      "interesting_facts": [
+        "Ramp reached a $32 billion valuation.",
+        "The company doubled its revenue and customer base in the year leading up to November 2025.",
+        "Ramp raised $500M specifically to expand AI capabilities for finance."
+      ],
+      "potential_selling_points": [
+        "The company is a high-growth fintech unicorn with a $32 billion valuation.",
+        "Recent significant funding ($500M) is earmarked for product innovation and AI expansion.",
+        "Ramp is focused on modernizing finance operations through a unified platform."
+      ]
+    },
+    "requirements": {
+      "job_title": "",
+      "location_type": null,
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": null,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": null,
+      "equity_range": null,
+      "bonus_structure": null
+    },
+    "traits": [],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": null,
+      "selling_points": [],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "conversation",
+    "field_confidence": [],
+    "is_complete": false,
+    "missing_required_fields": [
+      "job_title",
+      "location_type",
+      "experience_min_years",
+      "compensation",
+      "visa_sponsorship",
+      "equity",
+      "traits",
+      "interview_stages"
+    ],
+    "parallel_research_status": "complete"
+  }
+}

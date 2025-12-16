@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import rooms, realtime, analytics, coach, prebrief, pluto, livekit_router, db_interviews, db_managers, db_interviewers
+from routers import rooms, realtime, analytics, coach, prebrief, pluto, livekit_router, db_interviews, db_managers, db_interviewers, voice_ingest
 from typing import Annotated, Optional
 
 app = FastAPI(
@@ -12,7 +12,12 @@ app = FastAPI(
 # CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3001",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -29,6 +34,7 @@ app.include_router(livekit_router.router, prefix="/api")
 app.include_router(db_interviews.router)  # Multi-stage interview routes
 app.include_router(db_managers.router)    # Manager dashboard routes
 app.include_router(db_interviewers.router)  # Interviewer analytics routes
+app.include_router(voice_ingest.router)   # Voice ingest onboarding routes
 
 
 @app.get("/health")
