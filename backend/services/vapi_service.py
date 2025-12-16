@@ -63,17 +63,23 @@ class VapiService:
         job_context = ""
         if job_profile:
             jp = job_profile
+            req = jp.requirements
             job_context = f"""
 ## Current Job Profile Data
-- Job Title: {jp.job_title or 'Not set'}
-- Location: {jp.location or 'Not set'}
-- Remote Policy: {jp.remote_policy.value if jp.remote_policy else 'Not set'}
-- Salary Range: {jp.salary_min or '?'}k - {jp.salary_max or '?'}k {jp.salary_currency or 'USD'}
+- Job Title: {req.job_title or 'Not set'}
+- Location: {req.location_city or 'Not set'}
+- Remote Policy: {req.location_type.value if req.location_type else 'Not set'}
+- Salary Range: {(req.salary_min // 1000) if req.salary_min else '?'}k - {(req.salary_max // 1000) if req.salary_max else '?'}k {req.salary_currency or 'USD'}
+- Experience: {req.experience_min_years or '?'}+ years
 """
-            if jp.must_have_skills:
-                job_context += f"- Must-Have Skills: {', '.join(jp.must_have_skills[:5])}\n"
-            if jp.nice_to_have_skills:
-                job_context += f"- Nice-to-Have Skills: {', '.join(jp.nice_to_have_skills[:5])}\n"
+            # Get must-have traits
+            must_have_traits = jp.get_must_have_traits()
+            if must_have_traits:
+                job_context += f"- Must-Have Skills: {', '.join([t.name for t in must_have_traits[:5]])}\n"
+            # Get nice-to-have traits
+            nice_to_have_traits = jp.get_nice_to_have_traits()
+            if nice_to_have_traits:
+                job_context += f"- Nice-to-Have Skills: {', '.join([t.name for t in nice_to_have_traits[:5]])}\n"
 
         return f"""You are a friendly, professional recruiting assistant helping {user_name} build out a job profile for their company.
 
