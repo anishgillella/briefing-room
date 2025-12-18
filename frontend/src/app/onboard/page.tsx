@@ -408,6 +408,7 @@ export default function OnboardPage() {
                                         callId: vapiCall.call_id,
                                         webCallUrl: vapiCall.web_call_url,
                                         assistantId: vapiCall.assistant_id,
+                                        assistantOverrides: vapiCall.assistant_overrides,
                                     }}
                                     sessionId={sessionId!}
                                     onEnd={handleVoiceEnd}

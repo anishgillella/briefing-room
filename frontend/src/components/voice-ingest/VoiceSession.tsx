@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Mic, MicOff, PhoneOff, Volume2, VolumeX, Loader2, CheckCircle } from "lucide-react";
 
 interface VoiceSessionProps {
@@ -9,6 +9,11 @@ interface VoiceSessionProps {
         callId?: string;
         webCallUrl?: string;
         assistantId?: string;
+        assistantOverrides?: {
+            variableValues?: Record<string, string>;
+            firstMessage?: string;
+            metadata?: Record<string, any>;
+        };
     };
     sessionId: string;
     onEnd?: () => void;
@@ -39,6 +44,16 @@ export default function VoiceSession({
     const vapiRef = useRef<any>(null);
     const startTimeRef = useRef<number | null>(null);
     const isConnectingRef = useRef(false);
+    const hasInitializedRef = useRef(false);
+    const onTranscriptRef = useRef(onTranscript);
+
+    // Keep ref updated
+    useEffect(() => {
+        onTranscriptRef.current = onTranscript;
+    }, [onTranscript]);
+
+    // Memoize the assistant ID to prevent re-renders
+    const assistantId = assistantConfig?.assistantId;
 
     // Duration timer
     useEffect(() => {
@@ -54,15 +69,24 @@ export default function VoiceSession({
         return () => clearInterval(interval);
     }, [connectionState]);
 
-    // Initialize Vapi
+    // Initialize Vapi - only once
     useEffect(() => {
-        if (isConnectingRef.current) {
-            console.log("[Vapi] Already connecting, skipping...");
+        // Prevent multiple initializations (React Strict Mode)
+        if (hasInitializedRef.current || isConnectingRef.current) {
+            console.log("[Vapi] Already initialized or connecting, skipping...");
+            return;
+        }
+
+        if (!assistantId) {
+            console.error("[Vapi] No assistant ID provided");
+            setError("No assistant configuration provided");
+            setConnectionState("failed");
             return;
         }
 
         const initVapi = async () => {
             isConnectingRef.current = true;
+            hasInitializedRef.current = true;
 
             try {
                 setConnectionState("connecting");
@@ -87,18 +111,14 @@ export default function VoiceSession({
                 });
 
                 vapi.on("speech-start", () => {
-                    console.log("[Vapi] Agent speaking");
                     setIsAgentSpeaking(true);
                 });
 
                 vapi.on("speech-end", () => {
-                    console.log("[Vapi] Agent stopped speaking");
                     setIsAgentSpeaking(false);
                 });
 
                 vapi.on("message", (message: any) => {
-                    console.log("[Vapi] Message:", message);
-
                     // Handle transcript messages
                     if (message.type === "transcript") {
                         const role = message.role === "assistant" ? "agent" : "user";
@@ -106,52 +126,51 @@ export default function VoiceSession({
 
                         if (message.transcriptType === "final") {
                             setTranscript((prev) => [...prev, { role, text }]);
-                            onTranscript?.(role as 'user' | 'agent', text);
+                            onTranscriptRef.current?.(role as 'user' | 'agent', text);
                         }
-                    }
-
-                    // Handle conversation updates
-                    if (message.type === "conversation-update") {
-                        console.log("[Vapi] Conversation update:", message.conversation);
                     }
                 });
 
                 vapi.on("error", (err: any) => {
                     console.error("[Vapi] Error:", err);
-                    setError(err.message || "Voice call error");
+                    const errorMsg = err?.message || err?.error?.message || "Voice call error";
+                    setError(errorMsg);
                     setConnectionState("failed");
                 });
 
-                vapi.on("volume-level", (volume: number) => {
-                    // Could use for visual feedback
-                });
+                // Start the call with metadata containing sessionId
+                console.log("[Vapi] Starting call with assistant:", assistantId, "sessionId:", sessionId);
 
-                // Start the call
-                console.log("[Vapi] Starting call with config:", assistantConfig);
+                try {
+                    // Pass metadata with sessionId so webhook knows which session to update
+                    const callOptions: any = {
+                        metadata: {
+                            sessionId: sessionId,
+                        }
+                    };
 
-                if (assistantConfig?.webCallUrl) {
-                    // If we have a web call URL, the call is already created
-                    // Just need to join it - but Vapi Web SDK doesn't support this directly
-                    // We'll start a new call with the assistant ID instead
-                    if (assistantConfig.assistantId) {
-                        await vapi.start(assistantConfig.assistantId);
-                    } else {
-                        // Start without assistant ID - will use the configured assistant
-                        await vapi.start();
+                    // Add assistantOverrides if provided
+                    if (assistantConfig?.assistantOverrides) {
+                        callOptions.assistantOverrides = {
+                            ...assistantConfig.assistantOverrides,
+                            metadata: {
+                                ...assistantConfig.assistantOverrides.metadata,
+                                sessionId: sessionId,
+                            }
+                        };
                     }
-                } else if (assistantConfig?.assistantId) {
-                    await vapi.start(assistantConfig.assistantId);
-                } else {
-                    // This means we need to pass assistant config inline
-                    // The backend should have created the call with the context
-                    throw new Error("No assistant configuration provided");
+
+                    console.log("[Vapi] Call options:", JSON.stringify(callOptions, null, 2));
+                    await vapi.start(assistantId, callOptions);
+                    console.log("[Vapi] Call initiated successfully");
+                } catch (startErr: any) {
+                    console.error("[Vapi] Start failed:", startErr);
+                    throw startErr;
                 }
 
-                console.log("[Vapi] Call initiated");
-
-            } catch (err) {
+            } catch (err: any) {
                 console.error("[Vapi] Initialization error:", err);
-                setError(err instanceof Error ? err.message : "Failed to start voice call");
+                setError(err?.message || "Failed to start voice call");
                 setConnectionState("failed");
             } finally {
                 isConnectingRef.current = false;
@@ -166,13 +185,12 @@ export default function VoiceSession({
                 try {
                     vapiRef.current.stop();
                 } catch (e) {
-                    console.warn("[Vapi] Error stopping call:", e);
+                    // Ignore cleanup errors
                 }
                 vapiRef.current = null;
             }
-            isConnectingRef.current = false;
         };
-    }, [vapiPublicKey, assistantConfig, onTranscript]);
+    }, [vapiPublicKey, assistantId]); // Only depend on stable values
 
     // Toggle mute
     const toggleMute = useCallback(() => {

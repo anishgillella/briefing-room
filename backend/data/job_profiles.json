@@ -2224,5 +2224,1553 @@
       "interview_stages"
     ],
     "parallel_research_status": "complete"
+  },
+  "450f45eb-1deb-4a83-bf4f-4f43bff0d73d": {
+    "id": "450f45eb-1deb-4a83-bf4f-4f43bff0d73d",
+    "created_at": "2025-12-16T21:22:18.385367",
+    "updated_at": "2025-12-16T21:22:22.596264",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": "The finance automation platform designed to save you time and money.",
+      "funding_stage": "series_d_plus",
+      "total_raised": "$1.5B",
+      "last_round_date": "April 2024",
+      "investors": [
+        "Founders Fund",
+        "Thrive Capital",
+        "General Catalyst",
+        "Coatue",
+        "D1 Capital Partners",
+        "Sequoia Capital",
+        "Greylock Partners",
+        "Redpoint Ventures"
+      ],
+      "product_description": "Ramp offers a corporate card, expense management, bill payment, and accounting automation software suite. It aims to replace traditional corporate spending tools by providing real-time visibility and automated savings.",
+      "problem_solved": "It solves the inefficiency and lack of control associated with traditional corporate spending and expense reporting processes, helping businesses save money and time.",
+      "target_customers": "Mid-market and enterprise businesses looking to automate their finance operations, expense management, and corporate card programs.",
+      "industry": "Fintech",
+      "founders": [
+        "Eric Glyman",
+        "Karim Atiyeh",
+        "Gene Lee"
+      ],
+      "founder_backgrounds": "Ex-Paribus (acquired by Capital One), indicating strong prior experience in consumer finance and technology.",
+      "team_size": "1000-5000",
+      "headquarters": "New York, New York",
+      "office_locations": [
+        "New York",
+        "Miami"
+      ],
+      "competitors": [
+        "Brex",
+        "Divvy (Bill.com)",
+        "Expensify",
+        "American Express (Amex)",
+        "Stripe (in some areas)"
+      ],
+      "differentiators": "Ramp emphasizes saving money for businesses through automated controls, real-time spend limits, and proactive identification of wasteful spending, rather than just optimizing rewards or points.",
+      "recent_news": [
+        "Ramp announced a $150 million funding round in April 2024, valuing the company at $7.65 billion.",
+        "Launched Ramp Intelligence, an AI-powered tool for deeper financial insights and automation.",
+        "Expanded its bill payment capabilities to handle complex vendor management and procurement workflows."
+      ],
+      "hiring_signals": "Hiring aggressively, particularly in engineering, product, and sales roles, following significant valuation increases.",
+      "tech_stack_hints": [
+        "Python",
+        "Go",
+        "React",
+        "TypeScript",
+        "PostgreSQL",
+        "AWS/GCP",
+        "Kubernetes"
+      ],
+      "culture_keywords": [
+        "Fast-paced",
+        "High-growth",
+        "Execution-focused",
+        "Data-driven",
+        "Customer-centric"
+      ],
+      "glassdoor_sentiment": null,
+      "interesting_facts": [
+        "Ramp achieved unicorn status (over $1 billion valuation) faster than any other corporate card company.",
+        "The company was founded by the same team that created Paribus, a service acquired by Capital One that automatically got users refunds when prices dropped.",
+        "Ramp's core value proposition is saving customers money, claiming to save the average client 3.3% in their first year, which is a unique metric in the corporate card space."
+      ],
+      "potential_selling_points": [
+        "Opportunity to work at one of the fastest-growing and highest-valued private fintech companies in the world.",
+        "Solving real, painful financial problems for businesses using modern software and AI.",
+        "Strong leadership team with a proven track record of successful exits and scaling technology products."
+      ]
+    },
+    "requirements": {
+      "job_title": "",
+      "location_type": null,
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": null,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": null,
+      "equity_range": null,
+      "bonus_structure": null
+    },
+    "traits": [],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": null,
+      "selling_points": [],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "conversation",
+    "field_confidence": [],
+    "is_complete": false,
+    "missing_required_fields": [
+      "job_title",
+      "location_type",
+      "experience_min_years",
+      "compensation",
+      "visa_sponsorship",
+      "equity",
+      "traits",
+      "interview_stages"
+    ],
+    "parallel_research_status": "complete"
+  },
+  "2a2488f6-fe8f-401a-9327-dec4120745d2": {
+    "id": "2a2488f6-fe8f-401a-9327-dec4120745d2",
+    "created_at": "2025-12-16T21:23:09.261418",
+    "updated_at": "2025-12-16T21:23:28.589025",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": "The finance automation platform designed to save you time and money.",
+      "funding_stage": "series_d_plus",
+      "total_raised": "$1.5B",
+      "last_round_date": "August 2023",
+      "investors": [
+        "Founders Fund",
+        "Thrive Capital",
+        "Coatue",
+        "D1 Capital Partners",
+        "Redpoint Ventures",
+        "General Catalyst",
+        "Sequoia Capital"
+      ],
+      "product_description": "Ramp offers a corporate card, expense management, bill payments, and accounting automation software. It is an all-in-one finance platform designed to help businesses manage spending and close their books faster.",
+      "problem_solved": "Ramp helps businesses automate their financial operations, eliminate manual expense reporting, and reduce wasteful spending through real-time visibility and controls.",
+      "target_customers": "Mid-market and enterprise businesses looking to modernize their financial stack, particularly those focused on efficiency and growth.",
+      "industry": "Fintech",
+      "founders": [
+        "Eric Glyman",
+        "Karim Atiyeh",
+        "Gene Lee"
+      ],
+      "founder_backgrounds": "Ex-Paribus (acquired by Capital One), indicating strong prior startup and financial technology experience.",
+      "team_size": "1000-5000 (Uncertain, but likely over 1,000 employees based on valuation and growth)",
+      "headquarters": "New York, New York",
+      "office_locations": [
+        "New York"
+      ],
+      "competitors": [
+        "Brex",
+        "Divvy (Bill.com)",
+        "Expensify",
+        "Stripe (in some areas)"
+      ],
+      "differentiators": "Ramp focuses heavily on saving customers money, offering high cashback and proactive insights to curb wasteful spending, positioning itself as a cost-saving tool rather than just a spending tool.",
+      "recent_news": [
+        "Ramp acquired the startup Cohere to enhance its AI capabilities for finance automation (2023/2024).",
+        "Ramp reached a valuation of $5.8 billion in its last funding round.",
+        "Ramp expanded its platform to include procurement and vendor management tools."
+      ],
+      "hiring_signals": "Hiring aggressively, especially in engineering, product, and sales roles, reflecting rapid growth and product expansion.",
+      "tech_stack_hints": [
+        "Python",
+        "Go",
+        "React",
+        "TypeScript",
+        "PostgreSQL",
+        "AWS/GCP",
+        "Kubernetes"
+      ],
+      "culture_keywords": [
+        "Fast-paced",
+        "Execution-focused",
+        "High-growth",
+        "Mission-driven",
+        "Data-informed"
+      ],
+      "glassdoor_sentiment": null,
+      "interesting_facts": [
+        "Ramp achieved a $1.6 billion valuation just two years after its founding, making it one of the fastest-growing fintech companies ever.",
+        "The founders previously built Paribus, a price-tracking service acquired by Capital One, demonstrating a successful track record in consumer finance technology.",
+        "Ramp was the first corporate card to offer software that actively helps businesses find savings, rather than just tracking spending."
+      ],
+      "potential_selling_points": [
+        "Opportunity to work at a hyper-growth, multi-billion dollar valuation fintech company disrupting traditional corporate finance.",
+        "Strong focus on product innovation, leveraging AI and automation to solve complex business problems.",
+        "A chance to build foundational infrastructure in the financial technology space with a highly experienced founding team."
+      ]
+    },
+    "requirements": {
+      "job_title": "Senior Product Manager",
+      "location_type": null,
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": 7,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": null,
+      "equity_range": null,
+      "bonus_structure": null
+    },
+    "traits": [
+      {
+        "id": "db2147ed-a31e-478a-a9f7-ef83f1100d37",
+        "name": "Product Management Expertise",
+        "description": "The ability to lead the strategy, development, and execution of key product initiatives, managing the end-to-end product lifecycle from concept through iteration.",
+        "priority": "must_have",
+        "signals": [
+          "7+ years of product management experience",
+          "Proven track record of launching and scaling successful products",
+          "Experience defining product vision and prioritizing features"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "c8e25ffa-bef8-4b9e-a3dd-11aa47696d51",
+        "name": "Domain Knowledge",
+        "description": "Familiarity with the specific industry or functional areas relevant to Ramp's platform, such as financial technology, payment systems, or enterprise software.",
+        "priority": "must_have",
+        "signals": [
+          "Preferably in fintech or SaaS",
+          "Deep understanding of financial operations",
+          "Deep understanding of payment systems",
+          "Deep understanding of enterprise software"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "fc057290-6f0c-4753-b5be-4b99ede0d525",
+        "name": "Data-Driven Decision Making",
+        "description": "The capability to use analytical skills to conduct market research, analyze user feedback, define key metrics, and inform future product decisions.",
+        "priority": "must_have",
+        "signals": [
+          "Strong analytical skills",
+          "Ability to make data-driven decisions",
+          "Experience defining and tracking key product metrics"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "9eacc6e1-6fa1-4d03-989b-ccebb3c6ea22",
+        "name": "Leadership and Communication",
+        "description": "The ability to effectively communicate product roadmaps and requirements to stakeholders and mentor junior team members.",
+        "priority": "must_have",
+        "signals": [
+          "Excellent communication and leadership abilities",
+          "Experience communicating product roadmaps, requirements, and updates to stakeholders",
+          "Experience mentoring and guiding junior product managers"
+        ],
+        "anti_signals": []
+      }
+    ],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": "Shape Ramp\u2019s platform and ensure it meets the evolving needs of modern finance teams.",
+      "selling_points": [
+        "Lead the strategy and development of key product initiatives within Ramp\u2019s financial platform.",
+        "Opportunity to drive business growth and customer satisfaction.",
+        "Role involves mentoring and guiding junior product managers."
+      ],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "jd_paste",
+    "field_confidence": [
+      {
+        "field_name": "job_title",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "location",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "experience",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "compensation",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "visa",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "equity",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "traits",
+        "confidence": 0.9,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "interview_stages",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      }
+    ],
+    "is_complete": false,
+    "missing_required_fields": [
+      "location_type",
+      "compensation",
+      "visa_sponsorship",
+      "equity",
+      "interview_stages"
+    ],
+    "parallel_research_status": "complete"
+  },
+  "ee325a48-17ff-4164-89e0-be23c2ad3fd5": {
+    "id": "ee325a48-17ff-4164-89e0-be23c2ad3fd5",
+    "created_at": "2025-12-16T21:26:26.849591",
+    "updated_at": "2025-12-16T21:26:57.096448",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": "The finance automation platform designed to save businesses time and money.",
+      "funding_stage": "series_d_plus",
+      "total_raised": "$1.1B",
+      "last_round_date": "March 2023",
+      "investors": [
+        "Founders Fund",
+        "Coatue",
+        "D1 Capital Partners",
+        "Thrive Capital",
+        "General Catalyst",
+        "Redpoint Ventures",
+        "Keith Rabois"
+      ],
+      "product_description": "Ramp provides corporate cards, expense management, bill payment, and procurement software, all integrated into a unified platform. Their system automates financial tasks and enforces spending policies in real-time.",
+      "problem_solved": "Ramp helps modern businesses gain real-time visibility and control over their spending while automating tedious financial processes like expense reports and reconciliation.",
+      "target_customers": "Startups, mid-market companies, and large enterprises across various industries seeking to optimize their operational spending.",
+      "industry": "Fintech",
+      "founders": [
+        "Eric Glyman",
+        "Gene Lee",
+        "Karim Atiyeh"
+      ],
+      "founder_backgrounds": "The founders previously co-founded Paribus, a price tracking service acquired by Capital One, indicating strong prior experience in consumer finance and optimization technology.",
+      "team_size": "1000-2000",
+      "headquarters": "New York, NY",
+      "office_locations": [
+        "New York, NY"
+      ],
+      "competitors": [
+        "Brex",
+        "Divvy (Bill.com)",
+        "Expensify",
+        "American Express"
+      ],
+      "differentiators": "Ramp focuses heavily on cost savings and financial optimization, often highlighting the money they save customers through automated policy enforcement and identifying wasteful spending. They offer 1.5% cashback on all purchases.",
+      "recent_news": [
+        "Ramp expands into procurement and travel management to become a full-suite finance automation platform.",
+        "Ramp achieves an $8.1 billion valuation following its Series E funding round.",
+        "Ramp launches new features leveraging AI to automate invoice processing and reconciliation."
+      ],
+      "hiring_signals": "Hiring aggressively across engineering, product, and sales functions to support rapid product expansion and market share capture.",
+      "tech_stack_hints": [
+        "Python",
+        "TypeScript",
+        "React",
+        "AWS/GCP",
+        "Modern data warehousing (e.g., Snowflake)"
+      ],
+      "culture_keywords": [
+        "High-growth",
+        "Execution-focused",
+        "Data-driven",
+        "Ambitious",
+        "Customer-obsessed"
+      ],
+      "glassdoor_sentiment": null,
+      "interesting_facts": [
+        "Ramp achieved a $1.35 billion valuation just two years after its founding, making it one of the fastest-growing US startups ever to reach unicorn status.",
+        "Unlike many corporate card providers that profit from interchange fees, Ramp's core mission is to save customers money, often publicly tracking the total savings delivered.",
+        "The company started by focusing on corporate cards but quickly expanded its product suite to cover nearly all aspects of business spending, including travel and vendor management."
+      ],
+      "potential_selling_points": [
+        "Opportunity to work at a hyper-growth, multi-billion dollar valuation company that is actively challenging established financial institutions.",
+        "The chance to build complex, mission-critical financial infrastructure and automation tools that deliver tangible value (cost savings) to customers.",
+        "Strong engineering culture with high standards, competitive compensation, and clear career acceleration paths."
+      ]
+    },
+    "requirements": {
+      "job_title": "Senior Product Manager",
+      "location_type": null,
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": 7,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": null,
+      "equity_range": null,
+      "bonus_structure": null
+    },
+    "traits": [
+      {
+        "id": "e690a230-0796-4250-b313-296461e819f6",
+        "name": "Product Lifecycle Management",
+        "description": "The ability to manage the entire product lifecycle, from initial concept and planning through launch, iteration, and successful scaling.",
+        "priority": "must_have",
+        "signals": [
+          "7+ years of product management experience",
+          "Proven track record of launching and scaling successful products",
+          "Manage the end-to-end product lifecycle, from concept and planning through launch and iteration"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "ff9e48e3-300c-4bc6-b585-2ba90b04434b",
+        "name": "Fintech and Enterprise Domain Expertise",
+        "description": "Requires a deep functional understanding of financial systems, payment processes, and the complexities of enterprise software used by modern finance teams.",
+        "priority": "must_have",
+        "signals": [
+          "Deep understanding of financial operations",
+          "Deep understanding of payment systems",
+          "Deep understanding of enterprise software",
+          "preferably in fintech or SaaS"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "9889880e-5a07-4d46-871e-c4538e359d11",
+        "name": "Data-Driven Strategy",
+        "description": "The capacity to utilize strong analytical skills, market research, and defined metrics to inform product decisions, measure success, and identify opportunities for innovation.",
+        "priority": "must_have",
+        "signals": [
+          "Strong analytical skills and ability to make data-driven decisions",
+          "Conduct market research, analyze user feedback",
+          "Define and track key product metrics to measure success and inform future decisions"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "09b00bab-a8f1-485b-8508-0f91b9bd4354",
+        "name": "Cross-Functional Leadership",
+        "description": "Ability to lead and collaborate effectively across engineering, design, finance, and business teams, while clearly communicating roadmaps and mentoring junior staff.",
+        "priority": "must_have",
+        "signals": [
+          "Excellent communication and leadership abilities",
+          "Collaborate with engineering, design, finance, and business teams",
+          "Communicate product roadmaps, requirements, and updates to stakeholders across the organization",
+          "Mentor and guide junior product managers"
+        ],
+        "anti_signals": []
+      }
+    ],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": "This role is critical to shaping Ramp\u2019s platform and ensuring it meets the evolving needs of modern finance teams.",
+      "selling_points": [
+        "Lead the strategy, development, and execution of key product initiatives within Ramp\u2019s financial platform.",
+        "Opportunity to drive business growth and customer satisfaction through high-impact solutions.",
+        "Work in a highly collaborative environment with engineering, design, finance, and business teams.",
+        "Opportunity to mentor and guide junior product managers, fostering a culture of ownership."
+      ],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "jd_paste",
+    "field_confidence": [
+      {
+        "field_name": "job_title",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "location",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "experience",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "compensation",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "visa",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "equity",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "traits",
+        "confidence": 0.9,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "interview_stages",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      }
+    ],
+    "is_complete": false,
+    "missing_required_fields": [
+      "location_type",
+      "compensation",
+      "visa_sponsorship",
+      "equity",
+      "interview_stages"
+    ],
+    "parallel_research_status": "complete"
+  },
+  "502e0ef3-6932-4689-9b8b-6472f630372a": {
+    "id": "502e0ef3-6932-4689-9b8b-6472f630372a",
+    "created_at": "2025-12-16T22:14:10.166735",
+    "updated_at": "2025-12-16T22:15:07.918236",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": "The finance automation platform designed to save you time and money.",
+      "funding_stage": "series_d_plus",
+      "total_raised": "$1.5B",
+      "last_round_date": "August 2023",
+      "investors": [
+        "Founders Fund",
+        "Thrive Capital",
+        "Coatue",
+        "Redpoint Ventures",
+        "D1 Capital Partners",
+        "General Catalyst",
+        "Sequoia Capital"
+      ],
+      "product_description": "Ramp offers a corporate card, expense management, bill payment, and accounting automation software suite. It aims to replace traditional corporate spending tools by integrating all financial processes into a single platform.",
+      "problem_solved": "Ramp helps businesses automate their financial operations, eliminate manual expense reporting, and save money by identifying wasteful spending in real-time.",
+      "target_customers": "Mid-market and large businesses looking to streamline corporate spending, expense management, and accounts payable processes.",
+      "industry": "Fintech",
+      "founders": [
+        "Eric Glyman",
+        "Karim Atiyeh",
+        "Gene Lee"
+      ],
+      "founder_backgrounds": "The founders previously co-founded Paribus (acquired by Capital One). Eric Glyman was an early employee at Capital One after the acquisition.",
+      "team_size": "1000-5000",
+      "headquarters": "New York, New York",
+      "office_locations": [
+        "New York"
+      ],
+      "competitors": [
+        "Brex",
+        "Divvy (Bill.com)",
+        "Expensify",
+        "American Express"
+      ],
+      "differentiators": "Ramp focuses heavily on savings and automation, offering 1.5% cash back on all purchases and providing automated insights to cut costs, positioning itself as a financial control platform rather than just a card provider.",
+      "recent_news": [
+        "Ramp acquired the startup Cohere.io to enhance its AI capabilities for finance automation (2024).",
+        "Ramp launched its procurement and vendor management tools to expand beyond core expense management (2023).",
+        "Ramp achieved a valuation of $5.8 billion in its last funding round (2023)."
+      ],
+      "hiring_signals": "Hiring aggressively across engineering, product, and sales; expanding product lines rapidly.",
+      "tech_stack_hints": [
+        "Python",
+        "Go",
+        "React",
+        "TypeScript",
+        "AWS/GCP",
+        "PostgreSQL",
+        "Kubernetes"
+      ],
+      "culture_keywords": [
+        "Fast-paced",
+        "Execution-focused",
+        "High-growth",
+        "Mission-driven",
+        "Analytical"
+      ],
+      "glassdoor_sentiment": null,
+      "interesting_facts": [
+        "Ramp achieved unicorn status (over $1 billion valuation) faster than any other corporate card company.",
+        "The company was founded by the same team that created Paribus, a price-tracking service acquired by Capital One.",
+        "Ramp's core value proposition is saving customers money, claiming to save the average client 3.5% in the first year."
+      ],
+      "potential_selling_points": [
+        "Opportunity to work at one of the fastest-growing and highest-valued private fintech companies in the world.",
+        "The chance to build complex financial infrastructure and automation tools used by thousands of businesses.",
+        "Strong leadership team with a proven track record of successful exits and scaling companies."
+      ]
+    },
+    "requirements": {
+      "job_title": "Lead Product Manager, Travel",
+      "location_type": null,
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": null,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": null,
+      "equity_range": null,
+      "bonus_structure": null
+    },
+    "traits": [
+      {
+        "id": "b5d88960-e23f-4676-81df-9789282b562e",
+        "name": "Product Management Leadership",
+        "description": "The ability to define and own the end-to-end strategy and roadmap for a complex product area, driving innovation from discovery through launch and iteration.",
+        "priority": "must_have",
+        "signals": [
+          "Significant product management experience",
+          "Owning a complex product area end-to-end",
+          "Defining the vision and strategy for Ramp\u2019s travel products",
+          "Driving innovation across booking, spend controls, and integrations"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "bd1d7f0a-936d-43c4-8d7e-d5fb6120a497",
+        "name": "B2B/Fintech Product Experience",
+        "description": "Experience successfully launching and iterating on products within a high-growth software environment, specifically targeting business users in financial or spend management workflows.",
+        "priority": "must_have",
+        "signals": [
+          "Proven track record of shipping impactful features in B2B products",
+          "Experience at a high-growth software or fintech company",
+          "Experience in travel, spend management, or financial workflows"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "c18fd2e6-83e3-4a20-be37-95980c6a22ae",
+        "name": "Data-Driven Decision Making",
+        "description": "The capability to use quantitative and qualitative data, including analytics and experimentation, to prioritize opportunities, validate product decisions, and inform strategy.",
+        "priority": "must_have",
+        "signals": [
+          "Strong analytical skills",
+          "Using data and experimentation to inform product strategy and prioritization",
+          "Using customer research, product analytics, and experimentation"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "5bbd55ae-7d3b-4ddb-96ae-f4de52b69a41",
+        "name": "Cross-Functional Collaboration",
+        "description": "Excellent communication and partnership skills required to work effectively with engineering, design, data, go-to-market teams, sales, customer success, and support.",
+        "priority": "must_have",
+        "signals": [
+          "Excellent cross-functional communication skills",
+          "Ability to work closely with engineering, design, and go-to-market partners",
+          "Collaborate with engineering, design, data, and go-to-market teams",
+          "Partner with sales, customer success, and support"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "609351b1-321d-480e-b90f-7978b6fc2ecd",
+        "name": "Corporate Travel and Expense Domain Expertise",
+        "description": "Specific knowledge and experience building products related to corporate travel, expense management, payments, or working within the finance/ERP ecosystem.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Experience building corporate travel, expense management, or payments products",
+          "Background working with finance teams or in fintech, ERP, or related SaaS ecosystems"
+        ],
+        "anti_signals": []
+      }
+    ],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": "Lead the vision and strategy for Ramp's travel products, integrating travel and expense management into one unified platform to deliver control for finance teams and exceptional experiences for employees.",
+      "selling_points": [
+        "Own the end-to-end product strategy and roadmap for a critical, complex area (Travel) at a high-growth fintech company.",
+        "Opportunity to drive innovation across booking, spend controls, and integrations.",
+        "Work on integrating travel capabilities tightly with Ramp\u2019s core spend, expense management, and accounts payable products."
+      ],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "jd_paste",
+    "field_confidence": [
+      {
+        "field_name": "job_title",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "location",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "experience",
+        "confidence": 0.5,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "compensation",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "visa",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "equity",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "traits",
+        "confidence": 0.9,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "interview_stages",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      }
+    ],
+    "is_complete": false,
+    "missing_required_fields": [
+      "location_type",
+      "experience_min_years",
+      "compensation",
+      "visa_sponsorship",
+      "equity",
+      "interview_stages"
+    ],
+    "parallel_research_status": "complete"
+  },
+  "4240eb42-bc4f-4c82-8458-2455546d0d15": {
+    "id": "4240eb42-bc4f-4c82-8458-2455546d0d15",
+    "created_at": "2025-12-18T00:23:24.265364",
+    "updated_at": "2025-12-18T00:24:21.224791",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": "The finance automation platform designed to save you time and money.",
+      "funding_stage": "series_d_plus",
+      "total_raised": "$1.5B",
+      "last_round_date": "August 2023",
+      "investors": [
+        "Founders Fund",
+        "Thrive Capital",
+        "Coatue",
+        "Redpoint Ventures",
+        "D1 Capital Partners",
+        "General Catalyst",
+        "Sequoia Capital"
+      ],
+      "product_description": "Ramp offers a corporate card, expense management, bill payment, and accounting automation software suite. It aims to replace traditional expense reporting and manual finance processes with a unified, automated platform.",
+      "problem_solved": "It solves the inefficiency and lack of visibility inherent in traditional corporate spending and expense management, helping businesses save money and close their books faster.",
+      "target_customers": "Mid-market and enterprise businesses looking to automate their finance operations and control spending.",
+      "industry": "Fintech",
+      "founders": [
+        "Eric Glyman",
+        "Karim Atiyeh",
+        "Gene Lee"
+      ],
+      "founder_backgrounds": "The founders previously co-founded Paribus (acquired by Capital One). Eric Glyman was also an early employee at Capital One.",
+      "team_size": "1000-5000",
+      "headquarters": "New York, New York",
+      "office_locations": [
+        "New York",
+        "Miami"
+      ],
+      "competitors": [
+        "Brex",
+        "Divvy (Bill.com)",
+        "Expensify",
+        "American Express"
+      ],
+      "differentiators": "Ramp focuses heavily on savings and automation, claiming to save companies money through automated spend limits and identifying wasteful subscriptions. They offer a high-yield corporate card and integrated bill pay.",
+      "recent_news": [
+        "Ramp acquired the startup Cohere.io to enhance its procurement and vendor management capabilities (2024).",
+        "Ramp announced a new suite of procurement tools to help companies manage vendor relationships and contracts (2024).",
+        "Valuation surpassed $8 billion following its latest funding rounds."
+      ],
+      "hiring_signals": "Hiring aggressively across engineering, product, and sales functions, indicating rapid expansion and product development.",
+      "tech_stack_hints": [
+        "Python (backend)",
+        "React/TypeScript (frontend)",
+        "PostgreSQL",
+        "AWS/GCP",
+        "Kubernetes"
+      ],
+      "culture_keywords": [
+        "Fast-paced",
+        "Execution-focused",
+        "Customer-centric",
+        "High-growth",
+        "Data-driven"
+      ],
+      "glassdoor_sentiment": null,
+      "interesting_facts": [
+        "Ramp achieved unicorn status (over $1 billion valuation) faster than any other corporate card company.",
+        "The founders previously built Paribus, a price-tracking service acquired by Capital One, demonstrating a strong track record in consumer finance technology.",
+        "Ramp's core value proposition is saving customers money, claiming to have saved businesses billions of dollars through its software and card rewards."
+      ],
+      "potential_selling_points": [
+        "Opportunity to work at one of the fastest-growing and highest-valued private fintech companies in the world.",
+        "Strong focus on product innovation and solving complex financial automation problems for large businesses.",
+        "Backed by top-tier venture capital firms, providing stability and resources for ambitious projects."
+      ]
+    },
+    "requirements": {
+      "job_title": "About the Role",
+      "location_type": null,
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": 2,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": null,
+      "equity_range": null,
+      "bonus_structure": null
+    },
+    "traits": [
+      {
+        "id": "014fe605-efc9-43d3-82f7-6254c16c142c",
+        "name": "AML/Financial Crimes Compliance Operations",
+        "description": "This role requires hands-on experience executing anti-money laundering and sanctions compliance programs, including reviewing alerts and conducting investigations.",
+        "priority": "must_have",
+        "signals": [
+          "Minimum 2 years of experience in compliance operational teams",
+          "Familiarity with KYC/KYB, BSA/AML, sanctions, EDD, and financial crimes compliance",
+          "Review and disposition transaction monitoring alerts",
+          "Investigate suspicious activity and prepare documentation supporting SAR decisions and filings",
+          "Review sanctions and PEP screening alerts",
+          "Conduct enhanced due diligence (EDD) on higher-risk customers, entities, and counterparties"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "c6b9efc7-050b-47a3-8227-a8761d11fea0",
+        "name": "Process Optimization and Improvement",
+        "description": "The candidate must be able to identify inefficiencies in current compliance processes and contribute to building scalable, documented procedures.",
+        "priority": "must_have",
+        "signals": [
+          "Excited about building scalable processes to support Ramp\u2019s growth",
+          "Assist in the ongoing optimization of Ramp\u2019s AML systems and transaction monitoring rules",
+          "Identify process improvements, document findings, and contribute to compliance procedures and training materials"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "88529854-7d73-46db-914b-e3d205c19c3c",
+        "name": "Investigative and Analytical Skills",
+        "description": "The role requires strong critical thinking and investigative abilities to analyze complex financial data and identify potentially suspicious activity.",
+        "priority": "must_have",
+        "signals": [
+          "Strong analytical and investigative skills",
+          "Investigative and critical thinking skills",
+          "Ability to handle multiple and fast-changing priorities"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "9960b1ed-4dff-48d2-8a28-5f1c9c13b5f2",
+        "name": "Compliance Professional Accreditation",
+        "description": "Accreditation from a recognized industry body demonstrates a commitment to professional standards in financial crime and risk management.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Accreditation by ACAMS, an equivalent industry body, or other qualifications in the areas of financial crime, risk management, or compliance"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "74ea087f-b407-48cd-a476-7dbeed5253cc",
+        "name": "Fintech/Startup Experience",
+        "description": "Experience in high-growth environments, particularly within the fintech sector, is beneficial for navigating Ramp's fast-paced operational needs.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Experience in high-growth start-ups, particularly in fintech",
+          "Experience supporting a growing compliance team"
+        ],
+        "anti_signals": []
+      }
+    ],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": "Join Ramp's AML Team to execute a critical financial crimes compliance program in a fast-paced fintech environment that is rethinking finance in the age of AI.",
+      "selling_points": [
+        "Ramp is a rapidly growing, highly successful fintech company (Fastest-growing corporate card, $100B+ in annual purchases).",
+        "Opportunity to work on cutting-edge financial operations platform leveraging AI.",
+        "Comprehensive benefits package including 100% medical/dental/vision coverage for the employee.",
+        "Flexible PTO and 401k employer match.",
+        "Relocation support offered to NYC or SF."
+      ],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "jd_paste",
+    "field_confidence": [
+      {
+        "field_name": "job_title",
+        "confidence": 0.7,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "location",
+        "confidence": 0.5,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "experience",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "compensation",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "visa",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "equity",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "traits",
+        "confidence": 0.9,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "interview_stages",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      }
+    ],
+    "is_complete": false,
+    "missing_required_fields": [
+      "location_type",
+      "compensation",
+      "visa_sponsorship",
+      "equity",
+      "interview_stages"
+    ],
+    "parallel_research_status": "complete"
+  },
+  "6c7d92e9-68da-47fc-ab90-a6481b6d1e45": {
+    "id": "6c7d92e9-68da-47fc-ab90-a6481b6d1e45",
+    "created_at": "2025-12-18T00:28:22.887967",
+    "updated_at": "2025-12-18T00:28:27.897253",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com",
+      "tagline": "The finance automation platform designed to save you time and money.",
+      "funding_stage": "series_d_plus",
+      "total_raised": "$1.5B",
+      "last_round_date": "March 2023",
+      "investors": [
+        "Founders Fund",
+        "Thrive Capital",
+        "Coatue Management",
+        "Redpoint Ventures",
+        "D1 Capital Partners",
+        "General Catalyst",
+        "Keith Rabois"
+      ],
+      "product_description": "Ramp offers a corporate card and finance automation platform that helps businesses manage spending, automate expense reports, and gain real-time visibility into their finances. It combines corporate cards, expense management, bill payments, and accounting automation into a single system.",
+      "problem_solved": "Ramp helps businesses save money and time by automating tedious financial processes and providing tools to curb wasteful spending.",
+      "target_customers": "Mid-market and enterprise businesses looking to modernize their financial operations and expense management.",
+      "industry": "Fintech",
+      "founders": [
+        "Eric Glyman",
+        "Karim Atiyeh",
+        "Gene Lee"
+      ],
+      "founder_backgrounds": "The founders previously co-founded Paribus (acquired by Capital One). Eric Glyman was also an early employee at Capital One.",
+      "team_size": "1000-5000",
+      "headquarters": "New York, New York",
+      "office_locations": [
+        "New York"
+      ],
+      "competitors": [
+        "Brex",
+        "Divvy (Bill.com)",
+        "Expensify",
+        "American Express"
+      ],
+      "differentiators": "Ramp emphasizes cost savings and automation, often claiming to save customers money through built-in spend limits and proactive insights, rather than just offering rewards.",
+      "recent_news": [
+        "Ramp acquired Venue, a travel management platform, to expand its travel and expense offerings (2024).",
+        "Ramp launched Ramp Intelligence, leveraging AI to analyze spending data and provide deeper insights (2024).",
+        "Ramp raised a significant funding round valuing the company at $5.8 billion (2023)."
+      ],
+      "hiring_signals": "Hiring aggressively, particularly in engineering, product, and sales roles to support rapid product expansion into areas like procurement and travel.",
+      "tech_stack_hints": [
+        "Python",
+        "Go",
+        "React",
+        "TypeScript",
+        "PostgreSQL",
+        "AWS/GCP"
+      ],
+      "culture_keywords": [
+        "Fast-paced",
+        "Data-driven",
+        "High-growth",
+        "Customer-obsessed",
+        "Execution-focused"
+      ],
+      "glassdoor_sentiment": null,
+      "interesting_facts": [
+        "Ramp was founded by the same team that built Paribus, a price-tracking service acquired by Capital One, giving them deep experience in consumer finance and data.",
+        "Unlike many corporate card companies that focus on high rewards, Ramp's core value proposition is saving companies money through spend management and automation, often citing a guaranteed savings promise.",
+        "Ramp achieved a $1 billion valuation (unicorn status) in just over two years after its founding, making it one of the fastest-growing fintech companies in history."
+      ],
+      "potential_selling_points": [
+        "Opportunity to work at one of the fastest-growing and highest-valued private fintech companies in the world.",
+        "The chance to build a comprehensive finance automation platform that is genuinely disrupting legacy financial software.",
+        "A mission-driven focus on saving businesses money and time, providing a clear, measurable impact for customers."
+      ]
+    },
+    "requirements": {
+      "job_title": "",
+      "location_type": null,
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": null,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": null,
+      "equity_range": null,
+      "bonus_structure": null
+    },
+    "traits": [],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": null,
+      "selling_points": [],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "conversation",
+    "field_confidence": [],
+    "is_complete": false,
+    "missing_required_fields": [
+      "job_title",
+      "location_type",
+      "experience_min_years",
+      "compensation",
+      "visa_sponsorship",
+      "equity",
+      "traits",
+      "interview_stages"
+    ],
+    "parallel_research_status": "complete"
+  },
+  "d94cf1cd-a9af-4c40-ba0f-8e48c57eaf3e": {
+    "id": "d94cf1cd-a9af-4c40-ba0f-8e48c57eaf3e",
+    "created_at": "2025-12-18T00:29:58.477861",
+    "updated_at": "2025-12-18T00:30:29.134629",
+    "recruiter_first_name": "ANISH",
+    "recruiter_last_name": "GILLELLA",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": "Spend Management, Corporate Cards & Accounts",
+      "funding_stage": "series_d_plus",
+      "total_raised": null,
+      "last_round_date": "December 2025",
+      "investors": [],
+      "product_description": "Ramp provides spend management, corporate cards, and accounts, including Bill Pay software, aimed at building the future of finance.",
+      "problem_solved": null,
+      "target_customers": null,
+      "industry": "Fintech",
+      "founders": [],
+      "founder_backgrounds": null,
+      "team_size": null,
+      "headquarters": null,
+      "office_locations": [],
+      "competitors": [],
+      "differentiators": null,
+      "recent_news": [
+        "Ramp Reaches $3.2 Billion Valuation, Doubling Revenue and Customers in past year",
+        "Ramp raised $500M to build the future of finance"
+      ],
+      "hiring_signals": null,
+      "tech_stack_hints": [],
+      "culture_keywords": [
+        "Different By Design"
+      ],
+      "glassdoor_sentiment": null,
+      "interesting_facts": [
+        "Ramp recently reached a $3.2 Billion valuation.",
+        "The company doubled its revenue and customer base in the past year.",
+        "Ramp secured $500M in funding to invest in the future of finance."
+      ],
+      "potential_selling_points": [
+        "The company is experiencing rapid growth, having doubled its revenue and customers in the past year.",
+        "Ramp recently raised $500M, indicating strong financial backing and stability.",
+        "The company is valued at $3.2 Billion, suggesting significant market confidence."
+      ]
+    },
+    "requirements": {
+      "job_title": "AML Team Member",
+      "location_type": null,
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": 2,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": null,
+      "equity_range": null,
+      "bonus_structure": null
+    },
+    "traits": [
+      {
+        "id": "decfe46b-790b-4754-966b-86171d973a78",
+        "name": "AML/Financial Crimes Compliance Expertise",
+        "description": "The candidate must possess foundational knowledge and experience in anti-money laundering, sanctions, and financial crimes compliance frameworks, including KYC/KYB and Enhanced Due Diligence (EDD).",
+        "priority": "must_have",
+        "signals": [
+          "Familiarity with KYC/KYB, BSA/AML, sanctions, EDD, and financial crimes compliance",
+          "Minimum 2 years of experience in compliance operational teams"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "d1fb4bc5-df71-47ab-8928-1fc5001708d9",
+        "name": "Investigative and Analytical Skills",
+        "description": "The role requires strong critical thinking and investigative abilities to review transaction monitoring alerts, conduct thorough investigations, and prepare documentation for suspicious activity reports (SARs).",
+        "priority": "must_have",
+        "signals": [
+          "Investigative and critical thinking skills",
+          "Review and disposition transaction monitoring alerts",
+          "Investigate suspicious activity and prepare documentation supporting SAR decisions and filings"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "47767e03-ba84-47ce-ab43-3969c15a8ebb",
+        "name": "Communication and Documentation",
+        "description": "The candidate must have excellent written and verbal communication skills to document findings, prepare compliance procedures, and interact with internal and external stakeholders.",
+        "priority": "must_have",
+        "signals": [
+          "Excellent written and verbal communication skills",
+          "Identify process improvements, document findings, and contribute to compliance procedures and training materials"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "018381f7-dbf4-4e8f-ac46-4d5fe4fb6f73",
+        "name": "Adaptability and Prioritization",
+        "description": "The ability to manage multiple, rapidly changing priorities is essential for success in a fast-paced fintech environment.",
+        "priority": "must_have",
+        "signals": [
+          "Ability to handle multiple and fast-changing priorities",
+          "Thrives in a fast-paced fintech environment"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "9d8ea83a-1ecd-41b6-a9f2-1115b15d933d",
+        "name": "Professional Certification",
+        "description": "Accreditation from a recognized industry body demonstrates a commitment to professional standards in financial crime, risk management, or compliance.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Accreditation by ACAMS, an equivalent industry body, or other qualifications in the areas of financial crime, risk management, or compliance"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "2152d586-4605-4714-a4dc-8af8819c7860",
+        "name": "Startup and Fintech Experience",
+        "description": "Experience working within high-growth startups, particularly in the fintech sector, is beneficial for navigating a rapidly scaling compliance environment.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Experience supporting a growing compliance team",
+          "Experience in high-growth start-ups, particularly in fintech"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "e3fda342-e8f9-4e4f-ab34-34f5ab50b4fd",
+        "name": "Cross-Functional Collaboration",
+        "description": "The ideal candidate can effectively work with various internal teams, such as risk and operations, to ensure a robust compliance program.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Experience working cross-functionally, such as with risk and operations teams"
+        ],
+        "anti_signals": []
+      }
+    ],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": "Join Ramp's AML Team and play a key role in building a scalable financial crimes compliance program in a fast-paced, AI-focused fintech environment.",
+      "selling_points": [
+        "Ramp is a rapidly growing fintech leader, named to multiple prestigious lists (Fast Company, Forbes Cloud 100).",
+        "The company is investing heavily in AI and building the future of finance.",
+        "Opportunity to work closely with Compliance, Risk, Product, and Fraud Operations teams.",
+        "Comprehensive benefits package including 100% medical/dental/vision coverage for the employee and flexible PTO."
+      ],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "jd_paste",
+    "field_confidence": [
+      {
+        "field_name": "job_title",
+        "confidence": 0.7,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "location",
+        "confidence": 0.5,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "experience",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "compensation",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "visa",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "equity",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "traits",
+        "confidence": 0.9,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "interview_stages",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      }
+    ],
+    "is_complete": false,
+    "missing_required_fields": [
+      "location_type",
+      "compensation",
+      "visa_sponsorship",
+      "equity",
+      "interview_stages"
+    ],
+    "parallel_research_status": "complete"
+  },
+  "b68046ae-074a-4c5d-badc-862834425d47": {
+    "id": "b68046ae-074a-4c5d-badc-862834425d47",
+    "created_at": "2025-12-18T00:31:11.628645",
+    "updated_at": "2025-12-18T00:31:21.148570",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": "Spend Management, Corporate Cards & Accounts Payable",
+      "funding_stage": "series_d_plus",
+      "total_raised": null,
+      "last_round_date": "December 2025",
+      "investors": [],
+      "product_description": "Ramp provides financial software for spend management, corporate cards, and accounts payable services.",
+      "problem_solved": null,
+      "target_customers": null,
+      "industry": "Fintech",
+      "founders": [],
+      "founder_backgrounds": null,
+      "team_size": null,
+      "headquarters": null,
+      "office_locations": [],
+      "competitors": [],
+      "differentiators": null,
+      "recent_news": [
+        "Ramp Reaches $32 Billion Valuation, Doubling Revenue and Customers in past year",
+        "Ramp raises $300M, valuation soars to $32B",
+        "We raised $500M to build the future of finance"
+      ],
+      "hiring_signals": null,
+      "tech_stack_hints": [],
+      "culture_keywords": [],
+      "glassdoor_sentiment": null,
+      "interesting_facts": [
+        "Ramp recently achieved a $32 billion valuation.",
+        "The company doubled its revenue and customer base in the past year."
+      ],
+      "potential_selling_points": [
+        "The company is rapidly growing and recently doubled its revenue and customer base.",
+        "Ramp is working to build the future of finance, backed by a recent $500M funding round."
+      ]
+    },
+    "requirements": {
+      "job_title": "",
+      "location_type": null,
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": null,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": null,
+      "equity_range": null,
+      "bonus_structure": null
+    },
+    "traits": [],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": null,
+      "selling_points": [],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "conversation",
+    "field_confidence": [],
+    "is_complete": false,
+    "missing_required_fields": [
+      "job_title",
+      "location_type",
+      "experience_min_years",
+      "compensation",
+      "visa_sponsorship",
+      "equity",
+      "traits",
+      "interview_stages"
+    ],
+    "parallel_research_status": "complete"
+  },
+  "d0ebe3af-938f-49c5-b049-f37d0d9054b6": {
+    "id": "d0ebe3af-938f-49c5-b049-f37d0d9054b6",
+    "created_at": "2025-12-18T00:39:52.159744",
+    "updated_at": "2025-12-18T00:39:57.209212",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": "Spend Management, Corporate Cards & Accounts Payable",
+      "funding_stage": "series_d_plus",
+      "total_raised": null,
+      "last_round_date": "November 2025",
+      "investors": [],
+      "product_description": "Ramp offers spend management, corporate cards, and accounts payable solutions.",
+      "problem_solved": null,
+      "target_customers": null,
+      "industry": "Fintech",
+      "founders": [],
+      "founder_backgrounds": null,
+      "team_size": null,
+      "headquarters": null,
+      "office_locations": [],
+      "competitors": [],
+      "differentiators": null,
+      "recent_news": [
+        "Ramp Reaches $32 Billion Valuation, Doubling Revenue ...",
+        "Ramp raises $300M, valuation soars to $32B",
+        "Ramp at $32 billion: Money talks. Now It thinks."
+      ],
+      "hiring_signals": null,
+      "tech_stack_hints": [],
+      "culture_keywords": [],
+      "glassdoor_sentiment": null,
+      "interesting_facts": [
+        "Ramp reached a $32 billion valuation in November 2025.",
+        "The company doubled its revenue and customer base in the year leading up to November 2025."
+      ],
+      "potential_selling_points": []
+    },
+    "requirements": {
+      "job_title": "",
+      "location_type": null,
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": null,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": null,
+      "equity_range": null,
+      "bonus_structure": null
+    },
+    "traits": [],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": null,
+      "selling_points": [],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "conversation",
+    "field_confidence": [],
+    "is_complete": false,
+    "missing_required_fields": [
+      "job_title",
+      "location_type",
+      "experience_min_years",
+      "compensation",
+      "visa_sponsorship",
+      "equity",
+      "traits",
+      "interview_stages"
+    ],
+    "parallel_research_status": "complete"
   }
 }
