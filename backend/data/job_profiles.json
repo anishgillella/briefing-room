@@ -3772,5 +3772,561 @@
       "interview_stages"
     ],
     "parallel_research_status": "complete"
+  },
+  "d8ed56dc-26a1-4167-bbe6-dfca3e4de374": {
+    "id": "d8ed56dc-26a1-4167-bbe6-dfca3e4de374",
+    "created_at": "2025-12-18T04:00:14.231946",
+    "updated_at": "2025-12-18T04:01:01.430908",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": "Spend Management, Corporate Cards & Accounts Payable",
+      "funding_stage": "series_d_plus",
+      "total_raised": "$500M",
+      "last_round_date": "December 2025",
+      "investors": [],
+      "product_description": "Ramp provides a platform for spend management, corporate cards, and accounts payable, powering finance operations on one intuitive platform.",
+      "problem_solved": "It helps businesses manage their finances and spending efficiently through a unified platform.",
+      "target_customers": "Businesses (specifically mentioned: Tech industry)",
+      "industry": "Fintech",
+      "founders": [],
+      "founder_backgrounds": null,
+      "team_size": null,
+      "headquarters": null,
+      "office_locations": [],
+      "competitors": [],
+      "differentiators": "Different By Design",
+      "recent_news": [
+        "We raised $500M to build the future of finance",
+        "Ramp Reaches $32 Billion Valuation, Doubling Revenue and Customers in Past Year",
+        "Ramp announces Series D-2 capital raise"
+      ],
+      "hiring_signals": null,
+      "tech_stack_hints": [],
+      "culture_keywords": [],
+      "glassdoor_sentiment": null,
+      "interesting_facts": [
+        "Ramp reached a $32 billion valuation, doubling its revenue and customer base in the past year (as of November 2025).",
+        "The company raised $500M to build the future of finance.",
+        "Ramp offers built-to-scale FinOps solutions, specifically targeting the tech industry."
+      ],
+      "potential_selling_points": [
+        "The company is experiencing rapid growth, evidenced by doubling revenue and customers and reaching a $32 billion valuation.",
+        "Ramp is well-funded, having recently raised $500M to invest in the future of finance.",
+        "Employees would be working on a unified platform that is disrupting spend management, corporate cards, and accounts payable."
+      ]
+    },
+    "requirements": {
+      "job_title": "Android Engineer",
+      "location_type": null,
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": 1,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": null,
+      "equity_range": null,
+      "bonus_structure": null
+    },
+    "traits": [
+      {
+        "id": "71448017-844c-456c-89d6-9a2ae83dba50",
+        "name": "Android Mobile Development Fundamentals",
+        "description": "Core competency in building and maintaining mobile applications for the Android platform, utilizing modern language features and adhering to established architectural patterns.",
+        "priority": "must_have",
+        "signals": [
+          "Minimum 1 year of experience in mobile development",
+          "Proficiency in Kotlin for Android development",
+          "Strong understanding of mobile design patterns and best practices"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "b821382e-0492-4d8a-bb61-7a729a1f5248",
+        "name": "Mobile Product Delivery & Scaling",
+        "description": "Ability to successfully ship features or entire applications that reach a large user base, and contribute to scaling the codebase and engineering processes.",
+        "priority": "must_have",
+        "signals": [
+          "Experience launching at least one mobile app and/or several features that reached a large number of users",
+          "Help establish engineering processes, tools, and systems that allow us to scale the code base and productivity",
+          "Work with Product and Design to identify key features"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "4a0062c5-9462-4894-a5a7-1483546048fb",
+        "name": "Code Quality and Standards",
+        "description": "Commitment to maintaining high code quality through rigorous review and adherence to established engineering standards.",
+        "priority": "must_have",
+        "signals": [
+          "Conduct code reviews and set engineering standards"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "0bc6e68a-2aaf-441f-916c-3840ca6c17d9",
+        "name": "Growth Mindset and Pace",
+        "description": "A proactive approach to continuous learning and comfort working in a dynamic, high-speed environment.",
+        "priority": "must_have",
+        "signals": [
+          "Desire to work in a fast-paced environment, continuously grow, and master your craft"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "73c7380c-69ab-49bb-b842-d325884c7960",
+        "name": "Ramp Mobile Stack Expertise",
+        "description": "Familiarity with the specific technologies and tools used in Ramp's mobile development environment, including modern Android UI frameworks and build systems.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Compose",
+          "MVVM",
+          "coroutines",
+          "flows",
+          "gradle",
+          "OpenAPI",
+          "Buildkite",
+          "Experience managing apps in the Google Play Console"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "a4acc174-7af6-4887-8bcc-cd2b7d55029d",
+        "name": "Full Stack and Web Familiarity",
+        "description": "Experience working with technologies outside of native Android, including web frontend and backend systems, which aids in cross-functional collaboration.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Experience with web apps (React, TypeScript)",
+          "Experience with backend technologies (Python, Flask, SQL, OpenAPI)"
+        ],
+        "anti_signals": []
+      }
+    ],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": "Define the next generation of fintech by integrating AI and intelligent agents into a rapidly growing mobile platform.",
+      "selling_points": [
+        "Work on a successful and rapidly growing mobile app used by over 50,000 businesses.",
+        "Ramp is investing heavily in AI as the new foundation for finance operations.",
+        "Ramp is a highly successful, recognized company (Fastest-growing corporate card/bill payment platform, $10B saved, LinkedIn Top U.S. Startups).",
+        "Comprehensive benefits package including 100% medical coverage, 401k match, flexible PTO, and fertility HRA.",
+        "Relocation support provided for NYC or SF."
+      ],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "jd_paste",
+    "field_confidence": [
+      {
+        "field_name": "job_title",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "location",
+        "confidence": 0.5,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "experience",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "compensation",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "visa",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "equity",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "traits",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "interview_stages",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      }
+    ],
+    "is_complete": false,
+    "missing_required_fields": [
+      "location_type",
+      "compensation",
+      "visa_sponsorship",
+      "equity",
+      "interview_stages"
+    ],
+    "parallel_research_status": "complete"
+  },
+  "067cff5b-adb0-4b50-abdf-84ecc96a1154": {
+    "id": "067cff5b-adb0-4b50-abdf-84ecc96a1154",
+    "created_at": "2025-12-18T04:03:19.034578",
+    "updated_at": "2025-12-18T04:03:29.088955",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": null,
+      "funding_stage": "series_d_plus",
+      "total_raised": null,
+      "last_round_date": "December 2025",
+      "investors": [],
+      "product_description": "Ramp provides a platform for spend management, corporate cards, and accounts payable to power finance operations.",
+      "problem_solved": null,
+      "target_customers": "Businesses managing finance operations.",
+      "industry": "Fintech",
+      "founders": [],
+      "founder_backgrounds": null,
+      "team_size": null,
+      "headquarters": null,
+      "office_locations": [],
+      "competitors": [],
+      "differentiators": null,
+      "recent_news": [
+        "Ramp raised $500M to build the future of finance (Dec 2025).",
+        "Ramp Reaches $32 Billion Valuation (Nov 2025).",
+        "Ramp doubled revenue and customers in the past year (as of Nov 2025)."
+      ],
+      "hiring_signals": null,
+      "tech_stack_hints": [],
+      "culture_keywords": [],
+      "glassdoor_sentiment": null,
+      "interesting_facts": [
+        "Ramp reached a $32 billion valuation in November 2025.",
+        "The company recently doubled its revenue and customer base in the past year.",
+        "Ramp raised $500M in December 2025 to focus on building the future of finance."
+      ],
+      "potential_selling_points": [
+        "The company is experiencing rapid growth, having doubled revenue and customers recently.",
+        "Ramp operates in the high-growth fintech sector, focusing on the future of finance.",
+        "The company secured a $32 billion valuation, indicating strong market confidence and stability."
+      ]
+    },
+    "requirements": {
+      "job_title": "",
+      "location_type": null,
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": null,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": null,
+      "equity_range": null,
+      "bonus_structure": null
+    },
+    "traits": [],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": null,
+      "selling_points": [],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "conversation",
+    "field_confidence": [],
+    "is_complete": false,
+    "missing_required_fields": [
+      "job_title",
+      "location_type",
+      "experience_min_years",
+      "compensation",
+      "visa_sponsorship",
+      "equity",
+      "traits",
+      "interview_stages"
+    ],
+    "parallel_research_status": "complete"
+  },
+  "a2083e8e-6b75-4f7e-97e3-b21c6c99c382": {
+    "id": "a2083e8e-6b75-4f7e-97e3-b21c6c99c382",
+    "created_at": "2025-12-18T04:06:28.715420",
+    "updated_at": "2025-12-18T04:06:38.745705",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": "Spend Management, Corporate Cards & Accounts Payable Solutions",
+      "funding_stage": "series_d_plus",
+      "total_raised": "$500M",
+      "last_round_date": "December 2025",
+      "investors": [],
+      "product_description": "Ramp provides a platform for spend management, corporate cards, and accounts payable solutions.",
+      "problem_solved": "It powers finance operations on one intuitive platform.",
+      "target_customers": "Businesses and finance teams",
+      "industry": "Fintech",
+      "founders": [],
+      "founder_backgrounds": null,
+      "team_size": null,
+      "headquarters": null,
+      "office_locations": [],
+      "competitors": [],
+      "differentiators": "Different By Design",
+      "recent_news": [
+        "Ramp Reaches $32 Billion Valuation, Doubling Revenue and Customers in Past Year",
+        "Ramp hits $32B valuation, just 3 months after hitting $22.5B",
+        "We raised $500M to build the future of finance - Ramp"
+      ],
+      "hiring_signals": null,
+      "tech_stack_hints": [
+        "Ramp Tech Stack"
+      ],
+      "culture_keywords": [],
+      "glassdoor_sentiment": null,
+      "interesting_facts": [
+        "Ramp reached a $32 billion valuation in November 2025.",
+        "The company doubled its revenue and customer base in the year leading up to November 2025."
+      ],
+      "potential_selling_points": [
+        "The company is rapidly growing, achieving a $32 billion valuation and doubling its revenue and customers in a year.",
+        "Ramp recently raised $500M to build the future of finance."
+      ]
+    },
+    "requirements": {
+      "job_title": "",
+      "location_type": null,
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": null,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": null,
+      "equity_range": null,
+      "bonus_structure": null
+    },
+    "traits": [],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": null,
+      "selling_points": [],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "conversation",
+    "field_confidence": [],
+    "is_complete": false,
+    "missing_required_fields": [
+      "job_title",
+      "location_type",
+      "experience_min_years",
+      "compensation",
+      "visa_sponsorship",
+      "equity",
+      "traits",
+      "interview_stages"
+    ],
+    "parallel_research_status": "complete"
+  },
+  "d6273da5-02d5-44aa-a086-9407f5bddf10": {
+    "id": "d6273da5-02d5-44aa-a086-9407f5bddf10",
+    "created_at": "2025-12-18T04:09:53.959742",
+    "updated_at": "2025-12-18T04:13:18.777674",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": "Spend Management, Corporate Cards & Accounts Payable",
+      "funding_stage": "series_d_plus",
+      "total_raised": "$500M",
+      "last_round_date": "December 2025",
+      "investors": [],
+      "product_description": "Ramp provides a platform for spend management, corporate cards, and accounts payable.",
+      "problem_solved": "It powers finance operations on one intuitive platform.",
+      "target_customers": "Businesses, including those in the tech industry.",
+      "industry": "Fintech",
+      "founders": [],
+      "founder_backgrounds": null,
+      "team_size": null,
+      "headquarters": null,
+      "office_locations": [],
+      "competitors": [],
+      "differentiators": "Different By Design.",
+      "recent_news": [
+        "Ramp at $32 billion: Money talks. Now It thinks.",
+        "Ramp Reaches $32 Billion Valuation, Doubling Revenue and ...",
+        "We raised $500M to build the future of finance"
+      ],
+      "hiring_signals": null,
+      "tech_stack_hints": [
+        "Tech Stack - Himalayas.app"
+      ],
+      "culture_keywords": [],
+      "glassdoor_sentiment": null,
+      "interesting_facts": [
+        "Ramp reached a $32 billion valuation in November 2025.",
+        "The company doubled its revenue and customer base in the year leading up to November 2025."
+      ],
+      "potential_selling_points": [
+        "The company is rapidly growing, evidenced by doubling revenue and customers in a year.",
+        "Ramp recently raised $500M to build the future of finance."
+      ]
+    },
+    "requirements": {
+      "job_title": "Founding Engineer",
+      "location_type": "remote",
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": true,
+      "work_authorization_notes": null,
+      "experience_min_years": 4,
+      "experience_max_years": null,
+      "salary_min": 200000,
+      "salary_max": 200000,
+      "salary_currency": "USD",
+      "equity_offered": null,
+      "equity_range": null,
+      "bonus_structure": null
+    },
+    "traits": [
+      {
+        "id": "548752ce-2b97-405b-892f-35094b590683",
+        "name": "Early Stage Startup Experience",
+        "description": "Experience in fast-paced, evolving environments of early stage startups.",
+        "priority": "must_have",
+        "signals": [],
+        "anti_signals": []
+      },
+      {
+        "id": "92252a94-5a9a-4f0d-b807-ab68207e71ca",
+        "name": "Product Mindset",
+        "description": "Ability to understand customer needs and prioritize them in development.",
+        "priority": "must_have",
+        "signals": [],
+        "anti_signals": []
+      },
+      {
+        "id": "1b9435b8-f7d6-49b7-b86d-e01f7bf85440",
+        "name": "LLM Applications in Production",
+        "description": "Experience building large language model applications in a production environment.",
+        "priority": "must_have",
+        "signals": [],
+        "anti_signals": []
+      }
+    ],
+    "interview_stages": [
+      {
+        "id": "2fb73eb7-5e02-4ffa-8d8f-dc35f7a47a2c",
+        "name": "Coffee Chat",
+        "description": "An informal discussion to get to know the candidate.",
+        "order": 1,
+        "duration_minutes": 30,
+        "interviewer_role": null,
+        "actions": []
+      },
+      {
+        "id": "da9b502c-dccc-4726-a80d-0e76162bdeba",
+        "name": "Technical Assessment",
+        "description": "A walk-through of design systems and technical skills.",
+        "order": 2,
+        "duration_minutes": 60,
+        "interviewer_role": null,
+        "actions": []
+      },
+      {
+        "id": "242b1bd5-6029-4f71-be42-02071dacec25",
+        "name": "Cultural Fit Chat",
+        "description": "Discuss cultural alignment with the founder.",
+        "order": 3,
+        "duration_minutes": 30,
+        "interviewer_role": null,
+        "actions": []
+      }
+    ],
+    "nuances": [
+      {
+        "id": "29429338-559d-4aa4-b739-acae1981221c",
+        "category": "culture_fit",
+        "insight": "Candidates should have a strong entrepreneurial spirit, resilience, and a willingness to take ownership in a dynamic environment.",
+        "verbatim_quote": null,
+        "timestamp": "2025-12-18 04:12:30.895124"
+      },
+      {
+        "id": "06e5108a-0aa2-46de-b4a7-1fe897a33fc3",
+        "category": "selling_point",
+        "insight": "This role offers the opportunity to be part of a revolutionary startup aiming to transform the industry.",
+        "verbatim_quote": null,
+        "timestamp": "2025-12-18 04:12:52.729070"
+      },
+      {
+        "id": "d2c0f8d8-dbb2-4114-9421-4685d8941c48",
+        "category": "team_dynamic",
+        "insight": "The team is currently comprised of two founders, indicating a small and tight-knit environment.",
+        "verbatim_quote": null,
+        "timestamp": "2025-12-18 04:13:08.612724"
+      },
+      {
+        "id": "f29b114c-ba7d-47ef-8dbe-c0ac3d4c11df",
+        "category": "urgency",
+        "insight": "The founding engineer will play a crucial role alongside the co-founders, alleviating some responsibilities from the CTO.",
+        "verbatim_quote": null,
+        "timestamp": "2025-12-18 04:13:18.776741"
+      }
+    ],
+    "outreach": {
+      "tone": null,
+      "key_hook": null,
+      "selling_points": [],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "conversation",
+    "field_confidence": [],
+    "is_complete": false,
+    "missing_required_fields": [
+      "equity"
+    ],
+    "parallel_research_status": "complete"
   }
 }
