@@ -1552,10 +1552,19 @@ async def _execute_tool(tool_name: str, args: Dict[str, Any], session_id: str) -
 
     elif tool_name == "add_deal_breaker":
         deal_breaker = args.get("deal_breaker", "")
-        if deal_breaker and deal_breaker not in profile.requirements.deal_breakers:
+        if not deal_breaker:
+            # Return error to prompt the assistant to provide the deal_breaker value
+            result = {
+                "success": False,
+                "error": "Missing required 'deal_breaker' argument. Please provide the deal breaker text.",
+                "hint": "Call add_deal_breaker with deal_breaker='the specific deal breaker'"
+            }
+        elif deal_breaker not in profile.requirements.deal_breakers:
             profile.requirements.deal_breakers.append(deal_breaker)
-        result = {"success": True, "field": "deal_breakers", "count": len(profile.requirements.deal_breakers)}
-        await _broadcast_requirements_update(session_id, profile)
+            result = {"success": True, "field": "deal_breakers", "value": deal_breaker, "count": len(profile.requirements.deal_breakers)}
+            await _broadcast_requirements_update(session_id, profile)
+        else:
+            result = {"success": True, "field": "deal_breakers", "message": "Already exists", "count": len(profile.requirements.deal_breakers)}
 
     elif tool_name == "update_ideal_background":
         profile.requirements.ideal_background = args.get("ideal_background", "")

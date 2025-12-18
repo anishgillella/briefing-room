@@ -12,8 +12,14 @@ import {
     ThumbsDown,
     MessageSquare,
     AlertTriangle,
-    Lightbulb
+    Lightbulb,
+    Upload,
+    FileText,
+    X,
+    Gift,
+    Sparkles
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import {
     getCandidateInterviews,
     startNextInterview,
@@ -24,6 +30,7 @@ import {
     type CandidateInterviewsResponse,
     type InterviewSummary,
 } from "@/lib/interviewApi";
+import TranscriptPasteTab from "@/components/interview/TranscriptPasteTab";
 
 interface InterviewHistoryProps {
     candidateId: string;
@@ -38,6 +45,7 @@ export default function InterviewHistory({
     candidateName,
     onStartInterview
 }: InterviewHistoryProps) {
+    const router = useRouter();
     const [data, setData] = useState<CandidateInterviewsResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -47,10 +55,35 @@ export default function InterviewHistory({
     const [submittingDecision, setSubmittingDecision] = useState(false);
     const [decisionNotes, setDecisionNotes] = useState("");
     const [dbCandidateId, setDbCandidateId] = useState<string | null>(null);
+    const [showTranscriptModal, setShowTranscriptModal] = useState<{
+        interviewId: string;
+        stage: string;
+    } | null>(null);
+    const [hasCoachingSummary, setHasCoachingSummary] = useState(false);
 
     useEffect(() => {
         loadInterviews();
     }, [candidateId, candidateName]);
+
+    // Check if coaching summary exists when we have a db candidate id
+    useEffect(() => {
+        if (dbCandidateId) {
+            checkCoachingSummary();
+        }
+    }, [dbCandidateId]);
+
+    const checkCoachingSummary = async () => {
+        try {
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+            const res = await fetch(`${API_URL}/api/offer-prep/coaching/summary/${dbCandidateId}`);
+            if (res.ok) {
+                const data = await res.json();
+                setHasCoachingSummary(data.status === "success" && data.summary);
+            }
+        } catch {
+            // Ignore - no coaching summary
+        }
+    };
 
     const loadInterviews = async () => {
         try {
@@ -138,6 +171,12 @@ export default function InterviewHistory({
         setExpandedStages(newExpanded);
     };
 
+    const handleTranscriptSaved = () => {
+        setShowTranscriptModal(null);
+        // Refresh interviews to show updated data
+        loadInterviews();
+    };
+
     const getScoreColor = (score?: number) => {
         if (!score) return "text-white/40";
         if (score >= 80) return "text-green-400";
@@ -178,6 +217,7 @@ export default function InterviewHistory({
                 <div className="absolute top-1/2 left-0 w-full h-0.5 bg-white/10 -translate-y-1/2 z-0"></div>
 
                 <div className="relative z-10 flex justify-between px-4">
+                    {/* Interview Rounds */}
                     {STAGES.map((stage, i) => {
                         const status = getStageStatus(stage, data.interviews);
                         const interview = data.interviews.find(int => int.stage === stage);
@@ -219,6 +259,64 @@ export default function InterviewHistory({
                             </div>
                         );
                     })}
+
+                    {/* Offer Prep Stage (4th Stage) */}
+                    {(() => {
+                        const allInterviewsComplete = data.all_stages_complete;
+                        const isOfferPrepActive = allInterviewsComplete && !hasCoachingSummary;
+                        const isOfferPrepComplete = allInterviewsComplete && hasCoachingSummary;
+
+                        return (
+                            <div
+                                className="flex flex-col items-center gap-4 group cursor-pointer"
+                                onClick={() => {
+                                    if (allInterviewsComplete && dbCandidateId) {
+                                        router.push(`/candidates/${dbCandidateId}/offer-prep`);
+                                    }
+                                }}
+                            >
+                                {/* Status Ring */}
+                                <div className={`w-14 h-14 rounded-full flex items-center justify-center border-4 transition-all duration-500 shadow-xl ${
+                                    isOfferPrepComplete
+                                        ? 'bg-black border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.3)]'
+                                        : isOfferPrepActive
+                                            ? 'bg-black border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.3)] scale-110 animate-pulse'
+                                            : 'bg-black border-white/10'
+                                }`}>
+                                    {isOfferPrepComplete ? (
+                                        <Gift className="w-6 h-6 text-purple-500" />
+                                    ) : isOfferPrepActive ? (
+                                        <Sparkles className="w-6 h-6 text-purple-400 animate-pulse" />
+                                    ) : (
+                                        <Gift className="w-6 h-6 text-white/20" />
+                                    )}
+                                </div>
+
+                                {/* Labels */}
+                                <div className="text-center">
+                                    <h3 className={`font-semibold tracking-tight text-sm uppercase ${
+                                        isOfferPrepComplete
+                                            ? 'text-purple-400'
+                                            : isOfferPrepActive
+                                                ? 'text-purple-400'
+                                                : 'text-white/40'
+                                    }`}>
+                                        Offer Prep
+                                    </h3>
+                                    {isOfferPrepComplete && (
+                                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full mt-1 inline-block bg-purple-500/20 text-purple-400">
+                                            Script Ready
+                                        </span>
+                                    )}
+                                    {isOfferPrepActive && (
+                                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full mt-1 inline-block bg-purple-500/20 text-purple-300">
+                                            Ready
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })()}
                 </div>
             </div>
 
@@ -293,9 +391,34 @@ export default function InterviewHistory({
                         </button>
 
                         {/* Expanded Content */}
-                        {expandedStages.has(interview.stage) && interview.analytics && (
+                        {expandedStages.has(interview.stage) && (
                             <div className="px-8 pb-8 pt-2 animate-fade-in">
                                 <div className="h-px w-full bg-white/5 mb-8"></div>
+
+                                {/* Upload Transcript Button - Show if no analytics yet */}
+                                {!interview.analytics && (
+                                    <div className="mb-8">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setShowTranscriptModal({
+                                                    interviewId: interview.id,
+                                                    stage: interview.stage
+                                                });
+                                            }}
+                                            className="w-full py-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-500/30 transition-all flex items-center justify-center gap-3 group"
+                                        >
+                                            <Upload className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform" />
+                                            <span className="text-white/70 group-hover:text-white font-medium">Upload External Transcript</span>
+                                        </button>
+                                        <p className="text-center text-white/30 text-xs mt-3">
+                                            Paste a transcript from Zoom, Otter, or another source
+                                        </p>
+                                    </div>
+                                )}
+
+                                {interview.analytics && (
+                                    <>
 
                                 {/* 1. The Verdict (Synthesis) */}
                                 <div className="mb-10">
@@ -384,6 +507,8 @@ export default function InterviewHistory({
                                         )}
                                     </div>
                                 </div>
+                                </>
+                                )}
                             </div>
                         )}
                     </div>
@@ -408,6 +533,47 @@ export default function InterviewHistory({
                             <span className="text-lg font-semibold text-white">Start {formatStageName(data.next_stage)} Session</span>
                         </div>
                     </button>
+                )}
+
+                {/* Offer Prep Card - Shows when all interviews complete */}
+                {data.all_stages_complete && data.pipeline_status === 'decision_pending' && (
+                    <div className="mb-6 group relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-600/20 to-pink-600/20 p-1 border border-purple-500/30 hover:border-purple-500/50 transition-all cursor-pointer"
+                        onClick={() => dbCandidateId && router.push(`/candidates/${dbCandidateId}/offer-prep`)}
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-pink-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <div className="relative bg-black/60 backdrop-blur-xl rounded-xl p-6 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/20 group-hover:scale-110 transition-transform">
+                                    <Gift className="w-7 h-7 text-white" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-semibold text-white mb-1 flex items-center gap-2">
+                                        Prepare Your Offer
+                                        {hasCoachingSummary && (
+                                            <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 font-medium">
+                                                Script Ready
+                                            </span>
+                                        )}
+                                    </h3>
+                                    <p className="text-white/50 text-sm">
+                                        {hasCoachingSummary
+                                            ? "View your personalized offer script and coaching notes"
+                                            : "Get AI coaching on how to present your offer and close the candidate"
+                                        }
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <div className="hidden md:flex flex-col items-end text-right">
+                                    <span className="text-xs text-purple-300 font-medium">
+                                        {hasCoachingSummary ? "View Summary" : "~12 min coaching"}
+                                    </span>
+                                    <span className="text-xs text-white/30">Market data • Strategy • Script</span>
+                                </div>
+                                <ChevronRight className="w-6 h-6 text-purple-400 group-hover:translate-x-1 transition-transform" />
+                            </div>
+                        </div>
+                    </div>
                 )}
 
                 {/* Final Decision UI */}
@@ -480,6 +646,46 @@ export default function InterviewHistory({
                                     {submittingDecision ? 'Processing...' : 'Confirm Accept'}
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Transcript Paste Modal */}
+            {showTranscriptModal && (
+                <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in p-4">
+                    <div className="bg-[#0A0A0A] rounded-3xl max-w-5xl w-full max-h-[90vh] overflow-y-auto border border-white/10 shadow-2xl">
+                        {/* Modal Header */}
+                        <div className="sticky top-0 bg-[#0A0A0A] border-b border-white/10 px-8 py-5 flex items-center justify-between z-10">
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
+                                    <FileText className="w-5 h-5 text-purple-400" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-semibold text-white">
+                                        Upload Transcript - {formatStageName(showTranscriptModal.stage)}
+                                    </h3>
+                                    <p className="text-sm text-white/40">
+                                        Interview with {candidateName}
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setShowTranscriptModal(null)}
+                                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+                            >
+                                <X className="w-5 h-5 text-white/60" />
+                            </button>
+                        </div>
+
+                        {/* Modal Content */}
+                        <div className="p-8">
+                            <TranscriptPasteTab
+                                interviewId={showTranscriptModal.interviewId}
+                                candidateName={candidateName}
+                                stage={showTranscriptModal.stage}
+                                onTranscriptSaved={handleTranscriptSaved}
+                            />
                         </div>
                     </div>
                 </div>

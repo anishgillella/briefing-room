@@ -397,11 +397,32 @@ export default function VoiceSession({
 
             {connectionState === "disconnected" && (
                 <div className="text-center animate-fade-in">
-                    <div className="w-24 h-24 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-6">
-                        <PhoneOff className="w-10 h-10 text-white/40" />
+                    <div className="w-24 h-24 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-6">
+                        <CheckCircle className="w-10 h-10 text-green-400" />
                     </div>
                     <h3 className="text-xl font-medium text-white mb-2">Session Ended</h3>
-                    <p className="text-white/50 text-sm">Your voice session has been completed</p>
+                    <p className="text-white/50 text-sm mb-6">Your voice session has been completed</p>
+
+                    {/* Always show Finish & Review button when session ends */}
+                    {onComplete && (
+                        <button
+                            onClick={onComplete}
+                            className="px-8 py-4 rounded-full bg-green-500 text-white font-semibold hover:bg-green-600 transition-all shadow-[0_0_30px_rgba(34,197,94,0.3)] flex items-center justify-center gap-2 mx-auto"
+                        >
+                            <CheckCircle className="w-5 h-5" />
+                            Finish & Review
+                        </button>
+                    )}
+
+                    {/* Fallback if no onComplete handler */}
+                    {!onComplete && onEnd && (
+                        <button
+                            onClick={onEnd}
+                            className="px-8 py-4 rounded-full bg-white/10 text-white font-medium hover:bg-white/20 transition-all flex items-center justify-center gap-2 mx-auto"
+                        >
+                            Continue
+                        </button>
+                    )}
                 </div>
             )}
         </div>

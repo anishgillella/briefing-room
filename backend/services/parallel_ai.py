@@ -166,6 +166,110 @@ class ParallelAIService:
 
         return results
 
+    async def research_compensation(
+        self,
+        role_title: str,
+        location: str,
+        company_stage: Optional[str] = None,
+        years_experience: Optional[int] = None,
+        industry: Optional[str] = None,
+        specific_company: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Research market compensation for a role.
+
+        Searches for salary data, equity benchmarks, and market trends.
+
+        Args:
+            role_title: Job title to research
+            location: Location (city, state, or remote)
+            company_stage: Company funding stage (e.g., "Series B")
+            years_experience: Years of experience required
+            industry: Industry category
+            specific_company: Specific company to research (optional)
+
+        Returns:
+            Search results for compensation data
+        """
+        logger.info(f"Starting compensation research for: {role_title} in {location}")
+
+        # Build context strings
+        stage_context = f" at {company_stage} companies" if company_stage else ""
+        exp_context = f" with {years_experience} years experience" if years_experience else ""
+        industry_context = f" in {industry}" if industry else ""
+        company_context = f" at {specific_company}" if specific_company else ""
+
+        # Build objective
+        objective = (
+            f"Find current compensation data for {role_title} roles{company_context} "
+            f"in {location}{stage_context}{industry_context}{exp_context}. "
+            f"Focus on: base salary ranges, equity compensation, bonus structures, "
+            f"total compensation packages, and how compensation varies by company stage/size. "
+            f"Prioritize data from 2024-2025."
+        )
+
+        # Build search queries targeting compensation data sources
+        search_queries = [
+            f"{role_title} salary {location} 2024 2025",
+            f"{role_title} compensation package {location}",
+            f"{role_title} equity compensation startup{stage_context}",
+            f"site:levels.fyi {role_title} {location}",
+            f"site:glassdoor.com {role_title} salary {location}",
+            f"{role_title} total compensation {industry_context} {location}",
+        ]
+
+        # Add company-specific query if provided
+        if specific_company:
+            search_queries.insert(0, f"{specific_company} {role_title} salary compensation")
+            search_queries.append(f"site:levels.fyi {specific_company}")
+
+        results = {
+            "role_title": role_title,
+            "location": location,
+            "company_stage": company_stage,
+            "years_experience": years_experience,
+            "industry": industry,
+            "specific_company": specific_company,
+            "search_results": [],
+            "errors": [],
+        }
+
+        try:
+            search_result = await self.search(
+                objective=objective,
+                search_queries=search_queries,
+                max_results=15,
+                max_chars_per_result=5000
+            )
+
+            if "error" in search_result and search_result.get("error"):
+                results["errors"].append({
+                    "query": "compensation_search",
+                    "error": search_result["error"]
+                })
+                logger.warning(f"Compensation search failed: {search_result.get('error')}")
+            else:
+                # Transform results to expected format
+                api_results = search_result.get("results", [])
+                for result in api_results:
+                    results["search_results"].append({
+                        "url": result.get("url", ""),
+                        "title": result.get("title", ""),
+                        "content": result.get("excerpt", result.get("content", "")),
+                        "publish_date": result.get("publish_date"),
+                    })
+
+                logger.info(f"Compensation research complete: {len(results['search_results'])} results")
+
+        except Exception as e:
+            logger.error(f"Error in compensation research: {e}")
+            results["errors"].append({
+                "query": "compensation_search",
+                "error": str(e)
+            })
+
+        return results
+
     async def extract_from_url(
         self,
         urls: List[str],
