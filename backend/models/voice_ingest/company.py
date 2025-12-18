@@ -99,6 +99,44 @@ class CompanyIntelligence(BaseModel):
         description="Overall sentiment, e.g., 'Positive', 'Mixed'"
     )
 
+    # Engineering Culture (captured in conversation)
+    eng_team_size: Optional[int] = Field(
+        None,
+        description="Size of the engineering team specifically"
+    )
+    work_style: Optional[str] = Field(
+        None,
+        description="Fast-paced/startup-y vs methodical/process-driven"
+    )
+    decision_making: Optional[str] = Field(
+        None,
+        description="How decisions get made, e.g., 'Flat, anyone can propose', 'Committee-driven'"
+    )
+    code_review_culture: Optional[str] = Field(
+        None,
+        description="Code review practices, e.g., 'Rigorous', 'Light touch'"
+    )
+    deployment_frequency: Optional[str] = Field(
+        None,
+        description="How often they deploy, e.g., 'Multiple times daily', 'Weekly'"
+    )
+    tech_debt_attitude: Optional[str] = Field(
+        None,
+        description="How they handle tech debt, e.g., 'Aggressive refactoring', 'Ship now, fix later'"
+    )
+    documentation_culture: Optional[str] = Field(
+        None,
+        description="Documentation practices, e.g., 'Heavy RFC process', 'Minimal docs'"
+    )
+    on_call_expectations: Optional[str] = Field(
+        None,
+        description="On-call rotation and expectations"
+    )
+    growth_trajectory: Optional[str] = Field(
+        None,
+        description="Company growth trajectory, e.g., 'Scaling fast', 'Steady growth', 'Consolidating'"
+    )
+
     # Conversation Hooks (for agent)
     interesting_facts: List[str] = Field(
         default_factory=list,

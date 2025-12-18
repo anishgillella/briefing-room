@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
-import { ArrowLeft, Loader2, CheckCircle, Building2, Sparkles } from "lucide-react";
+import { ArrowLeft, Loader2, CheckCircle, Building2 } from "lucide-react";
 import IntakeForm from "@/components/voice-ingest/IntakeForm";
 import JDPastePanel from "@/components/voice-ingest/JDPastePanel";
 import ProfileBuilder from "@/components/voice-ingest/ProfileBuilder";
@@ -247,10 +247,13 @@ export default function OnboardPage() {
             case "stage_created":
             case "stage_updated":
             case "stage_deleted":
+            case "stages_updated":
             case "nuance_captured":
-                // Refresh profile on any update
+            case "field_skipped":
+                // Refresh profile on any update - this ensures real-time UI updates
                 if (sessionId) {
                     getProfile(sessionId).then((data) => {
+                        console.log("[WS] Profile refreshed after:", message.type);
                         setProfile(data.profile);
                         setCompletionPercentage(data.completion_percentage);
                         setMissingFields(data.missing_fields);
@@ -421,13 +424,17 @@ export default function OnboardPage() {
                             </div>
                         </div>
 
-                        {/* Right: Profile Builder */}
-                        <div className="w-[450px] border-l border-white/10 bg-black/30">
+                        {/* Right: Profile Builder - Half screen width */}
+                        <div className="w-1/2 border-l border-white/10 bg-black/30">
                             <ProfileBuilder
                                 profile={profile}
                                 completionPercentage={completionPercentage}
                                 missingFields={missingFields}
                                 transcripts={transcripts}
+                                sessionId={sessionId!}
+                                onProfileUpdate={(updatedProfile) => {
+                                    setProfile(updatedProfile);
+                                }}
                             />
                         </div>
                     </div>
@@ -470,18 +477,14 @@ export default function OnboardPage() {
                             </div>
                         </div>
 
-                        <div className="flex gap-4">
+                        <div className="flex justify-center">
                             <Link
                                 href={`/candidates?profile=${sessionId}`}
-                                className="flex-1 py-4 rounded-full bg-white text-black font-semibold hover:bg-gray-100 transition-all text-center flex items-center justify-center gap-2"
+                                className="px-8 py-4 rounded-full bg-white text-black font-semibold hover:bg-gray-100 transition-all text-center flex items-center justify-center gap-2"
                             >
                                 Upload Candidates
                                 <ArrowLeft className="w-5 h-5 rotate-180" />
                             </Link>
-                            <button className="flex-1 py-4 rounded-full bg-indigo-600/50 text-white/70 font-semibold cursor-not-allowed flex items-center justify-center gap-2">
-                                <Sparkles className="w-5 h-5" />
-                                Source Candidates (Coming Soon)
-                            </button>
                         </div>
                     </div>
                 )}

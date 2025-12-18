@@ -71,6 +71,7 @@ class LocalJobProfileRepository:
             "is_complete": profile.is_complete,
             "missing_required_fields": profile.missing_required_fields,
             "parallel_research_status": profile.parallel_research_status,
+            "skipped_fields": profile.skipped_fields,
         }
 
     def _from_dict(self, data: Dict[str, Any]) -> JobProfile:
@@ -110,6 +111,7 @@ class LocalJobProfileRepository:
             is_complete=data.get("is_complete", False),
             missing_required_fields=data.get("missing_required_fields", []),
             parallel_research_status=data.get("parallel_research_status", "pending"),
+            skipped_fields=data.get("skipped_fields", []),
         )
 
     # ==========================================================================

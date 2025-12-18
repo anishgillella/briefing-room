@@ -40,6 +40,16 @@ export interface CompanyIntelligence {
     recent_news?: string[];
     interesting_facts?: string[];
     potential_selling_points?: string[];
+    // Engineering Culture
+    eng_team_size?: number;
+    work_style?: string;
+    decision_making?: string;
+    code_review_culture?: string;
+    deployment_frequency?: string;
+    tech_debt_attitude?: string;
+    documentation_culture?: string;
+    on_call_expectations?: string;
+    growth_trajectory?: string;
 }
 
 export interface CompanyIntelResponse {
@@ -60,6 +70,22 @@ export interface HardRequirements {
     salary_max?: number;
     equity_offered?: boolean;
     equity_range?: string;
+    // Team Context
+    team_size?: number;
+    team_composition?: string;
+    team_seniority?: 'mostly_junior' | 'mixed' | 'mostly_senior' | 'all_senior';
+    reporting_to?: string;
+    direct_reports?: number;
+    // Role Context
+    hiring_urgency?: 'asap' | 'within_month' | 'within_quarter' | 'planning_ahead' | 'backfill';
+    backfill_reason?: string;
+    success_metrics_30_day?: string;
+    success_metrics_90_day?: string;
+    growth_path?: string;
+    // Deal Breakers & Preferences
+    deal_breakers?: string[];
+    ideal_background?: string;
+    interview_turnaround?: string;
 }
 
 export interface CandidateTrait {
@@ -98,6 +124,7 @@ export interface JobProfile {
     nuances: NuanceCapture[];
     is_complete: boolean;
     completion_percentage: number;
+    skipped_fields?: string[];
 }
 
 export interface ProfileResponse {
@@ -154,10 +181,12 @@ export type WebSocketMessageType =
     | 'stage_created'
     | 'stage_updated'
     | 'stage_deleted'
+    | 'stages_updated'
     | 'nuance_captured'
     | 'transcript'
     | 'completion_update'
     | 'field_complete'
+    | 'field_skipped'
     | 'profile_refresh'
     | 'onboarding_complete';
 
@@ -286,10 +315,31 @@ export async function createTrait(
 }
 
 /**
+ * Update a trait.
+ */
+export async function updateTrait(
+    sessionId: string,
+    traitId: string,
+    updates: { name?: string; description?: string; priority?: string; signals?: string[] }
+): Promise<{ success: boolean; trait: CandidateTrait }> {
+    const response = await fetch(`${API_BASE}/api/voice-ingest/${sessionId}/traits/${encodeURIComponent(traitId)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to update trait');
+    }
+
+    return response.json();
+}
+
+/**
  * Delete a trait.
  */
-export async function deleteTrait(sessionId: string, traitName: string): Promise<void> {
-    const response = await fetch(`${API_BASE}/api/voice-ingest/${sessionId}/traits/${encodeURIComponent(traitName)}`, {
+export async function deleteTrait(sessionId: string, traitId: string): Promise<void> {
+    const response = await fetch(`${API_BASE}/api/voice-ingest/${sessionId}/traits/${encodeURIComponent(traitId)}`, {
         method: 'DELETE',
     });
 
@@ -319,10 +369,31 @@ export async function createInterviewStage(
 }
 
 /**
+ * Update an interview stage.
+ */
+export async function updateInterviewStage(
+    sessionId: string,
+    stageId: string,
+    updates: { name?: string; description?: string; duration_minutes?: number; interviewer_role?: string; order?: number }
+): Promise<{ success: boolean; stage: InterviewStage }> {
+    const response = await fetch(`${API_BASE}/api/voice-ingest/${sessionId}/interview-stages/${encodeURIComponent(stageId)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to update interview stage');
+    }
+
+    return response.json();
+}
+
+/**
  * Delete an interview stage.
  */
-export async function deleteInterviewStage(sessionId: string, stageName: string): Promise<void> {
-    const response = await fetch(`${API_BASE}/api/voice-ingest/${sessionId}/interview-stages/${encodeURIComponent(stageName)}`, {
+export async function deleteInterviewStage(sessionId: string, stageId: string): Promise<void> {
+    const response = await fetch(`${API_BASE}/api/voice-ingest/${sessionId}/interview-stages/${encodeURIComponent(stageId)}`, {
         method: 'DELETE',
     });
 

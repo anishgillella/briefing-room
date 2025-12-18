@@ -4,9 +4,9 @@ Non-negotiable job requirements like location, compensation, experience.
 """
 
 from pydantic import BaseModel, Field, field_validator
-from typing import Optional
+from typing import Optional, List
 
-from .enums import LocationType
+from .enums import LocationType, HiringUrgency, TeamSeniority
 
 
 class HardRequirements(BaseModel):
@@ -88,6 +88,66 @@ class HardRequirements(BaseModel):
         description="Bonus structure description"
     )
 
+    # Team Context
+    team_size: Optional[int] = Field(
+        None,
+        ge=1,
+        description="Size of the immediate team they'll join"
+    )
+    team_composition: Optional[str] = Field(
+        None,
+        description="Team makeup, e.g., '3 seniors, 2 mid-level, 1 junior'"
+    )
+    team_seniority: Optional[TeamSeniority] = Field(
+        None,
+        description="Overall seniority level of the team"
+    )
+    reporting_to: Optional[str] = Field(
+        None,
+        description="Who this role reports to, e.g., 'VP of Engineering'"
+    )
+    direct_reports: Optional[int] = Field(
+        None,
+        ge=0,
+        description="Number of direct reports if a management role"
+    )
+
+    # Role Context
+    hiring_urgency: Optional[HiringUrgency] = Field(
+        None,
+        description="How urgently the role needs to be filled"
+    )
+    backfill_reason: Optional[str] = Field(
+        None,
+        description="If backfill, why the previous person left"
+    )
+    success_metrics_30_day: Optional[str] = Field(
+        None,
+        description="What success looks like in first 30 days"
+    )
+    success_metrics_90_day: Optional[str] = Field(
+        None,
+        description="What success looks like in first 90 days"
+    )
+    growth_path: Optional[str] = Field(
+        None,
+        description="Where this role could lead in 1-2 years"
+    )
+
+    # Deal Breakers & Preferences
+    deal_breakers: List[str] = Field(
+        default_factory=list,
+        description="Explicit disqualifiers, e.g., 'No job hoppers', 'Must have startup experience'"
+    )
+    ideal_background: Optional[str] = Field(
+        None,
+        description="Dream candidate background, e.g., 'Ex-Stripe, Ex-Plaid fintech engineers'"
+    )
+    interview_turnaround: Optional[str] = Field(
+        None,
+        description="How fast they can move, e.g., 'Can do full loop in 1 week'"
+    )
+
     @field_validator("experience_max_years")
     @classmethod
     def max_must_be_gte_min(cls, v, info):
@@ -127,6 +187,15 @@ class HardRequirements(BaseModel):
             return f"{self.experience_min_years}-{self.experience_max_years} years"
         return f"{self.experience_min_years}+ years"
 
+    def format_experience_spoken(self) -> str:
+        """Format experience range for TTS/voice output"""
+        if self.experience_min_years is None:
+            return "Not specified"
+
+        if self.experience_max_years:
+            return f"{self.experience_min_years} to {self.experience_max_years} years"
+        return f"{self.experience_min_years} plus years"
+
     def format_compensation(self) -> str:
         """Format compensation for display"""
         if self.salary_min is None:
@@ -140,6 +209,27 @@ class HardRequirements(BaseModel):
             comp += f" + {self.equity_range} equity"
         elif self.equity_offered:
             comp += " + equity"
+        return comp
+
+    def format_compensation_spoken(self) -> str:
+        """Format compensation for TTS/voice output"""
+        if self.salary_min is None:
+            return "Not specified"
+
+        min_k = self.salary_min // 1000
+        max_k = (self.salary_max or self.salary_min) // 1000
+
+        if min_k == max_k:
+            comp = f"{min_k} thousand dollars"
+        else:
+            comp = f"{min_k} to {max_k} thousand dollars"
+
+        if self.equity_range:
+            # Convert "0.1-0.25%" to spoken form
+            equity_spoken = self.equity_range.replace("-", " to ").replace("%", " percent")
+            comp += f" plus {equity_spoken} equity"
+        elif self.equity_offered:
+            comp += " plus equity"
         return comp
 
     class Config:

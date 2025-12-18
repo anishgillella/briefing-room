@@ -372,7 +372,19 @@ export default function VoiceSession({
                     {/* Complete Button */}
                     {isComplete && onComplete && (
                         <button
-                            onClick={onComplete}
+                            onClick={() => {
+                                // Stop the voice call first
+                                if (vapiRef.current) {
+                                    try {
+                                        vapiRef.current.stop();
+                                        console.log("[Vapi] Call stopped on complete");
+                                    } catch (err) {
+                                        console.error("[Vapi] Error stopping call:", err);
+                                    }
+                                }
+                                // Then trigger complete callback
+                                onComplete();
+                            }}
                             className="mt-8 w-full py-4 rounded-full bg-green-500 text-white font-semibold hover:bg-green-600 transition-all shadow-[0_0_30px_rgba(34,197,94,0.3)] flex items-center justify-center gap-2"
                         >
                             <CheckCircle className="w-5 h-5" />
@@ -380,19 +392,6 @@ export default function VoiceSession({
                         </button>
                     )}
 
-                    {/* Transcript Preview */}
-                    {transcript.length > 0 && (
-                        <div className="mt-6 max-h-32 overflow-y-auto text-left bg-white/5 rounded-xl p-4">
-                            {transcript.slice(-3).map((item, idx) => (
-                                <div key={idx} className="text-sm mb-2">
-                                    <span className={`font-medium ${item.role === 'agent' ? 'text-indigo-400' : 'text-green-400'}`}>
-                                        {item.role === 'agent' ? 'AI' : 'You'}:
-                                    </span>{' '}
-                                    <span className="text-white/70">{item.text}</span>
-                                </div>
-                            ))}
-                        </div>
-                    )}
                 </div>
             )}
 

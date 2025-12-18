@@ -493,14 +493,48 @@ async def create_trait(session_id: str, request: CreateTraitRequest):
     }
 
 
-@router.delete("/{session_id}/traits/{trait_name}")
-async def delete_trait(session_id: str, trait_name: str):
+@router.patch("/{session_id}/traits/{trait_id}")
+async def update_trait(session_id: str, trait_id: str, request: dict):
+    """Update a candidate trait."""
+    profile = await job_profile_repo.get(session_id)
+    if not profile:
+        raise HTTPException(404, "Session not found")
+
+    # Find the trait by ID
+    trait = next((t for t in profile.traits if t.id == trait_id), None)
+    if not trait:
+        raise HTTPException(404, "Trait not found")
+
+    # Update trait fields
+    if "name" in request:
+        trait.name = request["name"]
+    if "description" in request:
+        trait.description = request["description"]
+    if "priority" in request:
+        from models.voice_ingest.enums import TraitPriority
+        trait.priority = TraitPriority(request["priority"])
+    if "signals" in request:
+        trait.signals = request["signals"]
+
+    # Save updated profile
+    await job_profile_repo.save(profile)
+
+    return {
+        "success": True,
+        "trait": trait.model_dump(),
+        "completion_percentage": profile.calculate_completion_percentage()
+    }
+
+
+@router.delete("/{session_id}/traits/{trait_id}")
+async def delete_trait(session_id: str, trait_id: str):
     """Delete a candidate trait."""
     profile = await job_profile_repo.get(session_id)
     if not profile:
         raise HTTPException(404, "Session not found")
 
-    success = await job_profile_repo.delete_trait(session_id, trait_name)
+    # Try to delete by ID first, fallback to name
+    success = await job_profile_repo.delete_trait(session_id, trait_id)
     if not success:
         raise HTTPException(404, "Trait not found")
 
@@ -541,14 +575,49 @@ async def create_interview_stage(session_id: str, request: CreateInterviewStageR
     }
 
 
-@router.delete("/{session_id}/interview-stages/{stage_name}")
-async def delete_interview_stage(session_id: str, stage_name: str):
+@router.patch("/{session_id}/interview-stages/{stage_id}")
+async def update_interview_stage(session_id: str, stage_id: str, request: dict):
+    """Update an interview stage."""
+    profile = await job_profile_repo.get(session_id)
+    if not profile:
+        raise HTTPException(404, "Session not found")
+
+    # Find the stage by ID
+    stage = next((s for s in profile.interview_stages if s.id == stage_id), None)
+    if not stage:
+        raise HTTPException(404, "Interview stage not found")
+
+    # Update stage fields
+    if "name" in request:
+        stage.name = request["name"]
+    if "description" in request:
+        stage.description = request["description"]
+    if "duration_minutes" in request:
+        stage.duration_minutes = request["duration_minutes"]
+    if "interviewer_role" in request:
+        stage.interviewer_role = request["interviewer_role"]
+    if "order" in request:
+        stage.order = request["order"]
+
+    # Save updated profile
+    await job_profile_repo.save(profile)
+
+    return {
+        "success": True,
+        "stage": stage.model_dump(),
+        "completion_percentage": profile.calculate_completion_percentage()
+    }
+
+
+@router.delete("/{session_id}/interview-stages/{stage_id}")
+async def delete_interview_stage(session_id: str, stage_id: str):
     """Delete an interview stage."""
     profile = await job_profile_repo.get(session_id)
     if not profile:
         raise HTTPException(404, "Session not found")
 
-    success = await job_profile_repo.delete_interview_stage(session_id, stage_name)
+    # Try to delete by ID first, fallback to name
+    success = await job_profile_repo.delete_interview_stage(session_id, stage_id)
     if not success:
         raise HTTPException(404, "Interview stage not found")
 
@@ -755,6 +824,9 @@ async def create_vapi_call(session_id: str):
     # Build the first message with wow factor
     first_message = _build_wow_first_message(profile)
 
+    # Build nuance-capturing system prompt
+    system_prompt = _build_nuance_system_prompt(profile)
+
     # Build assistant overrides with metadata for webhook
     assistant_overrides = {
         "variableValues": variable_values,
@@ -764,6 +836,23 @@ async def create_vapi_call(session_id: str):
             "recruiterName": f"{profile.recruiter_first_name} {profile.recruiter_last_name}",
             "companyName": profile.company.name if profile.company else None,
         },
+        # Override model settings for better conversation quality
+        # Note: This replaces the system prompt from Vapi console
+        "model": {
+            "provider": "openai",
+            "model": "gpt-4o",
+            "temperature": 0.7,
+            "systemPrompt": system_prompt
+        },
+        # Use a more natural voice
+        "voice": {
+            "provider": "11labs",
+            "voiceId": "pFZP5JQG7iQjIQuC4Bku",  # Lily - warm, conversational
+            "stability": 0.5,
+            "similarityBoost": 0.75,
+            "style": 0.5,
+            "useSpeakerBoost": True
+        }
     }
 
     logger.info(f"Returning Vapi config for session {session_id}, assistant: {VAPI_ASSISTANT_ID}")
@@ -790,7 +879,15 @@ def _build_vapi_variable_values(profile) -> Dict[str, str]:
     total_raised = ci.total_raised if ci and ci.total_raised else ""
     investors = ", ".join(ci.investors[:3]) if ci and ci.investors else ""
     tech_stack = ", ".join(ci.tech_stack_hints[:5]) if ci and ci.tech_stack_hints else ""
-    team_size = ci.team_size if ci and ci.team_size else ""
+    # Format team size for speech (e.g., "50 people" or "around 200 employees")
+    team_size = ""
+    if ci and ci.team_size:
+        if ci.team_size < 20:
+            team_size = f"{ci.team_size} people"
+        elif ci.team_size < 100:
+            team_size = f"around {ci.team_size} employees"
+        else:
+            team_size = f"about {ci.team_size} employees"
     headquarters = ci.headquarters if ci and ci.headquarters else ""
     product_description = ci.product_description if ci and ci.product_description else ""
     problem_solved = ci.problem_solved if ci and ci.problem_solved else ""
@@ -807,17 +904,20 @@ def _build_vapi_variable_values(profile) -> Dict[str, str]:
     # Calculate missing and existing fields
     missing_fields = profile.get_missing_fields()
 
+    # Use spoken formats for voice output
     existing_fields = []
     if req.job_title:
-        existing_fields.append(f"job_title: {req.job_title}")
+        existing_fields.append(f"job title: {req.job_title}")
     if req.location_type:
-        existing_fields.append(f"location: {req.format_location()}")
+        # Format location for speech (replace abbreviations)
+        loc = req.format_location().replace("d/week", "days per week")
+        existing_fields.append(f"location: {loc}")
     if req.experience_min_years is not None:
-        existing_fields.append(f"experience: {req.format_experience()}")
+        existing_fields.append(f"experience: {req.format_experience_spoken()}")
     if req.salary_min:
-        existing_fields.append(f"compensation: {req.format_compensation()}")
+        existing_fields.append(f"compensation: {req.format_compensation_spoken()}")
     if req.visa_sponsorship is not None:
-        existing_fields.append(f"visa_sponsorship: {'Yes' if req.visa_sponsorship else 'No'}")
+        existing_fields.append(f"visa sponsorship: {'Yes' if req.visa_sponsorship else 'No'}")
     if req.equity_offered is not None:
         existing_fields.append(f"equity: {'Yes' if req.equity_offered else 'No'}")
     if profile.traits:
@@ -825,7 +925,7 @@ def _build_vapi_variable_values(profile) -> Dict[str, str]:
         existing_fields.append(f"traits: {', '.join(trait_names)}")
     if profile.interview_stages:
         stage_names = [s.name for s in profile.get_ordered_interview_stages()[:5]]
-        existing_fields.append(f"interview_stages: {', '.join(stage_names)}")
+        existing_fields.append(f"interview stages: {', '.join(stage_names)}")
 
     return {
         # Company context
@@ -930,6 +1030,203 @@ def _build_wow_first_message(profile) -> str:
         f"Hey {user_name}! I've pulled some context on {ci.name}. "
         f"Let's nail down this job profile. Should we walk through everything together?"
     )
+
+
+def _build_nuance_system_prompt(profile) -> str:
+    """Build a system prompt that encourages nuanced conversation."""
+    user_name = profile.recruiter_first_name
+    company_name = profile.company.name if profile.company else "the company"
+
+    return f"""You are a sharp, experienced recruiting advisor having a natural conversation with {user_name} about hiring for {company_name}. Your goal is to deeply understand what they ACTUALLY need - not just accept what they say on the surface.
+
+## Your Core Mission
+Every requirement the user states is likely a PROXY for something deeper. Your job is to uncover what they're really looking for. Don't be a passive note-taker - be a thoughtful partner who helps them think clearly about what matters.
+
+## Your Personality
+- Warm but direct. Like a trusted colleague who's been in the trenches.
+- Conversational and natural - use contractions, vary your sentence length, don't sound scripted.
+- Genuinely curious about the "why" behind requirements.
+- Confident enough to respectfully challenge assumptions that might limit their candidate pool.
+
+## Uncovering What They Really Need
+
+### The Proxy Pattern
+Almost every stated requirement is a shortcut for an underlying need. Your job is to decode it:
+
+| They Say | They Might Actually Mean | How to Probe |
+|----------|-------------------------|--------------|
+| "Stanford or Harvard only" | Smart, rigorous, can handle pressure | "What is it about those schools that matters? Like, if someone didn't go there but clearly had that same intellectual rigor - say they built a successful company or published research - would that work?" |
+| "Must have FAANG experience" | Knows how to operate at scale, good engineering practices | "What specifically about FAANG experience matters here? Is it the scale, the engineering culture, the type of problems? Would someone from a high-growth startup who dealt with similar challenges work?" |
+| "5+ years required" | Enough pattern recognition, can work independently | "What changes at year 5 in your experience? Have you ever had someone with 3 years who surprised you? What made them different?" |
+| "Strong communicator" | Could mean many things | "Help me understand what communication looks like in this role day-to-day. Are they presenting to the board? Writing technical specs? Coordinating across 10 teams?" |
+| "Culture fit" | Often undefined | "When you say culture fit, what does that actually look like? Give me an example of someone who was a great culture fit and someone who wasn't." |
+
+### When to Ask "What If"
+When you detect a requirement that sounds like a FILTER or PROXY (not a genuine need), probe with:
+- "What if someone didn't have X but demonstrated Y instead?"
+- "Have you seen exceptions to this that worked out?"
+- "What's the actual risk if they don't have this exact background?"
+
+DON'T ask "what if" for:
+- Clear, specific technical skills needed for the job (e.g., "must know SQL" for a data role)
+- Reasonable experience requirements with clear rationale
+- Requirements they've already explained the "why" for
+- Basic job logistics (location, compensation, etc.)
+
+### Recognize Heuristics vs. Requirements
+Many things recruiters say are heuristics (shortcuts) not actual requirements:
+- "Top 10 CS school" → heuristic for "smart and technically strong"
+- "Big company experience" → heuristic for "knows process and scale"
+- "Startup experience" → heuristic for "scrappy and autonomous"
+
+When you hear a heuristic, dig into the underlying trait they're actually looking for. Then save THAT as the trait, not the proxy.
+
+## When to Push Back (Do This Often)
+- When a requirement is a proxy/heuristic rather than a real need
+- When something seems arbitrary or could unnecessarily limit the candidate pool
+- When they haven't explained the "why" behind a requirement
+- When you suspect the real need is different from what they stated
+- When a requirement might reflect habit rather than actual job needs
+
+Example pushbacks:
+- "Interesting - so if I found someone who didn't go to Stanford but clearly had that same caliber of thinking, would you want to see them?"
+- "I want to make sure we're not filtering out great people accidentally. What's the actual risk if someone doesn't have exactly that background?"
+- "I hear a lot of teams ask for that. In my experience, what they're really looking for is [X]. Does that resonate, or is there something specific about [original requirement]?"
+
+## When NOT to Push Back
+- On factual job details (title, location, compensation, equity)
+- When they've already explained their reasoning clearly and it's sound
+- When they've explicitly said "this is non-negotiable because [good reason]"
+- When pushing more would feel interrogative or annoying
+
+## Capturing the Right Things
+When you hear a requirement, BEFORE saving it, ask yourself:
+1. Is this the actual need, or a proxy for something else?
+2. Have I understood WHY this matters?
+3. Should I probe deeper before recording this?
+
+Save the UNDERLYING need as the trait, not the surface-level proxy. For example:
+- DON'T save: "Must be from top 10 CS school"
+- DO save: "Demonstrates strong analytical thinking and technical rigor - evidenced by challenging academic background, complex projects, or technical publications"
+
+## Conversation Flow - FOLLOW THIS ORDER
+Guide the conversation through these phases. Save information to the profile AS YOU GO - don't wait until the end!
+
+### Phase 1: Role Basics (Hard Requirements)
+1. **Job title** - what's the role? (use `update_job_title`)
+2. **Location** - remote, hybrid, or onsite? (use `update_location`)
+3. **Experience** - years needed? (use `update_experience`)
+4. **Compensation** - salary range and equity? (use `update_compensation`)
+5. **Visa sponsorship** - do they sponsor? (use `update_visa_sponsorship`)
+
+### Phase 2: Team Context
+After basics, ask: "Tell me about the team they'll be joining"
+- Team size and composition (use `update_team_context`)
+- Who do they report to?
+- Seniority mix of the team
+
+### Phase 3: Candidate Traits (Soft Requirements)
+For each skill/trait mentioned:
+- Add it immediately with `add_trait` - one trait at a time!
+- Ask if it's a must-have or nice-to-have
+- Probe for signals: "How would you spot this in an interview?"
+
+### Phase 4: Interview Process
+For EACH stage mentioned, add it immediately with `add_interview_stage`:
+- When they say "first we do a phone screen" → add "Phone Screen" stage right away
+- When they say "then a technical round" → add "Technical Round" stage right away
+- Don't wait to add all stages at once - add each one as they describe it!
+
+### Phase 5: Deeper Context
+Ask about:
+- **Urgency**: "How quickly do you need someone?" (use `update_hiring_urgency`)
+- **Success metrics**: "What does success look like at 90 days?" (use `update_success_metrics`)
+- **Deal breakers**: "Any absolute no-gos?" (use `add_deal_breaker` for each one)
+- **Ideal background**: "Dream candidate - where would they come from?" (use `update_ideal_background`)
+- **Engineering culture**: "What's the eng culture like?" (use `update_eng_culture`)
+- **Growth path**: "Where could this role lead?" (use `update_growth_path`)
+
+### Phase 6: Wrap Up
+- Offer to review skipped items
+- Confirm the profile looks complete
+
+## CRITICAL: Save as you go!
+- Call the tools IMMEDIATELY when you learn something - don't batch!
+- Each trait = one `add_trait` call
+- Each interview stage = one `add_interview_stage` call
+- Each deal breaker = one `add_deal_breaker` call
+- The frontend updates in real-time, so saving immediately shows progress
+
+## Important
+- Keep responses concise for voice - aim for 1-3 sentences typically
+- Ask one question at a time
+- Use the tools to save information AFTER you've uncovered the real need
+- Sound like a real person, not a form-filling bot
+- It's okay to say "I want to push back on that a bit" - it shows you care
+
+## Tool Usage Guidelines
+When managing traits and interview stages:
+
+**Removing items:**
+- If the user says a trait is NOT required or they don't need it, use `remove_trait` to delete it - do NOT add a new trait saying "not needed"
+- If the user says to remove an interview stage, use `remove_interview_stage` to delete it
+
+**Reordering interview stages:**
+- If the user wants to change the order of interview stages, use `reorder_interview_stages` with the stage names in the new desired order
+- Do NOT add duplicate stages when reordering - use the reorder tool instead
+
+**Modifying existing items:**
+- If changing a trait's priority or description, acknowledge and confirm the change
+- For interview stages, if changing duration or order, use the appropriate update
+
+## Capturing Deeper Context
+Beyond basic requirements, actively try to capture:
+
+**Team Context (use `update_team_context`):**
+- Team size and composition (who will they work with?)
+- Seniority mix (mostly senior? mixed?)
+- Who they report to and any direct reports
+- Ask: "Tell me about the team they'll be joining"
+
+**Role Context:**
+- Hiring urgency - how fast do they need someone? (use `update_hiring_urgency`)
+- Success metrics - what does success look like at 30/90 days? (use `update_success_metrics`)
+- Growth path - where could this role lead? (use `update_growth_path`)
+- Ask: "What would make you say 'this hire was a success' after 3 months?"
+
+**Deal Breakers & Preferences:**
+- Explicit disqualifiers (use `add_deal_breaker`)
+- Dream candidate background (use `update_ideal_background`)
+- Interview turnaround speed (use `update_interview_turnaround`)
+- Ask: "Are there any absolute deal breakers I should know about?"
+
+**Engineering Culture (use `update_eng_culture`):**
+- Work style (fast-paced vs methodical)
+- Decision-making culture (flat vs hierarchical)
+- Code review practices
+- Deployment frequency
+- On-call expectations
+- Ask: "What's the engineering culture like? How do decisions get made?"
+
+## Handling Skips
+Users can skip any question or field they don't want to answer. When they say things like:
+- "Skip this", "I don't know", "Not sure", "Let's move on", "Next question"
+- "We haven't figured that out yet", "TBD", "I'll get back to you on that"
+- "Not relevant", "Doesn't apply", "We don't have that"
+
+**How to handle skips:**
+- Acknowledge gracefully: "No problem, we can come back to that" or "Got it, let's move on"
+- Use `mark_field_skipped` to note that the field was intentionally skipped (not just missing)
+- Move to the next topic naturally without making them feel bad
+- Don't repeatedly ask about skipped fields - respect their choice
+- At the end, you can offer: "We skipped a few things - want to go back to any of them?"
+
+**What NOT to do:**
+- Don't push back on skips - they're not requirements you need to probe
+- Don't guilt them: "Are you sure? This is really important..."
+- Don't keep circling back to skipped items during the conversation
+
+Remember: Your job is to help {user_name} articulate what they ACTUALLY need, which is often different from what they initially say. The best recruiters find candidates others miss - help {user_name} do that by ensuring requirements reflect real needs, not just habits or shortcuts."""
 
 
 # =============================================================================
@@ -1186,6 +1483,113 @@ async def _execute_tool(tool_name: str, args: Dict[str, Any], session_id: str) -
         await _broadcast_requirements_update(session_id, profile)
 
     # =========================================================================
+    # Team Context Tools
+    # =========================================================================
+
+    elif tool_name == "update_team_context":
+        if args.get("team_size") is not None:
+            profile.requirements.team_size = int(args.get("team_size"))
+        if args.get("team_composition"):
+            profile.requirements.team_composition = args.get("team_composition")
+        if args.get("team_seniority"):
+            from models.voice_ingest.enums import TeamSeniority
+            try:
+                profile.requirements.team_seniority = TeamSeniority(args.get("team_seniority").lower().replace(" ", "_"))
+            except ValueError:
+                pass
+        if args.get("reporting_to"):
+            profile.requirements.reporting_to = args.get("reporting_to")
+        if args.get("direct_reports") is not None:
+            profile.requirements.direct_reports = int(args.get("direct_reports"))
+        result = {"success": True, "field": "team_context", "value": f"Team of {profile.requirements.team_size or 'unknown'}, reporting to {profile.requirements.reporting_to or 'unknown'}"}
+        await _broadcast_requirements_update(session_id, profile)
+
+    # =========================================================================
+    # Role Context Tools
+    # =========================================================================
+
+    elif tool_name == "update_hiring_urgency":
+        from models.voice_ingest.enums import HiringUrgency
+        urgency_str = args.get("urgency", "").lower().replace(" ", "_")
+        try:
+            profile.requirements.hiring_urgency = HiringUrgency(urgency_str)
+        except ValueError:
+            # Map common phrases to enum values
+            urgency_map = {
+                "asap": HiringUrgency.ASAP,
+                "urgent": HiringUrgency.ASAP,
+                "immediately": HiringUrgency.ASAP,
+                "within month": HiringUrgency.WITHIN_MONTH,
+                "soon": HiringUrgency.WITHIN_MONTH,
+                "within quarter": HiringUrgency.WITHIN_QUARTER,
+                "few months": HiringUrgency.WITHIN_QUARTER,
+                "planning ahead": HiringUrgency.PLANNING_AHEAD,
+                "no rush": HiringUrgency.PLANNING_AHEAD,
+                "backfill": HiringUrgency.BACKFILL,
+                "replacement": HiringUrgency.BACKFILL,
+            }
+            for key, val in urgency_map.items():
+                if key in urgency_str:
+                    profile.requirements.hiring_urgency = val
+                    break
+        if args.get("backfill_reason"):
+            profile.requirements.backfill_reason = args.get("backfill_reason")
+        result = {"success": True, "field": "hiring_urgency", "value": profile.requirements.hiring_urgency.value if profile.requirements.hiring_urgency else None}
+        await _broadcast_requirements_update(session_id, profile)
+
+    elif tool_name == "update_success_metrics":
+        if args.get("metrics_30_day"):
+            profile.requirements.success_metrics_30_day = args.get("metrics_30_day")
+        if args.get("metrics_90_day"):
+            profile.requirements.success_metrics_90_day = args.get("metrics_90_day")
+        result = {"success": True, "field": "success_metrics", "value": "Updated"}
+        await _broadcast_requirements_update(session_id, profile)
+
+    elif tool_name == "update_growth_path":
+        profile.requirements.growth_path = args.get("growth_path", "")
+        result = {"success": True, "field": "growth_path", "value": profile.requirements.growth_path}
+        await _broadcast_requirements_update(session_id, profile)
+
+    elif tool_name == "add_deal_breaker":
+        deal_breaker = args.get("deal_breaker", "")
+        if deal_breaker and deal_breaker not in profile.requirements.deal_breakers:
+            profile.requirements.deal_breakers.append(deal_breaker)
+        result = {"success": True, "field": "deal_breakers", "count": len(profile.requirements.deal_breakers)}
+        await _broadcast_requirements_update(session_id, profile)
+
+    elif tool_name == "update_ideal_background":
+        profile.requirements.ideal_background = args.get("ideal_background", "")
+        result = {"success": True, "field": "ideal_background", "value": profile.requirements.ideal_background}
+        await _broadcast_requirements_update(session_id, profile)
+
+    elif tool_name == "update_interview_turnaround":
+        profile.requirements.interview_turnaround = args.get("turnaround", "")
+        result = {"success": True, "field": "interview_turnaround", "value": profile.requirements.interview_turnaround}
+        await _broadcast_requirements_update(session_id, profile)
+
+    # =========================================================================
+    # Engineering Culture Tools
+    # =========================================================================
+
+    elif tool_name == "update_eng_culture":
+        if args.get("work_style"):
+            profile.company.work_style = args.get("work_style")
+        if args.get("decision_making"):
+            profile.company.decision_making = args.get("decision_making")
+        if args.get("code_review_culture"):
+            profile.company.code_review_culture = args.get("code_review_culture")
+        if args.get("deployment_frequency"):
+            profile.company.deployment_frequency = args.get("deployment_frequency")
+        if args.get("tech_debt_attitude"):
+            profile.company.tech_debt_attitude = args.get("tech_debt_attitude")
+        if args.get("on_call_expectations"):
+            profile.company.on_call_expectations = args.get("on_call_expectations")
+        if args.get("growth_trajectory"):
+            profile.company.growth_trajectory = args.get("growth_trajectory")
+        result = {"success": True, "field": "eng_culture", "value": "Updated"}
+        await _broadcast_requirements_update(session_id, profile)
+
+    # =========================================================================
     # Traits Tools
     # =========================================================================
 
@@ -1245,6 +1649,26 @@ async def _execute_tool(tool_name: str, args: Dict[str, Any], session_id: str) -
         })
         await _broadcast_completion_update(session_id, profile)
 
+    elif tool_name == "reorder_interview_stages":
+        # Reorder existing stages based on provided order
+        ordered_names = args.get("stage_order", [])
+        reordered = profile.reorder_interview_stages(ordered_names)
+        result = {"success": reordered, "new_order": [s.name for s in profile.get_ordered_interview_stages()]}
+        if reordered:
+            await ws_hub.send_update(session_id, "stages_updated", {
+                "stages": [s.model_dump(mode='json') for s in profile.interview_stages]
+            })
+            await _broadcast_completion_update(session_id, profile)
+
+    elif tool_name == "remove_interview_stage":
+        # Remove a specific interview stage
+        stage_name = args.get("name", "")
+        removed = profile.remove_interview_stage(stage_name)
+        result = {"success": removed, "stage": stage_name}
+        if removed:
+            await ws_hub.send_update(session_id, "stage_deleted", {"name": stage_name})
+            await _broadcast_completion_update(session_id, profile)
+
     # =========================================================================
     # Nuance Capture Tools
     # =========================================================================
@@ -1283,6 +1707,43 @@ async def _execute_tool(tool_name: str, args: Dict[str, Any], session_id: str) -
         missing = profile.get_missing_fields()
         completion = profile.calculate_completion_percentage()
         result = {"missing_fields": missing, "completion_percentage": completion}
+
+    # =========================================================================
+    # Skip Field Tools
+    # =========================================================================
+
+    elif tool_name == "mark_field_skipped":
+        # Mark a field as intentionally skipped by the user
+        field_name = args.get("field_name", "")
+        reason = args.get("reason", "")  # Optional reason for skipping
+
+        if field_name and field_name not in profile.skipped_fields:
+            profile.skipped_fields.append(field_name)
+
+            # Optionally capture as a nuance if there's a reason
+            if reason:
+                from models.voice_ingest import NuanceCapture
+                from models.voice_ingest.enums import NuanceCategory
+                nuance = NuanceCapture(
+                    category=NuanceCategory.OTHER,
+                    insight=f"Skipped '{field_name}': {reason}",
+                )
+                profile.add_nuance(nuance)
+
+        result = {
+            "success": True,
+            "field": field_name,
+            "skipped_count": len(profile.skipped_fields),
+            "skipped_fields": profile.skipped_fields
+        }
+        await ws_hub.send_update(session_id, "field_skipped", {"field": field_name, "reason": reason})
+
+    elif tool_name == "get_skipped_fields":
+        # Get list of all skipped fields
+        result = {
+            "skipped_fields": profile.skipped_fields,
+            "count": len(profile.skipped_fields)
+        }
 
     # Save profile after any update
     if result.get("success"):

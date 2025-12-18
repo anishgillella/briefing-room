@@ -156,6 +156,12 @@ class JobProfile(BaseModel):
         description="Status of Parallel.ai research: pending, in_progress, complete, failed"
     )
 
+    # Skipped fields (user chose to skip these)
+    skipped_fields: List[str] = Field(
+        default_factory=list,
+        description="Fields the user explicitly skipped during onboarding"
+    )
+
     def get_missing_fields(self) -> List[str]:
         """Calculate which required fields are still missing"""
         missing = []
@@ -239,10 +245,11 @@ class JobProfile(BaseModel):
         self.traits.append(trait)
         self.update_completion_status()
 
-    def remove_trait(self, trait_name: str) -> bool:
-        """Remove a trait by name"""
+    def remove_trait(self, trait_identifier: str) -> bool:
+        """Remove a trait by ID or name"""
         for i, trait in enumerate(self.traits):
-            if trait.name.lower() == trait_name.lower():
+            # Match by ID first, then by name
+            if trait.id == trait_identifier or trait.name.lower() == trait_identifier.lower():
                 self.traits.pop(i)
                 self.update_completion_status()
                 return True
@@ -256,10 +263,11 @@ class JobProfile(BaseModel):
         self.interview_stages.append(stage)
         self.update_completion_status()
 
-    def remove_interview_stage(self, stage_name: str) -> bool:
-        """Remove an interview stage by name"""
+    def remove_interview_stage(self, stage_identifier: str) -> bool:
+        """Remove an interview stage by ID or name"""
         for i, stage in enumerate(self.interview_stages):
-            if stage.name.lower() == stage_name.lower():
+            # Match by ID first, then by name
+            if stage.id == stage_identifier or stage.name.lower() == stage_identifier.lower():
                 self.interview_stages.pop(i)
                 # Reorder remaining stages
                 for j, remaining in enumerate(self.get_ordered_interview_stages()):
@@ -267,6 +275,32 @@ class JobProfile(BaseModel):
                 self.update_completion_status()
                 return True
         return False
+
+    def reorder_interview_stages(self, ordered_names: list[str]) -> bool:
+        """Reorder interview stages based on a list of stage names in desired order"""
+        if not ordered_names:
+            return False
+
+        # Build a map of stage names (case-insensitive) to stages
+        stage_map = {s.name.lower(): s for s in self.interview_stages}
+
+        # Create new ordered list
+        new_order = []
+        for i, name in enumerate(ordered_names):
+            stage = stage_map.get(name.lower())
+            if stage:
+                stage.order = i + 1
+                new_order.append(stage)
+                del stage_map[name.lower()]
+
+        # Append any remaining stages that weren't in the ordered list
+        for stage in stage_map.values():
+            stage.order = len(new_order) + 1
+            new_order.append(stage)
+
+        self.interview_stages = new_order
+        self.update_completion_status()
+        return True
 
     def add_nuance(self, nuance: NuanceCapture) -> None:
         """Add a nuance to the profile"""
