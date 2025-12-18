@@ -63,6 +63,54 @@ class AnalyticsRepository:
         except Exception as e:
             logger.error(f"Error updating analytics: {e}")
             return None
+
+    def save_analytics(self, interview_id: str, analytics_data: dict) -> Optional[dict]:
+        """Save or update analytics for an interview (upsert)."""
+        try:
+            # Check if analytics already exist for this interview
+            existing = self.get_analytics_by_interview(interview_id)
+
+            # Extract overall data
+            overall = analytics_data.get("overall", {})
+
+            # Build data to save - match schema columns + store full data
+            data = {
+                "interview_id": interview_id,
+                "overall_score": overall.get("overall_score"),
+                "recommendation": overall.get("recommendation"),
+                "synthesis": overall.get("recommendation_reasoning", ""),
+                "question_analytics": analytics_data.get("qa_pairs", []),
+                "skill_evidence": analytics_data.get("highlights", {}).get("areas_to_probe", []),
+                "behavioral_profile": {
+                    "communication_score": overall.get("communication_score"),
+                    "technical_score": overall.get("technical_score"),
+                    "cultural_fit_score": overall.get("cultural_fit_score"),
+                    "confidence": overall.get("confidence"),
+                    "red_flags": overall.get("red_flags", []),
+                    "highlights": overall.get("highlights", []),
+                },
+                "communication_metrics": analytics_data.get("highlights", {}),
+                # Store complete analytics_data for flexible retrieval
+                "topics_to_probe": analytics_data  # Store full data here as backup
+            }
+
+            if existing:
+                # Update existing analytics
+                result = self._get_db().table(self.analytics_table)\
+                    .update(data)\
+                    .eq("interview_id", interview_id)\
+                    .execute()
+            else:
+                # Create new analytics
+                data["id"] = str(uuid.uuid4())
+                result = self._get_db().table(self.analytics_table)\
+                    .insert(data)\
+                    .execute()
+
+            return result.data[0] if result.data else None
+        except Exception as e:
+            logger.error(f"Error saving analytics: {e}")
+            return None
     
     # --- Transcripts ---
     
