@@ -316,49 +316,7 @@ export default function ProfileBuilder({
                             </div>
                         </section>
 
-                        {/* Soft Requirements (Traits) Section - Always show */}
-                        <section>
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-xs font-bold text-white/40 uppercase tracking-widest flex items-center gap-2">
-                                    <Target className="w-3 h-3" />
-                                    Soft Requirements ({profile.traits.length})
-                                </h3>
-                                <button
-                                    onClick={() => setIsAddingTrait(true)}
-                                    className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-all"
-                                >
-                                    <Plus className="w-4 h-4" />
-                                </button>
-                            </div>
-
-                            {isAddingTrait && (
-                                <AddTraitForm
-                                    onSave={handleCreateTrait}
-                                    onCancel={() => setIsAddingTrait(false)}
-                                />
-                            )}
-
-                            {profile.traits.length === 0 && !isAddingTrait ? (
-                                <div className="p-4 rounded-xl bg-white/5 border border-white/5 text-center">
-                                    <p className="text-white/30 text-sm">
-                                        Traits will appear here as you describe your ideal candidate
-                                    </p>
-                                </div>
-                            ) : (
-                                <div className="space-y-2">
-                                    {profile.traits.map((trait) => (
-                                        <EditableTraitCard
-                                            key={trait.id}
-                                            trait={trait}
-                                            onUpdate={(updates) => handleUpdateTrait(trait.id, updates)}
-                                            onDelete={() => handleDeleteTrait(trait.id)}
-                                        />
-                                    ))}
-                                </div>
-                            )}
-                        </section>
-
-                        {/* Team Context Section - Always show */}
+                        {/* Team Context Section (Phase 2) - Always show */}
                         <section>
                             <h3 className="text-xs font-bold text-white/40 uppercase tracking-widest mb-4 flex items-center gap-2">
                                 <Users className="w-3 h-3" />
@@ -404,7 +362,94 @@ export default function ProfileBuilder({
                             )}
                         </section>
 
-                        {/* Role Context Section - Always show */}
+                        {/* Candidate Traits Section (Phase 3) - Always show */}
+                        <section>
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-xs font-bold text-white/40 uppercase tracking-widest flex items-center gap-2">
+                                    <Target className="w-3 h-3" />
+                                    Candidate Traits ({profile.traits.length})
+                                </h3>
+                                <button
+                                    onClick={() => setIsAddingTrait(true)}
+                                    className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-all"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            {isAddingTrait && (
+                                <AddTraitForm
+                                    onSave={handleCreateTrait}
+                                    onCancel={() => setIsAddingTrait(false)}
+                                />
+                            )}
+
+                            {profile.traits.length === 0 && !isAddingTrait ? (
+                                <div className="p-4 rounded-xl bg-white/5 border border-white/5 text-center">
+                                    <p className="text-white/30 text-sm">
+                                        Traits will appear here as you describe your ideal candidate
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="space-y-2">
+                                    {profile.traits.map((trait) => (
+                                        <EditableTraitCard
+                                            key={trait.id}
+                                            trait={trait}
+                                            onUpdate={(updates) => handleUpdateTrait(trait.id, updates)}
+                                            onDelete={() => handleDeleteTrait(trait.id)}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                        </section>
+
+                        {/* Interview Process Section (Phase 4) - Always show */}
+                        <section>
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-xs font-bold text-white/40 uppercase tracking-widest flex items-center gap-2">
+                                    <Sparkles className="w-3 h-3" />
+                                    Interview Process ({profile.interview_stages.length})
+                                </h3>
+                                <button
+                                    onClick={() => setIsAddingStage(true)}
+                                    className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-all"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            {isAddingStage && (
+                                <AddStageForm
+                                    onSave={handleCreateStage}
+                                    onCancel={() => setIsAddingStage(false)}
+                                />
+                            )}
+
+                            {profile.interview_stages.length === 0 && !isAddingStage ? (
+                                <div className="p-4 rounded-xl bg-white/5 border border-white/5 text-center">
+                                    <p className="text-white/30 text-sm">
+                                        Interview stages will appear here as you describe the process
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="space-y-2">
+                                    {profile.interview_stages
+                                        .sort((a, b) => a.order - b.order)
+                                        .map((stage, index) => (
+                                            <EditableStageCard
+                                                key={stage.id}
+                                                stage={stage}
+                                                index={index}
+                                                onUpdate={(updates) => handleUpdateStage(stage.id, updates)}
+                                                onDelete={() => handleDeleteStage(stage.id)}
+                                            />
+                                        ))}
+                                </div>
+                            )}
+                        </section>
+
+                        {/* Role Context Section (Phase 5a) - Always show */}
                         <section>
                             <h3 className="text-xs font-bold text-white/40 uppercase tracking-widest mb-4 flex items-center gap-2">
                                 <TrendingUp className="w-3 h-3" />
@@ -542,51 +587,6 @@ export default function ProfileBuilder({
                                             <span className="text-white">{profile.company.growth_trajectory}</span>
                                         </div>
                                     )}
-                                </div>
-                            )}
-                        </section>
-
-                        {/* Interview Stages Section - Always show */}
-                        <section>
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-xs font-bold text-white/40 uppercase tracking-widest flex items-center gap-2">
-                                    <Sparkles className="w-3 h-3" />
-                                    Interview Stages ({profile.interview_stages.length})
-                                </h3>
-                                <button
-                                    onClick={() => setIsAddingStage(true)}
-                                    className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-all"
-                                >
-                                    <Plus className="w-4 h-4" />
-                                </button>
-                            </div>
-
-                            {isAddingStage && (
-                                <AddStageForm
-                                    onSave={handleCreateStage}
-                                    onCancel={() => setIsAddingStage(false)}
-                                />
-                            )}
-
-                            {profile.interview_stages.length === 0 && !isAddingStage ? (
-                                <div className="p-4 rounded-xl bg-white/5 border border-white/5 text-center">
-                                    <p className="text-white/30 text-sm">
-                                        Interview stages will appear here as you describe the process
-                                    </p>
-                                </div>
-                            ) : (
-                                <div className="space-y-2">
-                                    {profile.interview_stages
-                                        .sort((a, b) => a.order - b.order)
-                                        .map((stage, index) => (
-                                            <EditableStageCard
-                                                key={stage.id}
-                                                stage={stage}
-                                                index={index}
-                                                onUpdate={(updates) => handleUpdateStage(stage.id, updates)}
-                                                onDelete={() => handleDeleteStage(stage.id)}
-                                            />
-                                        ))}
                                 </div>
                             )}
                         </section>

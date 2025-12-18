@@ -166,7 +166,7 @@ class JobProfile(BaseModel):
         """Calculate which required fields are still missing"""
         missing = []
 
-        # Required hard requirements
+        # Phase 1: Role Basics (Hard Requirements)
         if not self.requirements.job_title:
             missing.append("job_title")
         if self.requirements.location_type is None:
@@ -180,28 +180,51 @@ class JobProfile(BaseModel):
         if self.requirements.equity_offered is None:
             missing.append("equity")
 
-        # Must have at least one trait
+        # Phase 2: Team Context
+        if self.requirements.team_size is None and self.requirements.reporting_to is None:
+            missing.append("team_context")
+
+        # Phase 3: Candidate Traits - Must have at least one trait
         if len(self.traits) == 0:
             missing.append("traits")
 
-        # Must have at least one interview stage
+        # Phase 4: Interview Process - Must have at least one interview stage
         if len(self.interview_stages) == 0:
             missing.append("interview_stages")
+
+        # Phase 5: Deeper Context (role_context)
+        # At least one of: hiring_urgency, success_metrics, deal_breakers, or ideal_background
+        has_role_context = (
+            self.requirements.hiring_urgency is not None or
+            self.requirements.success_metrics_30_day or
+            self.requirements.success_metrics_90_day or
+            len(self.requirements.deal_breakers) > 0 or
+            self.requirements.ideal_background
+        )
+        if not has_role_context:
+            missing.append("role_context")
 
         return missing
 
     def calculate_completion_percentage(self) -> float:
         """Calculate overall profile completion percentage"""
-        # Total required fields
+        # Total required fields (10 total across all phases)
         required_fields = [
+            # Phase 1: Role Basics
             "job_title",
             "location_type",
             "experience_min_years",
             "compensation",
             "visa_sponsorship",
             "equity",
+            # Phase 2: Team Context
+            "team_context",
+            # Phase 3: Traits
             "traits",
-            "interview_stages"
+            # Phase 4: Interview Process
+            "interview_stages",
+            # Phase 5: Deeper Context
+            "role_context"
         ]
 
         missing = self.get_missing_fields()
