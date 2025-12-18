@@ -16,6 +16,7 @@ import {
 import CandidateProfile from "@/components/CandidateProfile";
 import InterviewHistory from "@/components/InterviewHistory";
 import InterviewerSelector from "@/components/InterviewerSelector";
+import CandidateAnalytics from "@/components/CandidateAnalytics";
 import { Candidate, PreBrief } from "@/types";
 import { setSelectedInterviewerId } from "@/lib/interviewerApi";
 
@@ -33,7 +34,7 @@ export default function CandidateDetailPage() {
     const [error, setError] = useState<string | null>(null);
     const [startingInterview, setStartingInterview] = useState(false);
     const [selectedInterviewer, setSelectedInterviewer] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<'profile' | 'history'>('profile');
+    const [activeTab, setActiveTab] = useState<'profile' | 'history' | 'analytics'>('profile');
     const [backUrl, setBackUrl] = useState("/");
 
     // Get back URL (rankings session) on mount
@@ -381,11 +382,20 @@ Be concise and helpful. The recruiter has limited time before the interview.`
                     >
                         Interview History
                     </button>
+                    <button
+                        onClick={() => setActiveTab('analytics')}
+                        className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'analytics'
+                            ? 'bg-purple-600 text-white shadow-lg'
+                            : 'text-white/60 hover:text-white hover:bg-white/10'
+                            }`}
+                    >
+                        Analytics
+                    </button>
                 </div>
             </div>
 
             {/* Tab Content */}
-            {activeTab === 'profile' ? (
+            {activeTab === 'profile' && (
                 <CandidateProfile
                     candidate={candidate}
                     prebrief={prebrief}
@@ -393,7 +403,8 @@ Be concise and helpful. The recruiter has limited time before the interview.`
                     onStartInterview={handleStartInterview}
                     startingInterview={startingInterview}
                 />
-            ) : (
+            )}
+            {activeTab === 'history' && (
                 <div className="max-w-7xl mx-auto px-6 py-6">
                     <InterviewHistory
                         candidateId={candidateId}
@@ -402,6 +413,14 @@ Be concise and helpful. The recruiter has limited time before the interview.`
                             // Navigate to interview room
                             router.push(`/candidates/${candidateId}/interview?room=live&stage=${stage}`);
                         }}
+                    />
+                </div>
+            )}
+            {activeTab === 'analytics' && (
+                <div className="max-w-7xl mx-auto px-6 py-6">
+                    <CandidateAnalytics
+                        candidateId={candidateId}
+                        candidateName={candidate.name}
                     />
                 </div>
             )}

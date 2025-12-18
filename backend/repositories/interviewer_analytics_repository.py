@@ -40,8 +40,12 @@ class InterviewerAnalyticsRepository:
 
     def get_by_interview(self, interview_id: str) -> Optional[dict]:
         """Get analytics for a specific interview."""
-        result = self.db.table("interviewer_analytics").select("*").eq("interview_id", interview_id).single().execute()
-        return result.data
+        try:
+            result = self.db.table("interviewer_analytics").select("*").eq("interview_id", interview_id).execute()
+            return result.data[0] if result.data else None
+        except Exception as e:
+            # Log and return None if no data found
+            return None
 
     def get_by_interviewer(self, interviewer_id: str, limit: int = 20) -> List[dict]:
         """Get all analytics for an interviewer."""

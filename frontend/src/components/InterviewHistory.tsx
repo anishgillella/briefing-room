@@ -395,27 +395,27 @@ export default function InterviewHistory({
                             <div className="px-8 pb-8 pt-2 animate-fade-in">
                                 <div className="h-px w-full bg-white/5 mb-8"></div>
 
-                                {/* Upload Transcript Button - Show if no analytics yet */}
-                                {!interview.analytics && (
-                                    <div className="mb-8">
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setShowTranscriptModal({
-                                                    interviewId: interview.id,
-                                                    stage: interview.stage
-                                                });
-                                            }}
-                                            className="w-full py-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-500/30 transition-all flex items-center justify-center gap-3 group"
-                                        >
-                                            <Upload className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform" />
-                                            <span className="text-white/70 group-hover:text-white font-medium">Upload External Transcript</span>
-                                        </button>
-                                        <p className="text-center text-white/30 text-xs mt-3">
-                                            Paste a transcript from Zoom, Otter, or another source
-                                        </p>
-                                    </div>
-                                )}
+                                {/* Upload Transcript Button - Always visible */}
+                                <div className="mb-8">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setShowTranscriptModal({
+                                                interviewId: interview.id,
+                                                stage: interview.stage
+                                            });
+                                        }}
+                                        className="w-full py-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-500/30 transition-all flex items-center justify-center gap-3 group"
+                                    >
+                                        <Upload className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform" />
+                                        <span className="text-white/70 group-hover:text-white font-medium">
+                                            {interview.analytics ? "Update Transcript" : "Upload External Transcript"}
+                                        </span>
+                                    </button>
+                                    <p className="text-center text-white/30 text-xs mt-3">
+                                        Paste a transcript from Zoom, Otter, or another source to {interview.analytics ? "update" : "add"} analytics
+                                    </p>
+                                </div>
 
                                 {interview.analytics && (
                                     <>
@@ -435,18 +435,24 @@ export default function InterviewHistory({
                                     <div className="mb-10">
                                         <h5 className="text-white/40 text-xs font-bold uppercase tracking-widest mb-4">Behavioral DNA</h5>
                                         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                                            {Object.entries(interview.analytics.behavioral_profile).map(([trait, score]) => (
-                                                <div key={trait} className="bg-white/5 rounded-xl p-4 text-center border border-white/5 hover:bg-white/10 transition-colors">
-                                                    <div className="relative inline-flex items-center justify-center mb-2">
-                                                        <svg className="w-16 h-16 transform -rotate-90">
-                                                            <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-white/5" />
-                                                            <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-purple-500" strokeDasharray={175.9} strokeDashoffset={175.9 - (175.9 * (score as number)) / 10} />
-                                                        </svg>
-                                                        <span className="absolute text-xl font-medium text-white">{score as number}</span>
-                                                    </div>
-                                                    <div className="text-xs text-white/50 font-medium capitalize truncate">{trait.replace('_', ' ')}</div>
-                                                </div>
-                                            ))}
+                                            {Object.entries(interview.analytics.behavioral_profile)
+                                                .filter(([, score]) => typeof score === 'number' && !isNaN(score))
+                                                .map(([trait, score]) => {
+                                                    const numScore = Number(score) || 0;
+                                                    const dashOffset = 175.9 - (175.9 * Math.min(Math.max(numScore, 0), 10)) / 10;
+                                                    return (
+                                                        <div key={trait} className="bg-white/5 rounded-xl p-4 text-center border border-white/5 hover:bg-white/10 transition-colors">
+                                                            <div className="relative inline-flex items-center justify-center mb-2">
+                                                                <svg className="w-16 h-16 transform -rotate-90">
+                                                                    <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-white/5" />
+                                                                    <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-purple-500" strokeDasharray={175.9} strokeDashoffset={dashOffset} />
+                                                                </svg>
+                                                                <span className="absolute text-xl font-medium text-white">{numScore}</span>
+                                                            </div>
+                                                            <div className="text-xs text-white/50 font-medium capitalize truncate">{trait.replace('_', ' ')}</div>
+                                                        </div>
+                                                    );
+                                                })}
                                         </div>
                                     </div>
                                 )}

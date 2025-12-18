@@ -19,6 +19,11 @@ from datetime import datetime
 from repositories.candidate_repository import CandidateRepository
 from repositories.interview_repository import InterviewRepository
 from repositories.analytics_repository import AnalyticsRepository
+from repositories.interviewer_analytics_repository import get_interviewer_analytics_repository
+
+# Services
+from services.transcript_parser import get_transcript_parser, ParsedTranscript
+from services.interviewer_analyzer import get_interviewer_analyzer
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +33,7 @@ router = APIRouter(prefix="/api/interviews", tags=["interviews"])
 candidate_repo = CandidateRepository()
 interview_repo = InterviewRepository()
 analytics_repo = AnalyticsRepository()
+interviewer_analytics_repo = get_interviewer_analytics_repository()
 
 
 # ============================================================================
@@ -411,6 +417,8 @@ class PasteTranscriptRequest(BaseModel):
     """Request to paste/upload a transcript."""
     turns: List[TranscriptTurn]
     full_text: Optional[str] = None
+    interviewer_id: Optional[str] = None  # ID of interviewer for analytics
+    interviewer_name: Optional[str] = None  # Name of interviewer for analytics
 
 
 class TranscriptResponse(BaseModel):
@@ -523,6 +531,17 @@ async def paste_transcript(
             raise HTTPException(status_code=500, detail="Failed to save transcript")
         transcript_id = result.get("id")
 
+    # Update interview with interviewer info if provided
+    update_data = {}
+    if request.interviewer_id:
+        update_data["interviewer_id"] = request.interviewer_id
+    if request.interviewer_name:
+        update_data["interviewer_name"] = request.interviewer_name
+
+    if update_data:
+        interview_repo.update(interview_id, update_data)
+        logger.info(f"Set interviewer info: id={request.interviewer_id}, name={request.interviewer_name}")
+
     # Mark interview as completed if it was still scheduled/active
     if interview.get("status") in ["scheduled", "active"]:
         interview_repo.complete_interview(interview_id)
@@ -562,4 +581,532 @@ async def get_transcript(interview_id: str):
         "transcript": transcript,
         "has_transcript": True,
         "turns_count": len(transcript.get("turns", []))
+    }
+
+
+# ============================================================================
+# Smart Transcript Parsing & Analytics Generation
+# ============================================================================
+
+class SmartParseRequest(BaseModel):
+    """Request for smart transcript parsing."""
+    raw_transcript: str
+    candidate_name: Optional[str] = None
+    interviewer_name: Optional[str] = None
+
+
+class SmartParseResponse(BaseModel):
+    """Response from smart transcript parsing."""
+    turns: list
+    interviewer_name: Optional[str] = None
+    candidate_name: Optional[str] = None
+    total_turns: int
+    interviewer_turns: int
+    candidate_turns: int
+    questions_count: int
+    parsing_notes: Optional[str] = None
+
+
+@router.post("/smart-parse")
+async def smart_parse_transcript(request: SmartParseRequest) -> SmartParseResponse:
+    """
+    Use Gemini 2.5 Flash to intelligently parse raw transcript text
+    into structured conversation turns.
+    """
+    try:
+        parser = get_transcript_parser()
+        result = await parser.parse_transcript(
+            raw_transcript=request.raw_transcript,
+            candidate_name=request.candidate_name,
+            interviewer_name=request.interviewer_name
+        )
+
+        return SmartParseResponse(
+            turns=[{
+                "speaker": t.speaker,
+                "speaker_name": t.speaker_name,
+                "text": t.cleaned_text or t.text,
+                "is_question": t.is_question
+            } for t in result.turns],
+            interviewer_name=result.interviewer_name,
+            candidate_name=result.candidate_name,
+            total_turns=result.total_turns,
+            interviewer_turns=result.interviewer_turns,
+            candidate_turns=result.candidate_turns,
+            questions_count=result.questions_count,
+            parsing_notes=result.parsing_notes
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Smart parse error: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to parse transcript: {str(e)}")
+
+
+class GenerateAnalyticsRequest(BaseModel):
+    """Request to generate analytics from a pasted transcript."""
+    interview_id: str
+    interviewer_id: Optional[str] = None
+    job_description: Optional[str] = None
+    candidate_resume: Optional[str] = None
+
+
+class AnalyticsResultResponse(BaseModel):
+    """Response with both candidate and interviewer analytics."""
+    candidate_analytics: Optional[dict] = None
+    interviewer_analytics: Optional[dict] = None
+    status: str
+    message: str
+
+
+@router.post("/{interview_id}/generate-analytics")
+async def generate_transcript_analytics(
+    interview_id: str,
+    request: GenerateAnalyticsRequest
+) -> AnalyticsResultResponse:
+    """
+    Generate both candidate and interviewer analytics from a saved transcript.
+    This uses the existing analytics generation logic.
+    """
+    import httpx
+    from config import OPENROUTER_API_KEY, GEMINI_ANALYTICS_MODEL
+
+    # Get the interview
+    interview = interview_repo.get_by_id(interview_id)
+    if not interview:
+        raise HTTPException(status_code=404, detail="Interview not found")
+
+    # Get the transcript
+    transcript_record = analytics_repo.get_transcript_by_interview(interview_id)
+    if not transcript_record:
+        raise HTTPException(status_code=404, detail="No transcript found for this interview. Please save a transcript first.")
+
+    # Build transcript text from turns
+    turns = transcript_record.get("turns", [])
+    if not turns:
+        raise HTTPException(status_code=400, detail="Transcript has no conversation turns")
+
+    transcript_text = "\n".join([
+        f"{t.get('speaker', 'Unknown').title()}: {t.get('text', '')}"
+        for t in turns
+    ])
+
+    # Get candidate info
+    candidate = candidate_repo.get_by_id(interview.get("candidate_id"))
+    candidate_name = candidate.get("name", "Unknown") if candidate else "Unknown"
+
+    # Build context for analytics
+    context_parts = []
+    if request.job_description:
+        context_parts.append(f"## Job Description:\n{request.job_description}")
+    if request.candidate_resume:
+        context_parts.append(f"## Candidate Resume:\n{request.candidate_resume}")
+    context = "\n\n".join(context_parts)
+
+    # =====================
+    # Generate Candidate Analytics using the existing prompt
+    # =====================
+    ANALYTICS_SYSTEM_PROMPT = """You are an expert interview analyst. Your task is to analyze an interview transcript and provide structured metrics.
+
+Given:
+- Job Description (if provided): Expectations for the role
+- Candidate Resume (if provided): Their background and experience
+- Interview Transcript: The conversation between interviewer and candidate
+
+Your analysis should:
+1. Extract ALL question-answer pairs from the transcript
+2. Classify each question as: technical, behavioral, situational, or other
+3. Score each answer (0-10) on:
+   - Relevance: Did they answer what was asked?
+   - Clarity: Was the response structured and easy to follow?
+   - Depth: Surface-level vs thorough exploration?
+   - Type-specific metric:
+     * For behavioral: "STAR Adherence" (Situation-Task-Action-Result)
+     * For technical: "Technical Accuracy"
+     * For situational: "Problem-Solving"
+     * For other: "Completeness"
+4. Calculate overall metrics
+5. Identify red flags (concerns) and highlights (standout moments)
+6. Provide a hiring recommendation with confidence level
+
+Be fair but rigorous. Excellent answers get 9-10, good answers 7-8, average 5-6, below average 3-4, poor 1-2."""
+
+    ANALYTICS_USER_PROMPT = f"""Please analyze this interview:
+
+{context}
+
+## Interview Transcript:
+{transcript_text}
+
+Respond with a JSON object matching this exact structure:
+{{
+  "qa_pairs": [
+    {{
+      "question": "The question asked",
+      "answer": "Summary of candidate's response (max 200 words)",
+      "question_type": "technical|behavioral|situational|other",
+      "metrics": {{
+        "relevance": 0-10,
+        "clarity": 0-10,
+        "depth": 0-10,
+        "type_specific_metric": 0-10,
+        "type_specific_label": "STAR Adherence|Technical Accuracy|Problem-Solving|Completeness"
+      }},
+      "highlight": "Notable quote or null if not standout"
+    }}
+  ],
+  "overall": {{
+    "overall_score": 0-100,
+    "communication_score": 0.0-10.0,
+    "technical_score": 0.0-10.0,
+    "cultural_fit_score": 0.0-10.0,
+    "total_questions": number,
+    "avg_response_length": number,
+    "red_flags": ["concern 1", "concern 2"],
+    "highlights": ["strength 1", "strength 2"],
+    "recommendation": "Strong Hire|Hire|Leaning Hire|Leaning No Hire|No Hire",
+    "recommendation_reasoning": "1-2 sentence explanation",
+    "confidence": 0-100
+  }},
+  "highlights": {{
+    "best_answer": {{
+      "quote": "Direct quote from their best response",
+      "context": "Why this answer was strong"
+    }},
+    "red_flag": null,
+    "quotable_moment": "A memorable quote",
+    "areas_to_probe": ["Topic 1", "Topic 2"]
+  }}
+}}
+
+Return ONLY valid JSON, no markdown code blocks."""
+
+    candidate_analytics = None
+    interviewer_analytics = None
+
+    try:
+        # Call OpenRouter for candidate analytics
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            response = await client.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                    "Content-Type": "application/json",
+                    "HTTP-Referer": "https://superposition.ai",
+                    "X-Title": "Superposition Interview Analytics"
+                },
+                json={
+                    "model": GEMINI_ANALYTICS_MODEL,
+                    "messages": [
+                        {"role": "system", "content": ANALYTICS_SYSTEM_PROMPT},
+                        {"role": "user", "content": ANALYTICS_USER_PROMPT}
+                    ],
+                    "temperature": 0.3,
+                    "max_tokens": 4000,
+                    "response_format": {"type": "json_object"}
+                }
+            )
+
+            if response.status_code == 200:
+                result = response.json()
+                content = result.get("choices", [{}])[0].get("message", {}).get("content", "")
+
+                # Handle markdown-wrapped JSON
+                if "```json" in content:
+                    content = content.split("```json")[1].split("```")[0]
+                elif "```" in content:
+                    content = content.split("```")[1].split("```")[0]
+
+                candidate_analytics = json.loads(content.strip())
+
+                # Save to database
+                analytics_repo.save_analytics(interview_id, candidate_analytics)
+                logger.info(f"Saved candidate analytics for interview {interview_id}")
+            else:
+                logger.error(f"OpenRouter error: {response.status_code} - {response.text}")
+
+    except Exception as e:
+        logger.error(f"Error generating candidate analytics: {e}")
+
+    # =====================
+    # Generate Interviewer Analytics
+    # =====================
+    interviewer_id = request.interviewer_id or interview.get("interviewer_id")
+
+    if interviewer_id:
+        try:
+            analyzer = get_interviewer_analyzer()
+
+            # Extract questions from transcript
+            questions = [t.get("text", "") for t in turns if t.get("speaker") == "interviewer"]
+
+            result = await analyzer.analyze_interview(
+                transcript=transcript_text,
+                questions=questions,
+                interviewer_id=interviewer_id
+            )
+
+            if result:
+                # Convert to dict for response
+                interviewer_analytics = result.model_dump()
+
+                # Save to database
+                interviewer_analytics_repo.save_analytics(
+                    interview_id=interview_id,
+                    interviewer_id=interviewer_id,
+                    analytics=result
+                )
+                logger.info(f"Saved interviewer analytics for interview {interview_id}")
+
+        except Exception as e:
+            logger.error(f"Error generating interviewer analytics: {e}")
+
+    # Determine overall status
+    if candidate_analytics and interviewer_analytics:
+        status = "complete"
+        message = "Generated both candidate and interviewer analytics"
+    elif candidate_analytics:
+        status = "partial"
+        message = "Generated candidate analytics only (no interviewer selected)"
+    elif interviewer_analytics:
+        status = "partial"
+        message = "Generated interviewer analytics only (candidate analytics failed)"
+    else:
+        status = "failed"
+        message = "Failed to generate analytics"
+
+    return AnalyticsResultResponse(
+        candidate_analytics=candidate_analytics,
+        interviewer_analytics=interviewer_analytics,
+        status=status,
+        message=message
+    )
+
+
+# ============================================================================
+# Candidate Analytics (All Rounds + Cumulative)
+# ============================================================================
+
+@router.get("/candidate/{candidate_id}/all-analytics")
+async def get_all_candidate_analytics(candidate_id: str):
+    """
+    Get all analytics for a candidate across all interview rounds,
+    plus cumulative/aggregated analytics.
+    """
+    # Get all interviews for this candidate
+    interviews = interview_repo.get_candidate_interviews(candidate_id)
+
+    if not interviews:
+        return {
+            "candidate_id": candidate_id,
+            "rounds": [],
+            "cumulative": None,
+            "message": "No interviews found"
+        }
+
+    rounds = []
+    all_scores = []
+    all_communication_scores = []
+    all_technical_scores = []
+    all_cultural_fit_scores = []
+    all_qa_pairs = []
+    all_highlights = []
+    all_red_flags = []
+    recommendations = []
+    interviewer_analytics_list = []
+
+    for interview in interviews:
+        interview_id = interview.get("id")
+        stage = interview.get("stage", "unknown")
+
+        # Get candidate analytics for this interview
+        # First check if analytics came with the join (analytics is an array from the join)
+        joined_analytics = interview.get("analytics")
+        if isinstance(joined_analytics, list) and joined_analytics:
+            candidate_analytics = joined_analytics[0]  # Take first analytics record
+        else:
+            # Fallback to separate query
+            candidate_analytics = analytics_repo.get_analytics_by_interview(interview_id)
+
+        # Get interviewer analytics for this interview
+        interviewer_analytics = None
+        interviewer_id = interview.get("interviewer_id")
+        if interviewer_id:
+            interviewer_analytics = interviewer_analytics_repo.get_by_interview(interview_id)
+
+        round_data = {
+            "interview_id": interview_id,
+            "stage": stage,
+            "status": interview.get("status", "unknown"),
+            "interviewer_name": interview.get("interviewer_name"),
+            "interviewer_id": interviewer_id,
+            "created_at": interview.get("created_at"),
+            "candidate_analytics": None,
+            "interviewer_analytics": None,
+        }
+
+        if candidate_analytics:
+            # Parse analytics from various possible structures:
+            # 1. Direct schema columns (overall_score, recommendation, synthesis, behavioral_profile, etc.)
+            # 2. topics_to_probe containing full analytics data (new format backup)
+            # 3. Legacy nested formats
+
+            # Extract direct schema fields first
+            overall_score = candidate_analytics.get("overall_score")
+            recommendation = candidate_analytics.get("recommendation")
+            synthesis = candidate_analytics.get("synthesis", "")
+            behavioral_profile = candidate_analytics.get("behavioral_profile", {}) or {}
+            question_analytics = candidate_analytics.get("question_analytics", []) or []
+            skill_evidence = candidate_analytics.get("skill_evidence", []) or []
+            communication_metrics = candidate_analytics.get("communication_metrics", {}) or {}
+            topics_to_probe_raw = candidate_analytics.get("topics_to_probe")
+
+            # Check if topics_to_probe contains full analytics (backup storage)
+            if isinstance(topics_to_probe_raw, dict) and "overall" in topics_to_probe_raw:
+                # Use the backup full analytics
+                full_analytics = topics_to_probe_raw
+                overall_data = full_analytics.get("overall", {})
+                overall_score = overall_score or overall_data.get("overall_score")
+                recommendation = recommendation or overall_data.get("recommendation")
+                synthesis = synthesis or overall_data.get("recommendation_reasoning", "")
+
+                # Get scores from overall if not in behavioral_profile
+                if not behavioral_profile.get("communication_score"):
+                    behavioral_profile["communication_score"] = overall_data.get("communication_score", 0)
+                if not behavioral_profile.get("technical_score"):
+                    behavioral_profile["technical_score"] = overall_data.get("technical_score", 0)
+                if not behavioral_profile.get("cultural_fit_score"):
+                    behavioral_profile["cultural_fit_score"] = overall_data.get("cultural_fit_score", 0)
+                if not behavioral_profile.get("confidence"):
+                    behavioral_profile["confidence"] = overall_data.get("confidence", 0)
+                if not behavioral_profile.get("red_flags"):
+                    behavioral_profile["red_flags"] = overall_data.get("red_flags", [])
+                if not behavioral_profile.get("highlights"):
+                    behavioral_profile["highlights"] = overall_data.get("highlights", [])
+
+                # Get Q&A pairs from full analytics
+                if not question_analytics:
+                    question_analytics = full_analytics.get("qa_pairs", [])
+
+                # Get highlights/best_answer from full analytics
+                highlights_data = full_analytics.get("highlights", {})
+                if isinstance(highlights_data, dict):
+                    communication_metrics = communication_metrics or highlights_data
+
+            # Extract scores from behavioral_profile
+            communication_score = behavioral_profile.get("communication_score", 0) or 0
+            technical_score = behavioral_profile.get("technical_score", 0) or 0
+            cultural_fit_score = behavioral_profile.get("cultural_fit_score", 0) or 0
+            confidence = behavioral_profile.get("confidence", 0) or 0
+            red_flags = behavioral_profile.get("red_flags", []) or []
+            highlights_list = behavioral_profile.get("highlights", []) or []
+
+            # Build the candidate analytics response
+            round_data["candidate_analytics"] = {
+                "overall_score": overall_score or 0,
+                "communication_score": communication_score,
+                "technical_score": technical_score,
+                "cultural_fit_score": cultural_fit_score,
+                "recommendation": recommendation or "N/A",
+                "recommendation_reasoning": synthesis,
+                "confidence": confidence,
+                "red_flags": red_flags if isinstance(red_flags, list) else [],
+                "highlights": highlights_list if isinstance(highlights_list, list) else [],
+                "total_questions": len(question_analytics) if question_analytics else 0,
+                "qa_pairs": question_analytics[:10] if question_analytics else [],  # Include top 10 Q&As
+                "best_answer": communication_metrics.get("best_answer") if isinstance(communication_metrics, dict) else None,
+                "quotable_moment": communication_metrics.get("quotable_moment") if isinstance(communication_metrics, dict) else None,
+            }
+
+            # Collect for cumulative
+            if overall_score:
+                all_scores.append(overall_score)
+            if communication_score:
+                all_communication_scores.append(communication_score)
+            if technical_score:
+                all_technical_scores.append(technical_score)
+            if cultural_fit_score:
+                all_cultural_fit_scores.append(cultural_fit_score)
+            if question_analytics:
+                all_qa_pairs.extend(question_analytics)
+            if highlights_list:
+                all_highlights.extend(highlights_list)
+            if red_flags:
+                all_red_flags.extend(red_flags)
+            if recommendation:
+                recommendations.append(recommendation)
+
+        if interviewer_analytics:
+            int_data = interviewer_analytics if isinstance(interviewer_analytics, dict) else interviewer_analytics.model_dump() if hasattr(interviewer_analytics, 'model_dump') else {}
+            round_data["interviewer_analytics"] = {
+                "overall_score": int_data.get("overall_score", 0),
+                "question_quality_score": int_data.get("question_quality_score", 0),
+                "topic_coverage_score": int_data.get("topic_coverage_score", 0),
+                "consistency_score": int_data.get("consistency_score", 0),
+                "bias_score": int_data.get("bias_score", 0),
+                "candidate_experience_score": int_data.get("candidate_experience_score", 0),
+                "improvement_suggestions": int_data.get("improvement_suggestions", []) or [],
+                "summary_line": int_data.get("summary", "") or int_data.get("summary_line", ""),
+                # Detailed breakdowns
+                "question_quality_breakdown": int_data.get("question_quality_breakdown"),
+                "topics_covered": int_data.get("topics_covered"),
+                "bias_indicators": int_data.get("bias_indicators"),
+            }
+            interviewer_analytics_list.append(int_data)
+
+        rounds.append(round_data)
+
+    # Calculate cumulative analytics
+    cumulative = None
+    if all_scores:
+        # Determine overall recommendation
+        rec_scores = {
+            "Strong Hire": 5,
+            "Hire": 4,
+            "Leaning Hire": 3,
+            "Leaning No Hire": 2,
+            "No Hire": 1
+        }
+        avg_rec_score = sum(rec_scores.get(r, 3) for r in recommendations) / len(recommendations) if recommendations else 3
+
+        if avg_rec_score >= 4.5:
+            final_recommendation = "Strong Hire"
+        elif avg_rec_score >= 3.5:
+            final_recommendation = "Hire"
+        elif avg_rec_score >= 2.5:
+            final_recommendation = "Leaning Hire"
+        elif avg_rec_score >= 1.5:
+            final_recommendation = "Leaning No Hire"
+        else:
+            final_recommendation = "No Hire"
+
+        cumulative = {
+            "total_rounds": len(rounds),
+            "rounds_with_analytics": len(all_scores),
+            "avg_overall_score": round(sum(all_scores) / len(all_scores), 1),
+            "avg_communication_score": round(sum(all_communication_scores) / len(all_communication_scores), 1) if all_communication_scores else 0,
+            "avg_technical_score": round(sum(all_technical_scores) / len(all_technical_scores), 1) if all_technical_scores else 0,
+            "avg_cultural_fit_score": round(sum(all_cultural_fit_scores) / len(all_cultural_fit_scores), 1) if all_cultural_fit_scores else 0,
+            "final_recommendation": final_recommendation,
+            "all_recommendations": recommendations,
+            "total_questions_asked": len(all_qa_pairs),
+            "key_highlights": list(set(all_highlights))[:5],  # Unique highlights, max 5
+            "key_red_flags": list(set(all_red_flags))[:5],    # Unique red flags, max 5
+            "score_trend": all_scores,  # For charting
+        }
+
+        # Add cumulative interviewer analytics if available
+        if interviewer_analytics_list:
+            cumulative["avg_interviewer_score"] = round(
+                sum(i.get("overall_score", 0) for i in interviewer_analytics_list) / len(interviewer_analytics_list), 1
+            )
+            cumulative["avg_question_quality"] = round(
+                sum(i.get("question_quality_score", 0) for i in interviewer_analytics_list) / len(interviewer_analytics_list), 1
+            )
+
+    return {
+        "candidate_id": candidate_id,
+        "rounds": rounds,
+        "cumulative": cumulative,
+        "message": f"Found {len(rounds)} interview rounds"
     }
