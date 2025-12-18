@@ -4328,5 +4328,1380 @@
       "equity"
     ],
     "parallel_research_status": "complete"
+  },
+  "0ceecb68-bc39-4109-a5ca-a9f7c14370d8": {
+    "id": "0ceecb68-bc39-4109-a5ca-a9f7c14370d8",
+    "created_at": "2025-12-18T04:21:07.131920",
+    "updated_at": "2025-12-18T04:26:21.355551",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": "Spend Management, Corporate Cards & Accounts",
+      "funding_stage": "series_d_plus",
+      "total_raised": "$500M",
+      "last_round_date": "December 2025",
+      "investors": [],
+      "product_description": "Ramp provides a platform for spend management, corporate cards, and accounts to power finance operations.",
+      "problem_solved": "It helps businesses manage their finances and spending on one intuitive platform.",
+      "target_customers": "Businesses and finance teams.",
+      "industry": "Fintech",
+      "founders": [],
+      "founder_backgrounds": null,
+      "team_size": null,
+      "headquarters": null,
+      "office_locations": [],
+      "competitors": [],
+      "differentiators": "Different By Design",
+      "recent_news": [
+        "Ramp Reaches $32 Billion Valuation, Doubling Revenue and Customers in past year",
+        "Ramp raises $300M, valuation soars to $32B",
+        "We raised $500M to build the future of finance"
+      ],
+      "hiring_signals": null,
+      "tech_stack_hints": [
+        "Himalayas.app/companies/ramp/tech-stack"
+      ],
+      "culture_keywords": [],
+      "glassdoor_sentiment": null,
+      "interesting_facts": [
+        "Ramp achieved a $32 billion valuation.",
+        "The company doubled its revenue and customer base in the past year."
+      ],
+      "potential_selling_points": [
+        "The company is rapidly growing, having recently doubled its revenue and customer base.",
+        "Ramp is well-funded, raising $500M to build the future of finance."
+      ]
+    },
+    "requirements": {
+      "job_title": "Founding Software Engineer",
+      "location_type": "hybrid",
+      "location_city": "San Francisco",
+      "onsite_days_per_week": 3,
+      "timezone_requirements": null,
+      "visa_sponsorship": true,
+      "work_authorization_notes": null,
+      "experience_min_years": 3,
+      "experience_max_years": null,
+      "salary_min": 200000,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": true,
+      "equity_range": "2% vested over 4 years",
+      "bonus_structure": null
+    },
+    "traits": [
+      {
+        "id": "51b83d68-458b-4ad3-9f79-c690965a1dfa",
+        "name": "TypeScript",
+        "description": "Experience with TypeScript is preferred for building and maintaining scalable and efficient codebases.",
+        "priority": "nice_to_have",
+        "signals": [],
+        "anti_signals": []
+      },
+      {
+        "id": "c04dc002-4991-4dfe-b462-85a24070db6c",
+        "name": "Front-end Experience",
+        "description": "Proficiency in front-end development to build user-facing features and interfaces.",
+        "priority": "must_have",
+        "signals": [],
+        "anti_signals": []
+      },
+      {
+        "id": "a96dd08f-cf06-46d6-8aa1-a641d8e9d874",
+        "name": "LLM and AI Agent Experience",
+        "description": "Experience with large language models and AI agents to develop intelligent and adaptive systems.",
+        "priority": "must_have",
+        "signals": [],
+        "anti_signals": []
+      }
+    ],
+    "interview_stages": [
+      {
+        "id": "c2795077-e4b8-473b-9bc1-e0c0e3b5f8f9",
+        "name": "Initial Chat",
+        "description": "Evaluate general fit and discuss the role.",
+        "order": 1,
+        "duration_minutes": 30,
+        "interviewer_role": "Recruiter",
+        "actions": []
+      },
+      {
+        "id": "7c4bbdc6-cba0-4a14-908f-8cca5f635498",
+        "name": "Technical Assessment Walkthrough",
+        "description": "Assess technical skills and problem-solving abilities.",
+        "order": 2,
+        "duration_minutes": 60,
+        "interviewer_role": "Technical Lead",
+        "actions": []
+      },
+      {
+        "id": "16a7b46f-9ae6-47aa-acdf-6cd990fac467",
+        "name": "Cultural Fit Interview",
+        "description": "Determine alignment with company values and team dynamics.",
+        "order": 3,
+        "duration_minutes": 45,
+        "interviewer_role": "Hiring Manager",
+        "actions": []
+      },
+      {
+        "id": "c4d31dc5-8a98-487f-b759-b4d5e2efe651",
+        "name": "In-office Work Plan",
+        "description": "Observe collaboration skills and interaction with the team.",
+        "order": 4,
+        "duration_minutes": 120,
+        "interviewer_role": "Team Lead",
+        "actions": []
+      }
+    ],
+    "nuances": [
+      {
+        "id": "bd65307a-1496-451a-ba23-16eccb4d2f68",
+        "category": "growth_path",
+        "insight": "This role has a growth path, potentially evolving into a Head of Engineering position in the future.",
+        "verbatim_quote": "be in the future might probably be head of engineering.",
+        "timestamp": "2025-12-18 04:22:16.923465"
+      },
+      {
+        "id": "480928d9-24db-4e3c-987f-efd1116a79ab",
+        "category": "culture_fit",
+        "insight": "The ideal candidate should have a strong ownership mentality, be willing to work hard, and embrace a mindset that isn't afraid to fail.",
+        "verbatim_quote": "should take maximum ownership and be ready to put in the hours and not be afraid to fail.",
+        "timestamp": "2025-12-18 04:22:44.657315"
+      },
+      {
+        "id": "698fe1c0-95fc-422a-ac29-6804449f7399",
+        "category": "hidden_pref",
+        "insight": "The candidate should blend technical expertise with user-facing skills\u2014interacting with users, gathering feedback, and implementing it into the product.",
+        "verbatim_quote": "combination of forward deployed engineer with following engineer where they interact with users, take feedback, and integrate it.",
+        "timestamp": "2025-12-18 04:23:11.522149"
+      },
+      {
+        "id": "6769055a-883f-40b6-898f-5e6fd36dab91",
+        "category": "hidden_pref",
+        "insight": "While 3+ years of experience is preferred, having at least a year of startup experience is particularly important.",
+        "verbatim_quote": "at least to an year of start up experience.",
+        "timestamp": "2025-12-18 04:24:43.470287"
+      }
+    ],
+    "outreach": {
+      "tone": null,
+      "key_hook": null,
+      "selling_points": [],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "conversation",
+    "field_confidence": [],
+    "is_complete": true,
+    "missing_required_fields": [],
+    "parallel_research_status": "complete"
+  },
+  "021605a8-ea0f-4dc5-a32b-160adcd1b1ea": {
+    "id": "021605a8-ea0f-4dc5-a32b-160adcd1b1ea",
+    "created_at": "2025-12-18T04:38:29.375524",
+    "updated_at": "2025-12-18T04:44:40.813694",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": "Spend Management, Corporate Cards & Accounts",
+      "funding_stage": "series_d_plus",
+      "total_raised": "$500M",
+      "last_round_date": "December 2025",
+      "investors": [
+        "ICONIQ Capital"
+      ],
+      "product_description": "Ramp provides a platform for spend management, corporate cards, and accounts, powering finance operations.",
+      "problem_solved": "It helps businesses manage their finances and spending on one intuitive platform.",
+      "target_customers": "Businesses, particularly those focused on finance operations (FinOps) and tech companies.",
+      "industry": "Fintech",
+      "founders": [],
+      "founder_backgrounds": null,
+      "team_size": null,
+      "headquarters": null,
+      "office_locations": [],
+      "competitors": [],
+      "differentiators": "Different By Design, focused on building the future of finance with AI.",
+      "recent_news": [
+        "Ramp Reaches $32 Billion Valuation, Doubling Revenue and Customers",
+        "Ramp raises $300M, valuation soars to $32B",
+        "We raised $500M to build the future of finance"
+      ],
+      "hiring_signals": null,
+      "tech_stack_hints": [
+        "Himalayas.app"
+      ],
+      "culture_keywords": [],
+      "glassdoor_sentiment": null,
+      "interesting_facts": [
+        "Ramp reached a $32 billion valuation.",
+        "The company doubled its revenue and customer base in the past year."
+      ],
+      "potential_selling_points": [
+        "Working on the 'future of finance' utilizing AI.",
+        "The company has recently achieved a high valuation ($32B) and strong growth (doubling revenue/customers)."
+      ]
+    },
+    "requirements": {
+      "job_title": "Founding Engineer",
+      "location_type": "hybrid",
+      "location_city": "San Francisco",
+      "onsite_days_per_week": 5,
+      "timezone_requirements": null,
+      "visa_sponsorship": true,
+      "work_authorization_notes": null,
+      "experience_min_years": 2,
+      "experience_max_years": null,
+      "salary_min": 250000,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": true,
+      "equity_range": "1%",
+      "bonus_structure": null
+    },
+    "traits": [
+      {
+        "id": "8f857744-966f-4688-bda2-f4e82d50ccfe",
+        "name": "LLM Workflows",
+        "description": "Experience in developing and deploying applications using Large Language Models, including RAG pipelines and AI agents.",
+        "priority": "must_have",
+        "signals": [],
+        "anti_signals": []
+      },
+      {
+        "id": "dba151b3-5766-4df5-b3ad-054466a4a5e2",
+        "name": "AI Agents",
+        "description": "Hands-on experience with voice agents and deploying these applications in production environments.",
+        "priority": "must_have",
+        "signals": [],
+        "anti_signals": []
+      },
+      {
+        "id": "d0ffdee2-74de-4eac-95e0-ce45f0850655",
+        "name": "Ownership Mentality",
+        "description": "Candidates should take full ownership of the product, demonstrating a strong drive to build and ship quickly without being tied to a standard 9-to-5 mindset.",
+        "priority": "must_have",
+        "signals": [],
+        "anti_signals": []
+      },
+      {
+        "id": "f28ec2ea-22a4-480d-9350-b08a3ec42802",
+        "name": "Early Stage Startup Experience",
+        "description": "Experience working in early-stage startups, showcasing adaptability and hands-on problem-solving abilities.",
+        "priority": "must_have",
+        "signals": [],
+        "anti_signals": []
+      }
+    ],
+    "interview_stages": [
+      {
+        "id": "f9f1caea-d974-4253-8307-a2f1c2ef7080",
+        "name": "Coffee Chat",
+        "description": "Initial informal conversation to gauge interest and alignment.",
+        "order": 1,
+        "duration_minutes": 30,
+        "interviewer_role": "Recruiter",
+        "actions": []
+      },
+      {
+        "id": "65fab54d-dcc8-4b11-81eb-0982d97ce71a",
+        "name": "Technical Assessment",
+        "description": "Evaluate technical skills through a practical assessment.",
+        "order": 2,
+        "duration_minutes": 120,
+        "interviewer_role": "Technical Lead",
+        "actions": []
+      },
+      {
+        "id": "0dd092fd-5c30-4b7f-872d-895fc0177256",
+        "name": "Technical Walkthrough & System Design",
+        "description": "Candidate presents the technical assessment results and discusses system design.",
+        "order": 3,
+        "duration_minutes": 90,
+        "interviewer_role": "Technical Lead",
+        "actions": []
+      },
+      {
+        "id": "855dc7dd-cab5-4149-95b9-efd5b87b4cbe",
+        "name": "Founder Chat & Team Culture Fit",
+        "description": "Conversation with the founder and team to assess cultural fit.",
+        "order": 4,
+        "duration_minutes": 60,
+        "interviewer_role": "Founder & Team",
+        "actions": []
+      },
+      {
+        "id": "aacfc934-d0cc-4ff6-a5d2-ba6994b813eb",
+        "name": "In-Person Work Trial",
+        "description": "Candidate works on-site for 2 days to demonstrate team collaboration and work style.",
+        "order": 5,
+        "duration_minutes": 480,
+        "interviewer_role": "Team Lead",
+        "actions": []
+      },
+      {
+        "id": "af71a424-9a82-43bf-bcea-7003f868d359",
+        "name": "Technical Assessment & System Design Walkthrough",
+        "description": "Evaluate technical skills through a practical assessment and discuss system design with the candidate.",
+        "order": 6,
+        "duration_minutes": 180,
+        "interviewer_role": "Technical Lead",
+        "actions": []
+      }
+    ],
+    "nuances": [
+      {
+        "id": "b9152d05-8de6-456e-bf44-efc592f6677a",
+        "category": "hidden_pref",
+        "insight": "The requirement for early-stage startup experience is not needed anymore.",
+        "verbatim_quote": "Actually, can you remove the early stage startup experience?",
+        "timestamp": "2025-12-18 04:44:01.936311"
+      }
+    ],
+    "outreach": {
+      "tone": null,
+      "key_hook": null,
+      "selling_points": [],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "conversation",
+    "field_confidence": [],
+    "is_complete": true,
+    "missing_required_fields": [],
+    "parallel_research_status": "complete"
+  },
+  "5e9693d9-3c46-4a02-8420-a61286b8f1cc": {
+    "id": "5e9693d9-3c46-4a02-8420-a61286b8f1cc",
+    "created_at": "2025-12-18T05:00:07.122717",
+    "updated_at": "2025-12-18T05:04:26.476543",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": "Spend Management, Corporate Cards & Accounts Payable",
+      "funding_stage": "series_d_plus",
+      "total_raised": null,
+      "last_round_date": "December 2025",
+      "investors": [],
+      "product_description": "Ramp provides spend management solutions, corporate cards, and accounts payable services to businesses.",
+      "problem_solved": "It helps businesses manage spending and financial operations efficiently using modern technology.",
+      "target_customers": "Tech companies",
+      "industry": "Fintech",
+      "founders": [],
+      "founder_backgrounds": null,
+      "team_size": null,
+      "headquarters": null,
+      "office_locations": [],
+      "competitors": [],
+      "differentiators": null,
+      "recent_news": [
+        "We raised $500M to build the future of finance",
+        "Ramp Reaches $32 Billion Valuation, Doubling Revenue and Customers in Past Year",
+        "Ramp hits $32B valuation, just 3 months after hitting $22.5B"
+      ],
+      "hiring_signals": null,
+      "tech_stack_hints": [],
+      "culture_keywords": [],
+      "glassdoor_sentiment": null,
+      "interesting_facts": [
+        "Ramp reached a $32 billion valuation in November 2025.",
+        "The company doubled its revenue and customer base in the year prior to its $32B valuation announcement.",
+        "Ramp recently raised $500M to focus on building the future of finance."
+      ],
+      "potential_selling_points": [
+        "The company is experiencing hyper-growth, evidenced by doubling revenue and customers and achieving a $32B valuation.",
+        "Ramp is well-funded, having recently secured $500M to invest in future development.",
+        "The mission is focused on modernizing financial operations and building the 'future of finance'."
+      ]
+    },
+    "requirements": {
+      "job_title": "Android Engineer",
+      "location_type": "onsite",
+      "location_city": "San Francisco",
+      "onsite_days_per_week": 5,
+      "timezone_requirements": null,
+      "visa_sponsorship": true,
+      "work_authorization_notes": null,
+      "experience_min_years": 1,
+      "experience_max_years": null,
+      "salary_min": 200000,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": true,
+      "equity_range": "1%",
+      "bonus_structure": null
+    },
+    "traits": [
+      {
+        "id": "0ad6290e-5bb6-485c-82ea-8f3d496c135c",
+        "name": "Fintech and AI Integration",
+        "description": "A desire to work on a product that integrates advanced technologies like AI and intelligent agents into the mobile experience for automated finance.",
+        "priority": "must_have",
+        "signals": [
+          "Building the future of automated finance by integrating AI and intelligent agents into the mobile experience"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "c48456fe-aeee-44d7-8593-293686816716",
+        "name": "Engineering Process and Standards",
+        "description": "Ability to contribute to the overall health and scalability of the engineering organization by establishing best practices and reviewing code.",
+        "priority": "must_have",
+        "signals": [
+          "Help establish engineering processes, tools, and systems that allow us to scale the code base and productivity",
+          "Conduct code reviews and set engineering standards"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "c9d5d465-58e4-439b-8390-5daca23a8f66",
+        "name": "Cross-Functional Collaboration",
+        "description": "The ability to work effectively with non-engineering teams, such as Product and Design, to define features and incorporate customer feedback.",
+        "priority": "must_have",
+        "signals": [
+          "Work with Product and Design to identify key features that will make the app successful",
+          "Work alongside Product and other cross-functional teams to understand customer feedback and continuously improve our product"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "c5a68eec-d221-4bb3-85aa-70f0e7a5ada9",
+        "name": "Fast-Paced and Growth Mindset",
+        "description": "A strong desire to work in a dynamic environment and continuously seek personal and professional improvement.",
+        "priority": "must_have",
+        "signals": [
+          "Desire to work in a fast-paced environment",
+          "Continuously grow, and master your craft"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "6c364e39-db25-48df-8e9f-e585d7c4e8d1",
+        "name": "Advanced Android Stack Experience",
+        "description": "Familiarity with modern, specific components of the Android development ecosystem used by Ramp.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Experience with our mobile stack: Compose, MVVM, coroutines, flows, gradle, OpenAPI & Buildkite",
+          "Experience managing apps in the Google Play Console"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "d0fad85b-8471-488e-914f-cc292ac5f1a3",
+        "name": "Full Stack / Backend Familiarity",
+        "description": "Experience with web development technologies or backend systems is beneficial for broader contributions.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Experience with web apps (React, TypeScript)",
+          "Experience with backend technologies (Python, Flask, SQL, OpenAPI)"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "9cb07ad5-b0f4-48f9-abbb-a91673b14aca",
+        "name": "Intellectual Rigor",
+        "description": "Candidates should demonstrate strong analytical thinking and problem-solving skills, similar to those from top-tier universities.",
+        "priority": "must_have",
+        "signals": [
+          "Challenging academic background or equivalent work experience",
+          "Proven ability to handle pressure and complex problems"
+        ],
+        "anti_signals": []
+      }
+    ],
+    "interview_stages": [
+      {
+        "id": "3480acd7-94a3-42b3-96cf-9f2c77a6314f",
+        "name": "Phone Screen",
+        "description": "Assess basic skills, career motivations, and alignment with the role.",
+        "order": 1,
+        "duration_minutes": 45,
+        "interviewer_role": "Recruiter or Hiring Manager",
+        "actions": []
+      },
+      {
+        "id": "a3ff5dc6-aa79-4a66-8a5f-eef43cd6c09b",
+        "name": "Technical/Functional Assessment",
+        "description": "Dive deeper into the candidate's technical expertise or functional knowledge.",
+        "order": 2,
+        "duration_minutes": 90,
+        "interviewer_role": "Team Lead or Senior Member",
+        "actions": []
+      },
+      {
+        "id": "b0ff34fc-3466-419d-b58e-212b683191cf",
+        "name": "Final On-site Interview",
+        "description": "Holistic evaluation of culture fit, team collaboration, and strategic thinking.",
+        "order": 3,
+        "duration_minutes": 180,
+        "interviewer_role": "Panel or Multiple Interviewers",
+        "actions": []
+      }
+    ],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": "Define the next generation of fintech by integrating AI and intelligent agents into a successful, rapidly growing mobile application.",
+      "selling_points": [
+        "Working on a proven product used by over 50,000 businesses, enabling over $100 billion in purchases annually.",
+        "Opportunity to shape the future of automated finance by integrating AI into the mobile experience.",
+        "Ramp is a highly recognized company (Fast Company, LinkedIn Top U.S. Startups, Forbes Cloud 100).",
+        "Strong benefits package including 100% medical coverage for the employee and 401k match."
+      ],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "jd_paste",
+    "field_confidence": [
+      {
+        "field_name": "job_title",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "location",
+        "confidence": 0.5,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "experience",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "compensation",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "visa",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "equity",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "traits",
+        "confidence": 0.9,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "interview_stages",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      }
+    ],
+    "is_complete": true,
+    "missing_required_fields": [],
+    "parallel_research_status": "complete"
+  },
+  "64dfee37-6d1f-4031-8fd5-4ee46637c04d": {
+    "id": "64dfee37-6d1f-4031-8fd5-4ee46637c04d",
+    "created_at": "2025-12-18T05:23:06.637892",
+    "updated_at": "2025-12-18T05:26:42.209744",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": "Spend Management, Corporate Cards & Accounts Payable",
+      "funding_stage": "series_d_plus",
+      "total_raised": null,
+      "last_round_date": "December 2025",
+      "investors": [],
+      "product_description": "Ramp provides an intuitive platform for spend management, corporate cards, and accounts payable to power finance operations.",
+      "problem_solved": "It simplifies and centralizes complex finance operations like spend management and accounts payable for businesses.",
+      "target_customers": "Businesses, particularly those in the tech industry seeking FinOps solutions.",
+      "industry": "Fintech",
+      "founders": [],
+      "founder_backgrounds": null,
+      "team_size": null,
+      "headquarters": null,
+      "office_locations": [],
+      "competitors": [],
+      "differentiators": null,
+      "recent_news": [
+        "Raised $500M to build the future of finance.",
+        "Reached a $32 Billion Valuation.",
+        "Doubled revenue and customers in the past year."
+      ],
+      "hiring_signals": null,
+      "tech_stack_hints": [],
+      "culture_keywords": [],
+      "glassdoor_sentiment": null,
+      "eng_team_size": null,
+      "work_style": null,
+      "decision_making": null,
+      "code_review_culture": null,
+      "deployment_frequency": null,
+      "tech_debt_attitude": null,
+      "documentation_culture": null,
+      "on_call_expectations": null,
+      "growth_trajectory": null,
+      "interesting_facts": [
+        "Ramp recently achieved a massive $32 billion valuation.",
+        "The company doubled both its revenue and customer base in the past year."
+      ],
+      "potential_selling_points": [
+        "Join a hyper-growth company that recently doubled its revenue and customer base.",
+        "Work on building the future of finance with a company valued at $32 billion."
+      ]
+    },
+    "requirements": {
+      "job_title": "Android Engineer",
+      "location_type": "onsite",
+      "location_city": "San Francisco",
+      "onsite_days_per_week": 5,
+      "timezone_requirements": null,
+      "visa_sponsorship": true,
+      "work_authorization_notes": null,
+      "experience_min_years": 1,
+      "experience_max_years": null,
+      "salary_min": 200000,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": true,
+      "equity_range": "3%",
+      "bonus_structure": null,
+      "team_size": null,
+      "team_composition": null,
+      "team_seniority": null,
+      "reporting_to": null,
+      "direct_reports": null,
+      "hiring_urgency": null,
+      "backfill_reason": null,
+      "success_metrics_30_day": null,
+      "success_metrics_90_day": null,
+      "growth_path": null,
+      "deal_breakers": [],
+      "ideal_background": null,
+      "interview_turnaround": null
+    },
+    "traits": [
+      {
+        "id": "52f08340-6313-407a-a2af-c34abfefdfae",
+        "name": "Android Mobile Development Proficiency",
+        "description": "The candidate must have foundational experience developing mobile applications for the Android platform, demonstrating proficiency in the primary language used for modern Android development.",
+        "priority": "must_have",
+        "signals": [
+          "Minimum 1 year of experience in mobile development",
+          "Proficiency in Kotlin for Android development",
+          "Experience launching at least one mobile app and/or several features that reached a large number of users"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "076ffad1-9fa8-443c-b965-108eee15c672",
+        "name": "Mobile Architecture and Design",
+        "description": "The engineer should possess a strong understanding of established patterns and best practices for structuring robust and maintainable mobile applications.",
+        "priority": "must_have",
+        "signals": [
+          "Strong understanding of mobile design patterns and best practices"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "09f9d558-0a4f-4b85-a30d-02507cc63abc",
+        "name": "Process and Standards Leadership",
+        "description": "The role requires the ability to contribute to the maturity of the engineering organization by defining and enforcing best practices for code quality and development workflows.",
+        "priority": "must_have",
+        "signals": [
+          "Help establish engineering processes, tools, and systems that allow us to scale the code base and productivity",
+          "Conduct code reviews and set engineering standards"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "f8b23f2e-4a67-4d3f-8e25-f36af7027ce9",
+        "name": "Cross-Functional Collaboration",
+        "description": "The candidate must be able to effectively partner with product managers and designers to translate customer needs and business goals into successful mobile features.",
+        "priority": "must_have",
+        "signals": [
+          "Work with Product and Design to identify key features that will make the app successful",
+          "Work alongside Product and other cross-functional teams to understand customer feedback and continuously improve our product"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "6468e7df-92d9-406c-95a3-edf04f3d33c8",
+        "name": "Fast-Paced Environment Adaptability",
+        "description": "The ideal candidate thrives in a dynamic, rapidly evolving environment and is committed to continuous professional growth and skill mastery.",
+        "priority": "must_have",
+        "signals": [
+          "Desire to work in a fast-paced environment, continuously grow, and master your craft"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "46f8927e-1c2a-45bc-9884-463b02f9d69f",
+        "name": "Modern Android Stack Experience",
+        "description": "Familiarity with Ramp's specific mobile technology stack, including modern UI toolkits, architectural patterns, and build systems, is beneficial.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Experience with our mobile stack: Compose",
+          "Experience with our mobile stack: MVVM",
+          "Experience with our mobile stack: coroutines",
+          "Experience with our mobile stack: flows",
+          "Experience with our mobile stack: gradle",
+          "Experience with our mobile stack: OpenAPI",
+          "Experience with our mobile stack: Buildkite"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "7bf37360-46f1-4a25-a98c-4638d0001f60",
+        "name": "Full-Stack and Backend Familiarity",
+        "description": "Experience with web development technologies and common backend frameworks and databases is a valuable asset for cross-platform understanding.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Experience with web apps (React, TypeScript)",
+          "Experience with backend technologies (Python, Flask, SQL, OpenAPI)"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "ff216355-e510-4367-9833-ba2ad2ea1ce2",
+        "name": "App Store Management",
+        "description": "Experience managing the deployment, monitoring, and maintenance of mobile applications through the official distribution console is a plus.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Experience managing apps in the Google Play Console"
+        ],
+        "anti_signals": []
+      }
+    ],
+    "interview_stages": [
+      {
+        "id": "faa1203c-3bc1-4bf7-9227-c23d7db30c72",
+        "name": "Coffee Chat",
+        "description": "Informal meet and greet with one of the founders",
+        "order": 1,
+        "duration_minutes": 30,
+        "interviewer_role": "Founder",
+        "actions": []
+      },
+      {
+        "id": "0f7dd1f2-bdc0-40a3-b4f2-4abae1d073f0",
+        "name": "Technical Assessment Walkthrough",
+        "description": "Candidate presents a take-home technical assessment focused on system design",
+        "order": 2,
+        "duration_minutes": 60,
+        "interviewer_role": "CTO",
+        "actions": []
+      },
+      {
+        "id": "77ea7ed7-0db1-4eb3-b3db-07d796f3f432",
+        "name": "Work Trial",
+        "description": "Candidate collaborates with the team to build products, evaluating collaboration, idea sharing, and problem-solving",
+        "order": 3,
+        "duration_minutes": 60,
+        "interviewer_role": "Team",
+        "actions": []
+      }
+    ],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": "Define the next generation of fintech by integrating AI and intelligent agents into a successful and rapidly growing mobile experience.",
+      "selling_points": [
+        "Working on a platform relied upon by over 50,000 businesses, including major companies.",
+        "Opportunity to build the future of automated finance using AI and intelligent agents.",
+        "Ramp is a highly recognized and fast-growing company (Fast Company, LinkedIn Top Startups, Forbes Cloud 100).",
+        "Comprehensive benefits package including 100% medical coverage for the employee, 401k match, flexible PTO, and wellness stipends.",
+        "Opportunity to establish engineering processes and standards for a scaling codebase."
+      ],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "jd_paste",
+    "field_confidence": [
+      {
+        "field_name": "job_title",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "location",
+        "confidence": 0.5,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "experience",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "compensation",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "visa",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "equity",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "traits",
+        "confidence": 0.9,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "interview_stages",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      }
+    ],
+    "is_complete": true,
+    "missing_required_fields": [],
+    "parallel_research_status": "complete",
+    "skipped_fields": []
+  },
+  "e91091d1-b4fe-40b3-af05-15a9dd56ae65": {
+    "id": "e91091d1-b4fe-40b3-af05-15a9dd56ae65",
+    "created_at": "2025-12-18T05:32:21.287202",
+    "updated_at": "2025-12-18T05:33:28.041247",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": "Spend Management, Corporate Cards & Accounts",
+      "funding_stage": null,
+      "total_raised": null,
+      "last_round_date": null,
+      "investors": [],
+      "product_description": "Ramp provides a smart finance operations platform that includes spend management, corporate cards, and accounts.",
+      "problem_solved": null,
+      "target_customers": "Tech companies (FinOps)",
+      "industry": "Fintech",
+      "founders": [],
+      "founder_backgrounds": null,
+      "team_size": null,
+      "headquarters": null,
+      "office_locations": [],
+      "competitors": [],
+      "differentiators": "The company uses the tagline 'Different By Design'.",
+      "recent_news": [
+        "Meet Ramp: A smart finance operations platform that saves you ... (2024-10-15)",
+        "Modern finance tech stacks: 23 tools for your business (2025-11-18)",
+        "Ramp Review (2025): Pros, Cons, Pricing, Alternatives, and Our Take"
+      ],
+      "hiring_signals": null,
+      "tech_stack_hints": [],
+      "culture_keywords": [
+        "Different By Design"
+      ],
+      "glassdoor_sentiment": null,
+      "eng_team_size": null,
+      "work_style": null,
+      "decision_making": null,
+      "code_review_culture": null,
+      "deployment_frequency": null,
+      "tech_debt_attitude": null,
+      "documentation_culture": null,
+      "on_call_expectations": null,
+      "growth_trajectory": null,
+      "interesting_facts": [
+        "Ramp is recognized enough to have a dedicated Wikipedia page.",
+        "They offer a smart finance operations platform that includes corporate cards and accounts.",
+        "They specifically build FinOps solutions tailored for the Tech industry."
+      ],
+      "potential_selling_points": [
+        "Opportunity to work on a 'smart finance operations platform' that aims to save users time and money.",
+        "The company is focused on modernizing finance tech stacks.",
+        "They are actively reviewed and discussed in 2025, indicating current relevance and growth."
+      ]
+    },
+    "requirements": {
+      "job_title": "Android Engineer",
+      "location_type": null,
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": 1,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": null,
+      "equity_range": null,
+      "bonus_structure": null,
+      "team_size": null,
+      "team_composition": null,
+      "team_seniority": null,
+      "reporting_to": null,
+      "direct_reports": null,
+      "hiring_urgency": null,
+      "backfill_reason": null,
+      "success_metrics_30_day": null,
+      "success_metrics_90_day": null,
+      "growth_path": null,
+      "deal_breakers": [],
+      "ideal_background": null,
+      "interview_turnaround": null
+    },
+    "traits": [
+      {
+        "id": "e42c97e3-5f5c-440d-9b80-5aca4ac21fd8",
+        "name": "Core Android Development",
+        "description": "Expertise in building, launching, and maintaining high-quality mobile applications for the Android platform using modern best practices.",
+        "priority": "must_have",
+        "signals": [
+          "Minimum 1 year of experience in mobile development",
+          "Proficiency in Kotlin for Android development",
+          "Experience launching at least one mobile app and/or several features that reached a large number of users",
+          "Strong understanding of mobile design patterns and best practices"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "4b53e9ab-f900-4955-8379-d5f7f1c2b707",
+        "name": "Engineering Leadership and Scaling",
+        "description": "Ability to maintain code quality, improve development efficiency, and contribute to scalable engineering processes and standards.",
+        "priority": "must_have",
+        "signals": [
+          "Help establish engineering processes, tools, and systems that allow us to scale the code base and productivity",
+          "Conduct code reviews and set engineering standards"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "bd9b6c0b-aabd-4509-afdb-21b5ba4345f9",
+        "name": "Cross-Functional Collaboration",
+        "description": "Capability to work effectively with non-engineering teams, such as Product and Design, to define features and incorporate user feedback.",
+        "priority": "must_have",
+        "signals": [
+          "Work with Product and Design to identify key features that will make the app successful",
+          "Work alongside Product and other cross-functional teams to understand customer feedback and continuously improve our product"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "01693fdd-7b48-4ce6-874f-7faf6e6b7de1",
+        "name": "Growth Mindset and Pace",
+        "description": "A strong desire for continuous learning and the ability to thrive in a rapidly evolving, high-speed work environment.",
+        "priority": "must_have",
+        "signals": [
+          "Desire to work in a fast-paced environment",
+          "continuously grow, and master your craft"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "ec89c0c4-bc78-4176-abe2-018c1e2c4dbb",
+        "name": "Modern Android Stack Familiarity",
+        "description": "Familiarity with Ramp's specific modern Android technology stack components and related tooling.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Compose",
+          "MVVM",
+          "coroutines",
+          "flows",
+          "gradle",
+          "OpenAPI",
+          "Buildkite"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "f78f6aa7-2777-4acc-93cf-20b93193bb7b",
+        "name": "Full Stack and Operations Experience",
+        "description": "Experience extending beyond mobile development into web technologies, backend systems, and app deployment management.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Experience with web apps (React, TypeScript)",
+          "Experience with backend technologies (Python, Flask, SQL, OpenAPI)",
+          "Experience managing apps in the Google Play Console"
+        ],
+        "anti_signals": []
+      }
+    ],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": "Join Ramp to define the next generation of fintech by integrating AI and intelligent agents into our rapidly growing, successful mobile platform.",
+      "selling_points": [
+        "You will be building the future of automated finance by integrating AI and intelligent agents into the mobile experience.",
+        "Work on a proven product used by over 50,000 businesses that has saved them $10B and 27.5M hours.",
+        "Ramp is a highly successful, fast-growing company, powering over $100 billion in purchases each year.",
+        "The company is backed by top-tier investors (Lightspeed, Sequoia, Khosla) and staffed by leaders from top tech and fintech companies (Stripe, Meta, Uber).",
+        "Generous benefits package including 100% medical coverage for employees, 401k match, and flexible PTO."
+      ],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "jd_paste",
+    "field_confidence": [
+      {
+        "field_name": "job_title",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "location",
+        "confidence": 0.5,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "experience",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "compensation",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "visa",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "equity",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "traits",
+        "confidence": 0.9,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "interview_stages",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      }
+    ],
+    "is_complete": false,
+    "missing_required_fields": [
+      "location_type",
+      "compensation",
+      "visa_sponsorship",
+      "equity",
+      "interview_stages"
+    ],
+    "parallel_research_status": "complete",
+    "skipped_fields": []
+  },
+  "9207ff7d-25d2-41a9-9faa-e7453d6a312d": {
+    "id": "9207ff7d-25d2-41a9-9faa-e7453d6a312d",
+    "created_at": "2025-12-18T05:36:55.066822",
+    "updated_at": "2025-12-18T05:38:46.612356",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": "Spend Management, Corporate Cards & Accounts Payable Solutions",
+      "funding_stage": "series_d_plus",
+      "total_raised": "$500M",
+      "last_round_date": "December 2025",
+      "investors": [],
+      "product_description": "Ramp is a smart finance operations platform that offers spend management, corporate cards, and accounts payable solutions.",
+      "problem_solved": "It saves businesses time and money by streamlining finance operations.",
+      "target_customers": null,
+      "industry": "Fintech",
+      "founders": [],
+      "founder_backgrounds": null,
+      "team_size": null,
+      "headquarters": null,
+      "office_locations": [],
+      "competitors": [],
+      "differentiators": "Different By Design.",
+      "recent_news": [
+        "Ramp Reaches $32 Billion Valuation, Doubling Revenue and Customers in Past Year",
+        "Ramp raises $300M, valuation soars to $32B",
+        "We raised $500M to build the future of finance"
+      ],
+      "hiring_signals": null,
+      "tech_stack_hints": [
+        "Tech Stack",
+        "Modern finance tech stacks"
+      ],
+      "culture_keywords": [],
+      "glassdoor_sentiment": null,
+      "eng_team_size": null,
+      "work_style": null,
+      "decision_making": null,
+      "code_review_culture": null,
+      "deployment_frequency": null,
+      "tech_debt_attitude": null,
+      "documentation_culture": null,
+      "on_call_expectations": null,
+      "growth_trajectory": null,
+      "interesting_facts": [
+        "Ramp reached a $32 billion valuation in November 2025.",
+        "The company doubled its revenue and customer base in the year leading up to November 2025."
+      ],
+      "potential_selling_points": [
+        "The company recently raised $500M to build the future of finance, indicating strong growth and ambition.",
+        "Ramp's valuation soared to $32 billion, suggesting it is a high-growth, market-leading fintech company."
+      ]
+    },
+    "requirements": {
+      "job_title": "Android Engineer",
+      "location_type": "onsite",
+      "location_city": "San Francisco",
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": true,
+      "work_authorization_notes": null,
+      "experience_min_years": 1,
+      "experience_max_years": null,
+      "salary_min": 200000,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": true,
+      "equity_range": "3%",
+      "bonus_structure": null,
+      "team_size": null,
+      "team_composition": null,
+      "team_seniority": null,
+      "reporting_to": null,
+      "direct_reports": null,
+      "hiring_urgency": null,
+      "backfill_reason": null,
+      "success_metrics_30_day": null,
+      "success_metrics_90_day": null,
+      "growth_path": null,
+      "deal_breakers": [],
+      "ideal_background": null,
+      "interview_turnaround": null
+    },
+    "traits": [
+      {
+        "id": "9dced331-21fa-452f-a2ea-3cfca2816f99",
+        "name": "Mobile Development Experience",
+        "description": "The candidate must have foundational experience developing mobile applications, specifically on the Android platform, and be proficient in the primary language used.",
+        "priority": "must_have",
+        "signals": [
+          "Minimum 1 year of experience in mobile development",
+          "Proficiency in Kotlin for Android development",
+          "Experience launching at least one mobile app and/or several features that reached a large number of users"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "fa399624-7dbc-46fb-920a-9b5cfc1c63f8",
+        "name": "Mobile Architecture and Best Practices",
+        "description": "The candidate should possess a strong understanding of established mobile design patterns and engineering standards to ensure scalable and maintainable code.",
+        "priority": "must_have",
+        "signals": [
+          "Strong understanding of mobile design patterns and best practices",
+          "Help establish engineering processes, tools, and systems that allow us to scale the code base and productivity",
+          "Conduct code reviews and set engineering standards"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "f3dd1f6b-15bf-4afc-bb59-fa6a43be174f",
+        "name": "Cross-Functional Collaboration",
+        "description": "The ability to work effectively with non-engineering teams like Product and Design is crucial for identifying features and continuously improving the product based on customer feedback.",
+        "priority": "must_have",
+        "signals": [
+          "Work with Product and Design to identify key features that will make the app successful",
+          "Work alongside Product and other cross-functional teams to understand customer feedback and continuously improve our product"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "775d87ad-9389-4085-8813-fefc4882af6b",
+        "name": "Adaptability and Growth Mindset",
+        "description": "The role requires a candidate who is eager to learn, continuously improve their skills, and thrive in a dynamic, rapidly changing environment.",
+        "priority": "must_have",
+        "signals": [
+          "Desire to work in a fast-paced environment, continuously grow, and master your craft"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "55cab1db-2302-4169-89a0-22ca0f137aac",
+        "name": "Modern Android Stack",
+        "description": "Familiarity with Ramp's specific mobile technology stack, including modern UI toolkits and concurrency frameworks, is beneficial.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Experience with our mobile stack: Compose",
+          "Experience with our mobile stack: MVVM",
+          "Experience with our mobile stack: coroutines",
+          "Experience with our mobile stack: flows",
+          "Experience with our mobile stack: gradle",
+          "Experience with our mobile stack: OpenAPI",
+          "Experience with our mobile stack: Buildkite"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "da105f20-cfb2-44b5-9e68-36d48e9eed73",
+        "name": "Full Stack / Backend Familiarity",
+        "description": "Experience with web development technologies or backend systems is a plus, indicating a broader understanding of software architecture.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Experience with web apps (React, TypeScript)",
+          "Experience with backend technologies (Python, Flask, SQL, OpenAPI)"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "aefc93c0-cd17-4cf4-821f-89db9d38712f",
+        "name": "App Store Management",
+        "description": "Experience managing the deployment and maintenance lifecycle of mobile applications through the official developer console.",
+        "priority": "nice_to_have",
+        "signals": [
+          "Experience managing apps in the Google Play Console"
+        ],
+        "anti_signals": []
+      }
+    ],
+    "interview_stages": [
+      {
+        "id": "5a4be8b1-9690-4932-b2ee-77ebd423dbca",
+        "name": "Founder Chat",
+        "description": "Initial conversation with the founder to assess cultural fit and motivations.",
+        "order": 1,
+        "duration_minutes": 30,
+        "interviewer_role": "Founder",
+        "actions": []
+      },
+      {
+        "id": "40e740ed-e0e5-4d82-8904-d590edf8e8aa",
+        "name": "Technical Assessment Walkthrough",
+        "description": "Evaluation of technical skills and problem-solving abilities.",
+        "order": 2,
+        "duration_minutes": 60,
+        "interviewer_role": "CTO",
+        "actions": []
+      },
+      {
+        "id": "c2a03622-28ca-4d7a-aa05-f0977a6d04c5",
+        "name": "In-Office Work Trial",
+        "description": "Hands-on work trial to assess practical skills and team dynamics.",
+        "order": 3,
+        "duration_minutes": null,
+        "interviewer_role": "Team Lead",
+        "actions": []
+      }
+    ],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": "Define the next generation of fintech by integrating AI and intelligent agents into a rapidly growing, successful mobile product.",
+      "selling_points": [
+        "Working on a successful product used by over 50,000 businesses.",
+        "Opportunity to integrate AI and intelligent agents into the mobile experience.",
+        "Ramp is a highly recognized and fast-growing company (Fastest-growing corporate card and bill payment platform, LinkedIn Top U.S. Startups, Forbes Cloud 100).",
+        "Comprehensive benefits package including 100% covered medical/dental/vision for the employee, 401k match, flexible PTO, and wellness stipends.",
+        "Opportunity to work with talented leaders from top tech and finance companies (Stripe, Meta, Goldman Sachs, Netflix)."
+      ],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "jd_paste",
+    "field_confidence": [
+      {
+        "field_name": "job_title",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "location",
+        "confidence": 0.5,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "experience",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "compensation",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "visa",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "equity",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "traits",
+        "confidence": 0.9,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "interview_stages",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      }
+    ],
+    "is_complete": true,
+    "missing_required_fields": [],
+    "parallel_research_status": "complete",
+    "skipped_fields": []
   }
 }
