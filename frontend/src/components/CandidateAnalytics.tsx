@@ -467,7 +467,7 @@ export default function CandidateAnalytics({ candidateId, candidateName }: Candi
 
     const fetchInterviewers = async () => {
         try {
-            const res = await fetch(`${API_URL}/api/interviews/interviewers`);
+            const res = await fetch(`${API_URL}/api/interviewers`);
             if (res.ok) {
                 const data = await res.json();
                 setInterviewers(data.interviewers || []);

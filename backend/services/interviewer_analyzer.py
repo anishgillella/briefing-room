@@ -139,15 +139,17 @@ class InterviewerAnalyzer:
     async def analyze_interview(
         self,
         transcript: str,
-        questions: list[str]
+        questions: list[str],
+        interviewer_id: Optional[str] = None
     ) -> InterviewerAnalyticsResult:
         """
         Analyze an interview and return structured analytics.
-        
+
         Args:
             transcript: Full interview transcript
             questions: List of questions asked by interviewer
-            
+            interviewer_id: Optional ID of the interviewer (for tracking)
+
         Returns:
             InterviewerAnalyticsResult with all scores and breakdowns
         """
