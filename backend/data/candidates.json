@@ -1,6 +1,107 @@
 {
   "candidates": [
     {
+      "id": "1",
+      "name": "Tony Xavier",
+      "email": null,
+      "linkedin_url": null,
+      "job_title": "Founder",
+      "current_company": null,
+      "location_city": "Chicago",
+      "location_state": "IL",
+      "years_experience": 3.58,
+      "bio_summary": "I am a stealth founder currently pursuing a Master's in Computer Science with a focus on AI/ML at DePaul University, where I am researching and building enterprise AI applications with LightRAG. I have a background in strategy consulting and engineering, holding degrees in Physics and Mechanical Engineering from the University of Michigan, and I previously founded and open-sourced a no-code editor called AppFit.",
+      "industries": [
+        "Artificial Intelligence",
+        "Machine Learning",
+        "Computer Software",
+        "Management Consulting",
+        "Energy",
+        "Utilities",
+        "Design"
+      ],
+      "skills": [
+        "AI/ML",
+        "LightRAG",
+        "Enterprise AI",
+        "Strategy Consulting",
+        "Investment Analysis",
+        "Physics",
+        "Mechanical Engineering",
+        "Data Science",
+        "GD&T",
+        "Finite Element Analysis",
+        "3D CAD",
+        "CATIA",
+        "SolidWorks",
+        "CAE",
+        "Injection Molding",
+        "Sheet Metal Stamping",
+        "Unreal Engine Physics",
+        "Data-Driven Insights",
+        "Risk Assessment"
+      ],
+      "education": null,
+      "sales_methodologies": [],
+      "sold_to_finance": false,
+      "is_founder": true,
+      "startup_experience": true,
+      "enterprise_experience": true,
+      "max_acv_mentioned": null,
+      "quota_attainment": null,
+      "algo_score": 50,
+      "ai_score": 45,
+      "combined_score": 48,
+      "tier": "Evaluate",
+      "one_line_summary": "Founder with AI/ML focus, lacking required Android experience.",
+      "pros": [
+        "Strong founder and entrepreneurial background (AppFit, current stealth venture)",
+        "Currently pursuing Master's in CS with focus on AI/ML, aligning with Ramp's future direction",
+        "Background in strategy consulting and engineering (Physics/ME degrees)"
+      ],
+      "cons": [
+        "No explicit mention of mobile development experience, specifically Android/Kotlin",
+        "Experience listed is 3.58 years in 'sales', which conflicts with the engineering role",
+        "Missing key requirement of 1 year minimum experience in mobile development",
+        "Missing proficiency in Kotlin and experience launching a mobile app"
+      ],
+      "reasoning": "The candidate is a founder with a strong AI/ML and strategy background, which aligns with Ramp's vision. However, the profile lacks the core technical requirements for an Android Engineer, specifically minimum experience in mobile development, proficiency in Kotlin, and experience launching an app, resulting in a 'Weak' score.",
+      "interview_questions": [
+        "Can you detail your experience with mobile development, specifically using Kotlin for Android, and describe any apps you have launched?",
+        "The JD requires a minimum of 1 year of experience in mobile development; how does your background, particularly your work on AppFit, fulfill this requirement?",
+        "Ramp is integrating AI into its mobile experience. How would you leverage your current research in LightRAG and Enterprise AI to design and build new features for the Ramp Android app?"
+      ],
+      "missing_required": [],
+      "missing_preferred": [
+        "Education",
+        "Notable Achievements",
+        "Certifications"
+      ],
+      "red_flags": [
+        "Significant gap between graduation (implied pre-2021) and Celerity Consulting (2022-2023).",
+        "Short tenure at multiple roles: Mechanical Engineering Intern (3 months), U-M roles (6-12 months), Stealth Startup (2 months).",
+        "The profile shows a pivot from Mechanical Engineering/Consulting to AI/ML/Founding, which is a strength but also indicates a lack of deep, continuous experience in one field."
+      ],
+      "red_flag_count": 2,
+      "completeness": 73,
+      "interview_status": "in_progress",
+      "room_name": "interview-1-a409031c",
+      "interview_score": null,
+      "recommendation": null,
+      "created_at": "2025-12-18 05:40:12.682940",
+      "updated_at": "2025-12-18T05:41:37.238757",
+      "source": "csv_upload",
+      "has_enrichment_data": true,
+      "kotlin_proficiency": false,
+      "years_mobile_development": null,
+      "app_launch_experience": true,
+      "android_stack_experience": [],
+      "mobile_design_patterns_understanding": "No specific mobile design patterns (MVVM, MVI) mentioned. Experience is primarily in AI/ML, engineering, and strategy.",
+      "google_play_console_management": false,
+      "cross_functional_collaboration_examples": "Collaborated with multi-disciplinary teams at Sundberg-Ferar to deliver prototypes. Applied mechanical engineering expertise to develop and deliver defined schedules and resolve issues with cross functional teams at Celerity Consulting Group.",
+      "engineering_process_contribution": false
+    },
+    {
       "id": "13",
       "name": "David-Michael Ajudua",
       "email": null,
@@ -9,19 +110,22 @@
       "current_company": null,
       "location_city": "New York",
       "location_state": "NY",
-      "years_experience": 4.0,
-      "bio_summary": "I have a strong background in financial technology, having co-founded an AI-driven invoicing and accounting tool, Aiazing, which serves several thousand users. My experience spans investment management software at BlackRock and data analytics software at Imply, complemented by investment banking internships at Citi. I am focused on leveraging technology to drive financial efficiency and growth.",
+      "years_experience": 2.1,
+      "bio_summary": "I am a professional focused on financial technology and business development, with experience spanning large enterprise environments like BlackRock and Citi, and high-growth startups. I recently co-founded Aiazing, an AI-powered invoicing and accounting tool that has scaled to several thousand users. My career focus is leveraging software and data analytics to drive business growth in the Fintech sector.",
       "industries": [
         "Financial Technology",
-        "Investment Management",
+        "Asset Management",
+        "Investment Banking",
         "Data Analytics",
-        "Investment Banking"
+        "Software"
       ],
       "skills": [
         "Business Development",
-        "Financial Technology",
-        "Investment Management Software",
-        "Data Analytics Software",
+        "Investment Management",
+        "Software Development",
+        "Data Analytics",
+        "Fintech",
+        "Entrepreneurship",
         "Invoicing",
         "Accounting",
         "AI"
@@ -34,26 +138,26 @@
       "enterprise_experience": true,
       "max_acv_mentioned": null,
       "quota_attainment": null,
-      "algo_score": 55,
-      "ai_score": 68,
-      "combined_score": 62,
-      "tier": "Good",
-      "one_line_summary": "Fintech founder with deep domain knowledge but unproven AE closing track record.",
+      "algo_score": 46,
+      "ai_score": 45,
+      "combined_score": 46,
+      "tier": "Evaluate",
+      "one_line_summary": "Fintech founder with sales experience, lacking core Android engineering skills.",
       "pros": [
-        "Exceptional domain expertise in Financial Technology, Invoicing, and Accounting, highly relevant to the ICP (CFOs/Controllers).",
-        "Proven founder experience, demonstrating the required scrappiness, GTM strategy input, and ambition for a Founding AE role.",
-        "Background includes experience with AI-driven SaaS and enterprise environments (BlackRock, Imply), aligning with the product and client size."
+        "Strong domain expertise in Fintech and AI, highly relevant to Ramp's mission.",
+        "Proven entrepreneurial success as a co-founder who scaled a product to thousands of users.",
+        "Experience operating within both high-growth startup environments and large enterprises (BlackRock, Citi)."
       ],
       "cons": [
-        "Lacks confirmed 1+ year of dedicated Account Executive closing experience, as the primary recent role was a co-founder.",
-        "Explicitly lacks a proven track record of selling directly to finance and accounting stakeholders (CFOs/Controllers), a critical requirement.",
-        "Unclear recent history of owning the full sales cycle (prospecting, presenting, closing) required for an AE role."
+        "Primary professional experience (2.1 years) is in sales and business development, not engineering.",
+        "Lacks explicit confirmation of the required minimum 1 year of mobile development experience.",
+        "No evidence provided of proficiency in Kotlin or modern Android development practices (Compose, MVVM)."
       ],
-      "reasoning": "David-Michael is an excellent cultural and domain fit, possessing the founder mentality and deep fintech knowledge required to understand the ICP's needs. However, the profile lacks confirmation of dedicated AE closing experience and, critically, explicitly misses the requirement of selling directly to CFOs/Controllers, which is mandatory for this Founding AE role. This makes the candidate high potential but requires validation of core closing skills.",
+      "reasoning": "The candidate has excellent industry context and founder experience but critically misses the core technical requirements for an Android Engineer role. The profile does not confirm the minimum 1 year of mobile development experience or proficiency in Kotlin, suggesting a significant skill gap for this specific position.",
       "interview_questions": [
-        "Given your experience co-founding Aiazing, describe your personal role in converting a qualified lead into a closed, paying customer, and what was the average contract value (ACV) of those deals?",
-        "The JD requires selling directly to CFOs and Controllers; how would you leverage your deep accounting and invoicing background to build trust and navigate a complex enterprise sales cycle with a finance leader?",
-        "As a founder, you are used to setting strategy and wearing many hats; how do you transition that mindset to executing a defined sales process, and what structure do you need to thrive in a high-pressure closing role?"
+        "Given your background in sales and business development, can you detail the specific hands-on coding contributions you made to Aiazing, particularly focusing on any mobile development or Kotlin usage?",
+        "The role requires proficiency in Kotlin and modern Android architecture (e.g., Compose, MVVM). How have you maintained or developed these skills recently, and what projects demonstrate your ability to design and launch complex mobile features?",
+        "Ramp is seeking an engineer to integrate AI agents into the mobile experience. Beyond the business concept of Aiazing, what technical challenges have you personally solved related to deploying or interacting with AI models within a mobile application environment?"
       ],
       "missing_required": [
         "Current/Target Role"
@@ -64,110 +168,27 @@
         "Certifications"
       ],
       "red_flags": [
-        "High frequency of job changes (5 roles in 4 years, excluding internships).",
-        "Lack of direct experience in a full sales cycle/Account Executive role.",
-        "Roles at BlackRock and Imply appear to be non-sales/technical (Software/Data Analytics)."
+        "Short tenure at Imply (8 months).",
+        "The profile lacks any evidence of the required mobile development or Android engineering skills."
       ],
       "red_flag_count": 1,
       "completeness": 55,
-      "interview_status": "completed",
-      "room_name": "interview-13-abcbd62c",
-      "interview_score": 92,
-      "recommendation": "Strong Hire",
-      "created_at": "2025-12-14 17:26:30.836678",
-      "updated_at": "2025-12-14T17:33:17.242144",
-      "source": "csv_upload",
-      "has_enrichment_data": true,
-      "years_closing_experience_saas": 0,
-      "sold_to_finance_stakeholders": true,
-      "average_deal_size_mid_enterprise": "Not specified. Experience is primarily in software development/product management and internships, not sales closing.",
-      "startup_experience_stage": "Early-stage startup experience as Co-Founder of Aiazing.",
-      "quota_attainment_history": "Not applicable; profile does not indicate a sales quota role.",
-      "fintech_accounting_background": true,
-      "experience_full_sales_cycle": false
-    },
-    {
-      "id": "5",
-      "name": "Armando F.",
-      "email": null,
-      "linkedin_url": null,
-      "job_title": "Account Executive",
-      "current_company": null,
-      "location_city": "New York",
-      "location_state": "NY",
-      "years_experience": 7.9,
-      "bio_summary": "I am an experienced Account Executive with a strong background in FinTech, specializing in sales roles at companies like Finastra and Metaprise AI. I have a proven track record in business development and sales execution, focusing on financial management and lending solutions.",
-      "industries": [
-        "Financial Services",
-        "FinTech",
-        "Law Practice",
-        "Fraternal Organization"
-      ],
-      "skills": [
-        "Sales",
-        "Business Development",
-        "Account Executive",
-        "Legal Analysis",
-        "Budget Management",
-        "Leadership"
-      ],
-      "education": null,
-      "sales_methodologies": [],
-      "sold_to_finance": false,
-      "is_founder": false,
-      "startup_experience": true,
-      "enterprise_experience": true,
-      "max_acv_mentioned": null,
-      "quota_attainment": null,
-      "algo_score": 45,
-      "ai_score": 78,
-      "combined_score": 62,
-      "tier": "Good",
-      "one_line_summary": "Experienced FinTech AE with strong closing skills, lacking specific CFO sales proof.",
-      "pros": [
-        "Extensive experience (7.9 years) as an Account Executive, far exceeding the 1+ year requirement",
-        "Strong background in FinTech (Finastra, Metaprise AI), aligning with preferred industry",
-        "Experience in both startup (Metaprise AI) and enterprise (Finastra) environments",
-        "Demonstrated experience in financial management and lending solutions"
-      ],
-      "cons": [
-        "No explicit confirmation of selling to finance/accounting leaders (CFOs, Controllers)",
-        "Experience is primarily in FinTech/lending, not specifically SaaS marketplace",
-        "The 'Red Flags: 1' signal is concerning and needs clarification"
-      ],
-      "reasoning": "Armando is a strong candidate due to his extensive FinTech AE experience and startup exposure, meeting the core closing requirement. However, the critical requirement of a proven track record selling specifically to CFOs/Controllers in mid-market/enterprise is not explicitly confirmed, preventing an 'Exceptional' score.",
-      "interview_questions": [
-        "Can you describe your most successful deal where you engaged directly with a CFO or Controller? What was the business problem you solved for them?",
-        "The JD requires thriving with minimal structure. Can you share an example of a time you had to build a sales process or strategy from scratch at a previous startup?",
-        "Your background is in FinTech/lending. How would you adapt your sales approach to selling an AI SaaS Marketplace solution to go-to-market teams?"
-      ],
-      "missing_required": [],
-      "missing_preferred": [
-        "Education",
-        "Notable Achievements",
-        "Certifications"
-      ],
-      "red_flags": [
-        "Short tenure at SBG Funding (7 months) followed by a quick move to Metaprise AI.",
-        "The move from Finastra (4.5 years) to SBG Funding (7 months) and then to Metaprise AI suggests instability in the last year."
-      ],
-      "red_flag_count": 1,
-      "completeness": 73,
       "interview_status": "not_scheduled",
       "room_name": null,
       "interview_score": null,
       "recommendation": null,
-      "created_at": "2025-12-14 17:26:30.836426",
-      "updated_at": "2025-12-14 17:27:57.766382",
+      "created_at": "2025-12-18 05:40:12.683099",
+      "updated_at": "2025-12-18 05:40:57.332760",
       "source": "csv_upload",
       "has_enrichment_data": true,
-      "years_closing_experience_saas": 4.75,
-      "sold_to_finance_stakeholders": true,
-      "average_deal_size_mid_enterprise": "Experience at Finastra suggests exposure to enterprise-level financial software sales, while Metaprise AI focuses on AI-driven AR/AP solutions for businesses of all sizes.",
-      "startup_experience_stage": "Current role at Metaprise AI (AI-driven AR/AP solutions) and previous role at SBG Funding (working capital) suggest experience in fast-paced, specialized FinTech environments.",
-      "quota_attainment_history": "Not explicitly mentioned in the profile data.",
-      "fintech_accounting_background": true,
-      "experience_full_sales_cycle": true
+      "kotlin_proficiency": false,
+      "years_mobile_development": null,
+      "app_launch_experience": false,
+      "android_stack_experience": [],
+      "mobile_design_patterns_understanding": "No evidence of mobile development experience.",
+      "google_play_console_management": false,
+      "cross_functional_collaboration_examples": "The candidate's experience as a Co-Founder at Aiazing and in software roles at BlackRock and Imply implies cross-functional collaboration, but specific examples related to product/design are not detailed.",
+      "engineering_process_contribution": false
     },
     {
       "id": "0",
@@ -178,26 +199,31 @@
       "current_company": null,
       "location_city": "San Francisco",
       "location_state": "CA",
-      "years_experience": 8.0,
-      "bio_summary": "I am a 3x exited founder and military veteran specializing in driving enterprise growth and GTM strategy within legacy and niche B2B industries, particularly AgTech and equestrian. I have a proven track record of translating relationship-driven markets into scalable, repeatable revenue, currently focusing on Mid-Market and Enterprise ERP optimization at Odoo.",
+      "years_experience": 10.5,
+      "bio_summary": "I am a 3x exited founder specializing in driving enterprise growth and GTM strategy within legacy industries, particularly AgTech and the equestrian sector. I currently serve as a Mid-Market & Enterprise Account Executive at Odoo, leveraging my deep expertise in ERP implementation and scalable sales motions to secure high-ACV deals. I have a proven track record of translating relationship-driven markets into repeatable, scalable revenue streams.",
       "industries": [
         "Equestrian",
         "AgTech",
+        "Enterprise Software",
+        "ERP",
         "B2B",
-        "Enterprise Resource Planning (ERP)",
-        "Non-Profit",
-        "Military"
+        "Non-profit",
+        "Military",
+        "Agritourism"
       ],
       "skills": [
-        "Go-to-Market (GTM) Strategy",
-        "Enterprise Sales",
+        "GTM Strategy",
         "ERP Implementation",
-        "Account Management",
-        "Revenue Operations (RevOps)",
-        "Process Optimization",
-        "RFP Response",
         "Sales Enablement",
-        "Strategic Partnerships"
+        "Revenue Operations",
+        "Account Management",
+        "Corporate Partnerships",
+        "Digital Transformation",
+        "Salesforce",
+        "Process Optimization",
+        "RFP Writing",
+        "SEO",
+        "UX"
       ],
       "education": null,
       "sales_methodologies": [],
@@ -207,28 +233,27 @@
       "enterprise_experience": true,
       "max_acv_mentioned": null,
       "quota_attainment": null,
-      "algo_score": 55,
-      "ai_score": 65,
-      "combined_score": 60,
-      "tier": "Good",
-      "one_line_summary": "Experienced enterprise AE and founder lacking specific AI/Fintech domain expertise.",
+      "algo_score": 60,
+      "ai_score": 5,
+      "combined_score": 32,
+      "tier": "Poor",
+      "one_line_summary": "Accomplished sales executive lacking required engineering expertise.",
       "pros": [
-        "Extensive 8 years of closing experience, exceeding the 1+ year requirement.",
-        "Proven startup experience (3x exited founder) demonstrating drive and scrappiness.",
-        "Strong enterprise sales and GTM strategy background, fitting the mid-market/enterprise focus.",
-        "Experience thriving in niche, relationship-driven markets (AgTech, Equestrian)."
+        "Proven track record as a 3x exited founder, demonstrating entrepreneurial drive.",
+        "Deep expertise in enterprise growth and GTM strategy, valuable for a different function.",
+        "Strong background in high-ACV sales and ERP implementation."
       ],
       "cons": [
-        "Zero evidence of selling to finance/accounting leaders (CFOs, Controllers), a critical requirement.",
-        "Industry experience (AgTech, Equestrian, ERP) is not aligned with AI SaaS Marketplace/Fintech.",
-        "Lack of explicit SaaS closing experience (though ERP is related, it's not pure SaaS).",
-        "Focus on legacy/niche industries suggests a potential lack of high-velocity tech sales experience."
+        "Zero demonstrated experience in mobile development or software engineering.",
+        "Lacks the required proficiency in Kotlin for Android development.",
+        "10.5 years of experience is exclusively focused on sales and account management, not technical building.",
+        "Missing foundational requirements like understanding mobile design patterns and conducting code reviews."
       ],
-      "reasoning": "Zachary brings strong closing experience, enterprise focus, and valuable founder/startup experience. However, he critically lacks the required experience selling to finance/accounting stakeholders (CFOs/Controllers) and his industry background is completely misaligned with AI SaaS/Fintech, placing him in the 'Potential' category.",
+      "reasoning": "The candidate's profile is entirely focused on sales, GTM strategy, and executive leadership, which is a complete functional mismatch for an Android Engineer role. He lacks all the critical technical requirements, including proficiency in Kotlin, minimum mobile development experience, and knowledge of engineering best practices, making him unsuitable for this position.",
       "interview_questions": [
-        "The JD requires selling to CFOs and Controllers; how would you leverage your ERP optimization experience to effectively engage and close a finance leader?",
-        "Your background is heavily focused on AgTech and niche B2B. How will you adapt your sales process and GTM strategy to a fast-paced, high-growth AI SaaS marketplace environment?",
-        "As a 3x exited founder, describe a time you had to build a sales process from scratch with minimal structure, specifically detailing the metrics and tools you prioritized."
+        "Given your extensive background as a sales executive and founder, could you clarify what practical experience you have with Kotlin and the Android SDK, including any features you have personally designed or launched?",
+        "The role requires conducting code reviews and setting engineering standards; how would you leverage your current skill set in GTM strategy and sales enablement to fulfill these technical responsibilities?",
+        "Can you describe a complex technical challenge you solved related to mobile architecture or performance optimization in a recent project?"
       ],
       "missing_required": [],
       "missing_preferred": [
@@ -237,26 +262,26 @@
         "Certifications"
       ],
       "red_flags": [
-        "Six-month employment gap between Wounded Warrior Project (Jul 2023) and Odoo (Jan 2024).",
-        "Limited pure Account Executive closing experience in a major SaaS/ERP environment (0.5 years)."
+        "6-month employment gap between July 2023 and January 2024."
       ],
-      "red_flag_count": 1,
+      "red_flag_count": 0,
       "completeness": 73,
       "interview_status": "not_scheduled",
       "room_name": null,
       "interview_score": null,
       "recommendation": null,
-      "created_at": "2025-12-14 17:26:30.836246",
-      "updated_at": "2025-12-14 17:27:57.981342",
+      "created_at": "2025-12-18 05:40:12.682886",
+      "updated_at": "2025-12-18 05:40:56.218388",
       "source": "csv_upload",
       "has_enrichment_data": true,
-      "years_closing_experience_saas": 0.5,
-      "sold_to_finance_stakeholders": true,
-      "average_deal_size_mid_enterprise": "$50k\u2013$500k+ ACV deals; focused on Mid-Market & Enterprise (250+ employees); previously managed $100K\u2013$1M+ corporate partnerships.",
-      "startup_experience_stage": "Extensive experience launching and scaling businesses from the ground up, including securing concessions (RFP) and architecting full digital operations stacks with minimal structure.",
-      "quota_attainment_history": "Not explicitly stated in the profile data.",
-      "fintech_accounting_background": false,
-      "experience_full_sales_cycle": true
+      "kotlin_proficiency": false,
+      "years_mobile_development": null,
+      "app_launch_experience": false,
+      "android_stack_experience": [],
+      "mobile_design_patterns_understanding": "N/A - Not a mobile developer role.",
+      "google_play_console_management": false,
+      "cross_functional_collaboration_examples": "Collaborated cross-functionally at Wounded Warrior Project to deliver high-impact partnership activations; directed IT operations and ensured effective onboarding for on-site and remote teams at Soluti Ranch.",
+      "engineering_process_contribution": false
     },
     {
       "id": "8",
@@ -267,25 +292,21 @@
       "current_company": null,
       "location_city": "Rockville",
       "location_state": "MD",
-      "years_experience": 4.0,
-      "bio_summary": "I am a Founding Senior Business Development professional focused on leveraging organizational networks to unlock hidden pipeline and drive scalable business growth. I have a strong background in Sales Development, consistently achieving exceptional quota attainment, including a 321% quarter, while specializing in Mid-Market and Enterprise GTM strategies for SaaS platforms.",
+      "years_experience": 3.25,
+      "bio_summary": "I am a Founding Senior Business Development professional at Orbb, focused on leveraging organizational networks to unlock hidden pipeline and advance stalled deals. Previously, I spent over two years at ZoomInfo, consistently exceeding sales development quotas, achieving up to 321% of my target in Q2 2024.",
       "industries": [
-        "SaaS",
-        "Sales Intelligence",
-        "Go-to-Market (GTM) Platform",
-        "Retail Technology",
-        "Business Development"
+        "Software",
+        "Retail Technology"
       ],
       "skills": [
         "Business Development",
         "Sales Development",
-        "Pipeline Generation",
-        "Referral Strategy",
-        "RevOps",
-        "Account-Based Marketing (ABM)",
         "GTM Strategy",
-        "Mid Market Sales",
-        "Enterprise Sales"
+        "Pipeline Generation",
+        "Referral Marketing",
+        "CRM Data Analysis",
+        "Sales Intelligence",
+        "Account-Based Marketing"
       ],
       "education": null,
       "sales_methodologies": [],
@@ -295,26 +316,26 @@
       "enterprise_experience": true,
       "max_acv_mentioned": null,
       "quota_attainment": null,
-      "algo_score": 55,
-      "ai_score": 65,
-      "combined_score": 60,
-      "tier": "Good",
-      "one_line_summary": "Strong BDR/SDR leader with startup experience, but lacks AE closing experience.",
+      "algo_score": 60,
+      "ai_score": 5,
+      "combined_score": 32,
+      "tier": "Poor",
+      "one_line_summary": "Highly successful sales leader lacking required engineering experience.",
       "pros": [
-        "Founding role experience and demonstrated startup scrappiness/hustle",
-        "Strong background in GTM Strategy, Mid-Market, and Enterprise pipeline generation",
-        "Exceptional quota attainment (321% quarter) shows high performance drive"
+        "Proven success in a Founding Senior Business Development role (Startup Experience signal is True)",
+        "Demonstrated high achievement and drive (exceeded sales quotas up to 321%)",
+        "Strong understanding of GTM Strategy and business pipeline generation"
       ],
       "cons": [
-        "Current title is 'Founding Senior Business Development,' indicating BDR/SDR focus, not AE closing",
-        "Lacks the required 1+ years of closing experience as an Account Executive",
-        "No explicit experience selling to finance/accounting stakeholders (CFOs, Controllers)"
+        "Zero experience in mobile development, which is a core requirement for this role",
+        "Lacks proficiency in Kotlin and the required Android technical stack (Compose, MVVM, coroutines)",
+        "Professional background is entirely focused on Sales and Business Development, not Software Engineering"
       ],
-      "reasoning": "The candidate is a high-performing Founding Senior Business Development professional with strong GTM and startup experience. However, the core requirement of 1+ years of closing experience as an Account Executive is missing, as is the critical requirement of selling to finance/accounting leaders, placing the candidate in the 'Potential' category.",
+      "reasoning": "The candidate is an accomplished sales professional but does not meet any of the minimum technical requirements for the Android Engineer position, including minimum 1 year of mobile development experience and proficiency in Kotlin. This is a fundamental mismatch between the candidate's career track and the specialized engineering role.",
       "interview_questions": [
-        "Can you detail your experience owning the full sales cycle, specifically the negotiation and closing stages for mid-market or enterprise deals?",
-        "The JD requires selling to CFOs and Controllers; how would you adapt your current GTM strategy, which focuses on organizational networks, to engage and close these finance leaders?",
-        "Given your background is primarily in Business Development, why are you seeking a Founding Account Executive closing role at this stage, and what makes you confident in hitting a closing quota immediately?"
+        "Given your successful background in sales and business development, can you describe your specific experience designing, building, and launching features for a production Android application?",
+        "What motivated you to apply for a specialized Android Engineering role at Ramp, and how do you plan to rapidly acquire the necessary proficiency in Kotlin, Compose, and mobile architecture patterns?",
+        "How do you approach debugging complex software issues or optimizing application performance, drawing on your prior professional experience?"
       ],
       "missing_required": [],
       "missing_preferred": [
@@ -322,115 +343,25 @@
         "Notable Achievements",
         "Certifications"
       ],
-      "red_flags": [
-        "Lack of full sales cycle (closing) experience.",
-        "High frequency of role changes (5 roles in 3.5 years, though most were internal promotions at ZoomInfo)."
-      ],
-      "red_flag_count": 1,
+      "red_flags": [],
+      "red_flag_count": 0,
       "completeness": 73,
       "interview_status": "not_scheduled",
       "room_name": null,
       "interview_score": null,
       "recommendation": null,
-      "created_at": "2025-12-14 17:26:30.836548",
-      "updated_at": "2025-12-14 17:27:57.356418",
+      "created_at": "2025-12-18 05:40:12.683036",
+      "updated_at": "2025-12-18 05:40:56.264533",
       "source": "csv_upload",
       "has_enrichment_data": true,
-      "years_closing_experience_saas": 0,
-      "sold_to_finance_stakeholders": false,
-      "average_deal_size_mid_enterprise": "Focused on Mid-Market and Enterprise segments, primarily in Sales Development/Pipeline Generation roles.",
-      "startup_experience_stage": "Early-stage startup (Founding team member at Orbb).",
-      "quota_attainment_history": "Exceptional performance, including 321% (Q2 2024), 220% (Q1 2024), 210% (Q4 2023), 149% (Q3 2023), 120% (Q2 2023), 153% (Q1 2023), and 163% (Q4 2022). Average attainment is well over 150%.",
-      "fintech_accounting_background": false,
-      "experience_full_sales_cycle": false
-    },
-    {
-      "id": "2",
-      "name": "Luke Anderson",
-      "email": null,
-      "linkedin_url": null,
-      "job_title": "Account Executive, Partnerships and Alliances - North America",
-      "current_company": null,
-      "location_city": "San Francisco",
-      "location_state": "CA",
-      "years_experience": 3.5,
-      "bio_summary": "I am a marketing graduate with expertise in B2B sales and digital marketing, currently focused on Partnerships and Strategic Accounts. I have successfully managed the full sales cycle, selling blockchain payment solutions to enterprise AI companies and BPOs at Airtm, and now driving partnership recruitment and ERP sales at Odoo. I combine marketing insights from my time at HP Inc. with a relationship-driven sales approach to consistently exceed goals.",
-      "industries": [
-        "Software",
-        "Fintech",
-        "Blockchain",
-        "Digital Marketing",
-        "Motorcycle Apparel"
-      ],
-      "skills": [
-        "B2B Sales",
-        "Digital Marketing",
-        "Programmatic Media",
-        "Paid Media",
-        "Full Sales Cycle Management",
-        "Partnership Recruitment",
-        "ERP Software",
-        "Consultative Sales",
-        "Python",
-        "SQL"
-      ],
-      "education": null,
-      "sales_methodologies": [],
-      "sold_to_finance": false,
-      "is_founder": false,
-      "startup_experience": true,
-      "enterprise_experience": true,
-      "max_acv_mentioned": null,
-      "quota_attainment": null,
-      "algo_score": 45,
-      "ai_score": 72,
-      "combined_score": 58,
-      "tier": "Good",
-      "one_line_summary": "Experienced AE with fintech and startup background, but lacks specific CFO sales.",
-      "pros": [
-        "3.5 years of sales experience, exceeding the 1+ year requirement",
-        "Experience in Fintech/Blockchain and SaaS/ERP environments",
-        "Demonstrated full sales cycle management and consultative selling skills",
-        "Startup experience and ability to thrive in dynamic environments"
-      ],
-      "cons": [
-        "No explicit mention of selling to finance/accounting leaders (CFOs, Controllers)",
-        "Current role is focused on Partnerships/Alliances, not pure AE closing",
-        "Lacks specific AI SaaS marketplace experience",
-        "Sales experience is in blockchain payment solutions and ERP, not recruiting/GTM tech"
-      ],
-      "reasoning": "Luke meets the minimum closing experience requirement (3.5 years) and has relevant startup and fintech experience. However, the critical requirement of selling to finance/accounting stakeholders (CFOs/Controllers) is not confirmed, and his current role is alliance-focused, suggesting a gap in recent pure AE closing experience. This places him in the 'Potential' category.",
-      "interview_questions": [
-        "Can you describe a specific deal where you successfully sold a solution directly to a CFO or Controller, and what was your value proposition to them?",
-        "Your current role involves Partnerships and Alliances; how will you transition back to owning the full, pure closing cycle for mid-market and enterprise accounts?",
-        "The JD requires thriving with minimal structure; provide an example of a time you proactively built a sales process or solved a major problem in a high-growth, ambiguous environment."
-      ],
-      "missing_required": [],
-      "missing_preferred": [
-        "Education",
-        "Notable Achievements",
-        "Certifications"
-      ],
-      "red_flags": [
-        "Short tenure at Airtm (6 months) and Odoo (4 months, ongoing) suggests potential job hopping in recent roles."
-      ],
-      "red_flag_count": 1,
-      "completeness": 73,
-      "interview_status": "not_scheduled",
-      "room_name": null,
-      "interview_score": null,
-      "recommendation": null,
-      "created_at": "2025-12-14 17:26:30.836338",
-      "updated_at": "2025-12-14 17:27:57.434637",
-      "source": "csv_upload",
-      "has_enrichment_data": true,
-      "years_closing_experience_saas": 0.92,
-      "sold_to_finance_stakeholders": false,
-      "average_deal_size_mid_enterprise": "Mid-market/Enterprise (selling ERP and blockchain payment solutions to AI companies and BPOs)",
-      "startup_experience_stage": "Experience at Airtm suggests working in a fast-paced environment (Founding Account Executive role).",
-      "quota_attainment_history": "Odoo: Month 1 (130%), Month 2 (143% MRR), Month 3 (131% MRR), Month 4 (201% MRR).",
-      "fintech_accounting_background": true,
-      "experience_full_sales_cycle": true
+      "kotlin_proficiency": false,
+      "years_mobile_development": null,
+      "app_launch_experience": false,
+      "android_stack_experience": [],
+      "mobile_design_patterns_understanding": "N/A",
+      "google_play_console_management": false,
+      "cross_functional_collaboration_examples": "N/A",
+      "engineering_process_contribution": false
     },
     {
       "id": "14",
@@ -441,117 +372,37 @@
       "current_company": null,
       "location_city": "Toronto",
       "location_state": "ON",
-      "years_experience": 6.0,
-      "bio_summary": "I am a GTM professional with approximately 6 years of experience focused on growing revenue for early-stage companies. I specialize in building sales processes from scratch, launching products in new markets (including AI/LLMs), and leading teams to acquire and retain high-value customers. My achievements include increasing annual revenue by 18% for a $2M portfolio and increasing MRR by 30% by opening new markets.",
+      "years_experience": 8.0,
+      "bio_summary": "I am a GTM professional with over 8 years of experience focused on growing revenue for early-stage companies. I specialize in building sales processes from scratch, launching products in new markets, and leading teams to acquire and retain customers. My achievements include increasing annual revenue by 18% for a portfolio of Canadian clients and driving a 30% increase in MRR by introducing new markets and building sustainable sales funnels.",
       "industries": [
         "Software Development",
-        "IT Services",
-        "Healthcare AI",
-        "Recruiting Tech",
-        "GTM Consulting"
+        "Healthcare",
+        "Technology",
+        "AI",
+        "Recruiting"
       ],
       "skills": [
-        "Go-to-Market (GTM) Strategy",
+        "GTM",
+        "Market Intelligence",
         "Sales",
         "Business Development",
-        "Market Intelligence",
         "Account Management",
-        "AI/LLMs",
-        "Sales Process Optimization",
-        "Pipeline Generation",
-        "Enterprise Sales",
-        "Cross-functional Leadership"
-      ],
-      "education": null,
-      "sales_methodologies": [],
-      "sold_to_finance": false,
-      "is_founder": false,
-      "startup_experience": true,
-      "enterprise_experience": true,
-      "max_acv_mentioned": null,
-      "quota_attainment": null,
-      "algo_score": 35,
-      "ai_score": 78,
-      "combined_score": 56,
-      "tier": "Good",
-      "one_line_summary": "Experienced GTM builder specializing in early-stage revenue growth.",
-      "pros": [
-        "Extensive experience (6 years) in sales and GTM strategy, exceeding the 1+ year requirement.",
-        "Proven success in building sales processes from scratch and launching products in new markets (Founding AE fit).",
-        "Direct experience with AI/LLMs and Recruiting Tech, relevant to the JD's domain.",
-        "Demonstrated success in revenue growth (18% annual increase, 30% MRR increase)."
-      ],
-      "cons": [
-        "Lacks explicit mention of closing experience as a titled Account Executive (AE).",
-        "No evidence of selling to finance/accounting stakeholders (CFOs, Controllers), a critical requirement.",
-        "Current title is 'Sales Consultant,' which may not reflect direct full-cycle closing ownership.",
-        "Experience is heavily focused on consulting/GTM strategy rather than pure closing."
-      ],
-      "reasoning": "The candidate is a strong GTM professional with significant startup experience and relevant domain knowledge (AI, Recruiting Tech). However, they are missing the critical requirement of a proven track record selling directly to finance and accounting leaders (CFOs/Controllers). Their background leans toward consulting and strategy rather than the required full-cycle AE closing role, placing them in the 'Strong' category but with clear gaps.",
-      "interview_questions": [
-        "Can you describe your most recent full-cycle closing experience, detailing the deal size, sales cycle length, and your specific role in securing the contract?",
-        "The role requires selling to CFOs and Controllers; what is your strategy for engaging these finance leaders, and what specific value propositions have you used with them previously?",
-        "Your background includes 'Sales Consultant' and GTM strategy; how will you transition your focus to the day-to-day grind of prospecting, presenting, and closing deals as a Founding Account Executive?"
-      ],
-      "missing_required": [],
-      "missing_preferred": [
-        "Education",
-        "Notable Achievements",
-        "Certifications"
-      ],
-      "red_flags": [
-        "13-month employment gap between December 2021 and January 2023.",
-        "Significant overlap/concurrent employment across three companies (Futurenostics, Parallel, Semantic Health) since January 2023, suggesting fractional or consulting work that requires clarification.",
-        "Work history entries for Semantic Health and Parallel contain future end dates (August 2025)."
-      ],
-      "red_flag_count": 3,
-      "completeness": 73,
-      "interview_status": "not_scheduled",
-      "room_name": null,
-      "interview_score": null,
-      "recommendation": null,
-      "created_at": "2025-12-14 17:26:30.836706",
-      "updated_at": "2025-12-14 17:27:58.075428",
-      "source": "csv_upload",
-      "has_enrichment_data": true,
-      "years_closing_experience_saas": 5.5,
-      "sold_to_finance_stakeholders": false,
-      "average_deal_size_mid_enterprise": "Focus on mid-market and enterprise accounts, managing portfolios up to $2 million. Experience selling high-value AI/SaaS solutions to healthcare executives.",
-      "startup_experience_stage": "Extensive experience in early-stage, high-growth environments, building sales processes and GTM strategies from the ground up.",
-      "quota_attainment_history": "Quantifiable results include achieving an 18% increase in annual revenue and a 30% increase in MRR, though specific quota attainment percentages are not listed.",
-      "fintech_accounting_background": false,
-      "experience_full_sales_cycle": true
-    },
-    {
-      "id": "4",
-      "name": "Parampreet Atwal",
-      "email": null,
-      "linkedin_url": null,
-      "job_title": "Account Executive",
-      "current_company": null,
-      "location_city": "Calgary",
-      "location_state": "Alberta",
-      "years_experience": 3.58,
-      "bio_summary": "I am an Account Executive focused on transforming the legal experience through cloud-based legal technology. I have a strong background in SaaS sales, having successfully progressed from a Business Development Representative to an Account Executive role, closing significant deals in the mid-market and enterprise segments across various tech companies.",
-      "industries": [
-        "Legal Technology",
-        "SaaS",
-        "Video Platform",
-        "E-learning",
-        "Digital Media"
-      ],
-      "skills": [
-        "Account Executive",
-        "Business Development Representative",
-        "Distribution Manager",
-        "Distribution Coordinator",
-        "Sales",
-        "Mid Market",
-        "Enterprise Accounts",
-        "CPD/CPE",
-        "AR",
         "AI",
-        "Process Automation"
+        "LLMs",
+        "RAG",
+        "Agentic AI Engineering",
+        "Market Entry Strategy",
+        "Pipeline Building",
+        "Enterprise Accounts",
+        "Product-Market Fit",
+        "Cross-functional Collaboration",
+        "Competitive Intelligence",
+        "Sales Operations",
+        "Outbound Reach",
+        "MRR Growth",
+        "Sales Funnel",
+        "Hiring",
+        "Training"
       ],
       "education": null,
       "sales_methodologies": [],
@@ -562,25 +413,26 @@
       "max_acv_mentioned": null,
       "quota_attainment": null,
       "algo_score": 45,
-      "ai_score": 65,
-      "combined_score": 55,
-      "tier": "Good",
-      "one_line_summary": "Experienced SaaS AE with strong enterprise background, lacking finance buyer exposure.",
+      "ai_score": 10,
+      "combined_score": 28,
+      "tier": "Poor",
+      "one_line_summary": "Experienced sales consultant with no relevant engineering background.",
       "pros": [
-        "Over 3 years of closing experience as an Account Executive in SaaS, exceeding the minimum requirement.",
-        "Proven experience handling mid-market and enterprise accounts, aligning with the target market.",
-        "Demonstrated startup experience and successful progression from BDR to AE, indicating drive and ambition."
+        "Extensive experience (8 years) in professional roles",
+        "Experience working with early-stage companies (Startup Experience: True)",
+        "Familiarity with AI/LLMs, which aligns with Ramp's future focus"
       ],
       "cons": [
-        "Critically lacks proven experience selling specifically to finance and accounting stakeholders (CFOs/Controllers), a core requirement.",
-        "Primary industry focus has been Legal Technology, requiring a significant domain shift to AI SaaS for GTM teams.",
-        "Must prove ability to thrive in a 'minimal structure' Founding AE role, contributing to GTM strategy."
+        "Zero experience in mobile development, especially Android/Kotlin",
+        "Current title is Sales Consultant, not Android Engineer",
+        "Missing the minimum requirement of 1 year in mobile development",
+        "No evidence of proficiency in Kotlin or experience launching an app"
       ],
-      "reasoning": "The candidate possesses strong foundational SaaS AE experience (3.5 years) and has worked in startup environments, meeting several core requirements. However, they critically lack the required experience selling to finance and accounting leaders (CFOs/Controllers), which is essential for this specific Founding AE role selling to GTM teams where budget approval often rests with finance.",
+      "reasoning": "The candidate is a seasoned sales professional, but the role requires an Android Engineer with a minimum of 1 year of mobile development experience and proficiency in Kotlin. The candidate lacks any technical background or experience relevant to the core requirements of designing, building, and launching products for the Ramp Android app.",
       "interview_questions": [
-        "The JD requires selling to CFOs; your background is in Legal Tech. How would you quickly bridge the domain knowledge gap and build credibility with senior finance leaders?",
-        "Describe a time you had to build a sales process or contribute significantly to the go-to-market strategy in a high-ambiguity startup environment. What was your specific contribution?",
-        "You listed 'AR' (Accounts Receivable) in your skills. Can you detail your experience interacting with or selling solutions to AR/Finance departments, and what was the average deal size?"
+        "Can you describe your current understanding of the Android development ecosystem, including Kotlin, Compose, and MVVM?",
+        "What steps are you currently taking to transition your career from sales/GTM to a hands-on Android Engineering role?",
+        "The job requires building and launching features in a large-scale mobile app. Can you provide an example of a technical project you have completed that demonstrates your coding ability?"
       ],
       "missing_required": [],
       "missing_preferred": [
@@ -589,7 +441,8 @@
         "Certifications"
       ],
       "red_flags": [
-        "Short tenure at IrisCX (5 months) and LumiQ AE role (10 months) suggests potential job hopping in the last two years."
+        "The candidate has held three roles (Semantic Health, Parallel, Futurenostics) that overlap significantly in time (2023-2025), suggesting potential concurrent employment or inaccurate dates.",
+        "The role at Semantic Health (Dec 2024 - Aug 2025) and Parallel (Jan 2023 - Aug 2025) are listed as future dates, which is unusual for a work history section."
       ],
       "red_flag_count": 1,
       "completeness": 73,
@@ -597,17 +450,18 @@
       "room_name": null,
       "interview_score": null,
       "recommendation": null,
-      "created_at": "2025-12-14 17:26:30.836397",
-      "updated_at": "2025-12-14 17:28:03.926050",
+      "created_at": "2025-12-18 05:40:12.683119",
+      "updated_at": "2025-12-18 05:40:52.898824",
       "source": "csv_upload",
       "has_enrichment_data": true,
-      "years_closing_experience_saas": 2.0,
-      "sold_to_finance_stakeholders": true,
-      "average_deal_size_mid_enterprise": "Mid-Market and Enterprise accounts (e.g., EPCOR Energy, Black & McDonald, AESO) across multiple SaaS roles.",
-      "startup_experience_stage": "Experience at IrisCX (2nd AE hired) and LumiQ suggests working in fast-paced, growth-stage environments.",
-      "quota_attainment_history": "Promoted from BDR to AE after 4.5 months; achieved 37.2% conversion rate on qualified meetings as a BDR.",
-      "fintech_accounting_background": true,
-      "experience_full_sales_cycle": true
+      "kotlin_proficiency": false,
+      "years_mobile_development": null,
+      "app_launch_experience": false,
+      "android_stack_experience": [],
+      "mobile_design_patterns_understanding": "No relevant experience found.",
+      "google_play_console_management": false,
+      "cross_functional_collaboration_examples": "At Semantic Health, I orchestrated cross-functional collaboration between sales, product, and engineering teams to accelerate customer success and product evolution, including directing user onboarding initiatives and channeling market insights into product roadmap decisions.",
+      "engineering_process_contribution": false
     },
     {
       "id": "7",
@@ -619,110 +473,19 @@
       "location_city": "Encinitas",
       "location_state": "CA",
       "years_experience": 3.58,
-      "bio_summary": "I am an Account Executive with a strong background in B2B SaaS sales, specializing in connected operations and restaurant marketing technology. I have rapidly progressed through sales roles at Samsara, moving from Account Development Representative to Commercial Account Executive, demonstrating quick learning and career acceleration.",
+      "bio_summary": "I am an Account Executive with a strong background in B2B sales, specializing in technology and connected operations. I have rapidly progressed through sales roles at Samsara, moving from Account Development Representative to Commercial Account Executive, and am currently focused on driving revenue at SpotHopper.",
       "industries": [
-        "Restaurant Marketing",
+        "Technology",
         "Connected Operations",
-        "Investment Management",
+        "Restaurant Marketing",
+        "Financial Services",
         "Medical Devices"
       ],
-      "skills": [],
-      "education": null,
-      "sales_methodologies": [],
-      "sold_to_finance": false,
-      "is_founder": false,
-      "startup_experience": true,
-      "enterprise_experience": true,
-      "max_acv_mentioned": null,
-      "quota_attainment": null,
-      "algo_score": 45,
-      "ai_score": 65,
-      "combined_score": 55,
-      "tier": "Good",
-      "one_line_summary": "Experienced SaaS AE with strong progression, lacking finance stakeholder sales.",
-      "pros": [
-        "Strong B2B SaaS closing experience (3.58 years), exceeding the minimum requirement.",
-        "Demonstrated rapid career progression (ADR to AE) indicating drive and ambition.",
-        "Experience selling complex solutions in high-growth environments (Connected Operations)."
-      ],
-      "cons": [
-        "Lack of proven track record selling specifically to CFOs/Controllers (a critical requirement).",
-        "Industry experience (Restaurant Marketing, Connected Operations) does not align directly with fintech/finance tech.",
-        "No explicit mention of experience selling AI or marketplace solutions."
-      ],
-      "reasoning": "Sofia possesses strong B2B SaaS closing experience and demonstrated ambition, aligning with the startup environment and experience requirements. However, she lacks the critical requirement of selling directly to finance and accounting stakeholders (CFOs/Controllers), which is essential for this AI SaaS Marketplace role. This gap places her in the 'Potential' category.",
-      "interview_questions": [
-        "The JD requires selling to CFOs and Controllers. How would you leverage your experience selling connected operations/restaurant tech to quickly build credibility with finance leaders?",
-        "You progressed quickly at Samsara; describe a time you had to build a sales process from scratch or thrive with minimal structure, demonstrating the scrappiness required for a Founding AE role.",
-        "Can you walk me through your largest or most complex deal, specifically detailing who the final economic buyer was and what their primary concerns were?"
-      ],
-      "missing_required": [],
-      "missing_preferred": [
-        "Key Skills",
-        "Education",
-        "Notable Achievements",
-        "Certifications"
-      ],
-      "red_flags": [
-        "Short tenure at multiple roles (6 months at J&J, 1 year at Fisher, 3 months/5 months/1 year at Samsara roles, 1 month current role).",
-        "Rapid movement between roles at Samsara suggests internal restructuring or performance issues, although the progression was upward."
-      ],
-      "red_flag_count": 1,
-      "completeness": 64,
-      "interview_status": "not_scheduled",
-      "room_name": null,
-      "interview_score": null,
-      "recommendation": null,
-      "created_at": "2025-12-14 17:26:30.836520",
-      "updated_at": "2025-12-14 17:28:03.621838",
-      "source": "csv_upload",
-      "has_enrichment_data": true,
-      "years_closing_experience_saas": 1.5,
-      "sold_to_finance_stakeholders": false,
-      "average_deal_size_mid_enterprise": "Mid-market/Commercial (Samsara) and SMB (SpotHopper)",
-      "startup_experience_stage": "Experience at Samsara (high-growth scale-up) and SpotHopper (current role)",
-      "quota_attainment_history": "Not available in profile data.",
-      "fintech_accounting_background": false,
-      "experience_full_sales_cycle": true
-    },
-    {
-      "id": "9",
-      "name": "Yara Lacerda",
-      "email": null,
-      "linkedin_url": null,
-      "job_title": "Account Executive SMB",
-      "current_company": null,
-      "location_city": "Miami",
-      "location_state": "FL",
-      "years_experience": 12.0,
-      "bio_summary": "I am an accomplished Account Executive with 15 years of experience driving substantial revenue growth across the LATAM market, consistently exceeding sales quotas at companies like Cloudflare, Apple, and Disney. I specialize in complex SaaS sales, leveraging deep technical acumen and trilingual proficiency (English, Portuguese, Spanish) to nurture long-term client relationships and close large deals in fast-paced, innovative environments.",
-      "industries": [
-        "SaaS",
-        "Tech",
-        "Corporate Wellness",
-        "Entertainment",
-        "Media",
-        "Fintech",
-        "E-commerce",
-        "E-learning",
-        "Healthcare",
-        "Financial Operations"
-      ],
       "skills": [
-        "Complex Sales",
-        "SaaS Sales",
-        "Account Management",
-        "Quota Attainment",
-        "Revenue Growth",
-        "LATAM Market",
-        "Trilingual (English, Portuguese, Spanish)",
-        "Sales Strategy",
-        "Technical Acumen",
-        "Financial Operations",
-        "Collections",
-        "Coaching",
-        "Salesforce",
-        "SAP"
+        "Account Executive",
+        "Sales",
+        "Account Development",
+        "Client Operations"
       ],
       "education": null,
       "sales_methodologies": [],
@@ -733,25 +496,26 @@
       "max_acv_mentioned": null,
       "quota_attainment": null,
       "algo_score": 45,
-      "ai_score": 65,
-      "combined_score": 55,
-      "tier": "Good",
-      "one_line_summary": "Highly experienced SaaS AE with strong technical acumen.",
+      "ai_score": 5,
+      "combined_score": 25,
+      "tier": "Poor",
+      "one_line_summary": "Experienced Account Executive lacking required mobile engineering skills.",
       "pros": [
-        "Extensive experience (12+ years) in complex SaaS sales and consistent quota attainment.",
-        "Strong background in relevant industries including SaaS, Fintech, and Financial Operations.",
-        "Demonstrated ability to thrive in fast-paced, innovative environments, indicating startup readiness."
+        "Experience in the technology sector and fast-paced startup environments.",
+        "Demonstrated ability to rapidly progress in previous roles (ADR to AE).",
+        "Experience working with cross-functional teams in a business context."
       ],
       "cons": [
-        "Lacks proven track record selling specifically to CFOs/Controllers, a core JD requirement (Signal: False).",
-        "Current title suggests an SMB focus, potentially lacking recent mid-market/enterprise deal complexity.",
-        "Experience is heavily focused on the LATAM market, requiring validation of US/global market relevance."
+        "Zero stated experience in mobile development or software engineering.",
+        "Lacks the minimum requirement of 1 year of mobile development experience.",
+        "No proficiency in Kotlin, which is a critical technical requirement for the role.",
+        "Current and past roles are entirely focused on sales and account management, not engineering."
       ],
-      "reasoning": "Yara is a highly accomplished SaaS AE with the necessary technical and complex sales skills required for a Founding AE role. However, the profile lacks the critical requirement of a proven track record selling directly to finance and accounting stakeholders (CFOs/Controllers), which is essential for this AI SaaS marketplace role targeting finance leaders.",
+      "reasoning": "Sofia's profile indicates a strong background in B2B sales and account management, not software development. The Android Engineer role requires a minimum of one year of mobile development experience and proficiency in Kotlin, critical requirements that are completely unmet by this candidate's background.",
       "interview_questions": [
-        "The JD requires selling to CFOs and Controllers; can you walk me through your experience engaging and closing deals with finance and accounting leaders?",
-        "Given your extensive experience, describe a time you had to build a sales process from scratch or significantly refine a GTM strategy in a high-growth, ambiguous environment.",
-        "Your background heavily features the LATAM market; how would you adapt your sales strategy and relationship-building approach for the US mid-market and enterprise clientele?"
+        "Your background is strongly focused on B2B sales. Could you describe your current experience designing, building, or launching features for an Android application using Kotlin?",
+        "The role requires a strong understanding of mobile design patterns. Can you walk us through a recent technical challenge you solved related to MVVM or coroutines?",
+        "What motivated you to apply for an Android Engineer role at Ramp, given your extensive and successful career path as an Account Executive?"
       ],
       "missing_required": [],
       "missing_preferred": [
@@ -760,7 +524,7 @@
         "Certifications"
       ],
       "red_flags": [
-        "Significant employment gap (1 year 9 months) between Cloudflare (Nov 2022) and Wellhub (Aug 2024)."
+        "Short tenure at multiple roles: 6 months at Johnson & Johnson, 1 year at Fisher Investments, 3 months as Mid Market ADR, 5 months as Enterprise ADR, 1 year as Commercial AE at Samsara, and recently started at SpotHopper (April 2024)."
       ],
       "red_flag_count": 1,
       "completeness": 73,
@@ -768,17 +532,18 @@
       "room_name": null,
       "interview_score": null,
       "recommendation": null,
-      "created_at": "2025-12-14 17:26:30.836569",
-      "updated_at": "2025-12-14 17:28:02.706785",
+      "created_at": "2025-12-18 05:40:12.683023",
+      "updated_at": "2025-12-18 05:40:55.981949",
       "source": "csv_upload",
       "has_enrichment_data": true,
-      "years_closing_experience_saas": 2.67,
-      "sold_to_finance_stakeholders": true,
-      "average_deal_size_mid_enterprise": "$38K average deal size (Mid-Market/Enterprise focus at Cloudflare); also experience in SMB.",
-      "startup_experience_stage": "Experience in fast-paced, innovative environments (Box, Wellhub, Cloudflare).",
-      "quota_attainment_history": "Consistently exceeded quota at Cloudflare (110% to 166% attainment in all quarters).",
-      "fintech_accounting_background": true,
-      "experience_full_sales_cycle": true
+      "kotlin_proficiency": false,
+      "years_mobile_development": null,
+      "app_launch_experience": false,
+      "android_stack_experience": [],
+      "mobile_design_patterns_understanding": "N/A - Profile is focused on sales, not mobile development.",
+      "google_play_console_management": false,
+      "cross_functional_collaboration_examples": "N/A - Profile is focused on sales, not mobile development.",
+      "engineering_process_contribution": false
     },
     {
       "id": "17",
@@ -790,21 +555,19 @@
       "location_city": "Dallas",
       "location_state": "TX",
       "years_experience": 6.0,
-      "bio_summary": "I am a highly driven Senior Account Executive specializing in strategic partnerships within the Financial Institutions vertical. I have a proven track record of success selling complex data and SaaS solutions at companies like Macrobond Financial, Sensor Tower, and Visible Alpha, consistently owning the full sales cycle from prospecting to closing.",
+      "bio_summary": "I am a driven individual with a proven track record in strategic partnerships, currently serving as a Senior Account Executive in the Financial Institutions vertical. I have extensive experience in sales and account management across various data and technology companies, including Macrobond Financial, Sensor Tower, and Visible Alpha.",
       "industries": [
-        "Fintech",
-        "SaaS",
-        "Financial Data",
+        "Financial Services",
         "Technology",
-        "Enterprise Software"
+        "Data Analytics",
+        "Software"
       ],
       "skills": [
-        "Account Management",
-        "Institutional Sales",
         "Strategic Partnerships",
-        "SaaS Sales",
-        "Financial Institutions",
-        "Enterprise Sales"
+        "Account Executive",
+        "Sales",
+        "Institutional Sales",
+        "Global Technology Services"
       ],
       "education": null,
       "sales_methodologies": [],
@@ -815,25 +578,25 @@
       "max_acv_mentioned": null,
       "quota_attainment": null,
       "algo_score": 45,
-      "ai_score": 65,
-      "combined_score": 55,
-      "tier": "Good",
-      "one_line_summary": "Senior AE with deep Fintech SaaS and Enterprise sales experience.",
+      "ai_score": 5,
+      "combined_score": 25,
+      "tier": "Poor",
+      "one_line_summary": "Experienced Senior Account Executive lacking core engineering skills.",
       "pros": [
-        "Extensive 6-year track record selling complex SaaS and data solutions in Fintech.",
-        "Proven success in Enterprise Sales and Strategic Partnerships within Financial Institutions.",
-        "Confirmed startup experience, aligning with the need for scrappiness and high growth."
+        "Extensive background in Financial Services and Technology industries, relevant to Ramp's domain.",
+        "Proven track record in strategic partnerships and account management demonstrates professional drive.",
+        "Experience working in startup and enterprise environments."
       ],
       "cons": [
-        "Lacks proven, direct closing experience with the required ICP (CFOs/Controllers/Accounting leaders).",
-        "Focus on 'Financial Institutions' may not translate directly to selling operational SaaS to corporate finance departments.",
-        "The Senior AE title suggests a higher compensation expectation than the typical OTE listed."
+        "Zero experience in Android or mobile development, which is the core requirement of the role.",
+        "Lacks proficiency in Kotlin or the required mobile engineering stack (Compose, MVVM, etc.).",
+        "Current and past roles are exclusively in sales and account executive functions, not engineering."
       ],
-      "reasoning": "Darrell is a highly experienced SaaS AE with a strong Fintech background, exceeding the tenure requirement. However, the profile lacks evidence of selling directly to finance and accounting stakeholders (CFOs/Controllers), which is a critical requirement for this Founding AE role targeting an AI SaaS marketplace for GTM teams.",
+      "reasoning": "The candidate, Darrell Sung, is an experienced Senior Account Executive with 6 years in sales, but the role requires a minimum of one year of experience and proficiency in Kotlin for Android engineering. There is a complete mismatch between the candidate's sales background and the highly specialized technical requirements of the Android Engineer position, resulting in a low fit score.",
       "interview_questions": [
-        "Your experience is strong in selling to Financial Institutions; can you detail a specific deal where you successfully closed a CFO or Controller on an operational SaaS solution?",
-        "As a Founding AE, you will help refine the GTM strategy. Based on your experience selling complex data solutions, how would you approach prospecting and messaging specifically to a mid-market Controller?",
-        "Given your background in strategic partnerships, how do you balance the long-term relationship building inherent in that role with the immediate need to drive high-velocity closing in a startup environment?"
+        "Given your extensive background in sales and account management, what motivated your application for a specialized Android Engineer role, and what specific, recent projects demonstrate your proficiency in Kotlin and mobile development?",
+        "Can you walk us through the architecture and design patterns (e.g., MVVM, coroutines) you utilized when you designed, built, and launched your most recent mobile application feature?",
+        "Ramp's engineering team works closely with Product and Design; how would you leverage your experience in client-facing roles to translate customer needs into technical specifications and engineering tasks?"
       ],
       "missing_required": [],
       "missing_preferred": [
@@ -842,7 +605,8 @@
         "Certifications"
       ],
       "red_flags": [
-        "High job turnover in the last 5 years (average tenure ~1.5 years)."
+        "Short tenure at multiple recent roles (Daloopa: 1 year, Sensor Tower: 2 years, Visible Alpha: 2 years, IBM roles: 1 year each).",
+        "Rapid progression through companies suggests potential job hopping for title/compensation increases."
       ],
       "red_flag_count": 1,
       "completeness": 73,
@@ -850,17 +614,383 @@
       "room_name": null,
       "interview_score": null,
       "recommendation": null,
-      "created_at": "2025-12-14 17:26:45.373360",
-      "updated_at": "2025-12-14 17:28:03.205248",
+      "created_at": "2025-12-18 05:40:21.332797",
+      "updated_at": "2025-12-18 05:40:56.998651",
       "source": "csv_upload",
       "has_enrichment_data": true,
-      "years_closing_experience_saas": 5.5,
-      "sold_to_finance_stakeholders": true,
-      "average_deal_size_mid_enterprise": "Focused on Financial Institutions and Institutional Sales, suggesting Mid-Market to Enterprise deals (likely $50k+ ACV) for specialized data platforms.",
-      "startup_experience_stage": "Experience across growth-stage startups (Daloopa, Visible Alpha, Sensor Tower) specializing in data and fintech solutions.",
-      "quota_attainment_history": "Not explicitly stated, but consistent progression in sales roles (AE -> Director -> Senior AE) suggests strong performance.",
-      "fintech_accounting_background": true,
-      "experience_full_sales_cycle": true
+      "kotlin_proficiency": false,
+      "years_mobile_development": null,
+      "app_launch_experience": false,
+      "android_stack_experience": [],
+      "mobile_design_patterns_understanding": "N/A - Profile is focused on Sales/Account Executive roles, not mobile development.",
+      "google_play_console_management": false,
+      "cross_functional_collaboration_examples": "N/A - Profile is focused on Sales/Account Executive roles, not mobile development.",
+      "engineering_process_contribution": false
+    },
+    {
+      "id": "2",
+      "name": "Luke Anderson",
+      "email": null,
+      "linkedin_url": null,
+      "job_title": "Account Executive, Partnerships and Alliances - North America",
+      "current_company": null,
+      "location_city": "San Francisco",
+      "location_state": "CA",
+      "years_experience": 3.5,
+      "bio_summary": "I am a marketing graduate with expertise in B2B sales and digital marketing, currently driving partnerships and alliances for Odoo's ERP software, where I consistently exceed quota targets. I have successfully managed the full sales cycle, selling blockchain payment solutions to enterprise AI companies and BPOs at Airtm, and previously gained experience in programmatic and paid media campaigns at HP Inc.",
+      "industries": [
+        "Software",
+        "Fintech",
+        "Blockchain",
+        "Digital Marketing",
+        "Retail",
+        "Motorcycle Apparel"
+      ],
+      "skills": [
+        "Partnerships",
+        "Strategic Accounts",
+        "B2B Sales",
+        "Digital Marketing",
+        "Full Sales Cycle Management",
+        "Programmatic Media",
+        "Paid Media Campaigns",
+        "Consultative Sales",
+        "ERP",
+        "SaaS",
+        "PaaS",
+        "Python",
+        "SQL",
+        "Lead Generation",
+        "Client Relationship Management",
+        "Product Demos"
+      ],
+      "education": null,
+      "sales_methodologies": [],
+      "sold_to_finance": false,
+      "is_founder": false,
+      "startup_experience": true,
+      "enterprise_experience": true,
+      "max_acv_mentioned": null,
+      "quota_attainment": null,
+      "algo_score": 45,
+      "ai_score": 0,
+      "combined_score": 22,
+      "tier": "Poor",
+      "one_line_summary": "Experienced B2B Sales and Partnerships Executive.",
+      "pros": [
+        "Experience in Fintech/Blockchain industry (Airtm)",
+        "Experience with B2B SaaS/ERP sales (Odoo)",
+        "Startup and Enterprise experience"
+      ],
+      "cons": [
+        "Zero experience in Android or mobile development",
+        "Current role is sales, not engineering",
+        "No proficiency in Kotlin or mobile design patterns"
+      ],
+      "reasoning": "The candidate is applying for an Android Engineer role but has a background exclusively in B2B sales, partnerships, and digital marketing. They meet none of the core technical requirements, such as minimum 1 year of mobile development experience or proficiency in Kotlin.",
+      "interview_questions": [
+        "Could you describe your professional goals and why you are applying for an Android Engineering role given your extensive background in sales?",
+        "What steps have you taken to acquire the minimum 1 year of mobile development experience and proficiency in Kotlin required for this position?",
+        "Can you walk us through a technical project where you designed, built, and launched a new feature on an Android application?"
+      ],
+      "missing_required": [],
+      "missing_preferred": [
+        "Education",
+        "Notable Achievements",
+        "Certifications"
+      ],
+      "red_flags": [
+        "Short tenure at Airtm (6 months) and HP (3 months internship).",
+        "Recent job change from Airtm to Odoo (November 2024 start)."
+      ],
+      "red_flag_count": 1,
+      "completeness": 73,
+      "interview_status": "not_scheduled",
+      "room_name": null,
+      "interview_score": null,
+      "recommendation": null,
+      "created_at": "2025-12-18 05:40:12.682957",
+      "updated_at": "2025-12-18 05:40:52.546049",
+      "source": "csv_upload",
+      "has_enrichment_data": true,
+      "kotlin_proficiency": false,
+      "years_mobile_development": null,
+      "app_launch_experience": false,
+      "android_stack_experience": [],
+      "mobile_design_patterns_understanding": "N/A - Profile is focused on Sales/Partnerships, not Mobile Development.",
+      "google_play_console_management": false,
+      "cross_functional_collaboration_examples": "Collaborated closely with marketing, product, and customer success teams to align sales efforts with product offerings and customer needs at Airtm.",
+      "engineering_process_contribution": false
+    },
+    {
+      "id": "4",
+      "name": "Parampreet Atwal",
+      "email": null,
+      "linkedin_url": null,
+      "job_title": "Account Executive",
+      "current_company": null,
+      "location_city": "Calgary",
+      "location_state": "Alberta",
+      "years_experience": 3.67,
+      "bio_summary": "I am focused on transforming the legal experience through cloud-based legal technology, currently serving as an Account Executive at Clio. I have a strong background in B2B SaaS sales, having successfully progressed from a Business Development Representative to an Account Executive role at LumiQ and later working with Mid Market & Enterprise accounts at IrisCX. My achievements include consistently exceeding sales KPIs and closing significant accounts across various industries.",
+      "industries": [
+        "Legal Technology",
+        "SaaS",
+        "Video Platform",
+        "Professional Education",
+        "Digital Media"
+      ],
+      "skills": [
+        "Account Executive",
+        "Business Development Representative",
+        "Distribution Manager",
+        "B2B Sales",
+        "Enterprise Sales",
+        "Mid Market Sales",
+        "KPI Management",
+        "Lead Generation"
+      ],
+      "education": null,
+      "sales_methodologies": [],
+      "sold_to_finance": false,
+      "is_founder": false,
+      "startup_experience": true,
+      "enterprise_experience": true,
+      "max_acv_mentioned": null,
+      "quota_attainment": null,
+      "algo_score": 45,
+      "ai_score": 0,
+      "combined_score": 22,
+      "tier": "Poor",
+      "one_line_summary": "Experienced B2B SaaS Account Executive, but lacks engineering background.",
+      "pros": [
+        "Experience in fast-paced B2B SaaS environments (Startup Experience)",
+        "Proven track record of exceeding sales KPIs",
+        "Experience in Enterprise and Mid Market sales"
+      ],
+      "cons": [
+        "Zero experience in mobile development or software engineering (Required)",
+        "Proficiency in Kotlin is missing (Required)",
+        "Current role is Account Executive, not Android Engineer"
+      ],
+      "reasoning": "The candidate is an experienced Account Executive with a strong background in B2B SaaS sales. However, the role is for an Android Engineer, which requires a minimum of 1 year of mobile development experience and proficiency in Kotlin. The candidate possesses none of the technical skills or relevant experience required for this engineering position.",
+      "interview_questions": [
+        "Could you describe your interest in transitioning from a successful sales career to an entry-level Android Engineering role?",
+        "What steps have you taken to gain proficiency in Kotlin and Android development, and how have you applied mobile design patterns?",
+        "Can you share an example of a technical project you have designed, built, and launched, demonstrating your engineering process?"
+      ],
+      "missing_required": [],
+      "missing_preferred": [
+        "Education",
+        "Notable Achievements",
+        "Certifications"
+      ],
+      "red_flags": [
+        "Short tenure at IrisCX (5 months) and LumiQ AE role (10 months), indicating potential job hopping in the last two years."
+      ],
+      "red_flag_count": 1,
+      "completeness": 73,
+      "interview_status": "not_scheduled",
+      "room_name": null,
+      "interview_score": null,
+      "recommendation": null,
+      "created_at": "2025-12-18 05:40:12.682989",
+      "updated_at": "2025-12-18 05:40:52.771674",
+      "source": "csv_upload",
+      "has_enrichment_data": true,
+      "kotlin_proficiency": false,
+      "years_mobile_development": null,
+      "app_launch_experience": false,
+      "android_stack_experience": [],
+      "mobile_design_patterns_understanding": "N/A - Profile is focused on Sales/Account Executive roles, not mobile development.",
+      "google_play_console_management": false,
+      "cross_functional_collaboration_examples": "N/A - Profile is focused on Sales/Account Executive roles, not mobile development.",
+      "engineering_process_contribution": false
+    },
+    {
+      "id": "9",
+      "name": "Yara Lacerda",
+      "email": null,
+      "linkedin_url": null,
+      "job_title": "Account Executive SMB",
+      "current_company": null,
+      "location_city": "Miami",
+      "location_state": "FL",
+      "years_experience": 15.0,
+      "bio_summary": "I am an accomplished Account Executive with 15 years of experience driving complex sales and financial operations across the LATAM market, consistently exceeding sales quotas at companies like Cloudflare, Dell, and Apple. I specialize in SaaS sales, leveraging deep technical acumen and trilingual proficiency (English, Portuguese, Spanish) to manage large portfolios and foster high-performance, multicultural teams.",
+      "industries": [
+        "SaaS",
+        "Technology",
+        "Corporate Wellness",
+        "Cloud Services",
+        "Entertainment",
+        "Fintech",
+        "E-commerce",
+        "E-learning",
+        "Healthcare",
+        "Financial Operations"
+      ],
+      "skills": [
+        "Complex Sales",
+        "Account Management",
+        "Revenue Growth",
+        "Sales Quota Achievement",
+        "LATAM Market Expertise",
+        "Trilingual (English, Portuguese, Spanish)",
+        "Technical Acumen",
+        "Coaching",
+        "SaaS Sales",
+        "Financial Operations",
+        "Collections",
+        "Credit Analysis",
+        "SAP",
+        "Salesforce",
+        "Zendesk",
+        "User Acceptance Testing"
+      ],
+      "education": null,
+      "sales_methodologies": [],
+      "sold_to_finance": false,
+      "is_founder": false,
+      "startup_experience": true,
+      "enterprise_experience": true,
+      "max_acv_mentioned": null,
+      "quota_attainment": null,
+      "algo_score": 40,
+      "ai_score": 5,
+      "combined_score": 22,
+      "tier": "Poor",
+      "one_line_summary": "Highly experienced sales executive lacks required engineering skills.",
+      "pros": [
+        "Extensive 15 years of professional experience in high-growth companies (Dell, Apple, Cloudflare)",
+        "Deep expertise in SaaS sales and financial operations, aligning with Ramp's industry focus",
+        "Strong technical acumen and trilingual proficiency, valuable for cross-functional communication"
+      ],
+      "cons": [
+        "Zero apparent experience in mobile development or Android engineering, a critical requirement",
+        "Lacks proficiency in Kotlin, mobile design patterns, or experience launching mobile apps",
+        "Background is entirely focused on sales and account management, not software development"
+      ],
+      "reasoning": "The candidate is an accomplished Account Executive with 15 years of sales experience, which is completely misaligned with the technical requirements of an Android Engineer. They lack the minimum required experience in mobile development, Kotlin proficiency, and engineering fundamentals necessary to design and build features for Ramp's mobile application.",
+      "interview_questions": [
+        "Given your 15 years in complex sales, can you detail your specific, hands-on experience with Kotlin and the Android mobile development ecosystem?",
+        "What motivated your application for a hands-on software engineering role, and what specific steps have you taken to acquire the necessary technical skills (e.g., portfolio, personal projects)?",
+        "The role requires establishing engineering processes and conducting code reviews; how would you approach these responsibilities without a formal engineering background?"
+      ],
+      "missing_required": [],
+      "missing_preferred": [
+        "Education",
+        "Notable Achievements",
+        "Certifications"
+      ],
+      "red_flags": [
+        "1 year 9 month employment gap between Cloudflare and Wellhub (2022-11 to 2024-08)",
+        "Short tenure at The Walt Disney Company (1 year)"
+      ],
+      "red_flag_count": 2,
+      "completeness": 73,
+      "interview_status": "not_scheduled",
+      "room_name": null,
+      "interview_score": null,
+      "recommendation": null,
+      "created_at": "2025-12-18 05:40:12.683046",
+      "updated_at": "2025-12-18 05:40:56.317040",
+      "source": "csv_upload",
+      "has_enrichment_data": true,
+      "kotlin_proficiency": false,
+      "years_mobile_development": null,
+      "app_launch_experience": false,
+      "android_stack_experience": [],
+      "mobile_design_patterns_understanding": "N/A - Candidate is an Account Executive, not a mobile developer.",
+      "google_play_console_management": false,
+      "cross_functional_collaboration_examples": "Worked with cross-functional teams (sales, finance, engineering) to resolve billing issues, implement new procedures (AppleCare), and approve updated systems (Docview UAT).",
+      "engineering_process_contribution": true
+    },
+    {
+      "id": "5",
+      "name": "Armando F.",
+      "email": null,
+      "linkedin_url": null,
+      "job_title": "Account Executive",
+      "current_company": null,
+      "location_city": "New York",
+      "location_state": "NY",
+      "years_experience": 5.25,
+      "bio_summary": "I am an accomplished Account Executive with over five years of experience driving sales and business development within the financial technology sector. I have a proven track record of success at both large enterprise software companies like Finastra and dynamic, AI-driven fintech startups. My focus is currently on optimizing cash flow and automating operations through advanced AR/AP solutions.",
+      "industries": [
+        "Financial Services",
+        "Fintech",
+        "Software",
+        "AI",
+        "Commercial Lending"
+      ],
+      "skills": [
+        "Account Executive",
+        "Sales",
+        "Business Development",
+        "Financial Technology",
+        "Commercial Loans",
+        "Budget Management",
+        "Leadership"
+      ],
+      "education": null,
+      "sales_methodologies": [],
+      "sold_to_finance": false,
+      "is_founder": false,
+      "startup_experience": true,
+      "enterprise_experience": true,
+      "max_acv_mentioned": null,
+      "quota_attainment": null,
+      "algo_score": 40,
+      "ai_score": 0,
+      "combined_score": 20,
+      "tier": "Poor",
+      "one_line_summary": "Experienced fintech Account Executive, but lacks engineering background.",
+      "pros": [
+        "Experience in the fintech sector",
+        "Familiarity with AR/AP and cash flow optimization (relevant to Ramp's product)",
+        "Experience working in fast-paced startup environments"
+      ],
+      "cons": [
+        "Current title is Account Executive, not Software Engineer",
+        "No stated experience in mobile development or Kotlin/Android",
+        "Missing minimum requirement of 1 year of mobile development experience"
+      ],
+      "reasoning": "The candidate is an Account Executive with a sales background, while the role requires an Android Engineer proficient in Kotlin with a minimum of one year of mobile development experience. The candidate's professional experience and skills are entirely misaligned with the technical requirements of the job description, resulting in a score of 'Not a fit'.",
+      "interview_questions": [
+        "Can you describe your experience with software development, specifically using Kotlin for Android?",
+        "What motivated you to apply for an Android Engineer role given your extensive background in sales and business development?",
+        "What steps are you currently taking to acquire the technical skills necessary to meet the minimum requirements for this engineering position?"
+      ],
+      "missing_required": [],
+      "missing_preferred": [
+        "Education",
+        "Notable Achievements",
+        "Certifications"
+      ],
+      "red_flags": [
+        "Very short tenure (6 months) at SBG Funding.",
+        "Two recent employment gaps (3 months and 5 months) between roles in 2024/2025.",
+        "Zero experience in software engineering or mobile development (if applying for a technical role)."
+      ],
+      "red_flag_count": 2,
+      "completeness": 73,
+      "interview_status": "not_scheduled",
+      "room_name": null,
+      "interview_score": null,
+      "recommendation": null,
+      "created_at": "2025-12-18 05:40:12.682999",
+      "updated_at": "2025-12-18 05:40:52.877263",
+      "source": "csv_upload",
+      "has_enrichment_data": true,
+      "kotlin_proficiency": false,
+      "years_mobile_development": null,
+      "app_launch_experience": false,
+      "android_stack_experience": [],
+      "mobile_design_patterns_understanding": "N/A - Profile is focused on Sales/Fintech, not mobile development.",
+      "google_play_console_management": false,
+      "cross_functional_collaboration_examples": "N/A - Profile is focused on Sales/Fintech, not mobile development.",
+      "engineering_process_contribution": false
     },
     {
       "id": "10",
@@ -872,18 +1002,104 @@
       "location_city": "Augusta",
       "location_state": "GA",
       "years_experience": 3.0,
-      "bio_summary": "I specialize in helping major brands optimize their retailer channel engagement through brand-compliant digital marketing solutions. Over the past three years at Promoboxx, I have progressed through roles focused on brand partnerships and account execution, culminating in my current position as an Account Executive. My goal is to drive better business outcomes for brands by leveraging technology to reach consumers via trusted local retailers.",
+      "bio_summary": "I specialize in helping brands effectively support their independent retailer channels through strategic digital marketing solutions. I have experience in brand partnerships and account management, focusing on driving better business outcomes for both brands and their local retailers.",
       "industries": [
-        "SaaS",
-        "Marketing Technology",
-        "Retail"
+        "Software",
+        "Marketing"
+      ],
+      "skills": [],
+      "education": null,
+      "sales_methodologies": [],
+      "sold_to_finance": false,
+      "is_founder": false,
+      "startup_experience": true,
+      "enterprise_experience": false,
+      "max_acv_mentioned": null,
+      "quota_attainment": null,
+      "algo_score": 40,
+      "ai_score": 0,
+      "combined_score": 20,
+      "tier": "Poor",
+      "one_line_summary": "Account Executive with sales experience, not an Android Engineer.",
+      "pros": [
+        "Experience in a professional business environment (Account Executive)",
+        "Experience in the Software industry",
+        "Startup experience is a positive signal"
+      ],
+      "cons": [
+        "Current role is sales (Account Executive), not engineering",
+        "Missing minimum requirement of 1 year of mobile development experience",
+        "Missing proficiency in Kotlin for Android development",
+        "No experience designing, building, and launching mobile products"
+      ],
+      "reasoning": "This candidate is an Account Executive with 3 years of sales experience, specializing in digital marketing solutions. The role requires an Android Engineer with a minimum of 1 year of mobile development experience and proficiency in Kotlin. The candidate lacks the fundamental technical skills and background required for this engineering position.",
+      "interview_questions": [
+        "Can you describe your current understanding of mobile development principles and the Kotlin language?",
+        "What steps are you currently taking to transition your career from sales into a mobile engineering role?",
+        "Given your background in account management, how do you approach understanding customer needs and translating them into technical requirements?"
+      ],
+      "missing_required": [],
+      "missing_preferred": [
+        "Key Skills",
+        "Education",
+        "Notable Achievements",
+        "Certifications"
+      ],
+      "red_flags": [
+        "Profile lacks detailed achievements or responsibilities in the work history descriptions.",
+        "The profile is not relevant for a mobile development role."
+      ],
+      "red_flag_count": 0,
+      "completeness": 64,
+      "interview_status": "not_scheduled",
+      "room_name": null,
+      "interview_score": null,
+      "recommendation": null,
+      "created_at": "2025-12-18 05:40:12.683065",
+      "updated_at": "2025-12-18 05:40:52.678652",
+      "source": "csv_upload",
+      "has_enrichment_data": true,
+      "kotlin_proficiency": false,
+      "years_mobile_development": null,
+      "app_launch_experience": false,
+      "android_stack_experience": [],
+      "mobile_design_patterns_understanding": "N/A",
+      "google_play_console_management": false,
+      "cross_functional_collaboration_examples": "N/A",
+      "engineering_process_contribution": false
+    },
+    {
+      "id": "3",
+      "name": "Joey Sanford",
+      "email": null,
+      "linkedin_url": null,
+      "job_title": "Full Cycle Account Executive (Hunter)",
+      "current_company": null,
+      "location_city": "New York",
+      "location_state": "NY",
+      "years_experience": 1.5,
+      "bio_summary": "I specialize in AI and SaaS Go-To-Market strategy, focusing on Product-Led Growth within B2B startups. I have successfully built an outbound motion from scratch, achieving a 50%+ meeting booked rate, and secured the company's first enterprise-level deal, driving expansion from seed stage toward enterprise adoption.",
+      "industries": [
+        "Information Technology and Services",
+        "Non-Profit Organization Management",
+        "Hospitality",
+        "Military"
       ],
       "skills": [
-        "Account Management",
-        "Sales",
-        "Brand Partnerships",
-        "Digital Marketing",
-        "Retail Channel Management"
+        "AI GTM Strategy",
+        "SaaS GTM Strategy",
+        "Product-Led Growth",
+        "Account Executive",
+        "Full Cycle Sales",
+        "Outbound Sales",
+        "Account-Based Marketing",
+        "Objection Handling",
+        "Enterprise Sales",
+        "Consultative Sales",
+        "Cross-functional Collaboration",
+        "Logistics",
+        "Operations",
+        "Security"
       ],
       "education": null,
       "sales_methodologies": [],
@@ -893,26 +1109,26 @@
       "enterprise_experience": true,
       "max_acv_mentioned": null,
       "quota_attainment": null,
-      "algo_score": 50,
-      "ai_score": 55,
-      "combined_score": 52,
-      "tier": "Good",
-      "one_line_summary": "Experienced SaaS AE, but lacks finance/CFO sales experience.",
+      "algo_score": 35,
+      "ai_score": 5,
+      "combined_score": 20,
+      "tier": "Poor",
+      "one_line_summary": "Experienced SaaS Account Executive specializing in AI GTM strategy.",
       "pros": [
-        "3 years of closing experience as an Account Executive (meets/exceeds 1+ year requirement)",
-        "Experience in SaaS and startup environment (Promoboxx)",
-        "Focus on leveraging technology to drive business outcomes"
+        "Strong experience in a fast-paced startup environment (seed to enterprise).",
+        "Proven success in building outbound motions and securing enterprise deals.",
+        "Familiarity with AI and SaaS Go-To-Market strategies."
       ],
       "cons": [
-        "No demonstrated experience selling to finance/accounting stakeholders (CFOs, Controllers)",
-        "Industry focus is Marketing Tech/Retail, not Fintech/Finance/Accounting",
-        "Lacks specific mention of experience thriving with minimal structure (Founding AE requirement)"
+        "Zero experience in Android or mobile development, which is the core requirement.",
+        "No proficiency in Kotlin or the required engineering stack.",
+        "Functional background is entirely in Sales, not Software Engineering."
       ],
-      "reasoning": "While Jacob meets the core requirement of 1+ years of AE closing experience in SaaS, he critically misses the requirement of selling to finance and accounting leaders (CFOs, Controllers). His background is heavily weighted toward Marketing Technology and Retail, making the required ICP shift a significant hurdle for a Founding AE role.",
+      "reasoning": "The candidate's profile is that of an Account Executive specializing in sales and GTM strategy. They completely lack the minimum required technical experience, including proficiency in Kotlin and mobile development, which are non-negotiable requirements for an Android Engineer role.",
       "interview_questions": [
-        "The JD requires selling to CFOs and Controllers. Can you describe a complex deal where you successfully engaged and closed a finance executive?",
-        "This is a Founding AE role, meaning processes are minimal. Can you share an example of a time you built a sales process or GTM strategy from scratch?",
-        "Your experience is in Marketing Tech/Retail. Why are you confident you can quickly pivot and become an expert in the finance and accounting pain points our AI SaaS marketplace solves?"
+        "Since your background is entirely in Full Cycle Sales, can you describe what motivated you to apply for a specialized Android Engineering role?",
+        "The job requires proficiency in Kotlin and mobile design patterns. Can you detail your experience building and launching mobile applications?",
+        "How do you see your experience in Product-Led Growth and GTM strategy translating into the day-to-day responsibilities of designing and building features as an Android Engineer?"
       ],
       "missing_required": [],
       "missing_preferred": [
@@ -920,111 +1136,108 @@
         "Notable Achievements",
         "Certifications"
       ],
-      "red_flags": [
-        "Very limited tenure (less than 6 months) in the Account Executive closing role.",
-        "Experience is confined to a single company and industry (Promoboxx/MarTech)."
-      ],
+      "red_flags": [],
       "red_flag_count": 0,
       "completeness": 73,
       "interview_status": "not_scheduled",
       "room_name": null,
       "interview_score": null,
       "recommendation": null,
-      "created_at": "2025-12-14 17:26:30.836594",
-      "updated_at": "2025-12-14 17:27:57.531870",
+      "created_at": "2025-12-18 05:40:12.682978",
+      "updated_at": "2025-12-18 05:40:56.123355",
       "source": "csv_upload",
       "has_enrichment_data": true,
-      "years_closing_experience_saas": 0.4,
-      "sold_to_finance_stakeholders": false,
-      "average_deal_size_mid_enterprise": "Enterprise/Mid-Market (based on client list, deal size unknown)",
-      "startup_experience_stage": "Growth/Scale-up stage SaaS environment",
-      "quota_attainment_history": null,
-      "fintech_accounting_background": false,
-      "experience_full_sales_cycle": true
+      "kotlin_proficiency": false,
+      "years_mobile_development": null,
+      "app_launch_experience": false,
+      "android_stack_experience": [],
+      "mobile_design_patterns_understanding": "No relevant experience found.",
+      "google_play_console_management": false,
+      "cross_functional_collaboration_examples": "Partnered cross-functionally with leadership to align product roadmap with client needs, driving adoption and retention. Collaborated with sales leadership to refine messaging, improve targeting, and accelerate pipeline velocity.",
+      "engineering_process_contribution": false
     },
     {
-      "id": "18",
-      "name": "Paul Avila",
+      "id": "6",
+      "name": "Will Garrison",
       "email": null,
       "linkedin_url": null,
-      "job_title": "Account Executive",
+      "job_title": "",
       "current_company": null,
-      "location_city": "Hoboken",
-      "location_state": "NJ",
-      "years_experience": 3.0,
-      "bio_summary": "I am an accomplished Account Executive with a strong background in SaaS sales development, currently working at BrightEdge. I have a proven history of high quota attainment, consistently ranking in the top 20% of my sales development teams and achieving 100%+ of my goals multiple times, leading to a rapid promotion into a closing role. My focus is on driving revenue and mastering the full sales cycle in the digital marketing technology space.",
+      "location_city": "Philadelphia",
+      "location_state": "PA",
+      "years_experience": 3.92,
+      "bio_summary": "I am a dedicated sales professional with a strong background in B2B SaaS and Healthcare technology. I have successfully transitioned between roles, including Sales Development Representative and Account Executive, demonstrating my ability to drive sales and manage client relationships across multiple organizations like Anagram and Alpine Solutions Group.",
       "industries": [
-        "Marketing & Advertising",
-        "Technology",
-        "SaaS",
-        "Financial Services",
-        "Insurance"
+        "B2B SaaS",
+        "Healthcare",
+        "Staffing and Recruiting",
+        "Financial Services"
       ],
       "skills": [
-        "Sales Development",
+        "Sales",
         "Account Executive",
-        "B2B Sales",
-        "Prospecting",
-        "Quota Attainment",
-        "Lead Generation",
-        "Digital Marketing"
+        "Sales Development Representative",
+        "Recruiting"
       ],
       "education": null,
       "sales_methodologies": [],
       "sold_to_finance": false,
       "is_founder": false,
-      "startup_experience": false,
-      "enterprise_experience": true,
+      "startup_experience": true,
+      "enterprise_experience": false,
       "max_acv_mentioned": null,
       "quota_attainment": null,
-      "algo_score": 40,
-      "ai_score": 65,
-      "combined_score": 52,
-      "tier": "Good",
-      "one_line_summary": "High-potential AE lacking specific finance stakeholder experience.",
+      "algo_score": 35,
+      "ai_score": 5,
+      "combined_score": 20,
+      "tier": "Poor",
+      "one_line_summary": "Sales professional lacking technical experience for engineering role.",
       "pros": [
-        "Proven history of high quota attainment and rapid promotion, indicating strong drive and ambition.",
-        "3 years of B2B SaaS sales experience, including closing roles (meets minimum experience requirement).",
-        "Experience selling into enterprise environments (as indicated by signals)."
+        "Has experience working in B2B SaaS and startup environments",
+        "Demonstrated ability to transition roles (SDR to AE)",
+        "Strong background in client relationship management (Sales)"
       ],
       "cons": [
-        "Lacks proven experience selling directly to finance and accounting stakeholders (CFOs, Controllers), a critical requirement.",
-        "No explicit startup experience, which is essential for a 'Founding AE' role requiring minimal structure.",
-        "Primary domain expertise is in Digital Marketing Technology, not Fintech or accounting SaaS."
+        "Zero professional experience in mobile development or software engineering",
+        "Lacks required proficiency in Kotlin and the Android development stack",
+        "The candidate's background is entirely in Sales and Recruiting, not Engineering"
       ],
-      "reasoning": "Paul is a high-performing AE with strong foundational sales skills and ambition, evidenced by his rapid promotion and quota attainment. However, he critically lacks the required experience selling to finance and accounting leaders (CFOs/Controllers) and has no documented startup experience, which is necessary to shape the GTM strategy as a Founding AE.",
+      "reasoning": "The candidate is a dedicated sales professional with nearly four years of experience in B2B SaaS sales and recruiting roles. This background is fundamentally mismatched with the requirements for an Android Engineer, which mandates technical skills, Kotlin proficiency, and mobile development experience. The candidate does not meet any critical technical qualifications outlined in the job description.",
       "interview_questions": [
-        "Since your background is primarily in digital marketing tech, how do you plan to quickly build credibility and domain expertise when engaging with CFOs and Controllers about financial SaaS solutions?",
-        "Describe a time you had to build a sales process or strategy from scratch with minimal existing structure. How did you ensure accountability and drive results?",
-        "You were promoted quickly due to high performance; how have you translated that hunger and drive into owning and closing complex, mid-market/enterprise deals independently?"
+        "Given your extensive background in sales and account management, what specifically motivated you to apply for a highly technical Android Engineer role at Ramp?",
+        "Can you describe a technical project you initiated or contributed to, even outside of your professional sales roles, that demonstrates your proficiency in Kotlin and mobile development best practices?",
+        "If you were to transition into engineering, how would you approach the steep learning curve required to master our mobile stack (Compose, MVVM, coroutines) while maintaining the pace of a fast-growing fintech company?"
       ],
-      "missing_required": [],
+      "missing_required": [
+        "Current/Target Role"
+      ],
       "missing_preferred": [
         "Education",
         "Notable Achievements",
         "Certifications"
       ],
       "red_flags": [
-        "Limited closing experience (less than 1 year as AE)",
-        "No educational background listed"
+        "Short tenure in multiple roles (6 months as SDR at Anagram, 5 months as Recruiter at Alpine Solutions Group, 7 months as AE at Alpine Solutions Group, 17 months at J.G. Wentworth).",
+        "Lack of relevant mobile development experience for a mobile engineering role."
       ],
-      "red_flag_count": 0,
-      "completeness": 73,
+      "red_flag_count": 1,
+      "completeness": 55,
       "interview_status": "not_scheduled",
       "room_name": null,
       "interview_score": null,
       "recommendation": null,
-      "created_at": "2025-12-14 17:26:45.373387",
-      "updated_at": "2025-12-14 17:28:02.907873",
+      "created_at": "2025-12-18 05:40:12.683013",
+      "updated_at": "2025-12-18 05:40:56.176308",
       "source": "csv_upload",
       "has_enrichment_data": true,
-      "years_closing_experience_saas": 0.75,
-      "sold_to_finance_stakeholders": false,
-      "average_deal_size_mid_enterprise": "Mid-Market to Enterprise (Deal size unknown)",
-      "startup_experience_stage": "No experience in early-stage, minimal structure startup environments.",
-      "quota_attainment_history": "Consistently high attainment in SDR roles (multiple 100%+ months, 3x Top 20% performer).",
-      "fintech_accounting_background": false,
-      "experience_full_sales_cycle": true
+      "kotlin_proficiency": false,
+      "years_mobile_development": null,
+      "app_launch_experience": false,
+      "android_stack_experience": [],
+      "mobile_design_patterns_understanding": "No evidence of mobile design patterns understanding.",
+      "google_play_console_management": false,
+      "cross_functional_collaboration_examples": "No specific examples of cross-functional collaboration provided.",
+      "engineering_process_contribution": false
     },
     {
       "id": "11",
@@ -1036,23 +1249,24 @@
       "location_city": "Saint Petersburg",
       "location_state": "FL",
       "years_experience": 3.0,
-      "bio_summary": "I am a highly accomplished Account Executive with a proven track record of exceeding quota, achieving Winners Circle status two years consecutively at Gartner with attainment rates over 108%. I specialize in driving strategic growth and building collaborative client relationships, and I am currently leveraging my enterprise sales experience in the SaaS performance management space.",
+      "bio_summary": "I am a high-achieving Account Executive with a proven track record of exceeding sales quotas, notably achieving Winners Circle status multiple times at Gartner. I specialize in driving aggressive growth targets for technology and service providers, leveraging strategic business discussions and competitive intelligence to deliver actionable insights to clients. I currently serve as an Account Executive at PerformYard.",
       "industries": [
         "Software",
-        "HR Technology",
-        "Performance Management",
-        "IT Services",
-        "Research"
+        "Information Technology and Services",
+        "Management Consulting",
+        "SaaS"
       ],
       "skills": [
         "Account Management",
         "Sales",
-        "Quota Attainment",
         "Client Retention",
         "Competitive Intelligence",
-        "Strategic Business Development",
-        "SaaS Sales",
-        "Performance Management Software"
+        "Product Development",
+        "Channel Partners",
+        "Sales Effectiveness",
+        "Positioning & Messaging",
+        "Mergers & Acquisitions",
+        "Brand Awareness"
       ],
       "education": null,
       "sales_methodologies": [],
@@ -1063,27 +1277,26 @@
       "max_acv_mentioned": null,
       "quota_attainment": null,
       "algo_score": 35,
-      "ai_score": 70,
-      "combined_score": 52,
-      "tier": "Good",
-      "one_line_summary": "Proven quota-exceeding AE, but lacks specific finance/startup experience.",
+      "ai_score": 5,
+      "combined_score": 20,
+      "tier": "Poor",
+      "one_line_summary": "High-achieving Account Executive with zero relevant engineering experience.",
       "pros": [
-        "3.0 years of closing experience (meets/exceeds 1+ year requirement)",
-        "Proven track record of exceeding quota (108% attainment, Winners Circle)",
-        "Experience in SaaS/Enterprise sales (Gartner, Performance Management)",
-        "Demonstrated drive and ambition to succeed"
+        "Proven track record of exceeding quotas and achieving 'Winners Circle' status, indicating strong drive and results orientation.",
+        "Experience working within the Software and SaaS industries.",
+        "Strong strategic communication skills typical of a high-performing Account Executive."
       ],
       "cons": [
-        "No proven track record of selling to finance/accounting stakeholders (CFOs, Controllers)",
-        "No apparent startup experience (required for 'Founding AE' role)",
-        "Experience is in Performance Management/HR Tech, not FinTech/Accounting",
-        "Lack of experience thriving with minimal structure"
+        "Lacks the minimum requirement of 1 year of experience in mobile development.",
+        "No demonstrated proficiency in Kotlin or experience with Android engineering fundamentals.",
+        "Current role (Account Executive) is a complete functional mismatch for a software engineering position.",
+        "No experience designing, building, or launching mobile applications."
       ],
-      "reasoning": "The candidate is a strong, proven AE with excellent quota attainment and relevant SaaS experience. However, they lack the critical requirement of selling to finance/accounting leaders and do not appear to have the necessary startup experience for a Founding AE role, placing them in the 'Potential' category.",
+      "reasoning": "The candidate is an experienced Account Executive specializing in sales and client management, which is entirely unrelated to the core requirements of an Android Engineer. They lack all critical technical qualifications, including proficiency in Kotlin, mobile development experience, and understanding of engineering processes, resulting in a non-fit for the role.",
       "interview_questions": [
-        "Your background is in Performance Management; how would you pivot your value proposition and sales strategy to effectively engage and close CFOs and Controllers for an AI SaaS marketplace?",
-        "This is a Founding AE role requiring significant autonomy and structure creation. Can you describe a time you successfully built a sales process or strategy from scratch with minimal management oversight?",
-        "The JD requires selling to finance leaders. Can you detail your experience interacting with CFOs or Controllers, even if they were not the primary decision-makers, and how you navigated their priorities?"
+        "Given your successful background in sales, what specific projects or personal endeavors demonstrate your minimum 1 year of experience in mobile development and proficiency in Kotlin?",
+        "The Android Engineer role requires setting engineering standards and conducting code reviews. How do you plan to transition your expertise in competitive intelligence and account strategy into these highly technical responsibilities?",
+        "Can you walk me through the architecture (e.g., MVVM, coroutines) of the last Android application you built or significantly contributed to, and what was your specific coding contribution?"
       ],
       "missing_required": [],
       "missing_preferred": [
@@ -1092,7 +1305,7 @@
         "Certifications"
       ],
       "red_flags": [
-        "Very short tenure (3 months) in the Senior Account Executive role at Gartner before moving to PerformYard."
+        "Rapid succession of titles at Gartner followed by a quick departure (3 roles in 3 years, leaving 4 months after promotion to Senior AE)."
       ],
       "red_flag_count": 1,
       "completeness": 73,
@@ -1100,17 +1313,101 @@
       "room_name": null,
       "interview_score": null,
       "recommendation": null,
-      "created_at": "2025-12-14 17:26:30.836621",
-      "updated_at": "2025-12-14 17:27:57.798728",
+      "created_at": "2025-12-18 05:40:12.683077",
+      "updated_at": "2025-12-18 05:40:56.919900",
       "source": "csv_upload",
       "has_enrichment_data": true,
-      "years_closing_experience_saas": 0,
-      "sold_to_finance_stakeholders": false,
-      "average_deal_size_mid_enterprise": "Focus on mid-market to enterprise clients with territory contract values exceeding $1.1M annually.",
-      "startup_experience_stage": "Minimal experience in early-stage, minimal structure environments. Primary experience is within large, structured organizations (Gartner).",
-      "quota_attainment_history": "Strong history of over-performance, achieving Winners Circle status in 2023 (108.3% attainment) and 2024 (112.1% attainment).",
-      "fintech_accounting_background": false,
-      "experience_full_sales_cycle": true
+      "kotlin_proficiency": false,
+      "years_mobile_development": null,
+      "app_launch_experience": false,
+      "android_stack_experience": [],
+      "mobile_design_patterns_understanding": "N/A - Profile is focused on Sales and Account Management.",
+      "google_play_console_management": false,
+      "cross_functional_collaboration_examples": "As an Account Executive at Gartner, I collaborated cross-functionally by serving as an Intern & Peer Mentor, a POC Tiger Team member, and a University Recruiting Partner, demonstrating leadership and collaboration beyond core sales duties.",
+      "engineering_process_contribution": false
+    },
+    {
+      "id": "15",
+      "name": "Andrew  Antoniades",
+      "email": null,
+      "linkedin_url": null,
+      "job_title": "Account Executive",
+      "current_company": null,
+      "location_city": "San Diego",
+      "location_state": "CA",
+      "years_experience": 3.17,
+      "bio_summary": "I am a sales and partnerships professional with a focus on early-stage growth companies, currently serving as an Account Executive at Jolly. I have rapidly progressed through sales development roles at Navan and Jolly, demonstrating strong performance in commercial sales and founding business development. My experience spans SaaS, travel technology, and sports marketing.",
+      "industries": [
+        "SaaS",
+        "Travel Technology",
+        "Sports Marketing",
+        "Hospitality"
+      ],
+      "skills": [
+        "Account Executive",
+        "Business Development",
+        "Sales Development",
+        "Partnerships",
+        "Cold Outreach",
+        "Marketing"
+      ],
+      "education": null,
+      "sales_methodologies": [],
+      "sold_to_finance": false,
+      "is_founder": false,
+      "startup_experience": true,
+      "enterprise_experience": false,
+      "max_acv_mentioned": null,
+      "quota_attainment": null,
+      "algo_score": 35,
+      "ai_score": 5,
+      "combined_score": 20,
+      "tier": "Poor",
+      "one_line_summary": "Sales professional with no relevant experience for engineering role.",
+      "pros": [
+        "Experience working in fast-paced, early-stage growth companies (Startup Experience: True)",
+        "Demonstrated ability to rapidly progress through commercial roles",
+        "Experience in cross-functional roles like business development and partnerships"
+      ],
+      "cons": [
+        "Zero experience in mobile development or software engineering (required minimum 1 year)",
+        "Lacks proficiency in Kotlin or Android development frameworks",
+        "Current role (Account Executive) is entirely misaligned with the technical requirements of an Android Engineer"
+      ],
+      "reasoning": "The candidate's background is exclusively in sales and business development, lacking the fundamental technical skills required for the Android Engineer role. They do not meet the minimum requirements of 1 year of mobile development experience or proficiency in Kotlin, making them an unsuitable fit.",
+      "interview_questions": [
+        "Given your extensive background as an Account Executive, what specific steps have you taken to acquire the necessary proficiency in Kotlin and Android development required for this engineering role?",
+        "Can you describe a complex technical challenge you solved using software engineering principles, specifically referencing mobile design patterns or coroutines?",
+        "The role involves establishing engineering processes and conducting code reviews; how would you leverage your current professional experience to contribute effectively to these tasks?"
+      ],
+      "missing_required": [],
+      "missing_preferred": [
+        "Education",
+        "Notable Achievements",
+        "Certifications"
+      ],
+      "red_flags": [
+        "Short tenure at multiple recent roles (Navan: 3 months, 9 months; Jolly: 9 months in BDR role, 1 month in AE role).",
+        "Rapid internal promotions/role changes suggest potential instability or aggressive career acceleration."
+      ],
+      "red_flag_count": 1,
+      "completeness": 73,
+      "interview_status": "not_scheduled",
+      "room_name": null,
+      "interview_score": null,
+      "recommendation": null,
+      "created_at": "2025-12-18 05:40:21.332733",
+      "updated_at": "2025-12-18 05:41:02.607422",
+      "source": "csv_upload",
+      "has_enrichment_data": true,
+      "kotlin_proficiency": false,
+      "years_mobile_development": null,
+      "app_launch_experience": false,
+      "android_stack_experience": [],
+      "mobile_design_patterns_understanding": null,
+      "google_play_console_management": false,
+      "cross_functional_collaboration_examples": null,
+      "engineering_process_contribution": false
     },
     {
       "id": "20",
@@ -1122,21 +1419,22 @@
       "location_city": "Livermore",
       "location_state": "CA",
       "years_experience": 4.0,
-      "bio_summary": "I am a high-achieving sales professional with a proven track record in both high-growth startup environments and established tech companies. I specialize in full-cycle sales, leveraging methodologies like MEDDIC to close deals ranging from $20k to $120k. I have consistently exceeded quota, including averaging 200% attainment in previous roles, and I am focused on driving conversion through innovative fintech solutions.",
+      "bio_summary": "I am a high-achieving sales professional with a proven track record of exceeding quota, averaging 200% as a Senior Account Executive. I have experience contributing to exponential growth at a startup, joining Bolt during Series B and helping scale the team through Series D. My expertise lies in mid-market sales, leveraging consultative approaches and managing full sales cycles.",
       "industries": [
-        "Fintech",
+        "Technology",
+        "Online Advertising",
         "E-commerce",
-        "Local Advertising",
         "SaaS"
       ],
       "skills": [
         "Sales",
+        "Account Executive",
         "MEDDIC",
         "Challenger Sales",
-        "Consultative Selling",
-        "Salesforce CRM",
-        "Account Management",
+        "Consultative Approach",
+        "Sales Management",
         "Coaching",
+        "Salesforce CRM",
         "Online Advertising"
       ],
       "education": null,
@@ -1148,26 +1446,25 @@
       "max_acv_mentioned": null,
       "quota_attainment": null,
       "algo_score": 35,
-      "ai_score": 70,
-      "combined_score": 52,
-      "tier": "Good",
-      "one_line_summary": "High-achieving Mid-Market AE with strong Fintech and startup experience.",
+      "ai_score": 5,
+      "combined_score": 20,
+      "tier": "Poor",
+      "one_line_summary": "Highly successful sales executive lacking engineering background.",
       "pros": [
-        "4 years of closing experience in relevant industries (Fintech, SaaS).",
-        "Proven track record of high quota attainment (averaging 200%).",
-        "Strong command of sales methodologies (MEDDIC, Challenger Sales, Consultative Selling).",
-        "Demonstrated startup experience and ability to thrive in high-growth environments."
+        "Proven track record of exceeding sales quotas (200% average).",
+        "Experience contributing to exponential growth at a scaling startup (Bolt).",
+        "Strong consultative and cross-functional communication skills (transferable soft skills)."
       ],
       "cons": [
-        "Lacks proven track record selling specifically to finance and accounting leaders (CFOs/Controllers), a critical JD requirement.",
-        "Experience appears focused on Mid-Market, potentially lacking deep Enterprise closing experience.",
-        "No explicit mention of experience contributing to GTM strategy or process building, crucial for a 'Founding AE' role."
+        "Zero experience or proficiency in Android development or Kotlin.",
+        "Current and past experience is entirely focused on sales (Account Executive).",
+        "Missing the minimum requirement of 1 year of mobile development experience."
       ],
-      "reasoning": "Alex possesses strong sales fundamentals, 4 years of closing experience in SaaS/Fintech, and the required startup hustle. However, the candidate critically lacks a proven track record of selling directly to the required ICP (CFOs and finance leaders), which is a core requirement for this AI SaaS Marketplace targeting finance teams.",
+      "reasoning": "The candidate is a highly successful sales professional but possesses none of the required technical qualifications for the Android Engineer role. The job requires proficiency in Kotlin and mobile development experience, which are entirely absent from the candidate's profile. The background is completely misaligned with the technical demands of the position.",
       "interview_questions": [
-        "The JD requires selling to CFOs/Controllers. Can you walk me through your experience selling to finance stakeholders, and how you adjust your value proposition for that specific audience?",
-        "As a Founding AE in an unstructured environment, how have you proactively built or refined sales processes and GTM strategies in previous roles?",
-        "You mentioned leveraging innovative fintech solutions; describe a complex, $100k+ deal where you used MEDDIC to navigate a multi-threaded sales process to a successful close."
+        "Given your extensive background in sales, can you describe any personal projects or formal training you have undertaken in Android development or Kotlin?",
+        "The Android Engineer role requires designing and building features using Kotlin. How do you envision transitioning your current skill set from sales methodologies to complex software architecture and coding?",
+        "What motivated you to apply for a specialized mobile engineering position at Ramp, and what specific engineering contributions do you believe you could make in the first six months?"
       ],
       "missing_required": [],
       "missing_preferred": [
@@ -1176,7 +1473,7 @@
         "Certifications"
       ],
       "red_flags": [
-        "Significant employment gap (4.5+ years) between 2020 and the stated future start date of the current role (2025-05)."
+        "Significant employment gap (approximately 4.5 years) between September 2020 and the start of the new role in May 2025."
       ],
       "red_flag_count": 1,
       "completeness": 73,
@@ -1184,127 +1481,42 @@
       "room_name": null,
       "interview_score": null,
       "recommendation": null,
-      "created_at": "2025-12-14 17:26:45.373438",
-      "updated_at": "2025-12-14 17:28:13.214605",
+      "created_at": "2025-12-18 05:40:21.332855",
+      "updated_at": "2025-12-18 05:41:02.631602",
       "source": "csv_upload",
       "has_enrichment_data": true,
-      "years_closing_experience_saas": 2,
-      "sold_to_finance_stakeholders": false,
-      "average_deal_size_mid_enterprise": "Mid Market; $20k - $120k annual contracts.",
-      "startup_experience_stage": "Early stage (Series B) high-growth environment, contributing to team expansion through Series D.",
-      "quota_attainment_history": "Averaged 200% of quota; Top account executive on multi-year contracts; Top 2% in hiring class.",
-      "fintech_accounting_background": true,
-      "experience_full_sales_cycle": true
+      "kotlin_proficiency": false,
+      "years_mobile_development": null,
+      "app_launch_experience": false,
+      "android_stack_experience": [],
+      "mobile_design_patterns_understanding": "N/A - Profile is focused on Sales, not Mobile Development.",
+      "google_play_console_management": false,
+      "cross_functional_collaboration_examples": "Worked with internal teams to achieve sales objectives, but no specific examples of collaboration with Product/Design/Engineering are provided.",
+      "engineering_process_contribution": false
     },
     {
-      "id": "6",
-      "name": "Will Garrison",
+      "id": "18",
+      "name": "Paul Avila",
       "email": null,
       "linkedin_url": null,
-      "job_title": "",
+      "job_title": "Account Executive",
       "current_company": null,
-      "location_city": "Philadelphia",
-      "location_state": "PA",
-      "years_experience": 3.9,
-      "bio_summary": "I am a dedicated sales professional with experience in B2B SaaS, healthcare, and recruiting technology. I have progressed from a Sales Development Representative to an Account Executive role at Anagram, focusing on medical and vision insurance billing platforms. My background includes full sales cycle experience, having previously served as an Account Executive at Alpine Solutions Group and J.G. Wentworth.",
+      "location_city": "Hoboken",
+      "location_state": "NJ",
+      "years_experience": 3.0,
+      "bio_summary": "I am an accomplished Account Executive with a strong background in Sales Development, consistently exceeding goals and ranking in the top 20% of my peers at BrightEdge. I have rapidly progressed through multiple sales roles, demonstrating expertise in driving content performance marketing solutions and achieving tangible business results.",
       "industries": [
-        "B2B SaaS",
-        "Healthcare",
-        "Recruiting/Staffing",
-        "Financial Services"
+        "Marketing/Advertising",
+        "Software",
+        "Financial Services",
+        "Insurance"
       ],
       "skills": [
         "Account Executive",
         "Sales Development",
-        "Recruiting",
-        "B2B Sales"
-      ],
-      "education": null,
-      "sales_methodologies": [],
-      "sold_to_finance": false,
-      "is_founder": false,
-      "startup_experience": true,
-      "enterprise_experience": false,
-      "max_acv_mentioned": null,
-      "quota_attainment": null,
-      "algo_score": 35,
-      "ai_score": 65,
-      "combined_score": 50,
-      "tier": "Good",
-      "one_line_summary": "Experienced B2B SaaS AE lacking direct finance/CFO sales experience.",
-      "pros": [
-        "Has 3.9 years of sales experience, including B2B SaaS and AE closing roles",
-        "Experience in recruiting technology and financial services industries (relevant to JD)",
-        "Demonstrated progression from SDR to AE, indicating drive and competency"
-      ],
-      "cons": [
-        "No explicit mention of selling to finance/accounting leaders (CFOs, Controllers) (Critical requirement)",
-        "Experience is primarily in healthcare/insurance billing, not core finance/fintech",
-        "Closing experience (1+ years required) is not explicitly quantified in the bio"
-      ],
-      "reasoning": "The candidate meets the general AE experience requirement and has relevant industry exposure (Recruiting Tech/Fintech). However, they critically lack the proven track record of selling specifically to finance and accounting stakeholders (CFOs/Controllers), which is a core requirement for this role.",
-      "interview_questions": [
-        "Can you describe your experience selling to finance or accounting leaders (CFOs, Controllers) and how you tailored your pitch to their specific priorities?",
-        "The JD requires thriving with minimal structure; can you share a specific example of when you had to build a sales process or strategy from scratch in a fast-paced environment?",
-        "Your background includes healthcare/insurance billing and recruiting tech; how will you quickly transition to selling an AI SaaS marketplace solution to finance teams?"
-      ],
-      "missing_required": [
-        "Current/Target Role"
-      ],
-      "missing_preferred": [
-        "Education",
-        "Notable Achievements",
-        "Certifications"
-      ],
-      "red_flags": [
-        "The candidate had four roles in four years (J.G. Wentworth AE: 17 months; Alpine Recruiter: 5 months; Alpine AE: 19 months; Anagram SDR: 6 months).",
-        "The promotion from SDR to AE at Anagram is projected (future dated) and not yet achieved/proven."
-      ],
-      "red_flag_count": 1,
-      "completeness": 55,
-      "interview_status": "not_scheduled",
-      "room_name": null,
-      "interview_score": null,
-      "recommendation": null,
-      "created_at": "2025-12-14 17:26:30.836492",
-      "updated_at": "2025-12-14 17:27:57.673861",
-      "source": "csv_upload",
-      "has_enrichment_data": true,
-      "years_closing_experience_saas": 0.5,
-      "sold_to_finance_stakeholders": false,
-      "average_deal_size_mid_enterprise": "Not specified, likely SMB/Mid-Market based on company size and roles.",
-      "startup_experience_stage": "Experience at Anagram suggests working in a growth-stage B2B SaaS environment.",
-      "quota_attainment_history": "Not specified in the provided data.",
-      "fintech_accounting_background": false,
-      "experience_full_sales_cycle": true
-    },
-    {
-      "id": "16",
-      "name": "Hassan Beydoun",
-      "email": null,
-      "linkedin_url": null,
-      "job_title": "Sales",
-      "current_company": null,
-      "location_city": "New York",
-      "location_state": "NY",
-      "years_experience": 5.0,
-      "bio_summary": "I am a sales professional with experience in financial services and professional services, skilled in building client relationships, identifying opportunities, and closing complex deals. I have a background in wealth management and M&A advisory sales, and I am currently focused on Sales roles within the fintech sector. I hold Series 7 and Series 63 licenses.",
-      "industries": [
-        "Financial Services",
-        "Professional Services",
-        "Fintech",
-        "Investment Banking",
-        "Wealth Management"
-      ],
-      "skills": [
-        "Consultative Selling",
-        "Strategic Account Management",
-        "Client Relationship Management",
-        "Negotiation",
-        "Presentation Skills",
-        "Sales",
-        "Series 7 Licensed",
-        "Series 63 Licensed"
+        "Goal Achievement",
+        "Performance Marketing",
+        "Sales"
       ],
       "education": null,
       "sales_methodologies": [],
@@ -1314,28 +1526,25 @@
       "enterprise_experience": true,
       "max_acv_mentioned": null,
       "quota_attainment": null,
-      "algo_score": 30,
-      "ai_score": 65,
-      "combined_score": 48,
-      "tier": "Evaluate",
-      "one_line_summary": "Experienced financial services sales professional pivoting to SaaS.",
+      "algo_score": 35,
+      "ai_score": 0,
+      "combined_score": 18,
+      "tier": "Poor",
+      "one_line_summary": "Experienced Account Executive, but lacks engineering background.",
       "pros": [
-        "5.0 years of closing experience, exceeding the 1+ year requirement",
-        "Strong background in financial services and fintech (relevant industry)",
-        "Demonstrated consultative selling and relationship management skills",
-        "Experience closing complex deals (M&A advisory, wealth management)"
+        "Accomplished professional with a track record of exceeding goals",
+        "Experience in the Software and Financial Services industries (as a seller)"
       ],
       "cons": [
-        "No explicit experience selling SaaS or marketplace solutions",
-        "Missing proven track record of selling to finance/accounting stakeholders (CFOs/Controllers) in a B2B sales context (JD requirement)",
-        "Lack of stated startup experience or 'scrappiness' needed for a Founding AE role",
-        "Experience is primarily in financial/professional services, not B2B technology sales"
+        "Zero experience in mobile development or software engineering",
+        "Current role is Account Executive (Sales), not Android Engineer",
+        "No proficiency in Kotlin, Android development, or mobile design patterns"
       ],
-      "reasoning": "The candidate meets the minimum experience requirement (5 years closing) and has relevant industry exposure (Fintech/Financial Services). However, they lack the critical requirement of a proven track record selling B2B SaaS to CFOs/Controllers and do not demonstrate startup experience, placing them in the 'Potential' category due to the pivot required.",
+      "reasoning": "The candidate, Paul Avila, is an Account Executive with 3 years of sales experience. The role requires a minimum of 1 year of mobile development experience, proficiency in Kotlin, and experience launching mobile apps, none of which the candidate possesses. This makes him entirely unqualified for an Android Engineer position.",
       "interview_questions": [
-        "Your experience is primarily in financial services. How do you plan to adapt your sales process and value proposition to sell an AI SaaS marketplace solution to mid-market and enterprise clients?",
-        "The JD requires selling directly to CFOs and Controllers. Can you describe a complex deal you closed where the primary decision-maker was a finance executive, and what specific financial value proposition you presented?",
-        "This is a Founding AE role requiring high autonomy and minimal structure. Can you share an example of a time you had to build a sales process or GTM strategy from scratch in a previous role?"
+        "Can you describe your current understanding of the Android development lifecycle and the Kotlin programming language?",
+        "What motivated you to apply for an Android Engineer role given your extensive background in sales?",
+        "How do you plan to acquire the necessary technical skills (e.g., Compose, MVVM, coroutines) to succeed in this engineering role?"
       ],
       "missing_required": [],
       "missing_preferred": [
@@ -1344,188 +1553,8 @@
         "Certifications"
       ],
       "red_flags": [
-        "Short tenure at Morgan Stanley (15 months) and Visible Alpha (current, 6 months).",
-        "Gap in employment between RSM (Jan 2022) and Morgan Stanley (Jun 2022) (5 months).",
-        "Gap in employment between Morgan Stanley (Sep 2023) and Visible Alpha (Jan 2024) (4 months)."
-      ],
-      "red_flag_count": 2,
-      "completeness": 73,
-      "interview_status": "not_scheduled",
-      "room_name": null,
-      "interview_score": null,
-      "recommendation": null,
-      "created_at": "2025-12-14 17:26:45.373332",
-      "updated_at": "2025-12-14 17:28:07.789894",
-      "source": "csv_upload",
-      "has_enrichment_data": true,
-      "years_closing_experience_saas": 0,
-      "sold_to_finance_stakeholders": true,
-      "average_deal_size_mid_enterprise": "Mid-market private equity and portfolio companies (RSM); Financial institutions (Visible Alpha)",
-      "startup_experience_stage": "No explicit experience in an early-stage startup environment with minimal structure.",
-      "quota_attainment_history": "Consistently exceeded quarterly KPIs (RSM).",
-      "fintech_accounting_background": true,
-      "experience_full_sales_cycle": true
-    },
-    {
-      "id": "1",
-      "name": "Tony Xavier",
-      "email": null,
-      "linkedin_url": null,
-      "job_title": "Founder",
-      "current_company": null,
-      "location_city": "Chicago",
-      "location_state": "IL",
-      "years_experience": 2.0,
-      "bio_summary": "I am a Stealth Founder and current M.S. student specializing in Artificial Intelligence and Machine Learning, focused on building innovative memory and RAG applications for Enterprise AI. I leverage a strong technical foundation in Physics and Mechanical Engineering, combined with experience consulting for Fortune 500 clients in the Energy sector, to drive technological innovation and solve complex business challenges.",
-      "industries": [
-        "Technology",
-        "Artificial Intelligence",
-        "Consulting",
-        "Energy",
-        "Utilities",
-        "Engineering",
-        "Education"
-      ],
-      "skills": [
-        "Artificial Intelligence",
-        "Machine Learning",
-        "RAG",
-        "Enterprise AI",
-        "Strategy Consulting",
-        "Mechanical Engineering",
-        "Finite Element Analysis",
-        "3D CAD",
-        "Risk Assessment",
-        "Asset Reliability",
-        "No-code"
-      ],
-      "education": null,
-      "sales_methodologies": [],
-      "sold_to_finance": false,
-      "is_founder": true,
-      "startup_experience": true,
-      "enterprise_experience": true,
-      "max_acv_mentioned": null,
-      "quota_attainment": null,
-      "algo_score": 40,
-      "ai_score": 52,
-      "combined_score": 46,
-      "tier": "Evaluate",
-      "one_line_summary": "AI Founder with deep technical expertise but limited AE closing history.",
-      "pros": [
-        "Deep technical expertise in AI/ML/RAG, highly relevant to an AI SaaS marketplace.",
-        "Demonstrated founder experience and scrappiness, ideal for a founding team member.",
-        "Experience consulting for Fortune 500 clients demonstrates enterprise communication ability and structure."
-      ],
-      "cons": [
-        "Critically lacks proven closing experience as a dedicated Account Executive in SaaS/Fintech.",
-        "Explicitly lacks experience selling to the required ICP (CFOs, Controllers, and finance leaders).",
-        "Background is heavily technical and consulting-focused, not pure revenue generation/sales cycle ownership."
-      ],
-      "reasoning": "The candidate brings exceptional technical knowledge and founder-level drive, aligning well with the 'Founding' aspect of the role. However, they critically lack the required 1+ years of proven AE closing experience and, most importantly, have no track record of selling to finance and accounting stakeholders (CFOs/Controllers), which is essential for this specific marketplace and is a core requirement of the JD.",
-      "interview_questions": [
-        "Given your deep technical background, describe a specific instance where you owned the full sales cycle, from cold prospecting to contract negotiation, for a mid-market client.",
-        "The JD requires selling specifically to CFOs and finance leaders; how would you adapt your current consulting and technical approach to effectively address the financial pain points of these stakeholders?",
-        "As a Founder, you are used to building. How do you balance the need for immediate, high-volume closing (the AE role) with the strategic work of defining the GTM process (the Founding role)?"
-      ],
-      "missing_required": [],
-      "missing_preferred": [
-        "Education",
-        "Notable Achievements",
-        "Certifications"
-      ],
-      "red_flags": [
-        "Recent rapid transition between two founder roles (Mar 2025 - Present).",
-        "Lack of direct SaaS sales or closing experience.",
-        "Focus is heavily technical (AI/ML, Engineering) rather than commercial/revenue generation."
-      ],
-      "red_flag_count": 2,
-      "completeness": 73,
-      "interview_status": "not_scheduled",
-      "room_name": null,
-      "interview_score": null,
-      "recommendation": null,
-      "created_at": "2025-12-14 17:26:30.836303",
-      "updated_at": "2025-12-14 17:28:03.965458",
-      "source": "csv_upload",
-      "has_enrichment_data": true,
-      "years_closing_experience_saas": 0,
-      "sold_to_finance_stakeholders": false,
-      "average_deal_size_mid_enterprise": "N/A - Technical/Consulting background.",
-      "startup_experience_stage": "Early-stage/Stealth.",
-      "quota_attainment_history": "N/A - Technical/Consulting background.",
-      "fintech_accounting_background": false,
-      "experience_full_sales_cycle": false
-    },
-    {
-      "id": "3",
-      "name": "Joey Sanford",
-      "email": null,
-      "linkedin_url": null,
-      "job_title": "Full Cycle Account Executive (Hunter)",
-      "current_company": null,
-      "location_city": "New York",
-      "location_state": "NY",
-      "years_experience": 1.0,
-      "bio_summary": "I am a results-driven Account Executive specializing in AI and SaaS GTM strategy, focused on driving product-led growth at early-stage B2B startups. I successfully built Hatch's outbound motion from scratch, achieving a 50%+ meeting booked rate, and secured the company's first enterprise-level deal, opening the door for significant market expansion.",
-      "industries": [
-        "AI",
-        "SaaS",
-        "Nonprofit Technology",
-        "Hospitality",
-        "Military"
-      ],
-      "skills": [
-        "AI",
-        "SaaS GTM Strategy",
-        "Product-Led Growth",
-        "Full Cycle Sales",
-        "Account-Based Marketing (ABM)",
-        "Objection Handling",
-        "Enterprise Sales",
-        "Consultative Sales",
-        "Outbound Prospecting",
-        "Pipeline Management"
-      ],
-      "education": null,
-      "sales_methodologies": [],
-      "sold_to_finance": false,
-      "is_founder": false,
-      "startup_experience": true,
-      "enterprise_experience": true,
-      "max_acv_mentioned": null,
-      "quota_attainment": null,
-      "algo_score": 25,
-      "ai_score": 65,
-      "combined_score": 45,
-      "tier": "Evaluate",
-      "one_line_summary": "Hunter AE with strong startup experience and enterprise closing ability.",
-      "pros": [
-        "Demonstrated scrappiness by building the outbound motion from scratch at a prior startup.",
-        "Proven ability to close complex deals, evidenced by securing the company's first enterprise-level deal.",
-        "Relevant experience in AI and SaaS GTM strategy, aligning with the company's product focus."
-      ],
-      "cons": [
-        "Only meets the minimum requirement of 1.0 years of closing experience.",
-        "Lacks proven experience selling specifically to finance and accounting stakeholders (CFOs/Controllers), a critical requirement.",
-        "Missing background in finance, fintech, or accounting sales (preferred qualification)."
-      ],
-      "reasoning": "Joey is a strong cultural fit, demonstrating the required hunger and ability to thrive in a high-growth startup environment by building GTM motions and closing enterprise deals. However, the lack of experience selling to the specific ICP (CFOs/Controllers) is a significant gap against a core requirement for this Founding AE role, placing them in the 'Potential' category.",
-      "interview_questions": [
-        "You successfully secured your company's first enterprise deal; walk me through the stakeholders involved and how you specifically handled the financial approval process.",
-        "Since you haven't sold directly to CFOs before, how would you quickly bridge that knowledge gap to speak credibly about finance/accounting pain points and ROI?",
-        "Describe a time you had to operate with minimal structure or resources. How did you prioritize your time and what was the outcome?"
-      ],
-      "missing_required": [],
-      "missing_preferred": [
-        "Education",
-        "Notable Achievements",
-        "Certifications"
-      ],
-      "red_flags": [
-        "Six-month employment gap (Jan 2023 - Jul 2023) prior to starting sales career.",
-        "Limited total SaaS closing experience (less than 6 months as AE).",
-        "Experience is highly focused on the nonprofit/fundraising tech sector."
+        "High frequency of role changes (5 roles in 3 years), although most are internal promotions at BrightEdge.",
+        "Short tenure (7 months) at MassMutual."
       ],
       "red_flag_count": 1,
       "completeness": 73,
@@ -1533,17 +1562,18 @@
       "room_name": null,
       "interview_score": null,
       "recommendation": null,
-      "created_at": "2025-12-14 17:26:30.836365",
-      "updated_at": "2025-12-14 17:28:13.226316",
+      "created_at": "2025-12-18 05:40:21.332817",
+      "updated_at": "2025-12-18 05:40:59.079653",
       "source": "csv_upload",
       "has_enrichment_data": true,
-      "years_closing_experience_saas": 0.5,
-      "sold_to_finance_stakeholders": false,
-      "average_deal_size_mid_enterprise": "Mid-market to Enterprise (up to six-figure deals)",
-      "startup_experience_stage": "Early-stage B2B startup (seed stage), building GTM motion from the ground up.",
-      "quota_attainment_history": "Consistently exceeded revenue targets (specific percentage not provided).",
-      "fintech_accounting_background": false,
-      "experience_full_sales_cycle": true
+      "kotlin_proficiency": false,
+      "years_mobile_development": null,
+      "app_launch_experience": false,
+      "android_stack_experience": [],
+      "mobile_design_patterns_understanding": "N/A - Profile is focused on Sales and Business Development.",
+      "google_play_console_management": false,
+      "cross_functional_collaboration_examples": "N/A - Profile focuses on individual sales performance and goal attainment.",
+      "engineering_process_contribution": false
     },
     {
       "id": "12",
@@ -1554,24 +1584,25 @@
       "current_company": null,
       "location_city": "Jersey City",
       "location_state": "NJ",
-      "years_experience": 2.0,
-      "bio_summary": "I am an MBA Candidate at Hofstra University with a strong foundation in finance, specializing in loan origination, financial analysis, and risk assessment within the private lending sector. I leverage strategic planning and quantitative techniques to drive efficiency and optimize returns, and I am currently transitioning this expertise into a full-cycle Account Executive role in the SaaS industry.",
+      "years_experience": 3.17,
+      "bio_summary": "I am an MBA Candidate at Hofstra University with a background in finance and sales, specializing in coordinating loan origination and driving efficiency within a private lender debt fund. I have a proven track record in financial analysis, risk assessment, and strategic planning, leveraging advanced quantitative techniques to optimize returns and mitigate risks.",
       "industries": [
-        "Finance",
-        "Lending",
-        "SaaS",
+        "Financial Services",
         "Real Estate",
-        "Automotive Technology"
+        "Technology"
       ],
       "skills": [
         "Financial Analysis",
         "Risk Assessment",
         "Strategic Planning",
-        "Loan Origination",
-        "CRM",
+        "Quantitative Techniques",
         "Communication",
         "Collaboration",
-        "Quantitative Techniques"
+        "Inside Sales",
+        "Loan Applications",
+        "CRM",
+        "Sales Development",
+        "Loan Officer"
       ],
       "education": null,
       "sales_methodologies": [],
@@ -1581,26 +1612,26 @@
       "enterprise_experience": false,
       "max_acv_mentioned": null,
       "quota_attainment": null,
-      "algo_score": 20,
-      "ai_score": 65,
-      "combined_score": 42,
-      "tier": "Evaluate",
-      "one_line_summary": "Finance-savvy AE transitioning to SaaS lacks specific ICP closing history.",
+      "algo_score": 30,
+      "ai_score": 0,
+      "combined_score": 15,
+      "tier": "Poor",
+      "one_line_summary": "MBA candidate with finance and sales background, zero engineering experience.",
       "pros": [
-        "Strong foundational knowledge in finance (MBA, lending background) directly aligns with the target ICP (CFOs/Controllers)",
-        "Meets the 2+ years of sales experience preferred qualification and has demonstrated startup experience",
-        "High drive and ambition evidenced by pursuing an MBA while transitioning into a complex AE role"
+        "Background in finance and financial services industry",
+        "Experience in a fast-paced environment (private lender debt fund)",
+        "Interest in technology (listed as an industry)"
       ],
       "cons": [
-        "Lacks proven track record closing SaaS deals specifically with finance and accounting stakeholders (CFOs/Controllers)",
-        "Primary experience appears rooted in private lending/real estate tech, not traditional B2B SaaS sales cycles",
-        "Unclear performance metrics or demonstrated ability to handle mid-market/enterprise deal sizes"
+        "Zero experience as an Android Engineer or mobile developer",
+        "Not proficient in Kotlin or mobile development best practices",
+        "Current title is 'Account Executive' (Sales), not Engineering"
       ],
-      "reasoning": "The candidate brings an ideal finance background and the necessary years of sales experience, which is a strong fit for understanding the customer. However, the profile explicitly signals a lack of proven closing experience selling SaaS to CFOs/Controllers, which is a critical requirement for a Founding AE role needing immediate revenue impact and GTM strategy execution.",
+      "reasoning": "This candidate is an Account Executive with a background in sales and finance, not an Android Engineer. They fail to meet the minimum requirement of 1 year of experience in mobile development and proficiency in Kotlin, making them entirely unqualified for this technical role.",
       "interview_questions": [
-        "While your finance background is excellent, the role requires a proven track record selling SaaS to CFOs. How will you bridge this specific closing experience gap in a Founding AE capacity?",
-        "Describe a time you had to build a sales process from scratch or operate successfully with minimal structure. What was the outcome and what did you learn about your working style?",
-        "Given your experience in loan origination and financial analysis, walk us through how you would leverage that expertise to consultatively sell our AI SaaS marketplace solution to a Controller."
+        "Can you describe your experience with software development, specifically using Kotlin for Android?",
+        "The role requires designing, building, and launching new products on the Android app; how does your current experience prepare you for these technical tasks?",
+        "Why are you applying for an Android Engineering role given your extensive background in sales and finance?"
       ],
       "missing_required": [],
       "missing_preferred": [
@@ -1609,9 +1640,10 @@
         "Certifications"
       ],
       "red_flags": [
-        "Significant job hopping, with most roles lasting less than 9 months.",
-        "A 9-month employment gap between May 2022 and February 2023, and a 4-month gap between June 2024 and October 2024.",
-        "The Account Executive role in SaaS is very recent (started Oct 2024), indicating minimal proven closing experience in a traditional SaaS model."
+        "High frequency of job changes: 5 roles in approximately 3 years.",
+        "Gap between Seamless.AI (07/2023) and Brick City Capital (09/2023).",
+        "Gap between Hanover Capital Group (05/2022) and Seamless.AI (02/2023).",
+        "The current role at Revv (Account Executive) started recently (10/2024) and is not reflected in the summary, which describes a role in a private lender debt fund, suggesting the summary is outdated or refers to a different, unlisted role."
       ],
       "red_flag_count": 2,
       "completeness": 73,
@@ -1619,72 +1651,76 @@
       "room_name": null,
       "interview_score": null,
       "recommendation": null,
-      "created_at": "2025-12-14 17:26:30.836651",
-      "updated_at": "2025-12-14 17:28:13.422804",
+      "created_at": "2025-12-18 05:40:12.683087",
+      "updated_at": "2025-12-18 05:40:59.208054",
       "source": "csv_upload",
       "has_enrichment_data": true,
-      "years_closing_experience_saas": 0,
-      "sold_to_finance_stakeholders": true,
-      "average_deal_size_mid_enterprise": "Not specified. Experience is primarily in lending/debt fund coordination and early-stage SaaS sales.",
-      "startup_experience_stage": "Yes, experience in fast-paced environments (Seamless.AI, Revv) and the summary mentions navigating a 'dynamic environment'.",
-      "quota_attainment_history": "Not specified.",
-      "fintech_accounting_background": true,
-      "experience_full_sales_cycle": true
+      "kotlin_proficiency": false,
+      "years_mobile_development": null,
+      "app_launch_experience": false,
+      "android_stack_experience": [],
+      "mobile_design_patterns_understanding": "N/A",
+      "google_play_console_management": false,
+      "cross_functional_collaboration_examples": "Coordinated with underwriters and other financial professionals to facilitate the loan approval process at Brick City Capital. Worked with top-producing Account Executives and Sales Managers to improve performance and processes at Seamless.AI.",
+      "engineering_process_contribution": false
     },
     {
-      "id": "15",
-      "name": "Andrew  Antoniades",
+      "id": "16",
+      "name": "Hassan Beydoun",
       "email": null,
       "linkedin_url": null,
-      "job_title": "Account Executive",
+      "job_title": "Sales",
       "current_company": null,
-      "location_city": "San Diego",
-      "location_state": "CA",
-      "years_experience": 2.25,
-      "bio_summary": "I am a highly motivated sales professional with 2.25 years of experience in high-growth SaaS environments, specializing in business development and partnerships. I have rapidly progressed through Sales Development roles at Navan and served as a Founding Business Development Representative at Jolly, demonstrating my ability to thrive in fast-paced, early-stage startup environments. I am transitioning into an Account Executive role, eager to leverage my outbound expertise to own the full sales cycle and drive revenue growth.",
+      "location_city": "New York",
+      "location_state": "NY",
+      "years_experience": 4.0,
+      "bio_summary": "I am a highly skilled Sales professional with nearly five years of experience in financial services and consulting, specializing in consultative selling, strategic account management, and closing complex deals. I hold Series 7 and Series 63 licenses and am currently focused on leveraging my expertise to drive growth in a Sales Executive role within the fintech sector.",
       "industries": [
-        "HR Technology",
-        "Travel & Expense",
         "Fintech",
-        "Sports Marketing",
-        "Hospitality"
+        "Financial Services",
+        "Consulting",
+        "Private Equity"
       ],
       "skills": [
-        "Business Development",
-        "Sales Development",
-        "Cold Outreach",
-        "Account Executive",
-        "Partnerships",
-        "Sports Marketing"
+        "Consultative Selling",
+        "Strategic Account Management",
+        "Client Relationship Management",
+        "Deal Closing",
+        "Negotiation",
+        "Series 7 License",
+        "Series 63 License",
+        "Fintech Sales",
+        "M&A Lifecycle"
       ],
       "education": null,
       "sales_methodologies": [],
       "sold_to_finance": false,
       "is_founder": false,
-      "startup_experience": true,
-      "enterprise_experience": false,
+      "startup_experience": false,
+      "enterprise_experience": true,
       "max_acv_mentioned": null,
       "quota_attainment": null,
-      "algo_score": 27,
-      "ai_score": 52,
-      "combined_score": 40,
-      "tier": "Evaluate",
-      "one_line_summary": "Highly motivated BDR transitioning to AE, lacking closing experience.",
+      "algo_score": 30,
+      "ai_score": 0,
+      "combined_score": 15,
+      "tier": "Poor",
+      "one_line_summary": "Experienced Sales professional applying for an Android Engineering role.",
       "pros": [
-        "Extensive experience in high-growth, early-stage SaaS environments (Founding BDR role).",
-        "Demonstrated drive, ambition, and ability to thrive with minimal structure (startup experience).",
-        "Relevant industry exposure (Fintech, HR Technology) aligns with the B2B SaaS focus."
+        "Experience in the Fintech/Financial Services industry",
+        "Professional background in a high-stakes environment (finance)",
+        "Strong consultative and negotiation skills (not relevant to engineering)"
       ],
       "cons": [
-        "Lacks the required 1+ years of proven full-cycle closing experience as an Account Executive.",
-        "No demonstrated track record of selling specifically to finance and accounting stakeholders (CFOs/Controllers).",
-        "Primary experience is in Sales Development/Business Development, not closing."
+        "Zero experience in mobile development or software engineering",
+        "Current role is Sales, not Engineering",
+        "Lacks proficiency in Kotlin or any required technical skill",
+        "Does not meet the minimum requirement of 1 year of mobile development experience"
       ],
-      "reasoning": "The candidate possesses the requisite startup hustle and ambition, having rapidly progressed through BDR roles in high-growth environments. However, they are currently transitioning into an AE role and lack the required 1+ years of closing experience and the proven track record of selling to the specific ICP (CFOs/Controllers) necessary for this Founding Account Executive position.",
+      "reasoning": "This candidate is a highly experienced Sales professional applying for an Android Engineer role. The candidate possesses none of the required technical skills (Kotlin proficiency, mobile development experience) and has no background in software engineering, making them an immediate non-fit for this specific position.",
       "interview_questions": [
-        "Can you walk me through your largest closed deal, detailing the full sales cycle, including negotiation and contracting stages?",
-        "Given your background is primarily in BDR roles, how have you prepared to immediately take ownership of a full enterprise sales cycle with a six-figure quota?",
-        "This role requires selling directly to CFOs and Controllers; what specific value propositions or strategies would you use to build credibility and articulate value to finance leaders?"
+        "Can you describe your experience with the Android development stack, specifically Kotlin and Compose?",
+        "The job requires a minimum of 1 year of mobile development experience; could you detail your relevant technical projects?",
+        "Given your extensive background in Sales, why are you seeking a transition into a highly technical Android Engineering role at this time?"
       ],
       "missing_required": [],
       "missing_preferred": [
@@ -1693,26 +1729,27 @@
         "Certifications"
       ],
       "red_flags": [
-        "Lack of proven closing experience (AE role is future-dated)",
-        "Short tenure history in sales roles (9 months, 3 months, 9 months)"
+        "Candidate is a Sales professional and lacks all technical qualifications for a mobile development role.",
+        "Two recent short tenures (Morgan Stanley and Visible Alpha) and two employment gaps (5 months and 4 months)."
       ],
-      "red_flag_count": 1,
+      "red_flag_count": 2,
       "completeness": 73,
       "interview_status": "not_scheduled",
       "room_name": null,
       "interview_score": null,
       "recommendation": null,
-      "created_at": "2025-12-14 17:26:45.373274",
-      "updated_at": "2025-12-14 17:28:12.819157",
+      "created_at": "2025-12-18 05:40:21.332774",
+      "updated_at": "2025-12-18 05:40:59.266698",
       "source": "csv_upload",
       "has_enrichment_data": true,
-      "years_closing_experience_saas": 0,
-      "sold_to_finance_stakeholders": false,
-      "average_deal_size_mid_enterprise": "Mid-Market/SMB focus (SDR/BDR capacity)",
-      "startup_experience_stage": "Early-stage, founding BDR experience at Jolly",
-      "quota_attainment_history": null,
-      "fintech_accounting_background": false,
-      "experience_full_sales_cycle": false
+      "kotlin_proficiency": false,
+      "years_mobile_development": null,
+      "app_launch_experience": false,
+      "android_stack_experience": [],
+      "mobile_design_patterns_understanding": "N/A - Candidate is in Sales.",
+      "google_play_console_management": false,
+      "cross_functional_collaboration_examples": "Collaboration with partners, CFOs, and investment professionals to identify pain points and position strategic solutions (RSM).",
+      "engineering_process_contribution": false
     },
     {
       "id": "19",
@@ -1723,56 +1760,54 @@
       "current_company": null,
       "location_city": "New York",
       "location_state": "NY",
-      "years_experience": 2.5,
-      "bio_summary": "I am a high-achieving financial services professional with a proven track record in sales development and client acquisition, demonstrated by achieving 157.8% lifetime attainment as an SDR at Vestwell. I have successfully managed full-cycle sales activities, including exceeding a $1.5M deposit growth goal at Flagstar Bank and closing deals up to $100K+ during my financial advisor internship. My career focus is leveraging my background in finance and sales to drive significant growth in the fintech sector.",
+      "years_experience": 4.0,
+      "bio_summary": "I am a driven financial services professional with a strong background in sales, business development, and client relationship management. I have a proven track record of exceeding sales targets, including achieving 157.8% lifetime attainment as an SDR at Vestwell and exceeding a $1.5M deposit growth goal at Flagstar Bank. My current focus is in internal wholesaling within the fintech sector while pursuing graduate studies.",
       "industries": [
-        "Fintech",
         "Financial Services",
+        "Fintech",
         "Banking",
         "Real Estate",
-        "Property Management",
         "Retail"
       ],
       "skills": [
-        "Internal Wholesaling",
-        "Sales Development",
+        "Sales",
         "Business Development",
         "Client Acquisition",
-        "Financial Services",
-        "Prospecting",
         "Relationship Management",
+        "Prospecting",
         "Financial Reporting",
-        "Investment Analysis",
-        "Quota Attainment"
+        "Budgeting",
+        "Training"
       ],
       "education": null,
       "sales_methodologies": [],
       "sold_to_finance": false,
       "is_founder": false,
-      "startup_experience": true,
-      "enterprise_experience": false,
+      "startup_experience": false,
+      "enterprise_experience": true,
       "max_acv_mentioned": null,
       "quota_attainment": null,
-      "algo_score": 25,
-      "ai_score": 55,
-      "combined_score": 40,
-      "tier": "Evaluate",
-      "one_line_summary": "High-potential SDR lacking formal AE closing experience with CFOs.",
+      "algo_score": 30,
+      "ai_score": 0,
+      "combined_score": 15,
+      "tier": "Poor",
+      "one_line_summary": "Experienced financial services salesperson, zero engineering background.",
       "pros": [
-        "Strong background in Fintech/Financial Services, aligning perfectly with the target market.",
-        "Demonstrated high performance and drive, evidenced by 157.8% lifetime SDR attainment.",
-        "Experience in full-cycle sales activities, though primarily in banking and internship roles."
+        "Experience in the Fintech/Financial Services industry (relevant domain knowledge)",
+        "Proven track record of exceeding sales targets (demonstrates drive)",
+        "Currently pursuing graduate studies (suggests commitment to learning)"
       ],
       "cons": [
-        "Lacks formal 1+ years of Account Executive closing experience in a SaaS environment.",
-        "No proven track record of selling specifically to CFOs or Controllers (a core JD requirement).",
-        "Current title (Associate, Internal Wholesaler) suggests an SDR or junior sales support function, not a Founding AE."
+        "No experience in mobile development or software engineering (critical requirement)",
+        "No proficiency in Kotlin or Android development (critical requirement)",
+        "Background is entirely in sales and business development, not technical execution",
+        "Minimum 1 year of mobile development experience is completely absent"
       ],
-      "reasoning": "Liam demonstrates strong ambition and relevant industry knowledge (Fintech/Finance), which aligns with the JD's preference for a finance background. However, he lacks the required 1+ years of formal Account Executive closing experience in a SaaS environment, and critically, has no proven track record selling to the specific ICP of CFOs and Controllers, making him a weak fit for a Founding AE role that requires immediate closing expertise.",
+      "reasoning": "This candidate is an experienced financial services professional focused on sales and internal wholesaling. They possess none of the critical technical requirements for an Android Engineer role, such as proficiency in Kotlin, mobile development experience, or engineering processes. The background is completely mismatched with the job description.",
       "interview_questions": [
-        "The JD requires selling to CFOs; can you describe the largest deal you closed where the final decision-maker was a finance or accounting leader (CFO, Controller, VP of Finance)?",
-        "Your experience is primarily in Internal Wholesaling and banking deposits; how do you plan to transition your sales methodology to successfully own the full, complex SaaS sales cycle for mid-market clients?",
-        "You achieved high attainment as an SDR; walk me through a complex negotiation or deal where you had to overcome significant legal or financial objections to close a $50K+ deal."
+        "Can you describe your experience with the software development lifecycle and engineering best practices?",
+        "The role requires proficiency in Kotlin for Android development; what is your experience level with this language and framework?",
+        "Given your strong background in sales, why are you seeking a transition into a hands-on mobile engineering role at this time?"
       ],
       "missing_required": [],
       "missing_preferred": [
@@ -1781,9 +1816,8 @@
         "Certifications"
       ],
       "red_flags": [
-        "Pattern of short tenures (Flagstar 15 months, Vestwell SDR 5 months, though promoted)",
-        "Multiple employment gaps (8 months, 3 months)",
-        "Lack of dedicated Account Executive/closing experience in a pure SaaS environment."
+        "Candidate has zero experience in software engineering or mobile development.",
+        "Candidate's entire career history is in Sales and Financial Services, making them unqualified for a Kotlin/Android role."
       ],
       "red_flag_count": 2,
       "completeness": 73,
@@ -1791,18 +1825,19 @@
       "room_name": null,
       "interview_score": null,
       "recommendation": null,
-      "created_at": "2025-12-14 17:26:45.373408",
-      "updated_at": "2025-12-14 17:28:13.734299",
+      "created_at": "2025-12-18 05:40:21.332836",
+      "updated_at": "2025-12-18 05:40:59.164017",
       "source": "csv_upload",
       "has_enrichment_data": true,
-      "years_closing_experience_saas": 0,
-      "sold_to_finance_stakeholders": true,
-      "average_deal_size_mid_enterprise": "Deals ranging from $10K to $100K+ (Financial Services); focus on SMB/Mid-Market deposit growth ($1.5M campaign goal).",
-      "startup_experience_stage": "Experience in high-growth, scaled fintech (Vestwell), but no explicit early-stage startup experience.",
-      "quota_attainment_history": "Strong history, including 157.8% Lifetime Attainment as an SDR and exceeding a $1.5M deposit growth goal.",
-      "fintech_accounting_background": true,
-      "experience_full_sales_cycle": true
+      "kotlin_proficiency": false,
+      "years_mobile_development": null,
+      "app_launch_experience": false,
+      "android_stack_experience": [],
+      "mobile_design_patterns_understanding": "N/A - Profile is focused on Sales and Finance, not mobile development.",
+      "google_play_console_management": false,
+      "cross_functional_collaboration_examples": "Collaboration examples are focused on sales training and client consultation, not working with Product/Design teams on software features.",
+      "engineering_process_contribution": false
     }
   ],
-  "last_updated": "2025-12-14T17:33:17.242167"
+  "last_updated": "2025-12-18T05:41:37.238832"
 }

@@ -58,3 +58,20 @@ class ExtractionSource(str, Enum):
     CONVERSATION = "conversation"
     MIXED = "mixed"
     PARALLEL_AI = "parallel_ai"
+
+
+class HiringUrgency(str, Enum):
+    """How urgently the role needs to be filled"""
+    ASAP = "asap"                    # Need someone yesterday
+    WITHIN_MONTH = "within_month"    # 2-4 weeks
+    WITHIN_QUARTER = "within_quarter"  # 1-3 months
+    PLANNING_AHEAD = "planning_ahead"  # 3+ months, building pipeline
+    BACKFILL = "backfill"            # Replacing someone who left
+
+
+class TeamSeniority(str, Enum):
+    """Overall team seniority level"""
+    MOSTLY_JUNIOR = "mostly_junior"
+    MIXED = "mixed"
+    MOSTLY_SENIOR = "mostly_senior"
+    ALL_SENIOR = "all_senior"

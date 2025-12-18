@@ -71,6 +71,7 @@ class LocalJobProfileRepository:
             "is_complete": profile.is_complete,
             "missing_required_fields": profile.missing_required_fields,
             "parallel_research_status": profile.parallel_research_status,
+            "skipped_fields": profile.skipped_fields,
         }
 
     def _from_dict(self, data: Dict[str, Any]) -> JobProfile:
@@ -110,6 +111,7 @@ class LocalJobProfileRepository:
             is_complete=data.get("is_complete", False),
             missing_required_fields=data.get("missing_required_fields", []),
             parallel_research_status=data.get("parallel_research_status", "pending"),
+            skipped_fields=data.get("skipped_fields", []),
         )
 
     # ==========================================================================
@@ -157,6 +159,27 @@ class LocalJobProfileRepository:
             return self._from_dict(data)
         except Exception as e:
             logger.error(f"Error updating job profile {profile_id}: {e}")
+            return None
+
+    async def save(self, profile: JobProfile) -> Optional[JobProfile]:
+        """Save a job profile (create or update based on existence)."""
+        try:
+            profiles = self._load_all()
+            data = self._to_dict(profile)
+
+            if profile.id in profiles:
+                # Update existing
+                data["created_at"] = profiles[profile.id].get("created_at", datetime.utcnow().isoformat())
+            else:
+                # Create new
+                data["created_at"] = datetime.utcnow().isoformat()
+
+            data["updated_at"] = datetime.utcnow().isoformat()
+            profiles[profile.id] = data
+            self._save_all(profiles)
+            return self._from_dict(data)
+        except Exception as e:
+            logger.error(f"Error saving job profile {profile.id}: {e}")
             return None
 
     async def delete(self, profile_id: str) -> bool:
