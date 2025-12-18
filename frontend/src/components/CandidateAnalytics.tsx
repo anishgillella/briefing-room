@@ -34,9 +34,31 @@ import {
     ArrowUpRight,
     Quote,
     Activity,
-    PieChart,
+    PieChart as PieChartIcon,
     Layers,
 } from "lucide-react";
+import {
+    ResponsiveContainer,
+    RadarChart,
+    PolarGrid,
+    PolarAngleAxis,
+    PolarRadiusAxis,
+    Radar,
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    LineChart,
+    Line,
+    PieChart,
+    Pie,
+    Cell,
+    Legend,
+    Area,
+    AreaChart,
+} from "recharts";
 
 // ============================================================================
 // Types
@@ -633,32 +655,160 @@ export default function CandidateAnalytics({ candidateId, candidateName }: Candi
                             </div>
                         </div>
 
-                        {/* Score Trend */}
-                        {data.cumulative.score_trend.length > 1 && (
-                            <div className="mb-8">
-                                <h4 className="text-sm font-medium text-white/50 mb-4 flex items-center gap-2">
-                                    <Activity className="w-4 h-4" />
-                                    Performance Trajectory
-                                </h4>
-                                <div className="flex items-end gap-3 h-24">
-                                    {data.cumulative.score_trend.map((score, i) => (
-                                        <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                                            <div className="w-full relative">
-                                                <div
-                                                    className={`w-full rounded-t-lg transition-all ${
-                                                        score >= 80 ? "bg-gradient-to-t from-green-600 to-green-400" :
-                                                        score >= 60 ? "bg-gradient-to-t from-yellow-600 to-yellow-400" :
-                                                        "bg-gradient-to-t from-red-600 to-red-400"
-                                                    }`}
-                                                    style={{ height: `${(score / 100) * 80}px` }}
+                        {/* Performance Charts Grid */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                            {/* Score Trend Line Chart */}
+                            {data.cumulative.score_trend.length > 0 && (
+                                <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
+                                    <h4 className="text-sm font-medium text-white/50 mb-4 flex items-center gap-2">
+                                        <Activity className="w-4 h-4" />
+                                        Performance Trajectory
+                                    </h4>
+                                    <div className="h-48">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <AreaChart
+                                                data={data.cumulative.score_trend.map((score, i) => ({
+                                                    round: `Round ${i + 1}`,
+                                                    score,
+                                                }))}
+                                                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                                            >
+                                                <defs>
+                                                    <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="5%" stopColor="#a855f7" stopOpacity={0.4}/>
+                                                        <stop offset="95%" stopColor="#a855f7" stopOpacity={0}/>
+                                                    </linearGradient>
+                                                </defs>
+                                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                                                <XAxis
+                                                    dataKey="round"
+                                                    tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }}
+                                                    axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+                                                    tickLine={false}
                                                 />
-                                                <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-medium text-white/70">
-                                                    {score}
-                                                </span>
-                                            </div>
-                                            <span className="text-xs text-white/30">R{i + 1}</span>
-                                        </div>
-                                    ))}
+                                                <YAxis
+                                                    domain={[0, 100]}
+                                                    tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }}
+                                                    axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+                                                    tickLine={false}
+                                                />
+                                                <Tooltip
+                                                    contentStyle={{
+                                                        backgroundColor: 'rgba(15, 15, 26, 0.95)',
+                                                        border: '1px solid rgba(255,255,255,0.1)',
+                                                        borderRadius: '12px',
+                                                        color: 'white',
+                                                    }}
+                                                    labelStyle={{ color: 'rgba(255,255,255,0.7)' }}
+                                                />
+                                                <Area
+                                                    type="monotone"
+                                                    dataKey="score"
+                                                    stroke="#a855f7"
+                                                    strokeWidth={3}
+                                                    fill="url(#scoreGradient)"
+                                                    dot={{ fill: '#a855f7', strokeWidth: 2, r: 5 }}
+                                                    activeDot={{ r: 7, fill: '#a855f7', stroke: 'white', strokeWidth: 2 }}
+                                                />
+                                            </AreaChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Core Competencies Radar Chart */}
+                            <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
+                                <h4 className="text-sm font-medium text-white/50 mb-4 flex items-center gap-2">
+                                    <Target className="w-4 h-4" />
+                                    Core Competencies
+                                </h4>
+                                <div className="h-48">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <RadarChart
+                                            data={[
+                                                { skill: 'Communication', value: data.cumulative.avg_communication_score * 10, fullMark: 100 },
+                                                { skill: 'Technical', value: data.cumulative.avg_technical_score * 10, fullMark: 100 },
+                                                { skill: 'Cultural Fit', value: data.cumulative.avg_cultural_fit_score * 10, fullMark: 100 },
+                                                { skill: 'Overall', value: data.cumulative.avg_overall_score, fullMark: 100 },
+                                            ]}
+                                            margin={{ top: 10, right: 30, bottom: 10, left: 30 }}
+                                        >
+                                            <PolarGrid stroke="rgba(255,255,255,0.1)" />
+                                            <PolarAngleAxis
+                                                dataKey="skill"
+                                                tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }}
+                                            />
+                                            <PolarRadiusAxis
+                                                angle={30}
+                                                domain={[0, 100]}
+                                                tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9 }}
+                                                axisLine={false}
+                                            />
+                                            <Radar
+                                                name="Score"
+                                                dataKey="value"
+                                                stroke="#22d3ee"
+                                                fill="#22d3ee"
+                                                fillOpacity={0.3}
+                                                strokeWidth={2}
+                                            />
+                                        </RadarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Score Comparison Bar Chart */}
+                        {data.rounds.length > 0 && data.rounds.some(r => r.candidate_analytics) && (
+                            <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05] mb-8">
+                                <h4 className="text-sm font-medium text-white/50 mb-4 flex items-center gap-2">
+                                    <BarChart3 className="w-4 h-4" />
+                                    Score Breakdown by Round
+                                </h4>
+                                <div className="h-64">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart
+                                            data={data.rounds
+                                                .filter(r => r.candidate_analytics)
+                                                .map((r, i) => ({
+                                                    name: `${r.stage.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}`,
+                                                    Communication: (r.candidate_analytics?.communication_score || 0) * 10,
+                                                    Technical: (r.candidate_analytics?.technical_score || 0) * 10,
+                                                    'Cultural Fit': (r.candidate_analytics?.cultural_fit_score || 0) * 10,
+                                                    Overall: r.candidate_analytics?.overall_score || 0,
+                                                }))}
+                                            margin={{ top: 20, right: 30, left: -10, bottom: 5 }}
+                                        >
+                                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                                            <XAxis
+                                                dataKey="name"
+                                                tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }}
+                                                axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+                                            />
+                                            <YAxis
+                                                domain={[0, 100]}
+                                                tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }}
+                                                axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+                                            />
+                                            <Tooltip
+                                                contentStyle={{
+                                                    backgroundColor: 'rgba(15, 15, 26, 0.95)',
+                                                    border: '1px solid rgba(255,255,255,0.1)',
+                                                    borderRadius: '12px',
+                                                    color: 'white',
+                                                }}
+                                                cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                                            />
+                                            <Legend
+                                                wrapperStyle={{ paddingTop: '10px' }}
+                                                formatter={(value) => <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '11px' }}>{value}</span>}
+                                            />
+                                            <Bar dataKey="Communication" fill="#a855f7" radius={[4, 4, 0, 0]} />
+                                            <Bar dataKey="Technical" fill="#22d3ee" radius={[4, 4, 0, 0]} />
+                                            <Bar dataKey="Cultural Fit" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                                            <Bar dataKey="Overall" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
                                 </div>
                             </div>
                         )}
@@ -855,6 +1005,155 @@ export default function CandidateAnalytics({ candidateId, candidateName }: Candi
                                     <MetricCard icon={Award} label="Leadership" value={selectedRoundData.candidate_analytics.leadership_potential} color={getScoreColor(selectedRoundData.candidate_analytics.leadership_potential * 10)} />
                                 )}
                             </div>
+
+                            {/* Visual Analytics Row */}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {/* Question Type Distribution */}
+                                {selectedRoundData.candidate_analytics.qa_pairs.length > 0 && (
+                                    <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
+                                        <h4 className="text-sm font-medium text-white/50 mb-4 flex items-center gap-2">
+                                            <PieChartIcon className="w-4 h-4" />
+                                            Question Distribution
+                                        </h4>
+                                        <div className="h-48">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <PieChart>
+                                                    <Pie
+                                                        data={(() => {
+                                                            const counts: Record<string, number> = {};
+                                                            selectedRoundData.candidate_analytics?.qa_pairs.forEach((qa) => {
+                                                                counts[qa.question_type] = (counts[qa.question_type] || 0) + 1;
+                                                            });
+                                                            return Object.entries(counts).map(([type, count]) => ({
+                                                                name: type.charAt(0).toUpperCase() + type.slice(1),
+                                                                value: count,
+                                                            }));
+                                                        })()}
+                                                        cx="50%"
+                                                        cy="50%"
+                                                        innerRadius={40}
+                                                        outerRadius={70}
+                                                        paddingAngle={3}
+                                                        dataKey="value"
+                                                    >
+                                                        {[
+                                                            { color: '#3b82f6' },
+                                                            { color: '#a855f7' },
+                                                            { color: '#f59e0b' },
+                                                            { color: '#22c55e' },
+                                                        ].map((entry, index) => (
+                                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                                        ))}
+                                                    </Pie>
+                                                    <Tooltip
+                                                        contentStyle={{
+                                                            backgroundColor: 'rgba(15, 15, 26, 0.95)',
+                                                            border: '1px solid rgba(255,255,255,0.1)',
+                                                            borderRadius: '12px',
+                                                            color: 'white',
+                                                        }}
+                                                    />
+                                                    <Legend
+                                                        formatter={(value) => <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '11px' }}>{value}</span>}
+                                                    />
+                                                </PieChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Score Radar for this round */}
+                                <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
+                                    <h4 className="text-sm font-medium text-white/50 mb-4 flex items-center gap-2">
+                                        <Target className="w-4 h-4" />
+                                        Competency Radar
+                                    </h4>
+                                    <div className="h-48">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <RadarChart
+                                                data={[
+                                                    { skill: 'Communication', value: selectedRoundData.candidate_analytics?.communication_score ? selectedRoundData.candidate_analytics.communication_score * 10 : 0 },
+                                                    { skill: 'Technical', value: selectedRoundData.candidate_analytics?.technical_score ? selectedRoundData.candidate_analytics.technical_score * 10 : 0 },
+                                                    { skill: 'Culture Fit', value: selectedRoundData.candidate_analytics?.cultural_fit_score ? selectedRoundData.candidate_analytics.cultural_fit_score * 10 : 0 },
+                                                    { skill: 'Leadership', value: selectedRoundData.candidate_analytics?.leadership_potential ? selectedRoundData.candidate_analytics.leadership_potential * 10 : 50 },
+                                                    { skill: 'Overall', value: selectedRoundData.candidate_analytics?.overall_score || 0 },
+                                                ]}
+                                                margin={{ top: 10, right: 30, bottom: 10, left: 30 }}
+                                            >
+                                                <PolarGrid stroke="rgba(255,255,255,0.1)" />
+                                                <PolarAngleAxis
+                                                    dataKey="skill"
+                                                    tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }}
+                                                />
+                                                <PolarRadiusAxis
+                                                    angle={30}
+                                                    domain={[0, 100]}
+                                                    tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9 }}
+                                                    axisLine={false}
+                                                />
+                                                <Radar
+                                                    name="Score"
+                                                    dataKey="value"
+                                                    stroke="#a855f7"
+                                                    fill="#a855f7"
+                                                    fillOpacity={0.3}
+                                                    strokeWidth={2}
+                                                />
+                                            </RadarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Answer Quality Distribution */}
+                            {selectedRoundData.candidate_analytics.qa_pairs.length > 0 && (
+                                <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
+                                    <h4 className="text-sm font-medium text-white/50 mb-4 flex items-center gap-2">
+                                        <BarChart3 className="w-4 h-4" />
+                                        Answer Quality by Question
+                                    </h4>
+                                    <div className="h-48">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart
+                                                data={selectedRoundData.candidate_analytics.qa_pairs.slice(0, 8).map((qa, i) => ({
+                                                    name: `Q${i + 1}`,
+                                                    Relevance: qa.metrics.relevance * 10,
+                                                    Clarity: qa.metrics.clarity * 10,
+                                                    Depth: qa.metrics.depth * 10,
+                                                }))}
+                                                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                                            >
+                                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                                                <XAxis
+                                                    dataKey="name"
+                                                    tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }}
+                                                    axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+                                                />
+                                                <YAxis
+                                                    domain={[0, 100]}
+                                                    tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }}
+                                                    axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+                                                />
+                                                <Tooltip
+                                                    contentStyle={{
+                                                        backgroundColor: 'rgba(15, 15, 26, 0.95)',
+                                                        border: '1px solid rgba(255,255,255,0.1)',
+                                                        borderRadius: '12px',
+                                                        color: 'white',
+                                                    }}
+                                                    cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                                                />
+                                                <Legend
+                                                    formatter={(value) => <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '11px' }}>{value}</span>}
+                                                />
+                                                <Bar dataKey="Relevance" fill="#22c55e" radius={[2, 2, 0, 0]} />
+                                                <Bar dataKey="Clarity" fill="#22d3ee" radius={[2, 2, 0, 0]} />
+                                                <Bar dataKey="Depth" fill="#a855f7" radius={[2, 2, 0, 0]} />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Communication Profile */}
                             {selectedRoundData.candidate_analytics.communication_profile && (
@@ -1169,6 +1468,150 @@ export default function CandidateAnalytics({ candidateId, candidateName }: Candi
                                 <MetricCard icon={Scale} label="Bias Score" value={selectedRoundData.interviewer_analytics.bias_score} subvalue="lower is better" color={selectedRoundData.interviewer_analytics.bias_score < 30 ? "green" : selectedRoundData.interviewer_analytics.bias_score < 60 ? "yellow" : "red"} />
                                 <MetricCard icon={Users} label="Candidate Exp." value={selectedRoundData.interviewer_analytics.candidate_experience_score} color={getScoreColor(selectedRoundData.interviewer_analytics.candidate_experience_score)} />
                             </div>
+
+                            {/* Interviewer Performance Charts */}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {/* Interviewer Metrics Radar */}
+                                <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
+                                    <h4 className="text-sm font-medium text-white/50 mb-4 flex items-center gap-2">
+                                        <Target className="w-4 h-4" />
+                                        Performance Radar
+                                    </h4>
+                                    <div className="h-48">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <RadarChart
+                                                data={[
+                                                    { metric: 'Question Quality', value: selectedRoundData.interviewer_analytics?.question_quality_score || 0 },
+                                                    { metric: 'Topic Coverage', value: selectedRoundData.interviewer_analytics?.topic_coverage_score || 0 },
+                                                    { metric: 'Consistency', value: selectedRoundData.interviewer_analytics?.consistency_score || 0 },
+                                                    { metric: 'Candidate Exp.', value: selectedRoundData.interviewer_analytics?.candidate_experience_score || 0 },
+                                                    { metric: 'Low Bias', value: 100 - (selectedRoundData.interviewer_analytics?.bias_score || 0) },
+                                                ]}
+                                                margin={{ top: 10, right: 30, bottom: 10, left: 30 }}
+                                            >
+                                                <PolarGrid stroke="rgba(255,255,255,0.1)" />
+                                                <PolarAngleAxis
+                                                    dataKey="metric"
+                                                    tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 9 }}
+                                                />
+                                                <PolarRadiusAxis
+                                                    angle={30}
+                                                    domain={[0, 100]}
+                                                    tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9 }}
+                                                    axisLine={false}
+                                                />
+                                                <Radar
+                                                    name="Score"
+                                                    dataKey="value"
+                                                    stroke="#22d3ee"
+                                                    fill="#22d3ee"
+                                                    fillOpacity={0.3}
+                                                    strokeWidth={2}
+                                                />
+                                            </RadarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+
+                                {/* Topic Coverage Breakdown */}
+                                {selectedRoundData.interviewer_analytics.topics_covered && (
+                                    <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
+                                        <h4 className="text-sm font-medium text-white/50 mb-4 flex items-center gap-2">
+                                            <PieChartIcon className="w-4 h-4" />
+                                            Topic Coverage
+                                        </h4>
+                                        <div className="h-48">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <PieChart>
+                                                    <Pie
+                                                        data={[
+                                                            { name: 'Technical', value: selectedRoundData.interviewer_analytics.topics_covered.technical },
+                                                            { name: 'Behavioral', value: selectedRoundData.interviewer_analytics.topics_covered.behavioral },
+                                                            { name: 'Culture Fit', value: selectedRoundData.interviewer_analytics.topics_covered.culture_fit },
+                                                            { name: 'Problem Solving', value: selectedRoundData.interviewer_analytics.topics_covered.problem_solving },
+                                                        ]}
+                                                        cx="50%"
+                                                        cy="50%"
+                                                        innerRadius={40}
+                                                        outerRadius={70}
+                                                        paddingAngle={3}
+                                                        dataKey="value"
+                                                    >
+                                                        <Cell fill="#3b82f6" />
+                                                        <Cell fill="#a855f7" />
+                                                        <Cell fill="#22c55e" />
+                                                        <Cell fill="#f59e0b" />
+                                                    </Pie>
+                                                    <Tooltip
+                                                        contentStyle={{
+                                                            backgroundColor: 'rgba(15, 15, 26, 0.95)',
+                                                            border: '1px solid rgba(255,255,255,0.1)',
+                                                            borderRadius: '12px',
+                                                            color: 'white',
+                                                        }}
+                                                        formatter={(value: number) => [`${value}%`, '']}
+                                                    />
+                                                    <Legend
+                                                        formatter={(value) => <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '11px' }}>{value}</span>}
+                                                    />
+                                                </PieChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Question Effectiveness Chart */}
+                            {selectedRoundData.interviewer_analytics.question_effectiveness && selectedRoundData.interviewer_analytics.question_effectiveness.length > 0 && (
+                                <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
+                                    <h4 className="text-sm font-medium text-white/50 mb-4 flex items-center gap-2">
+                                        <BarChart3 className="w-4 h-4" />
+                                        Question Effectiveness
+                                    </h4>
+                                    <div className="h-48">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart
+                                                data={selectedRoundData.interviewer_analytics.question_effectiveness.slice(0, 8).map((q, i) => ({
+                                                    name: `Q${i + 1}`,
+                                                    Effectiveness: q.effectiveness_score,
+                                                    fullQuestion: q.question,
+                                                }))}
+                                                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                                            >
+                                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                                                <XAxis
+                                                    dataKey="name"
+                                                    tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }}
+                                                    axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+                                                />
+                                                <YAxis
+                                                    domain={[0, 100]}
+                                                    tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }}
+                                                    axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+                                                />
+                                                <Tooltip
+                                                    contentStyle={{
+                                                        backgroundColor: 'rgba(15, 15, 26, 0.95)',
+                                                        border: '1px solid rgba(255,255,255,0.1)',
+                                                        borderRadius: '12px',
+                                                        color: 'white',
+                                                    }}
+                                                    cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                                                    formatter={(value: number, name: string, props: { payload?: { fullQuestion?: string } }) => [
+                                                        `${value}%`,
+                                                        props.payload?.fullQuestion?.slice(0, 50) + '...' || name
+                                                    ]}
+                                                />
+                                                <Bar
+                                                    dataKey="Effectiveness"
+                                                    fill="#22d3ee"
+                                                    radius={[4, 4, 0, 0]}
+                                                />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Interview Dynamics */}
                             {selectedRoundData.interviewer_analytics.interview_dynamics && (
