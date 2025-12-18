@@ -40,6 +40,7 @@ LIVEKIT_API_SECRET = os.getenv("LIVEKIT_API_SECRET")
 VAPI_API_KEY = os.getenv("VAPI_API_KEY")  # Private API key for server-side calls
 VAPI_PUBLIC_KEY = os.getenv("VAPI_PUBLIC_KEY")  # Public key for frontend SDK
 VAPI_ASSISTANT_ID = os.getenv("VAPI_ASSISTANT_ID")  # Pre-configured assistant ID from Vapi console
+VAPI_COACHING_ASSISTANT_ID = os.getenv("VAPI_COACHING_ASSISTANT_ID")  # Employer negotiation coach assistant
 
 # Deepgram (STT)
 DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")

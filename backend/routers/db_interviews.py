@@ -394,3 +394,172 @@ async def get_candidate_from_db(candidate_id: str):
     if not candidate:
         raise HTTPException(status_code=404, detail="Candidate not found")
     return candidate
+
+
+# ============================================================================
+# Transcript Management
+# ============================================================================
+
+class TranscriptTurn(BaseModel):
+    """A single turn in the conversation."""
+    speaker: str  # "interviewer" or "candidate"
+    text: str
+    timestamp: Optional[float] = None
+
+
+class PasteTranscriptRequest(BaseModel):
+    """Request to paste/upload a transcript."""
+    turns: List[TranscriptTurn]
+    full_text: Optional[str] = None
+
+
+class TranscriptResponse(BaseModel):
+    """Response after saving transcript."""
+    status: str
+    interview_id: str
+    turns_count: int
+    transcript_id: Optional[str] = None
+
+
+class CreateInterviewForTranscriptRequest(BaseModel):
+    """Request to create an interview for transcript upload."""
+    candidate_id: str
+    stage: str  # "round_1", "round_2", or "round_3"
+
+
+@router.post("/create-for-transcript")
+async def create_interview_for_transcript(
+    request: CreateInterviewForTranscriptRequest
+):
+    """
+    Create an interview record for uploading an external transcript.
+    Used when the interview was conducted outside the system.
+    """
+    # Validate candidate exists
+    candidate = candidate_repo.get_by_id(request.candidate_id)
+    if not candidate:
+        raise HTTPException(status_code=404, detail="Candidate not found")
+
+    # Validate stage
+    valid_stages = ["round_1", "round_2", "round_3"]
+    if request.stage not in valid_stages:
+        raise HTTPException(status_code=400, detail=f"Invalid stage. Must be one of: {valid_stages}")
+
+    # Check if interview already exists for this stage
+    existing_interviews = interview_repo.get_candidate_interviews(request.candidate_id)
+    for interview in existing_interviews:
+        if interview.get("stage") == request.stage:
+            return {
+                "status": "exists",
+                "interview_id": interview["id"],
+                "stage": request.stage,
+                "message": "Interview already exists for this stage"
+            }
+
+    # Create new interview
+    interview = interview_repo.create({
+        "candidate_id": request.candidate_id,
+        "stage": request.stage,
+        "status": "scheduled",
+        "interviewer_name": "External"
+    })
+
+    if not interview:
+        raise HTTPException(status_code=500, detail="Failed to create interview")
+
+    logger.info(f"Created interview for external transcript: {interview['id']} ({request.stage})")
+
+    return {
+        "status": "created",
+        "interview_id": interview["id"],
+        "stage": request.stage,
+        "room_name": interview.get("room_name")
+    }
+
+
+@router.post("/{interview_id}/paste-transcript")
+async def paste_transcript(
+    interview_id: str,
+    request: PasteTranscriptRequest
+) -> TranscriptResponse:
+    """
+    Save a pasted/uploaded transcript for an interview.
+    Used when the interview was conducted externally (Zoom, in-person, etc.)
+    and the transcript needs to be imported.
+    """
+    # Validate interview exists
+    interview = interview_repo.get_by_id(interview_id)
+    if not interview:
+        raise HTTPException(status_code=404, detail="Interview not found")
+
+    # Convert turns to dict format
+    turns_data = [
+        {
+            "speaker": turn.speaker,
+            "text": turn.text,
+            "timestamp": turn.timestamp or i
+        }
+        for i, turn in enumerate(request.turns)
+    ]
+
+    # Build full text if not provided
+    full_text = request.full_text or "\n".join([
+        f"{t['speaker']}: {t['text']}" for t in turns_data
+    ])
+
+    # Check if transcript already exists
+    existing = analytics_repo.get_transcript_by_interview(interview_id)
+
+    if existing:
+        # Update existing transcript
+        result = analytics_repo.update_transcript(interview_id, turns_data)
+        if not result:
+            raise HTTPException(status_code=500, detail="Failed to update transcript")
+        transcript_id = existing.get("id")
+    else:
+        # Create new transcript
+        result = analytics_repo.create_transcript(interview_id, turns_data, full_text)
+        if not result:
+            raise HTTPException(status_code=500, detail="Failed to save transcript")
+        transcript_id = result.get("id")
+
+    # Mark interview as completed if it was still scheduled/active
+    if interview.get("status") in ["scheduled", "active"]:
+        interview_repo.complete_interview(interview_id)
+
+        # Update candidate pipeline status
+        candidate_id = interview["candidate_id"]
+        if interview_repo.all_stages_complete(candidate_id):
+            candidate_repo.update_pipeline_status(candidate_id, "decision_pending")
+        else:
+            candidate_repo.update_pipeline_status(candidate_id, interview["stage"])
+
+    logger.info(f"Transcript pasted for interview {interview_id}: {len(turns_data)} turns")
+
+    return TranscriptResponse(
+        status="saved",
+        interview_id=interview_id,
+        turns_count=len(turns_data),
+        transcript_id=transcript_id
+    )
+
+
+@router.get("/{interview_id}/transcript")
+async def get_transcript(interview_id: str):
+    """
+    Get the transcript for an interview.
+    """
+    interview = interview_repo.get_by_id(interview_id)
+    if not interview:
+        raise HTTPException(status_code=404, detail="Interview not found")
+
+    transcript = analytics_repo.get_transcript_by_interview(interview_id)
+    if not transcript:
+        return {"interview_id": interview_id, "transcript": None, "has_transcript": False}
+
+    return {
+        "interview_id": interview_id,
+        "transcript": transcript,
+        "has_transcript": True,
+        "turns_count": len(transcript.get("turns", []))
+    }
