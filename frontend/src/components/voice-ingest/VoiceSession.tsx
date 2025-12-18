@@ -133,7 +133,19 @@ export default function VoiceSession({
 
                 vapi.on("error", (err: any) => {
                     console.error("[Vapi] Error:", err);
-                    const errorMsg = err?.message || err?.error?.message || "Voice call error";
+                    // Extract error message safely - ensure it's always a string
+                    let errorMsg = "Voice call error";
+                    if (typeof err === "string") {
+                        errorMsg = err;
+                    } else if (typeof err?.message === "string") {
+                        errorMsg = err.message;
+                    } else if (typeof err?.error?.message === "string") {
+                        errorMsg = err.error.message;
+                    } else if (typeof err?.error === "string") {
+                        errorMsg = err.error;
+                    } else if (err?.statusCode) {
+                        errorMsg = `Voice call error (status ${err.statusCode})`;
+                    }
                     setError(errorMsg);
                     setConnectionState("failed");
                 });
@@ -142,26 +154,28 @@ export default function VoiceSession({
                 console.log("[Vapi] Starting call with assistant:", assistantId, "sessionId:", sessionId);
 
                 try {
-                    // Pass metadata with sessionId so webhook knows which session to update
-                    const callOptions: any = {
+                    // Build assistantOverrides - Vapi SDK expects this directly as second argument
+                    // NOT wrapped in an object with metadata at root level
+                    const assistantOverrides: any = {
                         metadata: {
                             sessionId: sessionId,
                         }
                     };
 
-                    // Add assistantOverrides if provided
+                    // Merge with provided overrides if any
                     if (assistantConfig?.assistantOverrides) {
-                        callOptions.assistantOverrides = {
-                            ...assistantConfig.assistantOverrides,
-                            metadata: {
-                                ...assistantConfig.assistantOverrides.metadata,
-                                sessionId: sessionId,
-                            }
+                        // Copy all overrides
+                        Object.assign(assistantOverrides, assistantConfig.assistantOverrides);
+                        // Merge metadata (ensure sessionId is included)
+                        assistantOverrides.metadata = {
+                            ...assistantConfig.assistantOverrides.metadata,
+                            sessionId: sessionId,
                         };
                     }
 
-                    console.log("[Vapi] Call options:", JSON.stringify(callOptions, null, 2));
-                    await vapi.start(assistantId, callOptions);
+                    console.log("[Vapi] Assistant overrides:", JSON.stringify(assistantOverrides, null, 2));
+                    // Pass assistantOverrides directly as second argument (NOT wrapped in options object)
+                    await vapi.start(assistantId, assistantOverrides);
                     console.log("[Vapi] Call initiated successfully");
                 } catch (startErr: any) {
                     console.error("[Vapi] Start failed:", startErr);
@@ -170,7 +184,18 @@ export default function VoiceSession({
 
             } catch (err: any) {
                 console.error("[Vapi] Initialization error:", err);
-                setError(err?.message || "Failed to start voice call");
+                // Extract error message safely - ensure it's always a string
+                let errorMsg = "Failed to start voice call";
+                if (typeof err === "string") {
+                    errorMsg = err;
+                } else if (typeof err?.message === "string") {
+                    errorMsg = err.message;
+                } else if (typeof err?.error?.message === "string") {
+                    errorMsg = err.error.message;
+                } else if (typeof err?.error === "string") {
+                    errorMsg = err.error;
+                }
+                setError(errorMsg);
                 setConnectionState("failed");
             } finally {
                 isConnectingRef.current = false;

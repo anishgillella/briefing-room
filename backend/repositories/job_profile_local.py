@@ -159,6 +159,27 @@ class LocalJobProfileRepository:
             logger.error(f"Error updating job profile {profile_id}: {e}")
             return None
 
+    async def save(self, profile: JobProfile) -> Optional[JobProfile]:
+        """Save a job profile (create or update based on existence)."""
+        try:
+            profiles = self._load_all()
+            data = self._to_dict(profile)
+
+            if profile.id in profiles:
+                # Update existing
+                data["created_at"] = profiles[profile.id].get("created_at", datetime.utcnow().isoformat())
+            else:
+                # Create new
+                data["created_at"] = datetime.utcnow().isoformat()
+
+            data["updated_at"] = datetime.utcnow().isoformat()
+            profiles[profile.id] = data
+            self._save_all(profiles)
+            return self._from_dict(data)
+        except Exception as e:
+            logger.error(f"Error saving job profile {profile.id}: {e}")
+            return None
+
     async def delete(self, profile_id: str) -> bool:
         """Delete a job profile."""
         try:
