@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
 
 
-ANALYSIS_PROMPT = """You are an expert interview analyst. Analyze this interview transcript and interviewer's questions to provide detailed feedback.
+ANALYSIS_PROMPT = """You are a world-class interview analyst with deep expertise in hiring best practices, behavioral psychology, and organizational development. Analyze this interview transcript with the precision of a forensic examiner.
 
 ## Interview Transcript:
 {transcript}
@@ -23,32 +23,53 @@ ANALYSIS_PROMPT = """You are an expert interview analyst. Analyze this interview
 ## Questions Asked by Interviewer:
 {questions}
 
-## Your Task:
-Analyze the interviewer's performance comprehensively. Rate each area on a 0-100 scale:
+## Your Mission:
+Provide an exhaustive analysis of the interviewer's performance. Be specific, cite examples from the transcript, and deliver actionable insights.
 
-### Core Metrics (0-100):
-1. **Question Quality**: Relevance, depth, follow-up quality, open-ended vs closed
-2. **Topic Coverage**: How well they covered technical, behavioral, culture fit, and problem-solving areas
-3. **Consistency**: Interview structure, pacing, and scoring alignment
-4. **Bias Score**: 0 = no bias, higher = more concerning (leading questions, unfair assumptions)
-5. **Candidate Experience**: Rapport building, pace control, clarity, fairness
-6. **Overall Score**: Weighted composite score
+### CORE METRICS (0-100 scale, be precise):
 
-### Detailed Breakdowns:
-- Question Quality: relevance, depth, follow_up_quality scores
-- Topics Covered: technical, behavioral, culture_fit, problem_solving percentages
-- Bias Indicators: specific flags, severity level, sentiment balance
+1. **Question Quality Score**: Evaluate relevance to role, depth of probing, quality of follow-ups, ratio of open vs closed questions, clarity of phrasing
 
-### Additional Analysis:
-- Time management assessment
-- Active listening indicators
-- Probing technique quality
-- Professional communication score
-- Candidate engagement level observed
+2. **Topic Coverage Score**: How comprehensively did they cover:
+   - Technical competencies for the role
+   - Behavioral/situational scenarios
+   - Culture fit and values alignment
+   - Problem-solving and critical thinking
 
-Provide 3-5 specific, actionable improvement suggestions.
+3. **Consistency Score**: Structure, pacing, professional demeanor, fair treatment
 
-Return your analysis as valid JSON:
+4. **Bias Score** (0 = no bias, higher = more concerning): Look for leading questions, assumptions, stereotyping, unequal treatment, confirmation bias
+
+5. **Candidate Experience Score**: Rapport building, making candidate comfortable, clear communication, appropriate pace, respectful interaction
+
+6. **Overall Score**: Weighted composite reflecting interviewer effectiveness
+
+### INTERVIEW DYNAMICS ANALYSIS:
+- **Time Management**: Did they allocate time appropriately across topics?
+- **Active Listening**: Did they build on candidate responses or stick to script?
+- **Rapport Building**: How well did they create a comfortable environment?
+- **Interruptions**: Count any instances of cutting off the candidate
+- **Response Time**: Did they give adequate thinking time (rushed/appropriate/too_long)?
+
+### QUESTION-BY-QUESTION EFFECTIVENESS:
+For each major question, evaluate:
+- How effective was it at eliciting useful information?
+- What information did it reveal (high/medium/low/none)?
+- Could it have been asked better?
+
+### MISSED OPPORTUNITIES:
+Identify 2-3 moments where the candidate said something that warranted deeper probing but the interviewer moved on. What follow-up questions should have been asked?
+
+### COVERAGE GAPS:
+What critical topics for this role were NOT adequately explored?
+
+### INTERVIEWER STRENGTHS:
+What did this interviewer do particularly well? (3-5 specific strengths with examples)
+
+### DETAILED ASSESSMENT:
+Write a 2-3 paragraph narrative assessment of the interviewer's performance, as if writing a formal performance review.
+
+Return your analysis as valid JSON with this structure:
 {{
     "question_quality_score": <int 0-100>,
     "topic_coverage_score": <int 0-100>,
@@ -59,7 +80,9 @@ Return your analysis as valid JSON:
     "question_quality_breakdown": {{
         "relevance": <int 0-100>,
         "depth": <int 0-100>,
-        "follow_up_quality": <int 0-100>
+        "follow_up_quality": <int 0-100>,
+        "open_ended_ratio": <int 0-100>,
+        "clarity": <int 0-100>
     }},
     "topics_covered": {{
         "technical": <int 0-100>,
@@ -68,12 +91,37 @@ Return your analysis as valid JSON:
         "problem_solving": <int 0-100>
     }},
     "bias_indicators": {{
-        "flags": [<list of specific concerns or empty>],
+        "flags": [<list of specific concerns with quotes from transcript, or empty>],
         "severity": "none" | "low" | "medium" | "high",
         "sentiment_balance": <int 0-100, 50 = balanced>
     }},
-    "improvement_suggestions": [<3-5 specific, actionable suggestions>],
-    "summary": "<one-line performance summary>"
+    "interview_dynamics": {{
+        "time_management": <int 0-100>,
+        "active_listening_score": <int 0-100>,
+        "rapport_building": <int 0-100>,
+        "interruption_count": <int>,
+        "avg_response_wait_time": "rushed" | "appropriate" | "too_long"
+    }},
+    "question_effectiveness": [
+        {{
+            "question": "<the question asked>",
+            "effectiveness_score": <int 0-100>,
+            "information_elicited": "high" | "medium" | "low" | "none",
+            "better_alternative": "<suggested improvement or null>"
+        }}
+    ],
+    "missed_opportunities": [
+        {{
+            "topic": "<topic that needed deeper probing>",
+            "candidate_statement": "<what they said that warranted follow-up>",
+            "suggested_followup": "<question that should have been asked>"
+        }}
+    ],
+    "coverage_gaps": ["<critical topic 1 not covered>", "<critical topic 2>"],
+    "interviewer_strengths": ["<strength 1 with example>", "<strength 2>", "<strength 3>"],
+    "improvement_suggestions": ["<specific actionable suggestion 1>", "<suggestion 2>", "<suggestion 3>", "<suggestion 4>", "<suggestion 5>"],
+    "summary": "<one compelling sentence summarizing performance>",
+    "detailed_assessment": "<2-3 paragraph narrative assessment>"
 }}
 """
 
@@ -91,15 +139,17 @@ class InterviewerAnalyzer:
     async def analyze_interview(
         self,
         transcript: str,
-        questions: list[str]
+        questions: list[str],
+        interviewer_id: Optional[str] = None
     ) -> InterviewerAnalyticsResult:
         """
         Analyze an interview and return structured analytics.
-        
+
         Args:
             transcript: Full interview transcript
             questions: List of questions asked by interviewer
-            
+            interviewer_id: Optional ID of the interviewer (for tracking)
+
         Returns:
             InterviewerAnalyticsResult with all scores and breakdowns
         """
@@ -121,11 +171,11 @@ class InterviewerAnalyzer:
             response = await self.client.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {"role": "system", "content": "You are an expert interview analyst. Return only valid JSON."},
+                    {"role": "system", "content": "You are a world-class interview analyst. Return only valid JSON with comprehensive analysis."},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.3,
-                max_tokens=2000
+                max_tokens=6000
             )
             
             content = response.choices[0].message.content
@@ -154,8 +204,10 @@ class InterviewerAnalyzer:
 
     def _get_default_result(self, error_msg: str) -> InterviewerAnalyticsResult:
         """Return default result when analysis fails."""
-        from models.interviewer_analytics import QuestionQualityBreakdown, TopicCoverage, BiasIndicators
-        
+        from models.interviewer_analytics import (
+            QuestionQualityBreakdown, TopicCoverage, BiasIndicators, InterviewDynamics
+        )
+
         return InterviewerAnalyticsResult(
             question_quality_score=50,
             topic_coverage_score=50,
@@ -164,7 +216,7 @@ class InterviewerAnalyzer:
             candidate_experience_score=50,
             overall_score=50,
             question_quality_breakdown=QuestionQualityBreakdown(
-                relevance=50, depth=50, follow_up_quality=50
+                relevance=50, depth=50, follow_up_quality=50, open_ended_ratio=50, clarity=50
             ),
             topics_covered=TopicCoverage(
                 technical=50, behavioral=50, culture_fit=50, problem_solving=50
@@ -174,8 +226,17 @@ class InterviewerAnalyzer:
                 severity="none",
                 sentiment_balance=50
             ),
+            interview_dynamics=InterviewDynamics(
+                time_management=50, active_listening_score=50, rapport_building=50,
+                interruption_count=0, avg_response_wait_time="appropriate"
+            ),
+            missed_opportunities=[],
+            question_effectiveness=[],
+            coverage_gaps=[],
+            interviewer_strengths=[],
             improvement_suggestions=["Unable to generate suggestions - analysis failed"],
-            summary="Analysis incomplete"
+            summary="Analysis incomplete",
+            detailed_assessment=None
         )
 
 

@@ -94,6 +94,11 @@ export default function TranscriptPasteTab({
 
     // Smart parse using Gemini 2.5 Flash
     const handleSmartParse = async () => {
+        if (!selectedInterviewer) {
+            setError("Please select an interviewer before parsing. Interviewer selection is required for analytics.");
+            return;
+        }
+
         if (!transcriptText.trim()) {
             setError("Please paste a transcript");
             return;
@@ -317,106 +322,253 @@ export default function TranscriptPasteTab({
 
     // If analytics were generated, show results
     if (analyticsResult) {
-        const candAnalytics = analyticsResult.candidate_analytics as { overall?: { overall_score?: number; recommendation?: string; recommendation_reasoning?: string; highlights?: string[]; red_flags?: string[] }; qa_pairs?: { question: string; answer: string; metrics?: { relevance?: number; clarity?: number; depth?: number } }[] } | null;
-        const intAnalytics = analyticsResult.interviewer_analytics as { overall_score?: number; question_quality_score?: number; topic_coverage_score?: number; bias_score?: number; improvement_suggestions?: string[] } | null;
+        const candAnalytics = analyticsResult.candidate_analytics as {
+            overall?: { overall_score?: number; recommendation?: string; recommendation_reasoning?: string; highlights?: string[]; red_flags?: string[]; communication_score?: number; technical_score?: number; cultural_fit_score?: number };
+            qa_pairs?: { question: string; answer: string; metrics?: { relevance?: number; clarity?: number; depth?: number } }[];
+            executive_summary?: { one_liner?: string; three_strengths?: string[]; three_concerns?: string[] };
+            competency_evidence?: { competency: string; evidence_strength: string }[];
+        } | null;
+        const intAnalytics = analyticsResult.interviewer_analytics as {
+            overall_score?: number;
+            question_quality_score?: number;
+            topic_coverage_score?: number;
+            bias_score?: number;
+            candidate_experience_score?: number;
+            improvement_suggestions?: string[];
+            interviewer_strengths?: string[];
+            summary?: string;
+            interview_dynamics?: { time_management?: number; active_listening_score?: number; rapport_building?: number };
+        } | null;
+
+        const getScoreColor = (score: number) => {
+            if (score >= 80) return "text-green-400";
+            if (score >= 60) return "text-yellow-400";
+            return "text-red-400";
+        };
+
+        const getScoreBg = (score: number) => {
+            if (score >= 80) return "bg-green-500/20 border-green-500/30";
+            if (score >= 60) return "bg-yellow-500/20 border-yellow-500/30";
+            return "bg-red-500/20 border-red-500/30";
+        };
 
         return (
             <div className="animate-fade-in space-y-6">
+                {/* Header */}
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500/20 to-cyan-500/20 flex items-center justify-center">
-                            <BarChart3 className="w-6 h-6 text-purple-400" />
+                    <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500/30 to-cyan-500/30 flex items-center justify-center">
+                            <BarChart3 className="w-7 h-7 text-white" />
                         </div>
                         <div>
-                            <h3 className="text-lg font-medium text-white">Analytics Generated</h3>
+                            <h3 className="text-xl font-semibold text-white">Analytics Complete</h3>
                             <p className="text-sm text-white/50">{analyticsResult.message}</p>
                         </div>
                     </div>
                     <button
                         onClick={handleReset}
-                        className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sm text-white/70 transition-colors"
+                        className="px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sm text-white/70 transition-all hover:border-white/20"
                     >
                         Parse Another
                     </button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Candidate Analytics */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Candidate Analytics Card */}
                     {candAnalytics && (
-                        <div className="glass-panel rounded-2xl p-6 border border-blue-500/20 bg-blue-500/5">
-                            <h4 className="font-medium text-blue-300 mb-4 flex items-center gap-2">
-                                <User className="w-4 h-4" />
-                                Candidate Analytics
-                            </h4>
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-white/50 text-sm">Overall Score</span>
-                                    <span className="text-2xl font-bold text-blue-400">
-                                        {candAnalytics.overall?.overall_score || 0}
-                                    </span>
+                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1a1a2e] to-[#16162a] border border-purple-500/20 p-6">
+                            {/* Glow effect */}
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 blur-[60px] rounded-full" />
+
+                            <div className="relative">
+                                <div className="flex items-center gap-2 mb-6">
+                                    <User className="w-5 h-5 text-purple-400" />
+                                    <h4 className="font-semibold text-white">Candidate Analysis</h4>
                                 </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-white/50 text-sm">Recommendation</span>
-                                    <span className={`px-2 py-1 rounded text-xs font-medium ${
-                                        candAnalytics.overall?.recommendation?.includes('Hire') && !candAnalytics.overall?.recommendation?.includes('No')
-                                            ? 'bg-green-500/20 text-green-400'
-                                            : 'bg-red-500/20 text-red-400'
-                                    }`}>
-                                        {candAnalytics.overall?.recommendation || 'N/A'}
-                                    </span>
-                                </div>
-                                {candAnalytics.overall?.recommendation_reasoning && (
-                                    <p className="text-xs text-white/40 italic">
-                                        "{candAnalytics.overall.recommendation_reasoning}"
-                                    </p>
-                                )}
-                                {candAnalytics.qa_pairs && (
-                                    <div className="text-xs text-white/40 pt-2 border-t border-white/5">
-                                        {candAnalytics.qa_pairs.length} questions analyzed
+
+                                {/* Score Ring */}
+                                <div className="flex items-center gap-6 mb-6">
+                                    <div className="relative w-24 h-24">
+                                        <svg className="w-24 h-24 transform -rotate-90">
+                                            <circle cx="48" cy="48" r="40" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="6" />
+                                            <circle
+                                                cx="48" cy="48" r="40" fill="none"
+                                                stroke={candAnalytics.overall?.overall_score && candAnalytics.overall.overall_score >= 80 ? "#22c55e" : candAnalytics.overall?.overall_score && candAnalytics.overall.overall_score >= 60 ? "#eab308" : "#ef4444"}
+                                                strokeWidth="6"
+                                                strokeDasharray={251.2}
+                                                strokeDashoffset={251.2 - (251.2 * (candAnalytics.overall?.overall_score || 0)) / 100}
+                                                strokeLinecap="round"
+                                                className="transition-all duration-1000"
+                                            />
+                                        </svg>
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <span className={`text-2xl font-bold ${getScoreColor(candAnalytics.overall?.overall_score || 0)}`}>
+                                                {candAnalytics.overall?.overall_score || 0}
+                                            </span>
+                                        </div>
                                     </div>
-                                )}
+                                    <div className="flex-1">
+                                        <div className={`inline-flex px-3 py-1.5 rounded-lg text-sm font-medium border ${
+                                            candAnalytics.overall?.recommendation?.includes('Hire') && !candAnalytics.overall?.recommendation?.includes('No')
+                                                ? 'bg-green-500/20 text-green-400 border-green-500/30'
+                                                : candAnalytics.overall?.recommendation?.includes('Leaning Hire')
+                                                ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+                                                : 'bg-red-500/20 text-red-400 border-red-500/30'
+                                        }`}>
+                                            {candAnalytics.overall?.recommendation || 'N/A'}
+                                        </div>
+                                        {candAnalytics.executive_summary?.one_liner && (
+                                            <p className="text-xs text-white/50 mt-2 italic line-clamp-2">
+                                                &ldquo;{candAnalytics.executive_summary.one_liner}&rdquo;
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Mini Metrics */}
+                                <div className="grid grid-cols-3 gap-3 mb-4">
+                                    <div className="p-3 rounded-xl bg-white/5 text-center">
+                                        <div className={`text-lg font-bold ${getScoreColor((candAnalytics.overall?.communication_score || 0) * 10)}`}>
+                                            {candAnalytics.overall?.communication_score || 0}
+                                        </div>
+                                        <div className="text-[10px] text-white/40 uppercase">Comm</div>
+                                    </div>
+                                    <div className="p-3 rounded-xl bg-white/5 text-center">
+                                        <div className={`text-lg font-bold ${getScoreColor((candAnalytics.overall?.technical_score || 0) * 10)}`}>
+                                            {candAnalytics.overall?.technical_score || 0}
+                                        </div>
+                                        <div className="text-[10px] text-white/40 uppercase">Tech</div>
+                                    </div>
+                                    <div className="p-3 rounded-xl bg-white/5 text-center">
+                                        <div className={`text-lg font-bold ${getScoreColor((candAnalytics.overall?.cultural_fit_score || 0) * 10)}`}>
+                                            {candAnalytics.overall?.cultural_fit_score || 0}
+                                        </div>
+                                        <div className="text-[10px] text-white/40 uppercase">Culture</div>
+                                    </div>
+                                </div>
+
+                                {/* Quick Stats */}
+                                <div className="flex items-center justify-between text-xs text-white/40 pt-3 border-t border-white/5">
+                                    <span>{candAnalytics.qa_pairs?.length || 0} questions analyzed</span>
+                                    {candAnalytics.competency_evidence && (
+                                        <span>{candAnalytics.competency_evidence.length} competencies evaluated</span>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     )}
 
-                    {/* Interviewer Analytics */}
+                    {/* Interviewer Analytics Card */}
                     {intAnalytics && (
-                        <div className="glass-panel rounded-2xl p-6 border border-purple-500/20 bg-purple-500/5">
-                            <h4 className="font-medium text-purple-300 mb-4 flex items-center gap-2">
-                                <UserCircle className="w-4 h-4" />
-                                Interviewer Analytics
-                            </h4>
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-white/50 text-sm">Overall Score</span>
-                                    <span className="text-2xl font-bold text-purple-400">
-                                        {intAnalytics.overall_score || 0}
-                                    </span>
+                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1a1a2e] to-[#16162a] border border-cyan-500/20 p-6">
+                            {/* Glow effect */}
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 blur-[60px] rounded-full" />
+
+                            <div className="relative">
+                                <div className="flex items-center gap-2 mb-6">
+                                    <UserCircle className="w-5 h-5 text-cyan-400" />
+                                    <h4 className="font-semibold text-white">Interviewer Analysis</h4>
                                 </div>
-                                <div className="grid grid-cols-2 gap-2 text-xs">
-                                    <div>
-                                        <span className="text-white/40">Question Quality</span>
-                                        <div className="text-white font-medium">{intAnalytics.question_quality_score || 0}/100</div>
-                                    </div>
-                                    <div>
-                                        <span className="text-white/40">Topic Coverage</span>
-                                        <div className="text-white font-medium">{intAnalytics.topic_coverage_score || 0}/100</div>
-                                    </div>
-                                    <div>
-                                        <span className="text-white/40">Bias Score</span>
-                                        <div className={`font-medium ${(intAnalytics.bias_score || 0) < 20 ? 'text-green-400' : 'text-yellow-400'}`}>
-                                            {intAnalytics.bias_score || 0}/100
+
+                                {/* Score Ring */}
+                                <div className="flex items-center gap-6 mb-6">
+                                    <div className="relative w-24 h-24">
+                                        <svg className="w-24 h-24 transform -rotate-90">
+                                            <circle cx="48" cy="48" r="40" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="6" />
+                                            <circle
+                                                cx="48" cy="48" r="40" fill="none"
+                                                stroke={intAnalytics.overall_score && intAnalytics.overall_score >= 80 ? "#22c55e" : intAnalytics.overall_score && intAnalytics.overall_score >= 60 ? "#eab308" : "#ef4444"}
+                                                strokeWidth="6"
+                                                strokeDasharray={251.2}
+                                                strokeDashoffset={251.2 - (251.2 * (intAnalytics.overall_score || 0)) / 100}
+                                                strokeLinecap="round"
+                                                className="transition-all duration-1000"
+                                            />
+                                        </svg>
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <span className={`text-2xl font-bold ${getScoreColor(intAnalytics.overall_score || 0)}`}>
+                                                {intAnalytics.overall_score || 0}
+                                            </span>
                                         </div>
                                     </div>
+                                    <div className="flex-1">
+                                        {intAnalytics.summary && (
+                                            <p className="text-sm text-white/70 line-clamp-3">
+                                                {intAnalytics.summary}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
-                                {intAnalytics.improvement_suggestions && intAnalytics.improvement_suggestions.length > 0 && (
-                                    <div className="text-xs text-white/40 pt-2 border-t border-white/5">
-                                        {intAnalytics.improvement_suggestions.length} improvement suggestions
+
+                                {/* Mini Metrics */}
+                                <div className="grid grid-cols-4 gap-2 mb-4">
+                                    <div className="p-2.5 rounded-xl bg-white/5 text-center">
+                                        <div className={`text-base font-bold ${getScoreColor(intAnalytics.question_quality_score || 0)}`}>
+                                            {intAnalytics.question_quality_score || 0}
+                                        </div>
+                                        <div className="text-[9px] text-white/40 uppercase">Quality</div>
+                                    </div>
+                                    <div className="p-2.5 rounded-xl bg-white/5 text-center">
+                                        <div className={`text-base font-bold ${getScoreColor(intAnalytics.topic_coverage_score || 0)}`}>
+                                            {intAnalytics.topic_coverage_score || 0}
+                                        </div>
+                                        <div className="text-[9px] text-white/40 uppercase">Coverage</div>
+                                    </div>
+                                    <div className="p-2.5 rounded-xl bg-white/5 text-center">
+                                        <div className={`text-base font-bold ${(intAnalytics.bias_score || 0) < 30 ? 'text-green-400' : (intAnalytics.bias_score || 0) < 60 ? 'text-yellow-400' : 'text-red-400'}`}>
+                                            {intAnalytics.bias_score || 0}
+                                        </div>
+                                        <div className="text-[9px] text-white/40 uppercase">Bias</div>
+                                    </div>
+                                    <div className="p-2.5 rounded-xl bg-white/5 text-center">
+                                        <div className={`text-base font-bold ${getScoreColor(intAnalytics.candidate_experience_score || 0)}`}>
+                                            {intAnalytics.candidate_experience_score || 0}
+                                        </div>
+                                        <div className="text-[9px] text-white/40 uppercase">Exp</div>
+                                    </div>
+                                </div>
+
+                                {/* Dynamics if available */}
+                                {intAnalytics.interview_dynamics && (
+                                    <div className="grid grid-cols-3 gap-2 mb-4 pt-3 border-t border-white/5">
+                                        <div className="text-center">
+                                            <div className="text-xs text-white/40">Time Mgmt</div>
+                                            <div className={`text-sm font-medium ${getScoreColor(intAnalytics.interview_dynamics.time_management || 0)}`}>
+                                                {intAnalytics.interview_dynamics.time_management || 0}
+                                            </div>
+                                        </div>
+                                        <div className="text-center">
+                                            <div className="text-xs text-white/40">Listening</div>
+                                            <div className={`text-sm font-medium ${getScoreColor(intAnalytics.interview_dynamics.active_listening_score || 0)}`}>
+                                                {intAnalytics.interview_dynamics.active_listening_score || 0}
+                                            </div>
+                                        </div>
+                                        <div className="text-center">
+                                            <div className="text-xs text-white/40">Rapport</div>
+                                            <div className={`text-sm font-medium ${getScoreColor(intAnalytics.interview_dynamics.rapport_building || 0)}`}>
+                                                {intAnalytics.interview_dynamics.rapport_building || 0}
+                                            </div>
+                                        </div>
                                     </div>
                                 )}
+
+                                {/* Quick Stats */}
+                                <div className="flex items-center justify-between text-xs text-white/40 pt-3 border-t border-white/5">
+                                    <span>{intAnalytics.improvement_suggestions?.length || 0} suggestions</span>
+                                    {intAnalytics.interviewer_strengths && (
+                                        <span>{intAnalytics.interviewer_strengths.length} strengths identified</span>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     )}
+                </div>
+
+                {/* View Full Analytics Link */}
+                <div className="text-center pt-2">
+                    <p className="text-sm text-white/40">
+                        View the full analytics on the candidate&apos;s Analytics tab for comprehensive insights
+                    </p>
                 </div>
             </div>
         );
@@ -702,13 +854,18 @@ Interviewer: That's great. What attracted you to this role?`}
                             <div className="mt-4">
                                 <button
                                     onClick={handleSmartParse}
-                                    disabled={!transcriptText.trim() || isParsing}
+                                    disabled={!transcriptText.trim() || isParsing || !selectedInterviewer}
                                     className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-cyan-600 text-white font-semibold hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
                                     {isParsing ? (
                                         <>
                                             <Loader2 className="w-4 h-4 animate-spin" />
                                             AI Parsing...
+                                        </>
+                                    ) : !selectedInterviewer ? (
+                                        <>
+                                            <UserCircle className="w-4 h-4" />
+                                            Select Interviewer First
                                         </>
                                     ) : (
                                         <>
@@ -725,15 +882,22 @@ Interviewer: That's great. What attracted you to this role?`}
                 {/* Info Panel */}
                 <div className="space-y-4">
                     {/* Interviewer Selector */}
-                    <div className="glass-panel rounded-2xl p-6 border border-orange-500/20 bg-orange-500/5">
-                        <h4 className="font-medium text-orange-300 mb-3 text-sm uppercase tracking-wider flex items-center gap-2">
+                    <div className={`glass-panel rounded-2xl p-6 border ${selectedInterviewer ? 'border-green-500/30 bg-green-500/5' : 'border-orange-500/30 bg-orange-500/5'}`}>
+                        <h4 className={`font-medium mb-3 text-sm uppercase tracking-wider flex items-center gap-2 ${selectedInterviewer ? 'text-green-300' : 'text-orange-300'}`}>
                             <UserCircle className="w-4 h-4" />
                             Select Interviewer
+                            <span className="text-red-400 text-xs normal-case">(Required)</span>
                         </h4>
                         <p className="text-xs text-orange-400/60 mb-3">
-                            Select who conducted this interview for analytics
+                            Select who conducted this interview to enable interviewer analytics
                         </p>
                         {renderInterviewerDropdown()}
+                        {!selectedInterviewer && (
+                            <p className="text-xs text-yellow-400/80 mt-2 flex items-center gap-1">
+                                <AlertCircle className="w-3 h-3" />
+                                Required before parsing transcript
+                            </p>
+                        )}
                     </div>
 
                     {/* AI Features */}
