@@ -704,82 +704,147 @@ async def generate_transcript_analytics(
     context = "\n\n".join(context_parts)
 
     # =====================
-    # Generate Candidate Analytics using the existing prompt
+    # Generate Candidate Analytics using comprehensive prompt
     # =====================
-    ANALYTICS_SYSTEM_PROMPT = """You are an expert interview analyst. Your task is to analyze an interview transcript and provide structured metrics.
+    ANALYTICS_SYSTEM_PROMPT = """You are a world-class talent assessment specialist with expertise in behavioral psychology, competency-based interviewing, and predictive hiring analytics. Your analysis will directly influence hiring decisions worth hundreds of thousands of dollars.
 
-Given:
-- Job Description (if provided): Expectations for the role
-- Candidate Resume (if provided): Their background and experience
-- Interview Transcript: The conversation between interviewer and candidate
+Your task: Perform an exhaustive, forensic-level analysis of this interview transcript. Be specific, cite direct quotes, and provide actionable intelligence.
 
-Your analysis should:
-1. Extract ALL question-answer pairs from the transcript
-2. Classify each question as: technical, behavioral, situational, or other
-3. Score each answer (0-10) on:
-   - Relevance: Did they answer what was asked?
-   - Clarity: Was the response structured and easy to follow?
-   - Depth: Surface-level vs thorough exploration?
-   - Type-specific metric:
-     * For behavioral: "STAR Adherence" (Situation-Task-Action-Result)
-     * For technical: "Technical Accuracy"
-     * For situational: "Problem-Solving"
-     * For other: "Completeness"
-4. Calculate overall metrics
-5. Identify red flags (concerns) and highlights (standout moments)
-6. Provide a hiring recommendation with confidence level
+Key principles:
+- Extract EVERY meaningful data point from the transcript
+- Support all assessments with evidence from the transcript
+- Be calibrated: 9-10 = exceptional (top 5%), 7-8 = strong (top 25%), 5-6 = average, 3-4 = below average, 1-2 = poor
+- Identify both surface-level and subtle signals
+- Consider what the candidate DIDN'T say as much as what they did say"""
 
-Be fair but rigorous. Excellent answers get 9-10, good answers 7-8, average 5-6, below average 3-4, poor 1-2."""
-
-    ANALYTICS_USER_PROMPT = f"""Please analyze this interview:
-
+    ANALYTICS_USER_PROMPT = f"""## Context
 {context}
 
-## Interview Transcript:
+## Interview Transcript
 {transcript_text}
 
-Respond with a JSON object matching this exact structure:
+## Your Mission
+Perform a comprehensive candidate assessment. Analyze every response for explicit AND implicit signals.
+
+Return a JSON object with this exact structure:
+
 {{
   "qa_pairs": [
     {{
-      "question": "The question asked",
-      "answer": "Summary of candidate's response (max 200 words)",
+      "question": "The exact question asked",
+      "answer": "Comprehensive summary of candidate's response",
       "question_type": "technical|behavioral|situational|other",
       "metrics": {{
-        "relevance": 0-10,
-        "clarity": 0-10,
-        "depth": 0-10,
-        "type_specific_metric": 0-10,
+        "relevance": <0-10>,
+        "clarity": <0-10>,
+        "depth": <0-10>,
+        "type_specific_metric": <0-10>,
         "type_specific_label": "STAR Adherence|Technical Accuracy|Problem-Solving|Completeness"
       }},
-      "highlight": "Notable quote or null if not standout"
+      "star_breakdown": {{
+        "situation": <0-10 or null if not behavioral>,
+        "task": <0-10 or null>,
+        "action": <0-10 or null>,
+        "result": <0-10 or null>
+      }},
+      "highlight": "Notable quote or null",
+      "concern": "Any concern with this answer or null",
+      "follow_up_needed": "What should be asked next to clarify, or null"
     }}
   ],
+
   "overall": {{
-    "overall_score": 0-100,
-    "communication_score": 0.0-10.0,
-    "technical_score": 0.0-10.0,
-    "cultural_fit_score": 0.0-10.0,
-    "total_questions": number,
-    "avg_response_length": number,
-    "red_flags": ["concern 1", "concern 2"],
-    "highlights": ["strength 1", "strength 2"],
+    "overall_score": <0-100>,
+    "communication_score": <0.0-10.0>,
+    "technical_score": <0.0-10.0>,
+    "cultural_fit_score": <0.0-10.0>,
+    "problem_solving_score": <0.0-10.0>,
+    "leadership_potential": <0.0-10.0>,
+    "total_questions": <number>,
+    "avg_response_length": <number>,
+    "red_flags": ["specific concern with evidence"],
+    "highlights": ["specific strength with evidence"],
     "recommendation": "Strong Hire|Hire|Leaning Hire|Leaning No Hire|No Hire",
-    "recommendation_reasoning": "1-2 sentence explanation",
-    "confidence": 0-100
+    "recommendation_reasoning": "2-3 sentence explanation with specific evidence",
+    "confidence": <0-100>
   }},
+
+  "communication_profile": {{
+    "articulation_score": <0-100>,
+    "conciseness_score": <0-100>,
+    "structure_score": <0-100>,
+    "vocabulary_level": "basic|intermediate|advanced|expert",
+    "filler_word_frequency": "none|low|moderate|high",
+    "confidence_indicators": "low|moderate|high|very_high",
+    "active_listening_signals": ["examples of building on interviewer questions"],
+    "communication_style": "analytical|driver|expressive|amiable"
+  }},
+
+  "competency_evidence": [
+    {{
+      "competency": "Name of skill/competency",
+      "evidence_strength": "none|weak|moderate|strong|exceptional",
+      "evidence_quotes": ["direct quote 1", "direct quote 2"],
+      "assessment": "Brief assessment of this competency"
+    }}
+  ],
+
+  "behavioral_profile": {{
+    "work_style": "independent|collaborative|flexible",
+    "decision_making": "analytical|intuitive|consultative|directive",
+    "conflict_approach": "avoiding|accommodating|competing|collaborating|compromising",
+    "stress_indicators": ["any signs of stress or discomfort"],
+    "authenticity_score": <0-100>,
+    "self_awareness_score": <0-100>,
+    "growth_mindset_indicators": ["evidence of growth mindset"]
+  }},
+
+  "risk_assessment": {{
+    "flight_risk": "low|medium|high",
+    "flight_risk_evidence": ["reasons for assessment"],
+    "performance_risk": "low|medium|high",
+    "performance_risk_evidence": ["reasons for assessment"],
+    "culture_fit_risk": "low|medium|high",
+    "culture_fit_evidence": ["reasons for assessment"],
+    "verification_needed": ["claims that should be verified"]
+  }},
+
+  "response_patterns": {{
+    "avg_response_time_feel": "quick|measured|slow",
+    "consistency_across_topics": <0-100>,
+    "depth_variation": "consistent|varies_by_topic|inconsistent",
+    "strongest_topic_area": "area where candidate performed best",
+    "weakest_topic_area": "area where candidate struggled",
+    "evasive_moments": ["topics where candidate seemed to deflect"]
+  }},
+
   "highlights": {{
     "best_answer": {{
+      "question": "The question that got the best answer",
       "quote": "Direct quote from their best response",
-      "context": "Why this answer was strong"
+      "why_impressive": "Why this answer stood out"
     }},
-    "red_flag": null,
-    "quotable_moment": "A memorable quote",
-    "areas_to_probe": ["Topic 1", "Topic 2"]
+    "worst_answer": {{
+      "question": "The question with weakest answer",
+      "issue": "What was wrong with the answer",
+      "impact": "How this affects assessment"
+    }},
+    "quotable_moments": ["memorable quotes"],
+    "unexpected_strengths": ["strengths that weren't expected"],
+    "areas_to_probe": ["topics needing deeper exploration in next round"]
+  }},
+
+  "executive_summary": {{
+    "one_liner": "One sentence candidate summary for busy executives",
+    "three_strengths": ["strength 1", "strength 2", "strength 3"],
+    "three_concerns": ["concern 1", "concern 2", "concern 3"],
+    "ideal_role_fit": "What role/team would be ideal for this candidate",
+    "development_areas": ["areas where candidate would need coaching"],
+    "comparison_to_bar": "How does this candidate compare to your ideal hire: below|meets|exceeds"
   }}
 }}
 
-Return ONLY valid JSON, no markdown code blocks."""
+IMPORTANT: Return ONLY valid JSON. No markdown, no code blocks, no explanatory text."""
 
     candidate_analytics = None
     interviewer_analytics = None
@@ -802,7 +867,7 @@ Return ONLY valid JSON, no markdown code blocks."""
                         {"role": "user", "content": ANALYTICS_USER_PROMPT}
                     ],
                     "temperature": 0.3,
-                    "max_tokens": 4000,
+                    "max_tokens": 8000,
                     "response_format": {"type": "json_object"}
                 }
             )
