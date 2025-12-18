@@ -444,16 +444,62 @@ const SectionHeader = ({ icon: Icon, title, subtitle, action }: {
 // Main Component
 // ============================================================================
 
+interface Interviewer {
+    id: string;
+    name: string;
+}
+
 export default function CandidateAnalytics({ candidateId, candidateName }: CandidateAnalyticsProps) {
     const [data, setData] = useState<AnalyticsData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedRound, setSelectedRound] = useState<string | null>(null);
     const [activeView, setActiveView] = useState<"candidate" | "interviewer">("candidate");
+    const [interviewers, setInterviewers] = useState<Interviewer[]>([]);
+    const [selectedInterviewerForRegen, setSelectedInterviewerForRegen] = useState<string>("");
+    const [regenerating, setRegenerating] = useState(false);
+    const [regenError, setRegenError] = useState<string | null>(null);
 
     useEffect(() => {
         fetchAnalytics();
+        fetchInterviewers();
     }, [candidateId, candidateName]);
+
+    const fetchInterviewers = async () => {
+        try {
+            const res = await fetch(`${API_URL}/api/interviews/interviewers`);
+            if (res.ok) {
+                const data = await res.json();
+                setInterviewers(data.interviewers || []);
+            }
+        } catch (e) {
+            console.error("Failed to fetch interviewers", e);
+        }
+    };
+
+    const regenerateInterviewerAnalytics = async (interviewId: string, interviewerId: string) => {
+        setRegenerating(true);
+        setRegenError(null);
+        try {
+            const res = await fetch(`${API_URL}/api/interviews/${interviewId}/regenerate-interviewer-analytics`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ interviewer_id: interviewerId }),
+            });
+
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.detail || "Failed to regenerate");
+            }
+
+            // Refresh analytics data
+            await fetchAnalytics();
+        } catch (e) {
+            setRegenError(e instanceof Error ? e.message : "Failed to regenerate analytics");
+        } finally {
+            setRegenerating(false);
+        }
+    };
 
     const fetchAnalytics = async () => {
         setLoading(true);
@@ -1721,16 +1767,68 @@ export default function CandidateAnalytics({ candidateId, candidateName }: Candi
                         </div>
                     )}
 
-                    {/* No Interviewer Analytics */}
+                    {/* No Interviewer Analytics - Show regeneration UI */}
                     {activeView === "interviewer" && !selectedRoundData.interviewer_analytics && (
-                        <div className="flex flex-col items-center justify-center py-20">
-                            <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
-                                <UserCircle className="w-8 h-8 text-white/20" />
+                        <div className="flex flex-col items-center justify-center py-16">
+                            <div className="w-20 h-20 rounded-full bg-cyan-500/10 flex items-center justify-center mb-6">
+                                <UserCircle className="w-10 h-10 text-cyan-400/50" />
                             </div>
-                            <h3 className="text-lg font-medium text-white/60 mb-2">No Interviewer Analytics</h3>
-                            <p className="text-white/40 text-sm text-center max-w-md">
-                                Interviewer analytics weren&apos;t generated for this round. Make sure an interviewer was selected when the transcript was uploaded.
+                            <h3 className="text-xl font-medium text-white mb-2">No Interviewer Analytics</h3>
+                            <p className="text-white/40 text-sm text-center max-w-md mb-8">
+                                Interviewer analytics weren&apos;t generated for this round. Select an interviewer below to generate them now.
                             </p>
+
+                            {/* Regeneration Form */}
+                            <div className="w-full max-w-md p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
+                                <h4 className="text-sm font-medium text-white/70 mb-4">Generate Interviewer Analytics</h4>
+
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="text-xs text-white/40 mb-2 block">Select Interviewer</label>
+                                        <select
+                                            value={selectedInterviewerForRegen}
+                                            onChange={(e) => setSelectedInterviewerForRegen(e.target.value)}
+                                            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50 transition-colors"
+                                        >
+                                            <option value="" className="bg-[#1a1a2e]">Choose interviewer...</option>
+                                            {interviewers.map((int) => (
+                                                <option key={int.id} value={int.id} className="bg-[#1a1a2e]">
+                                                    {int.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    {regenError && (
+                                        <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-2">
+                                            <AlertCircle className="w-4 h-4" />
+                                            {regenError}
+                                        </div>
+                                    )}
+
+                                    <button
+                                        onClick={() => {
+                                            if (selectedInterviewerForRegen && selectedRound) {
+                                                regenerateInterviewerAnalytics(selectedRound, selectedInterviewerForRegen);
+                                            }
+                                        }}
+                                        disabled={!selectedInterviewerForRegen || regenerating}
+                                        className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-purple-600 text-white font-medium hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                    >
+                                        {regenerating ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                Generating Analytics...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Brain className="w-4 h-4" />
+                                                Generate Interviewer Analytics
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>

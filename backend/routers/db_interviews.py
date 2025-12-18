@@ -949,6 +949,82 @@ IMPORTANT: Return ONLY valid JSON. No markdown, no code blocks, no explanatory t
 
 
 # ============================================================================
+# Regenerate Interviewer Analytics for Existing Interview
+# ============================================================================
+
+class RegenerateInterviewerAnalyticsRequest(BaseModel):
+    interviewer_id: str
+
+
+@router.post("/{interview_id}/regenerate-interviewer-analytics")
+async def regenerate_interviewer_analytics(
+    interview_id: str,
+    request: RegenerateInterviewerAnalyticsRequest
+):
+    """
+    Regenerate interviewer analytics for an existing interview.
+    Use this when an interview was completed without selecting an interviewer,
+    or when you want to re-analyze with a different interviewer.
+    """
+    # Get the interview
+    interview = interview_repo.get_interview(interview_id)
+    if not interview:
+        raise HTTPException(status_code=404, detail="Interview not found")
+
+    # Get the transcript
+    turns = interview.get("transcript_turns") or []
+    if not turns:
+        raise HTTPException(status_code=400, detail="Interview has no transcript")
+
+    # Build transcript text
+    transcript_text = "\n".join([
+        f"{t.get('speaker', 'unknown').title()}: {t.get('text', '')}"
+        for t in turns
+    ])
+
+    # Update the interview with the interviewer_id
+    interview_repo.update_interview(interview_id, {"interviewer_id": request.interviewer_id})
+
+    # Generate interviewer analytics
+    interviewer_analytics = None
+    try:
+        analyzer = get_interviewer_analyzer()
+
+        # Extract questions from transcript
+        questions = [t.get("text", "") for t in turns if t.get("speaker") == "interviewer"]
+
+        result = await analyzer.analyze_interview(
+            transcript=transcript_text,
+            questions=questions,
+            interviewer_id=request.interviewer_id
+        )
+
+        if result:
+            interviewer_analytics = result.model_dump()
+
+            # Save to database
+            interviewer_analytics_repo.save_analytics(
+                interview_id=interview_id,
+                interviewer_id=request.interviewer_id,
+                analytics=result
+            )
+            logger.info(f"Regenerated interviewer analytics for interview {interview_id}")
+
+    except Exception as e:
+        logger.error(f"Error regenerating interviewer analytics: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate analytics: {str(e)}")
+
+    if interviewer_analytics:
+        return {
+            "status": "success",
+            "message": "Interviewer analytics regenerated successfully",
+            "interviewer_analytics": interviewer_analytics
+        }
+    else:
+        raise HTTPException(status_code=500, detail="Failed to generate interviewer analytics")
+
+
+# ============================================================================
 # Candidate Analytics (All Rounds + Cumulative)
 # ============================================================================
 
