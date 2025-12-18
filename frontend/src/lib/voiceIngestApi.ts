@@ -134,6 +134,10 @@ export interface VapiCallResponse {
     vapi_public_key: string;
     assistant_id?: string;
     session_id: string;
+    assistant_overrides?: {
+        variableValues?: Record<string, string>;
+        firstMessage?: string;
+    };
     error?: string;
 }
 
