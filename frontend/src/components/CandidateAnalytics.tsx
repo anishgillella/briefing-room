@@ -477,14 +477,15 @@ export default function CandidateAnalytics({ candidateId, candidateName }: Candi
         }
     };
 
-    const regenerateInterviewerAnalytics = async (interviewId: string, interviewerId: string) => {
+    const regenerateInterviewerAnalytics = async (interviewId: string, interviewerId?: string) => {
         setRegenerating(true);
         setRegenError(null);
         try {
             const res = await fetch(`${API_URL}/api/interviews/${interviewId}/regenerate-interviewer-analytics`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ interviewer_id: interviewerId }),
+                // Only send interviewer_id if explicitly provided (for overriding)
+                body: JSON.stringify(interviewerId ? { interviewer_id: interviewerId } : {}),
             });
 
             if (!res.ok) {
@@ -1493,24 +1494,48 @@ export default function CandidateAnalytics({ candidateId, candidateName }: Candi
                     {/* ============================================================ */}
                     {activeView === "interviewer" && selectedRoundData.interviewer_analytics && (
                         <div className="space-y-6">
-                            {/* Detailed Assessment */}
-                            {selectedRoundData.interviewer_analytics.detailed_assessment && (
-                                <div className="p-6 rounded-2xl bg-gradient-to-br from-cyan-500/5 to-purple-500/5 border border-white/[0.05]">
-                                    <SectionHeader icon={Brain} title="Performance Assessment" />
-                                    <p className="text-white/70 leading-relaxed whitespace-pre-line">
-                                        {selectedRoundData.interviewer_analytics.detailed_assessment}
-                                    </p>
+                            {/* Executive Summary Card */}
+                            <div className="p-6 rounded-2xl bg-gradient-to-br from-cyan-500/10 via-purple-500/5 to-cyan-500/10 border border-cyan-500/20">
+                                <div className="flex items-start gap-6">
+                                    <div className="flex-shrink-0">
+                                        <ScoreRing score={selectedRoundData.interviewer_analytics.overall_score} size={120} strokeWidth={10} />
+                                        <div className="text-center mt-2 text-sm text-white/50">Overall Score</div>
+                                    </div>
+                                    <div className="flex-1">
+                                        <h3 className="text-lg font-semibold text-white mb-2">Interviewer Performance Summary</h3>
+                                        {selectedRoundData.interviewer_analytics.detailed_assessment ? (
+                                            <p className="text-white/70 leading-relaxed text-sm line-clamp-4">
+                                                {selectedRoundData.interviewer_analytics.detailed_assessment}
+                                            </p>
+                                        ) : (
+                                            <p className="text-white/50 italic text-sm">
+                                                {selectedRoundData.interviewer_analytics.summary_line || "Analysis complete. Review detailed metrics below."}
+                                            </p>
+                                        )}
+                                        {/* Quick Stats Row */}
+                                        <div className="flex flex-wrap gap-4 mt-4">
+                                            <div className="flex items-center gap-2">
+                                                <div className={`w-2 h-2 rounded-full ${selectedRoundData.interviewer_analytics.question_quality_score >= 80 ? 'bg-green-400' : selectedRoundData.interviewer_analytics.question_quality_score >= 60 ? 'bg-yellow-400' : 'bg-red-400'}`} />
+                                                <span className="text-xs text-white/50">Question Quality: <span className="text-white font-medium">{selectedRoundData.interviewer_analytics.question_quality_score}</span></span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <div className={`w-2 h-2 rounded-full ${selectedRoundData.interviewer_analytics.bias_score < 30 ? 'bg-green-400' : selectedRoundData.interviewer_analytics.bias_score < 60 ? 'bg-yellow-400' : 'bg-red-400'}`} />
+                                                <span className="text-xs text-white/50">Bias: <span className="text-white font-medium">{selectedRoundData.interviewer_analytics.bias_score}</span></span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <div className={`w-2 h-2 rounded-full ${selectedRoundData.interviewer_analytics.candidate_experience_score >= 80 ? 'bg-green-400' : selectedRoundData.interviewer_analytics.candidate_experience_score >= 60 ? 'bg-yellow-400' : 'bg-red-400'}`} />
+                                                <span className="text-xs text-white/50">Candidate Exp: <span className="text-white font-medium">{selectedRoundData.interviewer_analytics.candidate_experience_score}</span></span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                            )}
+                            </div>
 
-                            {/* Core Scores */}
-                            <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-                                <div className="col-span-2 md:col-span-2 p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
-                                    <ScoreRing score={selectedRoundData.interviewer_analytics.overall_score} size={100} strokeWidth={8} />
-                                    <div className="text-center mt-2 text-sm text-white/50">Overall Score</div>
-                                </div>
+                            {/* Core Scores Grid */}
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                                 <MetricCard icon={HelpCircle} label="Question Quality" value={selectedRoundData.interviewer_analytics.question_quality_score} color={getScoreColor(selectedRoundData.interviewer_analytics.question_quality_score)} />
                                 <MetricCard icon={Layers} label="Topic Coverage" value={selectedRoundData.interviewer_analytics.topic_coverage_score} color={getScoreColor(selectedRoundData.interviewer_analytics.topic_coverage_score)} />
+                                <MetricCard icon={Shield} label="Consistency" value={selectedRoundData.interviewer_analytics.consistency_score} color={getScoreColor(selectedRoundData.interviewer_analytics.consistency_score)} />
                                 <MetricCard icon={Scale} label="Bias Score" value={selectedRoundData.interviewer_analytics.bias_score} subvalue="lower is better" color={selectedRoundData.interviewer_analytics.bias_score < 30 ? "green" : selectedRoundData.interviewer_analytics.bias_score < 60 ? "yellow" : "red"} />
                                 <MetricCard icon={Users} label="Candidate Exp." value={selectedRoundData.interviewer_analytics.candidate_experience_score} color={getScoreColor(selectedRoundData.interviewer_analytics.candidate_experience_score)} />
                             </div>
@@ -1607,20 +1632,197 @@ export default function CandidateAnalytics({ candidateId, candidateName }: Candi
                                 )}
                             </div>
 
-                            {/* Question Effectiveness Chart */}
+                            {/* Question Quality Breakdown - Detailed Analysis */}
+                            {selectedRoundData.interviewer_analytics.question_quality_breakdown && (
+                                <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
+                                    <SectionHeader icon={HelpCircle} title="Question Quality Breakdown" subtitle="Detailed analysis of questioning technique" />
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                        {/* Radar Chart */}
+                                        <div className="h-64">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <RadarChart
+                                                    data={[
+                                                        { metric: 'Relevance', value: selectedRoundData.interviewer_analytics.question_quality_breakdown.relevance, fullMark: 100 },
+                                                        { metric: 'Depth', value: selectedRoundData.interviewer_analytics.question_quality_breakdown.depth, fullMark: 100 },
+                                                        { metric: 'Follow-up Quality', value: selectedRoundData.interviewer_analytics.question_quality_breakdown.follow_up_quality, fullMark: 100 },
+                                                        { metric: 'Open-ended Ratio', value: selectedRoundData.interviewer_analytics.question_quality_breakdown.open_ended_ratio || 50, fullMark: 100 },
+                                                        { metric: 'Clarity', value: selectedRoundData.interviewer_analytics.question_quality_breakdown.clarity || 50, fullMark: 100 },
+                                                    ]}
+                                                    margin={{ top: 20, right: 30, bottom: 20, left: 30 }}
+                                                >
+                                                    <PolarGrid stroke="rgba(255,255,255,0.1)" />
+                                                    <PolarAngleAxis
+                                                        dataKey="metric"
+                                                        tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 10 }}
+                                                    />
+                                                    <PolarRadiusAxis
+                                                        angle={30}
+                                                        domain={[0, 100]}
+                                                        tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9 }}
+                                                        axisLine={false}
+                                                    />
+                                                    <Radar
+                                                        name="Score"
+                                                        dataKey="value"
+                                                        stroke="#a855f7"
+                                                        fill="#a855f7"
+                                                        fillOpacity={0.3}
+                                                        strokeWidth={2}
+                                                    />
+                                                </RadarChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                        {/* Metric Details */}
+                                        <div className="space-y-3">
+                                            {[
+                                                { label: 'Relevance to Role', value: selectedRoundData.interviewer_analytics.question_quality_breakdown.relevance, desc: 'How well questions align with job requirements' },
+                                                { label: 'Probing Depth', value: selectedRoundData.interviewer_analytics.question_quality_breakdown.depth, desc: 'How deeply questions explore skills and experience' },
+                                                { label: 'Follow-up Quality', value: selectedRoundData.interviewer_analytics.question_quality_breakdown.follow_up_quality, desc: 'Effectiveness of follow-up questions' },
+                                                { label: 'Open-ended Ratio', value: selectedRoundData.interviewer_analytics.question_quality_breakdown.open_ended_ratio || 50, desc: 'Balance between open and closed questions' },
+                                                { label: 'Question Clarity', value: selectedRoundData.interviewer_analytics.question_quality_breakdown.clarity || 50, desc: 'How clear and unambiguous questions were' },
+                                            ].map((item, i) => (
+                                                <div key={i} className="p-3 rounded-xl bg-white/5">
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <span className="text-sm text-white/80">{item.label}</span>
+                                                        <span className={`text-sm font-bold ${item.value >= 80 ? 'text-green-400' : item.value >= 60 ? 'text-yellow-400' : 'text-red-400'}`}>
+                                                            {item.value}
+                                                        </span>
+                                                    </div>
+                                                    <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                                        <div
+                                                            className={`h-full rounded-full transition-all duration-500 ${item.value >= 80 ? 'bg-green-500' : item.value >= 60 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                                                            style={{ width: `${item.value}%` }}
+                                                        />
+                                                    </div>
+                                                    <p className="text-xs text-white/40 mt-1">{item.desc}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Bias Analysis Section */}
+                            {selectedRoundData.interviewer_analytics.bias_indicators && (
+                                <div className={`p-6 rounded-2xl border ${
+                                    selectedRoundData.interviewer_analytics.bias_indicators.severity === 'none'
+                                        ? 'bg-green-500/5 border-green-500/20'
+                                        : selectedRoundData.interviewer_analytics.bias_indicators.severity === 'low'
+                                        ? 'bg-yellow-500/5 border-yellow-500/20'
+                                        : 'bg-red-500/5 border-red-500/20'
+                                }`}>
+                                    <SectionHeader
+                                        icon={Scale}
+                                        title="Bias Analysis"
+                                        subtitle="Assessment of interviewer objectivity and fairness"
+                                    />
+                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                        {/* Bias Score Gauge */}
+                                        <div className="flex flex-col items-center justify-center p-4">
+                                            <div className="relative w-32 h-32">
+                                                <svg className="w-32 h-32 transform -rotate-90">
+                                                    <circle cx="64" cy="64" r="56" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="8" />
+                                                    <circle
+                                                        cx="64" cy="64" r="56" fill="none"
+                                                        stroke={selectedRoundData.interviewer_analytics.bias_score < 30 ? "#22c55e" : selectedRoundData.interviewer_analytics.bias_score < 60 ? "#eab308" : "#ef4444"}
+                                                        strokeWidth="8"
+                                                        strokeDasharray={351.86}
+                                                        strokeDashoffset={351.86 - (351.86 * selectedRoundData.interviewer_analytics.bias_score) / 100}
+                                                        strokeLinecap="round"
+                                                        className="transition-all duration-1000"
+                                                    />
+                                                </svg>
+                                                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                                    <span className={`text-3xl font-bold ${selectedRoundData.interviewer_analytics.bias_score < 30 ? 'text-green-400' : selectedRoundData.interviewer_analytics.bias_score < 60 ? 'text-yellow-400' : 'text-red-400'}`}>
+                                                        {selectedRoundData.interviewer_analytics.bias_score}
+                                                    </span>
+                                                    <span className="text-xs text-white/40">Bias Score</span>
+                                                </div>
+                                            </div>
+                                            <div className={`mt-3 px-3 py-1 rounded-full text-xs font-medium ${
+                                                selectedRoundData.interviewer_analytics.bias_indicators.severity === 'none'
+                                                    ? 'bg-green-500/20 text-green-400'
+                                                    : selectedRoundData.interviewer_analytics.bias_indicators.severity === 'low'
+                                                    ? 'bg-yellow-500/20 text-yellow-400'
+                                                    : selectedRoundData.interviewer_analytics.bias_indicators.severity === 'medium'
+                                                    ? 'bg-orange-500/20 text-orange-400'
+                                                    : 'bg-red-500/20 text-red-400'
+                                            }`}>
+                                                {selectedRoundData.interviewer_analytics.bias_indicators.severity.toUpperCase()} SEVERITY
+                                            </div>
+                                        </div>
+
+                                        {/* Sentiment Balance */}
+                                        <div className="p-4 rounded-xl bg-black/20">
+                                            <h5 className="text-sm font-medium text-white/70 mb-3">Sentiment Balance</h5>
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <span className="text-xs text-red-400">Negative</span>
+                                                <div className="flex-1 h-3 bg-white/10 rounded-full overflow-hidden relative">
+                                                    <div
+                                                        className="absolute left-1/2 w-0.5 h-full bg-white/30 transform -translate-x-1/2"
+                                                    />
+                                                    <div
+                                                        className={`h-full rounded-full transition-all duration-500 ${
+                                                            selectedRoundData.interviewer_analytics.bias_indicators.sentiment_balance >= 45 &&
+                                                            selectedRoundData.interviewer_analytics.bias_indicators.sentiment_balance <= 55
+                                                                ? 'bg-green-500'
+                                                                : 'bg-yellow-500'
+                                                        }`}
+                                                        style={{
+                                                            width: `${selectedRoundData.interviewer_analytics.bias_indicators.sentiment_balance}%`,
+                                                        }}
+                                                    />
+                                                </div>
+                                                <span className="text-xs text-green-400">Positive</span>
+                                            </div>
+                                            <p className="text-xs text-white/40 text-center">
+                                                {selectedRoundData.interviewer_analytics.bias_indicators.sentiment_balance}% positive
+                                                {selectedRoundData.interviewer_analytics.bias_indicators.sentiment_balance >= 45 &&
+                                                 selectedRoundData.interviewer_analytics.bias_indicators.sentiment_balance <= 55
+                                                    ? ' - Well balanced'
+                                                    : selectedRoundData.interviewer_analytics.bias_indicators.sentiment_balance > 55
+                                                    ? ' - Leans positive'
+                                                    : ' - Leans negative'}
+                                            </p>
+                                        </div>
+
+                                        {/* Bias Flags */}
+                                        <div className="p-4 rounded-xl bg-black/20">
+                                            <h5 className="text-sm font-medium text-white/70 mb-3">Bias Indicators Detected</h5>
+                                            {selectedRoundData.interviewer_analytics.bias_indicators.flags.length > 0 ? (
+                                                <ul className="space-y-2 max-h-32 overflow-y-auto">
+                                                    {selectedRoundData.interviewer_analytics.bias_indicators.flags.map((flag, i) => (
+                                                        <li key={i} className="text-xs text-white/60 flex items-start gap-2">
+                                                            <AlertTriangle className="w-3 h-3 text-yellow-400 shrink-0 mt-0.5" />
+                                                            {flag}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            ) : (
+                                                <div className="flex items-center gap-2 text-green-400 text-sm">
+                                                    <CheckCircle className="w-4 h-4" />
+                                                    No bias indicators detected
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Question Effectiveness Chart + Detailed List */}
                             {selectedRoundData.interviewer_analytics.question_effectiveness && selectedRoundData.interviewer_analytics.question_effectiveness.length > 0 && (
                                 <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
-                                    <h4 className="text-sm font-medium text-white/50 mb-4 flex items-center gap-2">
-                                        <BarChart3 className="w-4 h-4" />
-                                        Question Effectiveness
-                                    </h4>
-                                    <div className="h-48">
+                                    <SectionHeader icon={BarChart3} title="Question-by-Question Analysis" subtitle="Effectiveness and improvement suggestions for each question" />
+
+                                    {/* Chart */}
+                                    <div className="h-48 mb-6">
                                         <ResponsiveContainer width="100%" height="100%">
                                             <BarChart
-                                                data={selectedRoundData.interviewer_analytics.question_effectiveness.slice(0, 8).map((q, i) => ({
+                                                data={selectedRoundData.interviewer_analytics.question_effectiveness.slice(0, 10).map((q, i) => ({
                                                     name: `Q${i + 1}`,
                                                     Effectiveness: q.effectiveness_score,
                                                     fullQuestion: q.question,
+                                                    info: q.information_elicited,
                                                 }))}
                                                 margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                                             >
@@ -1643,60 +1845,272 @@ export default function CandidateAnalytics({ candidateId, candidateName }: Candi
                                                         color: 'white',
                                                     }}
                                                     cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                                                    formatter={(value: number, name: string, props: { payload?: { fullQuestion?: string } }) => [
-                                                        `${value}%`,
-                                                        props.payload?.fullQuestion?.slice(0, 50) + '...' || name
+                                                    formatter={(value: number, name: string, props: { payload?: { fullQuestion?: string; info?: string } }) => [
+                                                        `${value}% (Info: ${props.payload?.info || 'N/A'})`,
+                                                        props.payload?.fullQuestion?.slice(0, 60) + '...' || name
                                                     ]}
                                                 />
                                                 <Bar
                                                     dataKey="Effectiveness"
-                                                    fill="#22d3ee"
                                                     radius={[4, 4, 0, 0]}
-                                                />
+                                                >
+                                                    {selectedRoundData.interviewer_analytics.question_effectiveness.slice(0, 10).map((q, i) => (
+                                                        <Cell
+                                                            key={i}
+                                                            fill={q.effectiveness_score >= 80 ? '#22c55e' : q.effectiveness_score >= 60 ? '#eab308' : '#ef4444'}
+                                                        />
+                                                    ))}
+                                                </Bar>
                                             </BarChart>
                                         </ResponsiveContainer>
+                                    </div>
+
+                                    {/* Detailed Question List */}
+                                    <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
+                                        {selectedRoundData.interviewer_analytics.question_effectiveness.map((q, i) => (
+                                            <div key={i} className="p-4 rounded-xl bg-black/20 hover:bg-black/30 transition-colors">
+                                                <div className="flex items-start gap-3">
+                                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
+                                                        q.effectiveness_score >= 80 ? 'bg-green-500/20 text-green-400' :
+                                                        q.effectiveness_score >= 60 ? 'bg-yellow-500/20 text-yellow-400' :
+                                                        'bg-red-500/20 text-red-400'
+                                                    }`}>
+                                                        <span className="text-sm font-bold">{q.effectiveness_score}</span>
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm text-white/80 mb-2">&ldquo;{q.question}&rdquo;</p>
+                                                        <div className="flex flex-wrap gap-2 mb-2">
+                                                            <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                                                q.information_elicited === 'high' ? 'bg-green-500/20 text-green-400' :
+                                                                q.information_elicited === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
+                                                                q.information_elicited === 'low' ? 'bg-orange-500/20 text-orange-400' :
+                                                                'bg-red-500/20 text-red-400'
+                                                            }`}>
+                                                                Info: {q.information_elicited}
+                                                            </span>
+                                                        </div>
+                                                        {q.better_alternative && (
+                                                            <div className="flex items-start gap-2 mt-2 p-2 rounded-lg bg-cyan-500/10 border border-cyan-500/20">
+                                                                <Lightbulb className="w-3 h-3 text-cyan-400 shrink-0 mt-0.5" />
+                                                                <p className="text-xs text-cyan-300">Better: {q.better_alternative}</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
                             )}
 
-                            {/* Interview Dynamics */}
+                            {/* Interview Dynamics - Enhanced */}
                             {selectedRoundData.interviewer_analytics.interview_dynamics && (
                                 <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
-                                    <SectionHeader icon={Activity} title="Interview Dynamics" />
-                                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                                        <div className="p-4 rounded-xl bg-white/5">
-                                            <div className="text-xs text-white/40 mb-1">Time Management</div>
-                                            <div className={`text-2xl font-bold ${getScoreColor(selectedRoundData.interviewer_analytics.interview_dynamics.time_management) === "green" ? "text-green-400" : getScoreColor(selectedRoundData.interviewer_analytics.interview_dynamics.time_management) === "yellow" ? "text-yellow-400" : "text-red-400"}`}>
-                                                {selectedRoundData.interviewer_analytics.interview_dynamics.time_management}
-                                            </div>
+                                    <SectionHeader icon={Activity} title="Interview Flow & Dynamics" subtitle="How well the interviewer managed the conversation" />
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                        {/* Dynamics Radar Chart */}
+                                        <div className="h-64">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <RadarChart
+                                                    data={[
+                                                        { metric: 'Time Mgmt', value: selectedRoundData.interviewer_analytics.interview_dynamics.time_management, benchmark: 75 },
+                                                        { metric: 'Active Listening', value: selectedRoundData.interviewer_analytics.interview_dynamics.active_listening_score, benchmark: 80 },
+                                                        { metric: 'Rapport', value: selectedRoundData.interviewer_analytics.interview_dynamics.rapport_building, benchmark: 70 },
+                                                        { metric: 'No Interrupts', value: Math.max(0, 100 - (selectedRoundData.interviewer_analytics.interview_dynamics.interruption_count * 20)), benchmark: 90 },
+                                                        { metric: 'Pacing', value: selectedRoundData.interviewer_analytics.interview_dynamics.avg_response_wait_time === 'appropriate' ? 90 : selectedRoundData.interviewer_analytics.interview_dynamics.avg_response_wait_time === 'rushed' ? 40 : 60, benchmark: 80 },
+                                                    ]}
+                                                    margin={{ top: 20, right: 30, bottom: 20, left: 30 }}
+                                                >
+                                                    <PolarGrid stroke="rgba(255,255,255,0.1)" />
+                                                    <PolarAngleAxis
+                                                        dataKey="metric"
+                                                        tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 10 }}
+                                                    />
+                                                    <PolarRadiusAxis
+                                                        angle={30}
+                                                        domain={[0, 100]}
+                                                        tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9 }}
+                                                        axisLine={false}
+                                                    />
+                                                    {/* Benchmark line */}
+                                                    <Radar
+                                                        name="Benchmark"
+                                                        dataKey="benchmark"
+                                                        stroke="#6b7280"
+                                                        fill="transparent"
+                                                        strokeDasharray="4 4"
+                                                        strokeWidth={1}
+                                                    />
+                                                    {/* Actual scores */}
+                                                    <Radar
+                                                        name="Score"
+                                                        dataKey="value"
+                                                        stroke="#22d3ee"
+                                                        fill="#22d3ee"
+                                                        fillOpacity={0.3}
+                                                        strokeWidth={2}
+                                                    />
+                                                    <Legend
+                                                        formatter={(value) => <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '10px' }}>{value}</span>}
+                                                    />
+                                                </RadarChart>
+                                            </ResponsiveContainer>
                                         </div>
-                                        <div className="p-4 rounded-xl bg-white/5">
-                                            <div className="text-xs text-white/40 mb-1">Active Listening</div>
-                                            <div className={`text-2xl font-bold ${getScoreColor(selectedRoundData.interviewer_analytics.interview_dynamics.active_listening_score) === "green" ? "text-green-400" : getScoreColor(selectedRoundData.interviewer_analytics.interview_dynamics.active_listening_score) === "yellow" ? "text-yellow-400" : "text-red-400"}`}>
-                                                {selectedRoundData.interviewer_analytics.interview_dynamics.active_listening_score}
-                                            </div>
-                                        </div>
-                                        <div className="p-4 rounded-xl bg-white/5">
-                                            <div className="text-xs text-white/40 mb-1">Rapport Building</div>
-                                            <div className={`text-2xl font-bold ${getScoreColor(selectedRoundData.interviewer_analytics.interview_dynamics.rapport_building) === "green" ? "text-green-400" : getScoreColor(selectedRoundData.interviewer_analytics.interview_dynamics.rapport_building) === "yellow" ? "text-yellow-400" : "text-red-400"}`}>
-                                                {selectedRoundData.interviewer_analytics.interview_dynamics.rapport_building}
-                                            </div>
-                                        </div>
-                                        <div className="p-4 rounded-xl bg-white/5">
-                                            <div className="text-xs text-white/40 mb-1">Interruptions</div>
-                                            <div className={`text-2xl font-bold ${selectedRoundData.interviewer_analytics.interview_dynamics.interruption_count === 0 ? "text-green-400" : selectedRoundData.interviewer_analytics.interview_dynamics.interruption_count <= 2 ? "text-yellow-400" : "text-red-400"}`}>
-                                                {selectedRoundData.interviewer_analytics.interview_dynamics.interruption_count}
-                                            </div>
-                                        </div>
-                                        <div className="p-4 rounded-xl bg-white/5">
-                                            <div className="text-xs text-white/40 mb-1">Pacing</div>
-                                            <div className="text-lg font-bold text-white capitalize">
-                                                {selectedRoundData.interviewer_analytics.interview_dynamics.avg_response_wait_time.replace("_", " ")}
+
+                                        {/* Metrics Grid */}
+                                        <div className="space-y-4">
+                                            {[
+                                                {
+                                                    label: 'Time Management',
+                                                    value: selectedRoundData.interviewer_analytics.interview_dynamics.time_management,
+                                                    benchmark: 75,
+                                                    desc: 'How well time was allocated across topics',
+                                                    icon: Clock
+                                                },
+                                                {
+                                                    label: 'Active Listening',
+                                                    value: selectedRoundData.interviewer_analytics.interview_dynamics.active_listening_score,
+                                                    benchmark: 80,
+                                                    desc: 'Building on candidate responses vs. sticking to script',
+                                                    icon: MessageSquare
+                                                },
+                                                {
+                                                    label: 'Rapport Building',
+                                                    value: selectedRoundData.interviewer_analytics.interview_dynamics.rapport_building,
+                                                    benchmark: 70,
+                                                    desc: 'Creating a comfortable interview environment',
+                                                    icon: Users
+                                                },
+                                            ].map((item, i) => {
+                                                const Icon = item.icon;
+                                                const diff = item.value - item.benchmark;
+                                                return (
+                                                    <div key={i} className="p-4 rounded-xl bg-black/20">
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <div className="flex items-center gap-2">
+                                                                <Icon className="w-4 h-4 text-cyan-400" />
+                                                                <span className="text-sm text-white/80">{item.label}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className={`text-lg font-bold ${item.value >= 80 ? 'text-green-400' : item.value >= 60 ? 'text-yellow-400' : 'text-red-400'}`}>
+                                                                    {item.value}
+                                                                </span>
+                                                                <span className={`text-xs px-1.5 py-0.5 rounded ${diff >= 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                                                                    {diff >= 0 ? '+' : ''}{diff} vs avg
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden relative">
+                                                            {/* Benchmark marker */}
+                                                            <div
+                                                                className="absolute w-0.5 h-full bg-white/40"
+                                                                style={{ left: `${item.benchmark}%` }}
+                                                            />
+                                                            <div
+                                                                className={`h-full rounded-full transition-all duration-500 ${item.value >= 80 ? 'bg-green-500' : item.value >= 60 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                                                                style={{ width: `${item.value}%` }}
+                                                            />
+                                                        </div>
+                                                        <p className="text-xs text-white/40 mt-1">{item.desc}</p>
+                                                    </div>
+                                                );
+                                            })}
+
+                                            {/* Interruptions & Pacing */}
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="p-4 rounded-xl bg-black/20 text-center">
+                                                    <div className="text-xs text-white/40 mb-1">Interruptions</div>
+                                                    <div className={`text-3xl font-bold ${selectedRoundData.interviewer_analytics.interview_dynamics.interruption_count === 0 ? "text-green-400" : selectedRoundData.interviewer_analytics.interview_dynamics.interruption_count <= 2 ? "text-yellow-400" : "text-red-400"}`}>
+                                                        {selectedRoundData.interviewer_analytics.interview_dynamics.interruption_count}
+                                                    </div>
+                                                    <div className="text-xs text-white/40 mt-1">
+                                                        {selectedRoundData.interviewer_analytics.interview_dynamics.interruption_count === 0 ? 'Perfect' : selectedRoundData.interviewer_analytics.interview_dynamics.interruption_count <= 2 ? 'Acceptable' : 'Too many'}
+                                                    </div>
+                                                </div>
+                                                <div className="p-4 rounded-xl bg-black/20 text-center">
+                                                    <div className="text-xs text-white/40 mb-1">Pacing</div>
+                                                    <div className={`text-xl font-bold capitalize ${
+                                                        selectedRoundData.interviewer_analytics.interview_dynamics.avg_response_wait_time === 'appropriate' ? 'text-green-400' :
+                                                        selectedRoundData.interviewer_analytics.interview_dynamics.avg_response_wait_time === 'rushed' ? 'text-red-400' : 'text-yellow-400'
+                                                    }`}>
+                                                        {selectedRoundData.interviewer_analytics.interview_dynamics.avg_response_wait_time.replace("_", " ")}
+                                                    </div>
+                                                    <div className="text-xs text-white/40 mt-1">
+                                                        {selectedRoundData.interviewer_analytics.interview_dynamics.avg_response_wait_time === 'appropriate' ? 'Good thinking time' :
+                                                         selectedRoundData.interviewer_analytics.interview_dynamics.avg_response_wait_time === 'rushed' ? 'Needs patience' : 'Could be faster'}
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             )}
+
+                            {/* Benchmark Comparison */}
+                            <div className="p-6 rounded-2xl bg-gradient-to-br from-purple-500/5 to-cyan-500/5 border border-white/[0.05]">
+                                <SectionHeader icon={Target} title="Performance vs. Best Practices" subtitle="How this interview compares to ideal benchmarks" />
+                                <div className="h-64">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart
+                                            data={[
+                                                { metric: 'Question Quality', actual: selectedRoundData.interviewer_analytics.question_quality_score, benchmark: 80 },
+                                                { metric: 'Topic Coverage', actual: selectedRoundData.interviewer_analytics.topic_coverage_score, benchmark: 85 },
+                                                { metric: 'Consistency', actual: selectedRoundData.interviewer_analytics.consistency_score, benchmark: 75 },
+                                                { metric: 'Low Bias', actual: 100 - selectedRoundData.interviewer_analytics.bias_score, benchmark: 90 },
+                                                { metric: 'Candidate Exp', actual: selectedRoundData.interviewer_analytics.candidate_experience_score, benchmark: 80 },
+                                            ]}
+                                            margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+                                            layout="vertical"
+                                            barCategoryGap="20%"
+                                        >
+                                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
+                                            <XAxis
+                                                type="number"
+                                                domain={[0, 100]}
+                                                tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }}
+                                                axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+                                            />
+                                            <YAxis
+                                                type="category"
+                                                dataKey="metric"
+                                                tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 11 }}
+                                                axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+                                                width={100}
+                                            />
+                                            <Tooltip
+                                                contentStyle={{
+                                                    backgroundColor: 'rgba(15, 15, 26, 0.95)',
+                                                    border: '1px solid rgba(255,255,255,0.1)',
+                                                    borderRadius: '12px',
+                                                    color: 'white',
+                                                }}
+                                                formatter={(value: number, name: string) => [
+                                                    `${value}`,
+                                                    name === 'actual' ? 'This Interview' : 'Best Practice'
+                                                ]}
+                                            />
+                                            <Legend
+                                                formatter={(value) => <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '11px' }}>{value === 'actual' ? 'This Interview' : 'Best Practice'}</span>}
+                                            />
+                                            <Bar dataKey="benchmark" fill="#6b7280" radius={[0, 4, 4, 0]} name="benchmark" />
+                                            <Bar dataKey="actual" radius={[0, 4, 4, 0]} name="actual">
+                                                {[
+                                                    { metric: 'Question Quality', actual: selectedRoundData.interviewer_analytics.question_quality_score },
+                                                    { metric: 'Topic Coverage', actual: selectedRoundData.interviewer_analytics.topic_coverage_score },
+                                                    { metric: 'Consistency', actual: selectedRoundData.interviewer_analytics.consistency_score },
+                                                    { metric: 'Low Bias', actual: 100 - selectedRoundData.interviewer_analytics.bias_score },
+                                                    { metric: 'Candidate Exp', actual: selectedRoundData.interviewer_analytics.candidate_experience_score },
+                                                ].map((entry, index) => (
+                                                    <Cell
+                                                        key={`cell-${index}`}
+                                                        fill={entry.actual >= 80 ? '#22c55e' : entry.actual >= 60 ? '#eab308' : '#ef4444'}
+                                                    />
+                                                ))}
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
 
                             {/* Missed Opportunities */}
                             {selectedRoundData.interviewer_analytics.missed_opportunities && selectedRoundData.interviewer_analytics.missed_opportunities.length > 0 && (
@@ -1775,7 +2189,9 @@ export default function CandidateAnalytics({ candidateId, candidateName }: Candi
                             </div>
                             <h3 className="text-xl font-medium text-white mb-2">No Interviewer Analytics</h3>
                             <p className="text-white/40 text-sm text-center max-w-md mb-8">
-                                Interviewer analytics weren&apos;t generated for this round. Select an interviewer below to generate them now.
+                                {selectedRoundData.interviewer_id
+                                    ? "Interviewer analytics weren't generated for this round. Click below to generate them now."
+                                    : "No interviewer was assigned to this interview. Select an interviewer below to generate analytics."}
                             </p>
 
                             {/* Regeneration Form */}
@@ -1783,21 +2199,29 @@ export default function CandidateAnalytics({ candidateId, candidateName }: Candi
                                 <h4 className="text-sm font-medium text-white/70 mb-4">Generate Interviewer Analytics</h4>
 
                                 <div className="space-y-4">
-                                    <div>
-                                        <label className="text-xs text-white/40 mb-2 block">Select Interviewer</label>
-                                        <select
-                                            value={selectedInterviewerForRegen}
-                                            onChange={(e) => setSelectedInterviewerForRegen(e.target.value)}
-                                            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50 transition-colors"
-                                        >
-                                            <option value="" className="bg-[#1a1a2e]">Choose interviewer...</option>
-                                            {interviewers.map((int) => (
-                                                <option key={int.id} value={int.id} className="bg-[#1a1a2e]">
-                                                    {int.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
+                                    {/* Show interviewer info if already assigned */}
+                                    {selectedRoundData.interviewer_id ? (
+                                        <div className="p-3 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-sm flex items-center gap-2">
+                                            <UserCircle className="w-4 h-4" />
+                                            Interviewer: {selectedRoundData.interviewer_name || "Assigned"}
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <label className="text-xs text-white/40 mb-2 block">Select Interviewer</label>
+                                            <select
+                                                value={selectedInterviewerForRegen}
+                                                onChange={(e) => setSelectedInterviewerForRegen(e.target.value)}
+                                                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50 transition-colors"
+                                            >
+                                                <option value="" className="bg-[#1a1a2e]">Choose interviewer...</option>
+                                                {interviewers.map((int) => (
+                                                    <option key={int.id} value={int.id} className="bg-[#1a1a2e]">
+                                                        {int.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    )}
 
                                     {regenError && (
                                         <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-2">
@@ -1808,11 +2232,15 @@ export default function CandidateAnalytics({ candidateId, candidateName }: Candi
 
                                     <button
                                         onClick={() => {
-                                            if (selectedInterviewerForRegen && selectedRound) {
-                                                regenerateInterviewerAnalytics(selectedRound, selectedInterviewerForRegen);
+                                            if (selectedRound) {
+                                                // Use stored interviewer_id if available, otherwise use selected one
+                                                regenerateInterviewerAnalytics(
+                                                    selectedRound,
+                                                    selectedRoundData.interviewer_id || selectedInterviewerForRegen || undefined
+                                                );
                                             }
                                         }}
-                                        disabled={!selectedInterviewerForRegen || regenerating}
+                                        disabled={(!selectedRoundData.interviewer_id && !selectedInterviewerForRegen) || regenerating}
                                         className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-purple-600 text-white font-medium hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                     >
                                         {regenerating ? (

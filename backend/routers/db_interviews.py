@@ -953,23 +953,33 @@ IMPORTANT: Return ONLY valid JSON. No markdown, no code blocks, no explanatory t
 # ============================================================================
 
 class RegenerateInterviewerAnalyticsRequest(BaseModel):
-    interviewer_id: str
+    interviewer_id: Optional[str] = None  # Optional - will use stored interviewer_id if not provided
 
 
 @router.post("/{interview_id}/regenerate-interviewer-analytics")
 async def regenerate_interviewer_analytics(
     interview_id: str,
-    request: RegenerateInterviewerAnalyticsRequest
+    request: RegenerateInterviewerAnalyticsRequest = None
 ):
     """
     Regenerate interviewer analytics for an existing interview.
-    Use this when an interview was completed without selecting an interviewer,
-    or when you want to re-analyze with a different interviewer.
+    Uses the interviewer_id already stored on the interview.
+    Optionally accepts a new interviewer_id to override.
     """
     # Get the interview
-    interview = interview_repo.get_interview(interview_id)
+    interview = interview_repo.get_by_id(interview_id)
     if not interview:
         raise HTTPException(status_code=404, detail="Interview not found")
+
+    # Determine which interviewer_id to use
+    interviewer_id = (request.interviewer_id if request and request.interviewer_id
+                      else interview.get("interviewer_id"))
+
+    if not interviewer_id:
+        raise HTTPException(
+            status_code=400,
+            detail="No interviewer_id found. Please provide an interviewer_id or ensure the interview has one stored."
+        )
 
     # Get the transcript
     turns = interview.get("transcript_turns") or []
@@ -982,8 +992,9 @@ async def regenerate_interviewer_analytics(
         for t in turns
     ])
 
-    # Update the interview with the interviewer_id
-    interview_repo.update_interview(interview_id, {"interviewer_id": request.interviewer_id})
+    # Update the interview with the interviewer_id if it's new/different
+    if interviewer_id != interview.get("interviewer_id"):
+        interview_repo.update(interview_id, {"interviewer_id": interviewer_id})
 
     # Generate interviewer analytics
     interviewer_analytics = None
@@ -996,7 +1007,7 @@ async def regenerate_interviewer_analytics(
         result = await analyzer.analyze_interview(
             transcript=transcript_text,
             questions=questions,
-            interviewer_id=request.interviewer_id
+            interviewer_id=interviewer_id
         )
 
         if result:
@@ -1005,7 +1016,7 @@ async def regenerate_interviewer_analytics(
             # Save to database
             interviewer_analytics_repo.save_analytics(
                 interview_id=interview_id,
-                interviewer_id=request.interviewer_id,
+                interviewer_id=interviewer_id,
                 analytics=result
             )
             logger.info(f"Regenerated interviewer analytics for interview {interview_id}")
