@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, forwardRef, useImperativeHandle } from "react";
 import { Mic, MicOff, PhoneOff, Volume2, VolumeX, Loader2, CheckCircle } from "lucide-react";
 
 interface VoiceSessionProps {
@@ -22,9 +22,13 @@ interface VoiceSessionProps {
     onTranscript?: (speaker: 'user' | 'agent', text: string) => void;
 }
 
+export interface VoiceSessionRef {
+    stopCall: () => void;
+}
+
 type ConnectionState = "connecting" | "connected" | "disconnected" | "failed";
 
-export default function VoiceSession({
+const VoiceSession = forwardRef<VoiceSessionRef, VoiceSessionProps>(function VoiceSession({
     vapiPublicKey,
     assistantConfig,
     sessionId,
@@ -32,7 +36,7 @@ export default function VoiceSession({
     onComplete,
     isComplete = false,
     onTranscript,
-}: VoiceSessionProps) {
+}, ref) {
     const [connectionState, setConnectionState] = useState<ConnectionState>("connecting");
     const [isMuted, setIsMuted] = useState(false);
     const [isSpeakerOn, setIsSpeakerOn] = useState(true);
@@ -51,6 +55,24 @@ export default function VoiceSession({
     useEffect(() => {
         onTranscriptRef.current = onTranscript;
     }, [onTranscript]);
+
+    // Expose stopCall method to parent via ref
+    useImperativeHandle(ref, () => ({
+        stopCall: () => {
+            console.log("[Vapi] stopCall called via ref");
+            if (vapiRef.current) {
+                try {
+                    vapiRef.current.stop();
+                    console.log("[Vapi] Call stopped via ref");
+                } catch (err) {
+                    console.error("[Vapi] Error stopping call via ref:", err);
+                }
+                vapiRef.current = null;
+            }
+            setConnectionState("disconnected");
+            setIsAgentSpeaking(false);
+        }
+    }), []);
 
     // Memoize the assistant ID to prevent re-renders
     const assistantId = assistantConfig?.assistantId;
@@ -427,4 +449,6 @@ export default function VoiceSession({
             )}
         </div>
     );
-}
+});
+
+export default VoiceSession;
