@@ -11,8 +11,8 @@ from models.interviewer_analytics import InterviewerAnalyticsResult
 
 logger = logging.getLogger(__name__)
 
-# Get API key from environment
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
+# Get API key and model from config
+from config import OPENROUTER_API_KEY, LLM_MODEL
 
 
 ANALYSIS_PROMPT = """You are a world-class interview analyst with deep expertise in hiring best practices, behavioral psychology, and organizational development. Analyze this interview transcript with the precision of a forensic examiner.
@@ -134,7 +134,7 @@ class InterviewerAnalyzer:
             base_url="https://openrouter.ai/api/v1",
             api_key=OPENROUTER_API_KEY
         )
-        self.model = "google/gemini-2.0-flash-001"
+        self.model = LLM_MODEL
 
     async def analyze_interview(
         self,

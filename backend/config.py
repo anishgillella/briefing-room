@@ -20,9 +20,9 @@ SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 # Single LLM model env var for the entire stack
-# Default: google/gemini-2.0-flash-exp:free (free tier)
-# Other options: google/gemini-2.5-flash, openai/gpt-4o-mini, anthropic/claude-3-haiku
-LLM_MODEL = os.getenv("LLM_MODEL", "google/gemini-2.0-flash-exp:free")
+# Default: google/gemini-2.5-flash (Gemini 2.5 Flash via OpenRouter)
+# Other options: google/gemini-2.0-flash-exp:free, openai/gpt-4o-mini, anthropic/claude-3-haiku
+LLM_MODEL = os.getenv("LLM_MODEL", "google/gemini-2.5-flash")
 
 # Legacy aliases (for backward compatibility)
 OPENROUTER_MODEL = LLM_MODEL
