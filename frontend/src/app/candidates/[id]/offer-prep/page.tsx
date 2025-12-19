@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
     ArrowLeft,
@@ -27,7 +27,7 @@ import {
     FileText,
     RefreshCw,
 } from "lucide-react";
-import VoiceSession from "@/components/voice-ingest/VoiceSession";
+import VoiceSession, { VoiceSessionRef } from "@/components/voice-ingest/VoiceSession";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const VAPI_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY || "";
@@ -178,7 +178,15 @@ export default function OfferPrepPage() {
         }
     };
 
+    // Reference to VoiceSession for programmatic control
+    const voiceSessionRef = useRef<VoiceSessionRef | null>(null);
+
     const handleCoachingEnd = async () => {
+        // First, forcefully stop the Vapi call to stop the voice
+        if (voiceSessionRef.current) {
+            voiceSessionRef.current.stopCall();
+        }
+
         setShowCoachingModal(false);
 
         // Generate summary if we have transcript
@@ -855,6 +863,7 @@ export default function OfferPrepPage() {
                                     sessionId={`coaching-${candidateId}-${Date.now()}`}
                                     onEnd={handleCoachingEnd}
                                     onTranscript={handleCoachingTranscript}
+                                    ref={voiceSessionRef}
                                 />
 
                                 {/* Live Transcript (optional) */}
@@ -923,10 +932,10 @@ export default function OfferPrepPage() {
 
             {/* Coaching Summary Modal */}
             {showSummary && coachingSummary && (
-                <div className="fixed inset-0 bg-black/95 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-                    <div className="bg-[#0A0A0A] rounded-3xl max-w-4xl w-full border border-white/10 shadow-2xl my-8">
+                <div className="fixed inset-0 bg-black/95 backdrop-blur-sm z-50 flex items-start justify-center p-4 pt-16 overflow-y-auto">
+                    <div className="bg-[#0A0A0A] rounded-3xl max-w-4xl w-full border border-white/10 shadow-2xl mb-8">
                         {/* Modal Header */}
-                        <div className="border-b border-white/10 px-8 py-5 flex items-center justify-between sticky top-0 bg-[#0A0A0A] rounded-t-3xl z-10">
+                        <div className="border-b border-white/10 px-8 py-5 flex items-center justify-between bg-[#0A0A0A] rounded-t-3xl">
                             <div className="flex items-center gap-4">
                                 <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center">
                                     <CheckCircle className="w-6 h-6 text-green-400" />

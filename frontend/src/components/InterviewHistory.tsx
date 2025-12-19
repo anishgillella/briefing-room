@@ -458,43 +458,106 @@ export default function InterviewHistory({
                                 )}
 
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                                    {/* 3. Key Questions */}
+                                    {/* 3. Key Questions with Answers */}
                                     <div>
                                         <h5 className="text-white/40 text-xs font-bold uppercase tracking-widest mb-4">Q&A Analysis</h5>
-                                        <div className="space-y-3">
-                                            {interview.analytics.question_analytics?.slice(0, 4).map((qa, i) => (
+                                        <div className="space-y-4">
+                                            {interview.analytics.question_analytics?.slice(0, 4).map((qa: any, i: number) => (
                                                 <div key={i} className="group p-4 bg-white/5 hover:bg-white/10 rounded-xl border border-white/5 transition-all">
-                                                    <div className="flex justify-between items-start gap-4 mb-2">
-                                                        <p className="text-sm text-white/90 font-medium leading-snug">"{qa.question}"</p>
-                                                        <span className={`text-xs font-bold px-2 py-1 rounded bg-black/30 ${qa.quality_score && qa.quality_score >= 80 ? 'text-green-400' : 'text-yellow-400'}`}>
-                                                            {qa.quality_score}
-                                                        </span>
+                                                    {/* Question */}
+                                                    <div className="flex justify-between items-start gap-4 mb-3">
+                                                        <p className="text-sm text-purple-300 font-medium leading-snug">"{qa.question}"</p>
+                                                        {qa.metrics && (
+                                                            <div className="flex gap-1 shrink-0">
+                                                                {qa.metrics.depth && (
+                                                                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300" title="Depth">
+                                                                        D:{qa.metrics.depth}
+                                                                    </span>
+                                                                )}
+                                                                {qa.metrics.clarity && (
+                                                                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-500/20 text-green-300" title="Clarity">
+                                                                        C:{qa.metrics.clarity}
+                                                                    </span>
+                                                                )}
+                                                                {qa.metrics.relevance && (
+                                                                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-300" title="Relevance">
+                                                                        R:{qa.metrics.relevance}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                    {qa.topic && (
-                                                        <span className="text-[10px] text-white/40 uppercase tracking-wider">{qa.topic}</span>
+
+                                                    {/* Answer */}
+                                                    {qa.answer && (
+                                                        <div className="mb-3 pl-3 border-l-2 border-white/10">
+                                                            <p className="text-sm text-white/70 leading-relaxed">{qa.answer}</p>
+                                                        </div>
                                                     )}
+
+                                                    {/* Highlight Quote */}
+                                                    {qa.highlight && (
+                                                        <div className="mb-2 px-3 py-2 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                                                            <p className="text-xs text-purple-200 italic">"{qa.highlight}"</p>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Follow-up & Concern */}
+                                                    <div className="flex flex-wrap gap-2 mt-2">
+                                                        {qa.question_type && (
+                                                            <span className="text-[10px] text-white/40 uppercase tracking-wider px-2 py-0.5 bg-white/5 rounded">
+                                                                {qa.question_type}
+                                                            </span>
+                                                        )}
+                                                        {qa.follow_up_needed && (
+                                                            <span className="text-[10px] text-yellow-300/70 px-2 py-0.5 bg-yellow-500/10 rounded" title="Follow-up needed">
+                                                                → {qa.follow_up_needed.slice(0, 60)}...
+                                                            </span>
+                                                        )}
+                                                        {qa.concern && (
+                                                            <span className="text-[10px] text-red-300/70 px-2 py-0.5 bg-red-500/10 rounded">
+                                                                ⚠ {qa.concern.slice(0, 50)}...
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             ))}
                                         </div>
                                     </div>
 
-                                    {/* 4. Skills & Topics */}
+                                    {/* 4. Skills & Topics to Probe */}
                                     <div className="space-y-8">
                                         {interview.analytics.skill_evidence && interview.analytics.skill_evidence.length > 0 && (
                                             <div>
-                                                <h5 className="text-white/40 text-xs font-bold uppercase tracking-widest mb-4">Skill Evidence</h5>
+                                                <h5 className="text-white/40 text-xs font-bold uppercase tracking-widest mb-4">Areas to Explore</h5>
                                                 <div className="space-y-2">
-                                                    {interview.analytics.skill_evidence.slice(0, 3).map((skill: any, i: number) => (
-                                                        <div key={i} className="flex justify-between items-center p-3 rounded-lg border border-b border-t-0 border-r-0 border-l-0 border-white/10">
-                                                            <span className="text-sm text-white/80">{skill.skill}</span>
-                                                            <div className="flex gap-1">
-                                                                {[1, 2, 3].map(bar => (
-                                                                    <div key={bar} className={`w-1.5 h-4 rounded-full ${(skill.confidence === 'High' && bar <= 3) || (skill.confidence === 'Medium' && bar <= 2) ? 'bg-green-500' : 'bg-white/10'
-                                                                        }`}></div>
-                                                                ))}
+                                                    {interview.analytics.skill_evidence.slice(0, 5).map((skill: any, i: number) => {
+                                                        // Handle both string and object formats
+                                                        const skillText = typeof skill === 'string' ? skill : skill?.skill || skill?.topic || String(skill);
+                                                        const confidence = typeof skill === 'object' ? skill?.confidence : null;
+
+                                                        return (
+                                                            <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors border border-white/5">
+                                                                <div className="w-6 h-6 rounded-full bg-yellow-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                                                                    <span className="text-yellow-400 text-xs font-bold">{i + 1}</span>
+                                                                </div>
+                                                                <p className="text-sm text-white/80 leading-relaxed">{skillText}</p>
+                                                                {confidence && (
+                                                                    <div className="flex gap-1 shrink-0">
+                                                                        {[1, 2, 3].map(bar => (
+                                                                            <div key={bar} className={`w-1.5 h-4 rounded-full ${
+                                                                                (confidence === 'High' && bar <= 3) ||
+                                                                                (confidence === 'Medium' && bar <= 2) ||
+                                                                                (confidence === 'Low' && bar <= 1)
+                                                                                    ? 'bg-green-500'
+                                                                                    : 'bg-white/10'
+                                                                            }`}></div>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
                                                             </div>
-                                                        </div>
-                                                    ))}
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
                                         )}
