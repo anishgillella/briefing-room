@@ -46,6 +46,7 @@ class MarketDataRequest(BaseModel):
     years_experience: Optional[int] = None
     industry: Optional[str] = None
     specific_company: Optional[str] = None
+    company_website: Optional[str] = None  # For company-specific research
 
 
 class MarketDataResponse(BaseModel):
@@ -265,6 +266,83 @@ async def get_market_data_simple(
     return await get_market_data(request)
 
 
+class EnhancedMarketDataRequest(BaseModel):
+    """Request for enhanced market compensation data with company info."""
+    role_title: str
+    location: str = "San Francisco"
+    company_name: Optional[str] = None
+    company_website: Optional[str] = None
+    company_stage: Optional[str] = None
+    industry: Optional[str] = None
+    years_experience: Optional[int] = None
+
+
+@router.post("/market-data/enhanced")
+async def get_enhanced_market_data(request: EnhancedMarketDataRequest) -> MarketDataResponse:
+    """
+    Get enhanced market compensation data with company-specific research.
+
+    Uses web search with company context to find more relevant salary data.
+    """
+    logger.info(f"Enhanced market data request for: {request.role_title} at {request.company_name or 'N/A'}")
+
+    errors = []
+
+    try:
+        # Build comprehensive search with company context
+        raw_results = await parallel_service.research_compensation(
+            role_title=request.role_title,
+            location=request.location,
+            company_stage=request.company_stage,
+            years_experience=request.years_experience,
+            industry=request.industry,
+            specific_company=request.company_name
+        )
+
+        # If we have company website, also do company-specific research
+        if request.company_website and request.company_name:
+            try:
+                company_results = await parallel_service.research_company(
+                    company_name=request.company_name,
+                    website=request.company_website
+                )
+                # Merge company results for better context
+                if company_results.get("search_results"):
+                    raw_results["company_context"] = company_results.get("search_results", [])[:3]
+            except Exception as e:
+                logger.warning(f"Company research failed: {e}")
+
+        # Collect any search errors
+        for error in raw_results.get("errors", []):
+            errors.append(f"Search error: {error.get('error', 'Unknown')}")
+
+        # Extract structured data
+        compensation_data = await compensation_extractor.extract(raw_results)
+
+        # Set role_title and location if not extracted
+        if not compensation_data.role_title:
+            compensation_data.role_title = request.role_title
+        if not compensation_data.location:
+            compensation_data.location = request.location
+
+        results_count = len(raw_results.get("search_results", []))
+        logger.info(f"Enhanced market data extracted from {results_count} results")
+
+        return MarketDataResponse(
+            status="success" if compensation_data.salary_median else "partial",
+            data=compensation_data,
+            raw_results_count=results_count,
+            errors=errors
+        )
+
+    except Exception as e:
+        logger.error(f"Error getting enhanced market data: {e}")
+        return MarketDataResponse(
+            status="failed",
+            errors=[str(e)]
+        )
+
+
 # ============================================================================
 # Helper Functions
 # ============================================================================
@@ -416,15 +494,20 @@ async def get_candidate_intelligence(candidate_id: str) -> CandidateIntelligence
         latest = all_analytics[-1]
         recommendation = latest.get("recommendation")
 
+    # Extract structured priorities, quotes, and risk factors from analytics
+    priorities = _extract_priorities_structured(all_analytics)
+    key_quotes = _extract_quotes_structured(all_analytics)
+    risk_factors = _extract_risks_structured(all_analytics)
+
     return CandidateIntelligence(
         candidate_id=candidate_id,
         candidate_name=candidate.get("name", "Unknown"),
         role_title=candidate.get("job_title"),
         current_company=candidate.get("current_company"),
-        priorities=[],  # Will be populated by LLM analysis
-        key_quotes=[],  # Will be populated by LLM analysis
-        risk_factors=[],  # Will be populated by LLM analysis
-        competing_offers=[],  # Will be populated by LLM analysis
+        priorities=priorities,
+        key_quotes=key_quotes,
+        risk_factors=risk_factors,
+        competing_offers=[],  # Could be extracted if mentioned in interviews
         close_probability=close_probability,
         average_interview_score=round(sum(scores) / len(scores), 1) if scores else None,
         recommendation=recommendation,
@@ -517,6 +600,8 @@ class CoachingVariables(BaseModel):
     """Variables to pass to the VAPI assistant."""
     candidate_name: str
     role_title: str
+    candidate_profile: str  # Extracted candidate profile (bio, skills, pros/cons)
+    job_description: str  # Job description/requirements
     interview_summary: str
     candidate_priorities: str
     key_quotes: str
@@ -535,6 +620,17 @@ async def prepare_coaching_session(request: CoachingSessionRequest) -> Dict[str,
     """
     # Get candidate intelligence
     intelligence = await get_candidate_intelligence(request.candidate_id)
+
+    # Get full candidate data for profile building
+    candidate = candidate_repo.get_by_id(request.candidate_id)
+    if not candidate:
+        raise HTTPException(status_code=404, detail="Candidate not found")
+
+    # Build candidate profile from extracted data
+    candidate_profile_str = _build_candidate_profile(candidate)
+
+    # Get job description
+    job_description_str = await _get_job_description(request.candidate_id, candidate)
 
     # Build interview summary from transcripts
     interview_summary = _build_interview_summary(intelligence.all_transcripts, intelligence.all_analytics)
@@ -571,6 +667,8 @@ async def prepare_coaching_session(request: CoachingSessionRequest) -> Dict[str,
     variables = CoachingVariables(
         candidate_name=intelligence.candidate_name,
         role_title=request.role_title or intelligence.role_title or "the role",
+        candidate_profile=candidate_profile_str,
+        job_description=job_description_str,
         interview_summary=interview_summary,
         candidate_priorities=priorities_str,
         key_quotes=quotes_str,
@@ -624,21 +722,27 @@ def _build_interview_summary(transcripts: List[Dict], analytics: List[Dict]) -> 
 
 def _extract_priorities_from_analytics(analytics: List[Dict]) -> str:
     """Extract candidate priorities from analytics."""
-    # Look for topics, highlights, and behavioral indicators
     priorities = set()
 
     for analytic in analytics:
-        # From highlights
-        for highlight in analytic.get("highlights", []):
-            if isinstance(highlight, str) and len(highlight) < 100:
-                priorities.add(highlight)
-
-        # From behavioral profile
+        # Get behavioral profile (contains highlights and other traits)
         profile = analytic.get("behavioral_profile", {})
-        if profile:
-            for trait, score in profile.items():
-                if isinstance(score, (int, float)) and score > 7:
-                    priorities.add(f"Strong {trait}")
+
+        # From highlights inside behavioral_profile
+        highlights = profile.get("highlights", [])
+        if isinstance(highlights, list):
+            for highlight in highlights:
+                if isinstance(highlight, str) and len(highlight) < 150:
+                    priorities.add(highlight)
+
+        # From question_analytics highlights
+        question_analytics = analytic.get("question_analytics", [])
+        if isinstance(question_analytics, list):
+            for qa in question_analytics:
+                if isinstance(qa, dict):
+                    highlight = qa.get("highlight")
+                    if highlight and isinstance(highlight, str) and len(highlight) < 150:
+                        priorities.add(highlight)
 
     if priorities:
         return "; ".join(list(priorities)[:5])
@@ -651,15 +755,28 @@ def _extract_key_quotes(analytics: List[Dict]) -> str:
 
     for analytic in analytics:
         stage = analytic.get("stage", "interview")
-        # From quotable moments
-        for quote in analytic.get("quotable_moments", [])[:2]:
-            if isinstance(quote, str):
-                quotes.append(f'"{quote}" - {stage}')
-            elif isinstance(quote, dict):
-                quotes.append(f'"{quote.get("quote", "")}" - {stage}')
+
+        # From question_analytics - each question has a "highlight" field with a quotable moment
+        question_analytics = analytic.get("question_analytics", [])
+        if isinstance(question_analytics, list):
+            for qa in question_analytics[:3]:  # Take top 3 from each round
+                if isinstance(qa, dict):
+                    highlight = qa.get("highlight")
+                    if highlight and isinstance(highlight, str):
+                        quotes.append(f'"{highlight}" - {stage}')
+
+        # Also check behavioral_profile.highlights
+        profile = analytic.get("behavioral_profile", {})
+        highlights = profile.get("highlights", [])
+        if isinstance(highlights, list):
+            for highlight in highlights[:2]:
+                if isinstance(highlight, str):
+                    quotes.append(f'"{highlight}" - {stage}')
 
     if quotes:
-        return " | ".join(quotes[:4])
+        # Deduplicate and take top 6
+        unique_quotes = list(dict.fromkeys(quotes))[:6]
+        return " | ".join(unique_quotes)
     return "Key quotes will be identified during coaching session."
 
 
@@ -668,21 +785,261 @@ def _extract_risk_factors(analytics: List[Dict]) -> str:
     risks = []
 
     for analytic in analytics:
-        # From red flags
-        for flag in analytic.get("red_flags", []):
-            if isinstance(flag, str):
-                risks.append(flag)
-            elif isinstance(flag, dict):
-                risks.append(flag.get("description", str(flag)))
+        stage = analytic.get("stage", "interview")
 
-        # From concerns in synthesis
-        synthesis = analytic.get("synthesis", "")
-        if "concern" in synthesis.lower() or "risk" in synthesis.lower():
-            risks.append(f"Note from synthesis: Check interview {analytic.get('stage', '')}")
+        # From behavioral_profile.red_flags (primary location)
+        profile = analytic.get("behavioral_profile", {})
+        red_flags = profile.get("red_flags", [])
+        if isinstance(red_flags, list):
+            for flag in red_flags:
+                if isinstance(flag, str):
+                    risks.append(f"{flag} ({stage})")
+                elif isinstance(flag, dict):
+                    risks.append(f"{flag.get('description', str(flag))} ({stage})")
+
+        # Also check top-level red_flags (fallback)
+        top_level_flags = analytic.get("red_flags", [])
+        if isinstance(top_level_flags, list):
+            for flag in top_level_flags:
+                if isinstance(flag, str):
+                    risks.append(f"{flag} ({stage})")
+
+        # From question_analytics concerns
+        question_analytics = analytic.get("question_analytics", [])
+        if isinstance(question_analytics, list):
+            for qa in question_analytics:
+                if isinstance(qa, dict):
+                    concern = qa.get("concern")
+                    if concern and isinstance(concern, str):
+                        risks.append(f"{concern} ({stage})")
 
     if risks:
-        return "; ".join(risks[:4])
+        # Deduplicate and take top 5
+        unique_risks = list(dict.fromkeys(risks))[:5]
+        return "; ".join(unique_risks)
     return "No major risk factors identified. Discuss during coaching."
+
+
+# ============================================================================
+# Structured Extraction Functions (for frontend display)
+# ============================================================================
+
+def _extract_priorities_structured(analytics: List[Dict]) -> List[CandidatePriority]:
+    """Extract candidate priorities as structured objects for frontend display."""
+    priorities = []
+    seen = set()
+
+    for analytic in analytics:
+        stage = analytic.get("stage", "interview")
+
+        # From behavioral_profile.highlights
+        profile = analytic.get("behavioral_profile", {})
+        highlights = profile.get("highlights", [])
+        if isinstance(highlights, list):
+            for highlight in highlights:
+                if isinstance(highlight, str) and highlight not in seen and len(highlight) < 200:
+                    seen.add(highlight)
+                    priorities.append(CandidatePriority(
+                        name=highlight[:80] + "..." if len(highlight) > 80 else highlight,
+                        importance="high",
+                        evidence=highlight,
+                        source_round=stage
+                    ))
+
+        # From question_analytics highlights
+        question_analytics = analytic.get("question_analytics", [])
+        if isinstance(question_analytics, list):
+            for qa in question_analytics:
+                if isinstance(qa, dict):
+                    highlight = qa.get("highlight")
+                    if highlight and isinstance(highlight, str) and highlight not in seen and len(highlight) < 200:
+                        seen.add(highlight)
+                        priorities.append(CandidatePriority(
+                            name=highlight[:80] + "..." if len(highlight) > 80 else highlight,
+                            importance="medium",
+                            evidence=highlight,
+                            source_round=stage
+                        ))
+
+    return priorities[:6]  # Return top 6
+
+
+def _extract_quotes_structured(analytics: List[Dict]) -> List[KeyQuote]:
+    """Extract key quotes as structured objects for frontend display."""
+    quotes = []
+    seen = set()
+
+    for analytic in analytics:
+        stage = analytic.get("stage", "interview")
+
+        # From question_analytics highlights
+        question_analytics = analytic.get("question_analytics", [])
+        if isinstance(question_analytics, list):
+            for qa in question_analytics[:3]:
+                if isinstance(qa, dict):
+                    highlight = qa.get("highlight")
+                    question = qa.get("question", "")
+                    if highlight and isinstance(highlight, str) and highlight not in seen:
+                        seen.add(highlight)
+                        quotes.append(KeyQuote(
+                            text=highlight,
+                            round=stage.replace("_", " ").title(),
+                            context=question[:100] if question else None
+                        ))
+
+        # From behavioral_profile.highlights
+        profile = analytic.get("behavioral_profile", {})
+        highlights = profile.get("highlights", [])
+        if isinstance(highlights, list):
+            for highlight in highlights[:2]:
+                if isinstance(highlight, str) and highlight not in seen:
+                    seen.add(highlight)
+                    quotes.append(KeyQuote(
+                        text=highlight,
+                        round=stage.replace("_", " ").title(),
+                        context="Behavioral observation"
+                    ))
+
+    return quotes[:8]  # Return top 8
+
+
+def _extract_risks_structured(analytics: List[Dict]) -> List[RiskFactor]:
+    """Extract risk factors as structured objects for frontend display."""
+    risks = []
+    seen = set()
+
+    for analytic in analytics:
+        stage = analytic.get("stage", "interview")
+
+        # From behavioral_profile.red_flags (primary)
+        profile = analytic.get("behavioral_profile", {})
+        red_flags = profile.get("red_flags", [])
+        if isinstance(red_flags, list):
+            for flag in red_flags:
+                if isinstance(flag, str) and flag not in seen:
+                    seen.add(flag)
+                    risks.append(RiskFactor(
+                        description=flag,
+                        severity="high",
+                        source=stage.replace("_", " ").title()
+                    ))
+
+        # From question_analytics concerns
+        question_analytics = analytic.get("question_analytics", [])
+        if isinstance(question_analytics, list):
+            for qa in question_analytics:
+                if isinstance(qa, dict):
+                    concern = qa.get("concern")
+                    if concern and isinstance(concern, str) and concern not in seen:
+                        seen.add(concern)
+                        risks.append(RiskFactor(
+                            description=concern,
+                            severity="medium",
+                            source=stage.replace("_", " ").title()
+                        ))
+
+    return risks[:6]  # Return top 6
+
+
+def _build_candidate_profile(candidate: dict) -> str:
+    """Build a formatted candidate profile string from candidate data."""
+    parts = []
+
+    # Basic info
+    if candidate.get("job_title"):
+        parts.append(f"Current Role: {candidate['job_title']}")
+    if candidate.get("current_company"):
+        parts.append(f"Company: {candidate['current_company']}")
+    if candidate.get("years_experience"):
+        parts.append(f"Experience: {candidate['years_experience']} years")
+    if candidate.get("location_city") or candidate.get("location_state"):
+        location = ", ".join(filter(None, [candidate.get("location_city"), candidate.get("location_state")]))
+        parts.append(f"Location: {location}")
+
+    # Bio summary
+    if candidate.get("bio_summary"):
+        parts.append(f"\nSummary: {candidate['bio_summary']}")
+
+    # One-line summary from AI scoring
+    if candidate.get("one_line_summary"):
+        parts.append(f"\nAI Assessment: {candidate['one_line_summary']}")
+
+    # Skills
+    skills = candidate.get("skills", [])
+    if skills:
+        if isinstance(skills, list):
+            parts.append(f"\nSkills: {', '.join(skills[:10])}")
+        elif isinstance(skills, str):
+            parts.append(f"\nSkills: {skills}")
+
+    # Pros (strengths identified during scoring)
+    pros = candidate.get("pros", [])
+    if pros:
+        if isinstance(pros, list) and pros:
+            parts.append(f"\nStrengths: {'; '.join(pros[:5])}")
+
+    # Cons (areas of concern from scoring)
+    cons = candidate.get("cons", [])
+    if cons:
+        if isinstance(cons, list) and cons:
+            parts.append(f"\nAreas to Address: {'; '.join(cons[:5])}")
+
+    # AI reasoning
+    if candidate.get("reasoning"):
+        parts.append(f"\nScoring Rationale: {candidate['reasoning'][:500]}")
+
+    # Scores
+    if candidate.get("combined_score"):
+        parts.append(f"\nOverall Score: {candidate['combined_score']}/100 ({candidate.get('tier', 'N/A')})")
+
+    if parts:
+        return "\n".join(parts)
+    return "Candidate profile not available."
+
+
+async def _get_job_description(candidate_id: str, candidate: dict) -> str:
+    """Get job description from job_posting or job_profile."""
+    from repositories.job_profile_repository import job_profile_repo
+
+    # Try to get job posting description first
+    job_posting_id = candidate.get("job_posting_id")
+    if job_posting_id:
+        try:
+            db = candidate_repo._get_db()
+            result = db.table("job_postings")\
+                .select("title, description, company_context")\
+                .eq("id", job_posting_id)\
+                .single()\
+                .execute()
+
+            if result.data:
+                jp = result.data
+                parts = []
+                if jp.get("title"):
+                    parts.append(f"Role: {jp['title']}")
+                if jp.get("description"):
+                    parts.append(f"\nDescription:\n{jp['description']}")
+                if jp.get("company_context"):
+                    parts.append(f"\nCompany Context:\n{jp['company_context']}")
+                if parts:
+                    return "\n".join(parts)
+        except Exception as e:
+            logger.warning(f"Error fetching job posting: {e}")
+
+    # Try to get from job_profile (voice ingest)
+    # Check if there's a linked job profile
+    try:
+        # Get the most recent job profile that might be relevant
+        profiles = await job_profile_repo.list_all(limit=1)
+        if profiles:
+            profile = profiles[0]
+            return profile.to_job_description()
+    except Exception as e:
+        logger.warning(f"Error fetching job profile: {e}")
+
+    # Fallback to role title from candidate
+    role = candidate.get("job_title") or "the role"
+    return f"Role: {role}\n(Full job description not available)"
 
 
 # ============================================================================

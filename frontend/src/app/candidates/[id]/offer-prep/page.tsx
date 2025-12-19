@@ -133,6 +133,11 @@ export default function OfferPrepPage() {
     const [generatingSummary, setGeneratingSummary] = useState(false);
     const [showSummary, setShowSummary] = useState(false);
 
+    // Market data refresh state
+    const [companyName, setCompanyName] = useState<string>("");
+    const [companyWebsite, setCompanyWebsite] = useState<string>("");
+    const [refreshingMarketData, setRefreshingMarketData] = useState(false);
+
     useEffect(() => {
         fetchContext();
         fetchExistingSummary();
@@ -245,6 +250,38 @@ export default function OfferPrepPage() {
             setError(e instanceof Error ? e.message : "Failed to load data");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const refreshMarketData = async () => {
+        if (!context) return;
+
+        setRefreshingMarketData(true);
+        try {
+            const res = await fetch(`${API_URL}/api/offer-prep/market-data/enhanced`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    role_title: context.candidate.role_title || "Account Executive",
+                    location: "San Francisco",
+                    company_name: companyName || undefined,
+                    company_website: companyWebsite || undefined,
+                }),
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                if (data.status === "success" || data.status === "partial") {
+                    setContext({
+                        ...context,
+                        market_data: data.data,
+                    });
+                }
+            }
+        } catch (e) {
+            console.error("Error refreshing market data:", e);
+        } finally {
+            setRefreshingMarketData(false);
         }
     };
 
@@ -634,6 +671,46 @@ export default function OfferPrepPage() {
                                     <p>Market data unavailable</p>
                                 </div>
                             )}
+
+                            {/* Company Info for Market Research */}
+                            <div className="mt-4 pt-4 border-t border-white/10">
+                                <div className="text-xs text-white/40 uppercase tracking-wider mb-3">
+                                    Enhance Market Data
+                                </div>
+                                <div className="space-y-3">
+                                    <input
+                                        type="text"
+                                        placeholder="Company Name (e.g., Acme Inc)"
+                                        value={companyName}
+                                        onChange={(e) => setCompanyName(e.target.value)}
+                                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-purple-500/50"
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="Company Website (e.g., https://acme.com)"
+                                        value={companyWebsite}
+                                        onChange={(e) => setCompanyWebsite(e.target.value)}
+                                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-purple-500/50"
+                                    />
+                                    <button
+                                        onClick={refreshMarketData}
+                                        disabled={refreshingMarketData}
+                                        className="w-full flex items-center justify-center gap-2 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 rounded-lg px-4 py-2 text-sm text-purple-300 transition-colors disabled:opacity-50"
+                                    >
+                                        {refreshingMarketData ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                Researching...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <RefreshCw className="w-4 h-4" />
+                                                Refresh Market Data
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Your Offer */}

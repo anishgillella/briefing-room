@@ -101,7 +101,7 @@ class TranscriptParser:
             api_key=OPENROUTER_API_KEY,
         )
         # Use Gemini 2.5 Flash for fast parsing
-        self.model = LLM_MODEL.replace("2.0", "2.5") if "gemini" in LLM_MODEL.lower() else LLM_MODEL
+        self.model = LLM_MODEL
 
     async def parse_transcript(
         self,

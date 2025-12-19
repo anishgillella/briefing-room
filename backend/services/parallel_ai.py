@@ -148,10 +148,14 @@ class ParallelAIService:
                 # Transform results to expected format
                 api_results = search_result.get("results", [])
                 for result in api_results:
+                    # Handle excerpts array - join all excerpts into content
+                    excerpts = result.get("excerpts", [])
+                    content = "\n".join(excerpts) if excerpts else result.get("excerpt", result.get("content", ""))
+
                     results["search_results"].append({
                         "url": result.get("url", ""),
                         "title": result.get("title", ""),
-                        "content": result.get("excerpt", result.get("content", "")),
+                        "content": content,
                         "publish_date": result.get("publish_date"),
                     })
 
@@ -252,10 +256,14 @@ class ParallelAIService:
                 # Transform results to expected format
                 api_results = search_result.get("results", [])
                 for result in api_results:
+                    # Handle excerpts array - join all excerpts into content
+                    excerpts = result.get("excerpts", [])
+                    content = "\n".join(excerpts) if excerpts else result.get("excerpt", result.get("content", ""))
+
                     results["search_results"].append({
                         "url": result.get("url", ""),
                         "title": result.get("title", ""),
-                        "content": result.get("excerpt", result.get("content", "")),
+                        "content": content,
                         "publish_date": result.get("publish_date"),
                     })
 
