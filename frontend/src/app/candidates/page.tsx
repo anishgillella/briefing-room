@@ -546,7 +546,7 @@ export default function CandidatesPage() {
             </div>
             <div>
               <h1 className="text-lg font-light tracking-wide text-white">
-                Superposition
+                Briefing Room
               </h1>
             </div>
           </Link>
@@ -602,7 +602,7 @@ export default function CandidatesPage() {
                 </span>
               </h2>
               <p className="text-xl text-white/60 max-w-2xl mx-auto leading-relaxed">
-                Superposition uses multi-modal AI to analyze candidates beyond keywords.
+                Briefing Room uses multi-modal AI to analyze candidates beyond keywords.
                 <br />
                 Upload resumes, analyze specific job needs, and conduct AI interviews.
               </p>

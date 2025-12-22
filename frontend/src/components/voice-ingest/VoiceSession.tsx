@@ -154,7 +154,9 @@ const VoiceSession = forwardRef<VoiceSessionRef, VoiceSessionProps>(function Voi
                 });
 
                 vapi.on("error", (err: any) => {
-                    console.error("[Vapi] Error:", err);
+                    console.error("[Vapi] Error object:", err);
+                    console.error("[Vapi] Error JSON:", JSON.stringify(err, null, 2));
+
                     // Extract error message safely - ensure it's always a string
                     let errorMsg = "Voice call error";
                     if (typeof err === "string") {
@@ -167,6 +169,9 @@ const VoiceSession = forwardRef<VoiceSessionRef, VoiceSessionProps>(function Voi
                         errorMsg = err.error;
                     } else if (err?.statusCode) {
                         errorMsg = `Voice call error (status ${err.statusCode})`;
+                    } else {
+                        // If we can't find a standard message, stringify the whole thing
+                        errorMsg = JSON.stringify(err);
                     }
                     setError(errorMsg);
                     setConnectionState("failed");
@@ -317,11 +322,10 @@ const VoiceSession = forwardRef<VoiceSessionRef, VoiceSessionProps>(function Voi
                     {/* Avatar with Speaking Indicator */}
                     <div className="relative mx-auto mb-8">
                         <div
-                            className={`w-32 h-32 rounded-full flex items-center justify-center mx-auto transition-all duration-300 ${
-                                isAgentSpeaking
+                            className={`w-32 h-32 rounded-full flex items-center justify-center mx-auto transition-all duration-300 ${isAgentSpeaking
                                     ? "bg-indigo-500 shadow-[0_0_60px_rgba(99,102,241,0.5)]"
                                     : "bg-indigo-500/20"
-                            }`}
+                                }`}
                         >
                             <span className="text-4xl">
                                 {isAgentSpeaking ? "🗣️" : "🤖"}
@@ -359,11 +363,10 @@ const VoiceSession = forwardRef<VoiceSessionRef, VoiceSessionProps>(function Voi
                         <button
                             type="button"
                             onClick={toggleMute}
-                            className={`w-14 h-14 rounded-full flex items-center justify-center transition-all cursor-pointer ${
-                                isMuted
+                            className={`w-14 h-14 rounded-full flex items-center justify-center transition-all cursor-pointer ${isMuted
                                     ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
                                     : "bg-white/10 text-white hover:bg-white/20"
-                            }`}
+                                }`}
                         >
                             {isMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
                         </button>
@@ -381,11 +384,10 @@ const VoiceSession = forwardRef<VoiceSessionRef, VoiceSessionProps>(function Voi
                         <button
                             type="button"
                             onClick={toggleSpeaker}
-                            className={`w-14 h-14 rounded-full flex items-center justify-center transition-all cursor-pointer ${
-                                !isSpeakerOn
+                            className={`w-14 h-14 rounded-full flex items-center justify-center transition-all cursor-pointer ${!isSpeakerOn
                                     ? "bg-amber-500/20 text-amber-400 hover:bg-amber-500/30"
                                     : "bg-white/10 text-white hover:bg-white/20"
-                            }`}
+                                }`}
                         >
                             {isSpeakerOn ? <Volume2 className="w-6 h-6" /> : <VolumeX className="w-6 h-6" />}
                         </button>

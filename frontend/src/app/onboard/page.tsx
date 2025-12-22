@@ -319,7 +319,7 @@ export default function OnboardPage() {
                             <span className="text-sm">⚛️</span>
                         </div>
                         <div>
-                            <h1 className="text-lg font-light tracking-wide text-white">Superposition</h1>
+                            <h1 className="text-lg font-light tracking-wide text-white">Briefing Room</h1>
                         </div>
                     </Link>
 
@@ -328,13 +328,12 @@ export default function OnboardPage() {
                         {["intake", "research", "jd", "voice", "complete"].map((s, i) => (
                             <div
                                 key={s}
-                                className={`w-2 h-2 rounded-full transition-all ${
-                                    step === s
+                                className={`w-2 h-2 rounded-full transition-all ${step === s
                                         ? "w-6 bg-indigo-500"
                                         : ["intake", "research", "jd", "voice", "complete"].indexOf(step) > i
-                                        ? "bg-green-500"
-                                        : "bg-white/20"
-                                }`}
+                                            ? "bg-green-500"
+                                            : "bg-white/20"
+                                    }`}
                             />
                         ))}
                     </div>
@@ -378,8 +377,8 @@ export default function OnboardPage() {
                                     {researchStatus === "pending"
                                         ? "Starting research..."
                                         : researchStatus === "in_progress"
-                                        ? "Analyzing company data..."
-                                        : "Finalizing..."}
+                                            ? "Analyzing company data..."
+                                            : "Finalizing..."}
                                 </span>
                             </div>
                         </div>

@@ -882,12 +882,16 @@ def _build_vapi_variable_values(profile) -> Dict[str, str]:
     # Format team size for speech (e.g., "50 people" or "around 200 employees")
     team_size = ""
     if ci and ci.team_size:
-        if ci.team_size < 20:
-            team_size = f"{ci.team_size} people"
-        elif ci.team_size < 100:
-            team_size = f"around {ci.team_size} employees"
-        else:
-            team_size = f"about {ci.team_size} employees"
+        try:
+            ts = int(ci.team_size) if ci.team_size else 0
+            if ts < 20:
+                team_size = f"{ci.team_size} people"
+            elif ts < 100:
+                team_size = f"around {ci.team_size} employees"
+            else:
+                team_size = f"about {ci.team_size} employees"
+        except (ValueError, TypeError):
+             team_size = f"{ci.team_size} employees"
     headquarters = ci.headquarters if ci and ci.headquarters else ""
     product_description = ci.product_description if ci and ci.product_description else ""
     problem_solved = ci.problem_solved if ci and ci.problem_solved else ""

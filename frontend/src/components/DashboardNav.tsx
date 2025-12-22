@@ -32,10 +32,10 @@ export default function DashboardNav() {
                 {/* Logo / Brand */}
                 <Link href="/" className="flex items-center gap-3 group">
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
-                        <span className="text-white font-bold text-sm">P</span>
+                        <span className="text-white font-bold text-sm">B</span>
                     </div>
                     <span className="text-white font-semibold tracking-tight group-hover:text-purple-300 transition-colors">
-                        Pluto
+                        Briefing Room
                     </span>
                 </Link>
 

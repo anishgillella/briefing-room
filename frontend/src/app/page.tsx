@@ -16,7 +16,7 @@ export default function HomePage() {
                         <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center border border-white/10">
                             <span className="text-sm">⚛️</span>
                         </div>
-                        <h1 className="text-lg font-light tracking-wide text-white">Superposition</h1>
+                        <h1 className="text-lg font-light tracking-wide text-white">Briefing Room</h1>
                     </div>
                 </div>
             </header>
@@ -39,7 +39,7 @@ export default function HomePage() {
                     </h2>
 
                     <p className="text-xl text-white/60 max-w-2xl mx-auto leading-relaxed mb-16">
-                        Superposition uses multi-modal AI to analyze candidates beyond keywords.
+                        Briefing Room uses multi-modal AI to analyze candidates beyond keywords.
                         <br />
                         Create job profiles via voice, analyze specific job needs, and conduct AI interviews.
                     </p>

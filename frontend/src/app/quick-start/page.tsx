@@ -201,18 +201,17 @@ export default function QuickStartPage() {
                         <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center border border-white/10">
                             <span className="text-sm">⚛️</span>
                         </div>
-                        <h1 className="text-lg font-light tracking-wide text-white">Superposition</h1>
+                        <h1 className="text-lg font-light tracking-wide text-white">Briefing Room</h1>
                     </Link>
 
                     {/* Progress Steps */}
                     <div className="flex items-center gap-2">
                         {["jd", "review", "upload"].map((s, i) => (
                             <div key={s} className="flex items-center">
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-all ${
-                                    step === s ? "bg-green-500 text-white" :
-                                    ["jd", "review", "upload"].indexOf(step) > i ? "bg-green-500/20 text-green-400 border border-green-500/30" :
-                                    "bg-white/5 text-white/30 border border-white/10"
-                                }`}>
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-all ${step === s ? "bg-green-500 text-white" :
+                                        ["jd", "review", "upload"].indexOf(step) > i ? "bg-green-500/20 text-green-400 border border-green-500/30" :
+                                            "bg-white/5 text-white/30 border border-white/10"
+                                    }`}>
                                     {["jd", "review", "upload"].indexOf(step) > i ? <CheckCircle className="w-4 h-4" /> : i + 1}
                                 </div>
                                 {i < 2 && (
@@ -317,11 +316,10 @@ export default function QuickStartPage() {
                                         <div key={field.field_name} className="p-3 rounded-xl bg-white/5 border border-white/5">
                                             <div className="flex items-center justify-between">
                                                 <span className="text-sm text-white/80">{field.field_name}</span>
-                                                <span className={`text-[9px] px-1.5 py-0.5 rounded uppercase font-mono ${
-                                                    field.field_type === "boolean" ? "bg-purple-500/20 text-purple-300" :
-                                                    field.field_type === "number" ? "bg-blue-500/20 text-blue-300" :
-                                                    "bg-white/10 text-white/50"
-                                                }`}>
+                                                <span className={`text-[9px] px-1.5 py-0.5 rounded uppercase font-mono ${field.field_type === "boolean" ? "bg-purple-500/20 text-purple-300" :
+                                                        field.field_type === "number" ? "bg-blue-500/20 text-blue-300" :
+                                                            "bg-white/10 text-white/50"
+                                                    }`}>
                                                     {field.field_type}
                                                 </span>
                                             </div>
@@ -400,11 +398,10 @@ export default function QuickStartPage() {
                         </div>
 
                         <div
-                            className={`glass-panel rounded-3xl p-12 border-2 border-dashed transition-all cursor-pointer ${
-                                isDragging ? "border-green-500 bg-green-500/10" :
-                                file ? "border-green-500/50 bg-green-500/5" :
-                                "border-white/10 hover:border-white/20 hover:bg-white/5"
-                            }`}
+                            className={`glass-panel rounded-3xl p-12 border-2 border-dashed transition-all cursor-pointer ${isDragging ? "border-green-500 bg-green-500/10" :
+                                    file ? "border-green-500/50 bg-green-500/5" :
+                                        "border-white/10 hover:border-white/20 hover:bg-white/5"
+                                }`}
                             onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                             onDragLeave={() => setIsDragging(false)}
                             onDrop={handleDrop}
@@ -419,9 +416,8 @@ export default function QuickStartPage() {
                             />
 
                             <div className="flex flex-col items-center text-center">
-                                <div className={`w-16 h-16 rounded-2xl mb-6 flex items-center justify-center transition-all ${
-                                    file ? "bg-green-500 text-white" : "bg-white/10 text-white/40"
-                                }`}>
+                                <div className={`w-16 h-16 rounded-2xl mb-6 flex items-center justify-center transition-all ${file ? "bg-green-500 text-white" : "bg-white/10 text-white/40"
+                                    }`}>
                                     {file ? <CheckCircle className="w-8 h-8" /> : <Upload className="w-8 h-8" />}
                                 </div>
 
