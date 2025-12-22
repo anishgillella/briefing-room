@@ -582,6 +582,9 @@ export default function InterviewPage() {
                         category: message.category || "general", // New field
                         issue_type: message.issue_type || "none",
                         reasoning: message.reasoning || "AI Copilot Analysis",
+                        prior_round: message.prior_round,
+                        prior_quote: message.prior_quote,
+                        current_quote: message.current_quote,
 
                         // Legacy mapping for backward compatibility if needed
                         last_question_type: message.category || "general",
@@ -1451,6 +1454,30 @@ export default function InterviewPage() {
                                                     "{suggestion.suggestion}"
                                                 </p>
                                             </div>
+
+                                            {/* Consistency Check */}
+                                            {suggestion.issue_type === "prior_interview_contradiction" && (
+                                                <div className="rounded-lg border border-white/10 bg-white/5 p-3 space-y-2">
+                                                    <div className="text-[10px] uppercase tracking-wider text-white/50">
+                                                        Consistency Check
+                                                    </div>
+                                                    {suggestion.prior_round && (
+                                                        <div className="text-[10px] uppercase tracking-wider text-white/40">
+                                                            Prior round: <span className="text-white/60">{suggestion.prior_round}</span>
+                                                        </div>
+                                                    )}
+                                                    {suggestion.prior_quote && (
+                                                        <blockquote className="text-xs text-white/70 italic border-l-2 border-white/20 pl-3">
+                                                            &ldquo;{suggestion.prior_quote}&rdquo;
+                                                        </blockquote>
+                                                    )}
+                                                    {suggestion.current_quote && (
+                                                        <blockquote className="text-xs text-white/70 italic border-l-2 border-white/20 pl-3">
+                                                            &ldquo;{suggestion.current_quote}&rdquo;
+                                                        </blockquote>
+                                                    )}
+                                                </div>
+                                            )}
 
                                             {/* Footer: Reasoning & Type */}
                                             {(suggestion.reasoning || suggestion.last_question_type) && (

@@ -35,12 +35,23 @@ class HighlightItem(BaseModel):
         return bool(self.quote and self.context)
 
 
+class StandoutMoment(BaseModel):
+    """A standout moment extracted verbatim from the transcript"""
+    question: Optional[str] = Field(None, description="Question that prompted the standout answer")
+    quote: str = Field(..., min_length=1, description="Verbatim quote from the transcript")
+    why: str = Field(..., min_length=1, description="Why this moment stands out")
+
+
 class InterviewHighlights(BaseModel):
     """TL;DR of the interview - key moments"""
     best_answer: HighlightItem = Field(..., description="Strongest response from the candidate")
     red_flag: Optional[HighlightItem] = Field(None, description="Most concerning moment, if any")
     quotable_moment: str = Field("", description="Memorable quote that captures the candidate")
     areas_to_probe: list[str] = Field(default_factory=list, description="Topics needing follow-up in next round")
+    standout_moments: list[StandoutMoment] = Field(
+        default_factory=list,
+        description="Top 2-3 standout moments with verbatim quotes and why they matter"
+    )
     
     @property
     def has_red_flag(self) -> bool:
@@ -84,4 +95,3 @@ class CoachSuggestion(BaseModel):
     reasoning: str = Field(..., description="Why this question is recommended")
     should_change_topic: bool = Field(..., description="Whether to move to a different topic area")
     topic_suggestion: Optional[str] = Field(None, description="If changing topic, what area to explore")
-
