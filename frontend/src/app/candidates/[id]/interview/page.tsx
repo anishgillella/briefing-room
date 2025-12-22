@@ -58,6 +58,9 @@ interface CoachSuggestion {
     reasoning?: string;
     question_type?: string;     // technical/behavioral/etc
     probe_recommendation?: string; // stay_on_topic/probe_deeper
+    prior_round?: string; // Prior interview round reference
+    prior_quote?: string; // Quote from prior interview round
+    current_quote?: string; // Quote from current interview
 
     // Legacy mapping (kept for safety)
     last_question_type?: string;
@@ -312,7 +315,7 @@ export default function InterviewPage() {
     const hasStartedRef = useRef(false);
 
     const renderInline = (text: string) => {
-        const parts: Array<string | JSX.Element> = [];
+        const parts: Array<string | React.ReactNode> = [];
         let lastIndex = 0;
         let matchIndex = 0;
         const regex = /(\*\*(.+?)\*\*|`([^`]+)`)/g;
@@ -350,7 +353,7 @@ export default function InterviewPage() {
 
     const renderLines = (text: string) => {
         const lines = text.split(/\r?\n/);
-        const blocks: JSX.Element[] = [];
+        const blocks: React.ReactNode[] = [];
         let unorderedItems: string[] = [];
         let orderedItems: string[] = [];
         let paragraphBuffer: string[] = [];
@@ -466,7 +469,7 @@ export default function InterviewPage() {
             .split(/(\bSuggestion for the interviewer:|\bFollow-up Question:)/i)
             .filter(Boolean);
 
-        const blocks: JSX.Element[] = [];
+        const blocks: React.ReactNode[] = [];
         let i = 0;
 
         while (i < sections.length) {
