@@ -223,7 +223,30 @@ def extract_deterministic(row: pd.Series, enrichment: Optional[dict]) -> dict:
     name = safe_str(row.get("name"), "Unknown User")
     if name == "Unknown User" and enrichment:
         name = enrichment.get("name", "Unknown User")
-    
+
+    # Email - check common column name variations
+    email = None
+    email_columns = ["email", "Email", "EMAIL", "e-mail", "E-mail", "email_address", "Email Address", "emailaddress"]
+    for col in email_columns:
+        if col in row.index and not pd.isna(row.get(col)):
+            raw_email = row.get(col)
+            # Handle case where email might be a list (duplicate columns in CSV)
+            if isinstance(raw_email, list):
+                email = safe_str(raw_email[0]) if raw_email else None
+            else:
+                email = safe_str(raw_email)
+            if email:
+                break
+
+    # Also try to get email from enrichment data if not in CSV
+    if not email and enrichment:
+        enrichment_email = enrichment.get("email") or enrichment.get("work_email") or enrichment.get("personal_email")
+        # Handle case where enrichment email might be a list
+        if isinstance(enrichment_email, list):
+            email = safe_str(enrichment_email[0]) if enrichment_email else None
+        else:
+            email = safe_str(enrichment_email) if enrichment_email else None
+
     # Job Title
     job_title = safe_str(row.get("job_title"))
     if not job_title and enrichment:
@@ -256,6 +279,7 @@ def extract_deterministic(row: pd.Series, enrichment: Optional[dict]) -> dict:
     return {
         "id": str(row.name),
         "name": name,
+        "email": email,
         "job_title": job_title,
         "location_city": location_city,
         "location_state": location_state,

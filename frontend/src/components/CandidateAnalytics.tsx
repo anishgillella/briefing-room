@@ -1643,7 +1643,7 @@ export default function CandidateAnalytics({ candidateId, candidateName }: Candi
                                                             borderRadius: '12px',
                                                             color: 'white',
                                                         }}
-                                                        formatter={(value: number) => [`${value}%`, '']}
+                                                        formatter={(value) => [`${value}%`, '']}
                                                     />
                                                     <Legend
                                                         formatter={(value) => <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '11px' }}>{value}</span>}
@@ -1868,9 +1868,9 @@ export default function CandidateAnalytics({ candidateId, candidateName }: Candi
                                                         color: 'white',
                                                     }}
                                                     cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                                                    formatter={(value: number, name: string, props: { payload?: { fullQuestion?: string; info?: string } }) => [
-                                                        `${value}% (Info: ${props.payload?.info || 'N/A'})`,
-                                                        props.payload?.fullQuestion?.slice(0, 60) + '...' || name
+                                                    formatter={(value, name, props) => [
+                                                        `${value}% (Info: ${(props as { payload?: { fullQuestion?: string; info?: string } }).payload?.info || 'N/A'})`,
+                                                        (props as { payload?: { fullQuestion?: string; info?: string } }).payload?.fullQuestion?.slice(0, 60) + '...' || name
                                                     ]}
                                                 />
                                                 <Bar
@@ -2107,7 +2107,7 @@ export default function CandidateAnalytics({ candidateId, candidateName }: Candi
                                                     borderRadius: '12px',
                                                     color: 'white',
                                                 }}
-                                                formatter={(value: number, name: string) => [
+                                                formatter={(value, name) => [
                                                     `${value}`,
                                                     name === 'actual' ? 'This Interview' : 'Best Practice'
                                                 ]}

@@ -19,7 +19,11 @@ import {
     PlayCircle,
     Loader2,
     Building2,
-    GraduationCap
+    GraduationCap,
+    Mail,
+    Pencil,
+    Check,
+    X
 } from "lucide-react";
 
 interface CandidateProfileProps {
@@ -29,6 +33,7 @@ interface CandidateProfileProps {
     isModal?: boolean;
     onStartInterview?: () => void;
     startingInterview?: boolean;
+    onUpdateEmail?: (email: string) => void;
 }
 
 export default function CandidateProfile({
@@ -37,8 +42,23 @@ export default function CandidateProfile({
     isModal = false,
     onStartInterview,
     startingInterview = false,
+    onUpdateEmail,
 }: CandidateProfileProps) {
     const [activeTab, setActiveTab] = useState<"overview" | "analysis" | "interview">("overview");
+    const [isEditingEmail, setIsEditingEmail] = useState(false);
+    const [emailInput, setEmailInput] = useState(candidate.email || "");
+
+    const handleSaveEmail = () => {
+        if (emailInput.trim() && onUpdateEmail) {
+            onUpdateEmail(emailInput.trim());
+        }
+        setIsEditingEmail(false);
+    };
+
+    const handleCancelEmail = () => {
+        setEmailInput(candidate.email || "");
+        setIsEditingEmail(false);
+    };
 
     // Helper for Tier Colors (Apple Watch Activity Ring style colors)
     const getTierColor = (tier?: string) => {
@@ -115,6 +135,65 @@ export default function CandidateProfile({
                                                     {candidate.current_company}
                                                 </span>
                                             </>
+                                        )}
+                                    </div>
+                                    {/* Email Section */}
+                                    <div className="mt-4 flex items-center gap-3">
+                                        <Mail className="w-5 h-5 text-white/40" />
+                                        {isEditingEmail ? (
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    type="email"
+                                                    value={emailInput}
+                                                    onChange={(e) => setEmailInput(e.target.value)}
+                                                    placeholder="Enter email address"
+                                                    className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-white/30 w-64"
+                                                    autoFocus
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === "Enter") handleSaveEmail();
+                                                        if (e.key === "Escape") handleCancelEmail();
+                                                    }}
+                                                />
+                                                <button
+                                                    onClick={handleSaveEmail}
+                                                    className="p-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 transition-colors"
+                                                    title="Save"
+                                                >
+                                                    <Check className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    onClick={handleCancelEmail}
+                                                    className="p-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 transition-colors"
+                                                    title="Cancel"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        ) : candidate.email ? (
+                                            <div className="flex items-center gap-2 group">
+                                                <a
+                                                    href={`mailto:${candidate.email}`}
+                                                    className="text-white/60 hover:text-white/90 text-sm transition-colors"
+                                                >
+                                                    {candidate.email}
+                                                </a>
+                                                {onUpdateEmail && (
+                                                    <button
+                                                        onClick={() => setIsEditingEmail(true)}
+                                                        className="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-white/10 text-white/40 hover:text-white/70 transition-all"
+                                                        title="Edit email"
+                                                    >
+                                                        <Pencil className="w-3.5 h-3.5" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <button
+                                                onClick={() => setIsEditingEmail(true)}
+                                                className="px-4 py-2 bg-white/5 border border-dashed border-white/20 rounded-xl text-white/40 hover:text-white/70 hover:border-white/40 text-sm transition-all flex items-center gap-2"
+                                            >
+                                                <span>Add email address</span>
+                                            </button>
                                         )}
                                     </div>
                                 </div>

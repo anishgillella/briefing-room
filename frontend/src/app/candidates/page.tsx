@@ -143,6 +143,8 @@ export default function CandidatesPage() {
   const [analyzingJD, setAnalyzingJD] = useState(false);
   const [newFieldName, setNewFieldName] = useState("");
   const [newFieldType, setNewFieldType] = useState<"boolean" | "number" | "string" | "string_list">("boolean");
+  const [newFieldDescription, setNewFieldDescription] = useState("");
+  const [showAddFieldForm, setShowAddFieldForm] = useState(false);
 
   // Head-to-Head Comparison
   const [compareMode, setCompareMode] = useState(false);
@@ -341,11 +343,14 @@ export default function CandidatesPage() {
       {
         field_name: fieldName,
         field_type: newFieldType,
-        description: `Custom field: ${newFieldName}`,
+        description: newFieldDescription.trim() || `Custom field: ${newFieldName}`,
         is_required: false,
       },
     ]);
     setNewFieldName("");
+    setNewFieldDescription("");
+    setNewFieldType("boolean");
+    setShowAddFieldForm(false);
   };
 
   // Remove extraction field
@@ -759,21 +764,92 @@ export default function CandidatesPage() {
 
                 {/* Add Custom Field */}
                 <div className="mt-6 pt-6 border-t border-white/5">
-                  <div className="flex gap-3">
-                    <input
-                      value={newFieldName}
-                      onChange={(e) => setNewFieldName(e.target.value)}
-                      placeholder="Add custom extraction field..."
-                      className="flex-1 bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-500/50 transition-colors"
-                    />
+                  {!showAddFieldForm ? (
                     <button
-                      onClick={handleAddField}
-                      disabled={!newFieldName.trim()}
-                      className="px-4 py-2 rounded-xl bg-blue-600/20 text-blue-400 border border-blue-500/30 hover:bg-blue-600 hover:text-white hover:border-transparent text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={() => setShowAddFieldForm(true)}
+                      className="w-full py-3 rounded-xl bg-white/5 border border-dashed border-white/20 text-white/50 hover:text-white/80 hover:border-white/40 text-sm font-medium transition-all flex items-center justify-center gap-2"
                     >
-                      + Add
+                      <span className="text-lg">+</span> Add Custom Field
                     </button>
-                  </div>
+                  ) : (
+                    <div className="space-y-4 p-4 rounded-xl bg-white/5 border border-white/10">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-medium text-white">Add Custom Extraction Field</h4>
+                        <button
+                          onClick={() => {
+                            setShowAddFieldForm(false);
+                            setNewFieldName("");
+                            setNewFieldDescription("");
+                            setNewFieldType("boolean");
+                          }}
+                          className="text-white/40 hover:text-white/70 transition-colors"
+                        >
+                          ✕
+                        </button>
+                      </div>
+
+                      {/* Field Name */}
+                      <div>
+                        <label className="block text-xs text-white/50 mb-1.5">Field Name *</label>
+                        <input
+                          value={newFieldName}
+                          onChange={(e) => setNewFieldName(e.target.value)}
+                          placeholder="e.g., enterprise_sales_experience"
+                          className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-500/50 transition-colors"
+                        />
+                      </div>
+
+                      {/* Field Description */}
+                      <div>
+                        <label className="block text-xs text-white/50 mb-1.5">Description (what to extract)</label>
+                        <textarea
+                          value={newFieldDescription}
+                          onChange={(e) => setNewFieldDescription(e.target.value)}
+                          placeholder="e.g., Has the candidate sold to enterprise companies with 1000+ employees?"
+                          rows={2}
+                          className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-500/50 transition-colors resize-none"
+                        />
+                      </div>
+
+                      {/* Field Type */}
+                      <div>
+                        <label className="block text-xs text-white/50 mb-1.5">Field Type</label>
+                        <div className="flex gap-2">
+                          {(["boolean", "number", "string", "string_list"] as const).map((type) => (
+                            <button
+                              key={type}
+                              onClick={() => setNewFieldType(type)}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                                newFieldType === type
+                                  ? type === "boolean" ? "bg-purple-500/30 text-purple-300 border border-purple-500/50" :
+                                    type === "number" ? "bg-blue-500/30 text-blue-300 border border-blue-500/50" :
+                                    type === "string" ? "bg-green-500/30 text-green-300 border border-green-500/50" :
+                                    "bg-orange-500/30 text-orange-300 border border-orange-500/50"
+                                  : "bg-white/5 text-white/50 border border-white/10 hover:border-white/30"
+                              }`}
+                            >
+                              {type === "string_list" ? "list" : type}
+                            </button>
+                          ))}
+                        </div>
+                        <p className="text-[10px] text-white/30 mt-1.5">
+                          {newFieldType === "boolean" && "Yes/No answer (e.g., has_startup_experience)"}
+                          {newFieldType === "number" && "Numeric value (e.g., years_of_experience, deal_size)"}
+                          {newFieldType === "string" && "Text answer (e.g., primary_industry, sales_methodology)"}
+                          {newFieldType === "string_list" && "Multiple values (e.g., skills, certifications)"}
+                        </p>
+                      </div>
+
+                      {/* Add Button */}
+                      <button
+                        onClick={handleAddField}
+                        disabled={!newFieldName.trim()}
+                        className="w-full py-2.5 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Add Field
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 

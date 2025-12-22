@@ -102,6 +102,24 @@ export default function CandidateDetailPage() {
         }
     };
 
+    const handleUpdateEmail = async (email: string) => {
+        try {
+            const res = await fetch(`${API_URL}/api/pluto/candidates/${candidateId}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email }),
+            });
+            if (res.ok) {
+                const updatedCandidate = await res.json();
+                setCandidate(updatedCandidate);
+            } else {
+                alert("Failed to update email");
+            }
+        } catch (e) {
+            alert("Failed to update email");
+        }
+    };
+
     const handleStartInterview = async () => {
         setStartingInterview(true);
         try {
@@ -402,6 +420,7 @@ Be concise and helpful. The recruiter has limited time before the interview.`
                     loadingPrebrief={prebriefLoading}
                     onStartInterview={handleStartInterview}
                     startingInterview={startingInterview}
+                    onUpdateEmail={handleUpdateEmail}
                 />
             )}
             {activeTab === 'history' && (
