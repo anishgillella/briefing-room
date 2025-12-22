@@ -17,6 +17,7 @@ import os
 from pathlib import Path
 from typing import Dict, Any, Optional
 from datetime import datetime
+from urllib.parse import quote
 
 # Load .env from parent directory
 from dotenv import load_dotenv
@@ -37,6 +38,7 @@ from livekit.agents import (
     AgentSession,
 )
 from livekit.plugins import deepgram, openai, silero, elevenlabs
+from config import GEMINI_ANALYTICS_MODEL
 
 # Environment variables (now loaded from .env)
 LIVEKIT_URL = os.getenv("LIVEKIT_URL")
@@ -56,6 +58,7 @@ logger.setLevel(logging.INFO)
 
 current_room: Optional[rtc.Room] = None
 transcript_history: list = []
+consistency_flags_sent: int = 0
 
 
 # ============================================================================
@@ -161,12 +164,13 @@ def prewarm(proc: JobProcess):
 
 async def entrypoint(ctx: JobContext):
     """Main entry point for the interview agent."""
-    global current_room, transcript_history
+    global current_room, transcript_history, consistency_flags_sent
     
     logger.info(f"Interview Agent starting for room: {ctx.room.name}")
     
     current_room = ctx.room
     transcript_history = []
+    consistency_flags_sent = 0
     
     # Connect to room
     await ctx.connect(auto_subscribe=AutoSubscribe.AUDIO_ONLY)
@@ -240,6 +244,80 @@ START by greeting the interviewer warmly and introducing yourself briefly.
 Say: "Hi, thank you for having me! I'm {candidate_name.split()[0]}, excited to be here for this interview."
 """
 
+    async def fetch_prior_interview_context() -> str:
+        """Fetch compact prior interview context for contradiction checks."""
+        base_url = os.getenv("BACKEND_URL", "http://localhost:8000")
+        if not candidate_name:
+            return ""
+
+        try:
+            import httpx
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                lookup = await client.get(f"{base_url}/api/interviews/lookup-by-name/{quote(candidate_name)}")
+                if lookup.status_code != 200:
+                    return ""
+                lookup_data = lookup.json()
+                db_id = lookup_data.get("db_id")
+                if not db_id:
+                    return ""
+
+                interviews_resp = await client.get(f"{base_url}/api/interviews/candidate/{db_id}")
+                if interviews_resp.status_code != 200:
+                    return ""
+
+                interviews_data = interviews_resp.json()
+                interviews = interviews_data.get("interviews", [])
+                context_lines = []
+
+                for interview in interviews:
+                    if interview.get("status") != "completed":
+                        continue
+
+                    analytics = interview.get("analytics") or {}
+                    stage = interview.get("stage", "unknown")
+
+                    highlights = analytics.get("highlights") if isinstance(analytics, dict) else None
+                    best_answer = analytics.get("best_answer") if isinstance(analytics, dict) else None
+                    quotable = analytics.get("quotable_moment") if isinstance(analytics, dict) else None
+                    quotable_list = analytics.get("quotable_moments") if isinstance(analytics, dict) else None
+
+                    if isinstance(highlights, dict):
+                        best_answer = best_answer or highlights.get("best_answer")
+                        quotable = quotable or highlights.get("quotable_moment")
+                        quotable_list = quotable_list or highlights.get("quotable_moments")
+
+                    quotes = []
+                    if isinstance(best_answer, dict) and best_answer.get("quote"):
+                        quotes.append(best_answer["quote"])
+                    if isinstance(quotable, str) and quotable:
+                        quotes.append(quotable)
+                    if isinstance(quotable_list, list):
+                        quotes.extend([q for q in quotable_list if isinstance(q, str)])
+
+                    quotes = [q.strip() for q in quotes if q and isinstance(q, str)]
+                    if not quotes:
+                        continue
+
+                    unique_quotes = []
+                    for q in quotes:
+                        if q not in unique_quotes:
+                            unique_quotes.append(q)
+                        if len(unique_quotes) >= 2:
+                            break
+
+                    for q in unique_quotes:
+                        context_lines.append(f"- [{stage}] \"{q}\"")
+
+                if not context_lines:
+                    return ""
+
+                return "PRIOR INTERVIEW QUOTES:\n" + "\n".join(context_lines[:6])
+        except Exception as e:
+            logger.warning(f"Failed to fetch prior interview context: {e}")
+            return ""
+
+    prior_interview_context = await fetch_prior_interview_context()
+
     # Initialize LLM with OpenRouter
     llm_instance = openai.LLM(
         model="openai/gpt-4o-mini",
@@ -288,9 +366,19 @@ Say: "Hi, thank you for having me! I'm {candidate_name.split()[0]}, excited to b
 
     class CopilotInsight(BaseModel):
         verdict: Literal["ADEQUATE", "INADEQUATE"] = Field(description="Is the answer satisfactory?")
-        issue_type: Literal["none", "resume_contradiction", "missing_star", "rambling", "vague"] = Field(description="The specific type of issue found, if any.")
+        issue_type: Literal[
+            "none",
+            "resume_contradiction",
+            "prior_interview_contradiction",
+            "missing_star",
+            "rambling",
+            "vague"
+        ] = Field(description="The specific type of issue found, if any.")
         reasoning: str = Field(description="Brief explanation of the verdict and any issues.")
         suggestion: str = Field(description="The probing question or next topic question.")
+        prior_round: Optional[str] = Field(default=None, description="Prior interview stage if contradiction found")
+        prior_quote: Optional[str] = Field(default=None, description="Verbatim prior quote if contradiction found")
+        current_quote: Optional[str] = Field(default=None, description="Verbatim current quote if contradiction found")
 
     @function_tool(description="Broadcast an AI suggestion to the interviewer.")
     async def send_ai_suggestion(
@@ -300,7 +388,10 @@ Say: "Hi, thank you for having me! I'm {candidate_name.split()[0]}, excited to b
         reasoning: str = "",
         question_type: str = "general",
         probe_recommendation: str = "stay_on_topic",
-        topic_to_explore: str = None
+        topic_to_explore: str = None,
+        prior_round: str = None,
+        prior_quote: str = None,
+        current_quote: str = None
     ) -> str:
         """Send an AI suggestion to the interviewer's panel."""
         global current_room
@@ -317,7 +408,10 @@ Say: "Hi, thank you for having me! I'm {candidate_name.split()[0]}, excited to b
                     "reasoning": reasoning,
                     "question_type": question_type,  # technical/behavioral/cultural_fit/etc
                     "probe_recommendation": probe_recommendation,  # stay_on_topic/probe_deeper/change_topic
-                    "topic_to_explore": topic_to_explore
+                    "topic_to_explore": topic_to_explore,
+                    "prior_round": prior_round,
+                    "prior_quote": prior_quote,
+                    "current_quote": current_quote
                 }
                 
                 message = json.dumps(payload)
@@ -344,6 +438,7 @@ Say: "Hi, thank you for having me! I'm {candidate_name.split()[0]}, excited to b
 
     async def analyze_interaction(history):
         """Analyze the conversation history and generate suggestions."""
+        global consistency_flags_sent
         if len(history) < 2:
             return
 
@@ -360,6 +455,7 @@ CONTEXT:
 Candidate: {candidate_name}
 Job: {job_title}
 Resume: {resume_context[:500]}...
+{prior_interview_context if prior_interview_context else "PRIOR INTERVIEW QUOTES: None"}
 
 CONVERSATION HISTORY (last 3 exchanges):
 {json.dumps(recent_context, indent=2)}
@@ -368,24 +464,30 @@ TOTAL EXCHANGES SO FAR: {exchange_count}
 
 ANALYSIS CRITERIA:
 1. FACT CHECK: Direct contradictions with Resume? (e.g. wrong dates/roles).
-2. BEHAVIORAL: If telling a story, did they use S.T.A.R. (Situation, Task, Action, Result)? If "Result" is missing, that's an issue.
-3. QUALITY: Is the answer vague or rambling?
-4. TOPIC: Classify the question type and suggest if we should change topics after 2-3 exchanges.
+2. CONSISTENCY CHECK: If current answer contradicts PRIOR INTERVIEW QUOTES, flag it.
+   - Only flag high-confidence contradictions (dates, titles, company names, metrics, compensation, timelines).
+   - Use VERBATIM quotes from both prior and current context.
+3. BEHAVIORAL: If telling a story, did they use S.T.A.R. (Situation, Task, Action, Result)? If "Result" is missing, that's an issue.
+4. QUALITY: Is the answer vague or rambling?
+5. TOPIC: Classify the question type and suggest if we should change topics after 2-3 exchanges.
 
 OUTPUT JSON SCHEMA:
 {{
     "verdict": "STRONG" | "ADEQUATE" | "WEAK" | "NEEDS_PROBING",
     "question_type": "technical" | "behavioral" | "cultural_fit" | "problem_solving" | "situational" | "opening",
-    "issue_type": "none" | "resume_contradiction" | "missing_star" | "rambling" | "vague" | "off_topic",
+    "issue_type": "none" | "resume_contradiction" | "prior_interview_contradiction" | "missing_star" | "rambling" | "vague" | "off_topic",
     "reasoning": "Analysis of answer + Rationale for next question.",
     "suggestion": "Verbatim question text to display to interviewer.",
     "probe_recommendation": "stay_on_topic" | "probe_deeper" | "change_topic",
-    "topic_to_explore": "If changing topic, what area: technical_skills | leadership | teamwork | challenges | achievements | culture_fit | null"
+    "topic_to_explore": "If changing topic, what area: technical_skills | leadership | teamwork | challenges | achievements | culture_fit | null",
+    "prior_round": "If contradiction, the prior interview stage (e.g., round_1) else null",
+    "prior_quote": "If contradiction, verbatim prior quote else null",
+    "current_quote": "If contradiction, verbatim current quote else null"
 }}
 """
         try:
             response = await copilot_client.chat.completions.create(
-                model="openai/gpt-4o-mini",
+                model=GEMINI_ANALYTICS_MODEL,
                 messages=[
                     {"role": "system", "content": "You are a helpful interview copilot. Output valid JSON matching the schema."},
                     {"role": "user", "content": prompt}
@@ -397,16 +499,25 @@ OUTPUT JSON SCHEMA:
             # Parse JSON
             json_str = response.choices[0].message.content.strip()
             insight = json.loads(json_str)
+
+            issue_type = insight.get("issue_type", "none")
+            if issue_type == "prior_interview_contradiction":
+                if consistency_flags_sent >= 2:
+                    return
+                consistency_flags_sent += 1
             
             # Send structured data with full details
             await send_ai_suggestion(
                 suggestion=insight.get("suggestion", "Continue with follow-up question."), 
                 category=insight.get("verdict", "ADEQUATE"),
-                issue_type=insight.get("issue_type", "none"),
+                issue_type=issue_type,
                 reasoning=insight.get("reasoning", ""),
                 question_type=insight.get("question_type", "general"),
                 probe_recommendation=insight.get("probe_recommendation", "stay_on_topic"),
-                topic_to_explore=insight.get("topic_to_explore")
+                topic_to_explore=insight.get("topic_to_explore"),
+                prior_round=insight.get("prior_round"),
+                prior_quote=insight.get("prior_quote"),
+                current_quote=insight.get("current_quote")
             )
                 
         except Exception as e:

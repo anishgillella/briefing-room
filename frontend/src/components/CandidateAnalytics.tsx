@@ -180,6 +180,7 @@ interface CandidateAnalyticsData {
     total_questions: number;
     qa_pairs: QAPair[];
     best_answer?: { question?: string; quote: string; context?: string; why_impressive?: string } | null;
+    standout_moments?: { question?: string; quote: string; why: string }[] | null;
     worst_answer?: { question: string; issue: string; impact: string } | null;
     quotable_moment?: string | null;
     quotable_moments?: string[];
@@ -1364,23 +1365,45 @@ export default function CandidateAnalytics({ candidateId, candidateName }: Candi
 
                             {/* Best & Worst Answers */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {selectedRoundData.candidate_analytics.best_answer && (
-                                    <div className="p-6 rounded-2xl bg-green-500/5 border border-green-500/10">
-                                        <h4 className="font-medium text-green-400 mb-4 flex items-center gap-2">
-                                            <Sparkles className="w-4 h-4" />
-                                            Standout Moment
-                                        </h4>
-                                        {selectedRoundData.candidate_analytics.best_answer.question && (
-                                            <p className="text-xs text-white/40 mb-2">Q: {selectedRoundData.candidate_analytics.best_answer.question}</p>
-                                        )}
-                                        <blockquote className="text-white/80 italic border-l-2 border-green-500 pl-4 mb-3">
-                                            &ldquo;{selectedRoundData.candidate_analytics.best_answer.quote}&rdquo;
-                                        </blockquote>
-                                        <p className="text-sm text-white/50">
-                                            {selectedRoundData.candidate_analytics.best_answer.why_impressive || selectedRoundData.candidate_analytics.best_answer.context}
-                                        </p>
-                                    </div>
-                                )}
+                                {(() => {
+                                    const standoutMoments = selectedRoundData.candidate_analytics.standout_moments?.length
+                                        ? selectedRoundData.candidate_analytics.standout_moments
+                                        : selectedRoundData.candidate_analytics.best_answer
+                                            ? [{
+                                                question: selectedRoundData.candidate_analytics.best_answer.question,
+                                                quote: selectedRoundData.candidate_analytics.best_answer.quote,
+                                                why: selectedRoundData.candidate_analytics.best_answer.why_impressive
+                                                    || selectedRoundData.candidate_analytics.best_answer.context
+                                                    || ""
+                                            }].filter((item) => item.why)
+                                            : [];
+
+                                    if (!standoutMoments.length) {
+                                        return null;
+                                    }
+
+                                    return (
+                                        <div className="p-6 rounded-2xl bg-green-500/5 border border-green-500/10">
+                                            <h4 className="font-medium text-green-400 mb-4 flex items-center gap-2">
+                                                <Sparkles className="w-4 h-4" />
+                                                Standout Moments
+                                            </h4>
+                                            <div className="space-y-4">
+                                                {standoutMoments.map((moment, index) => (
+                                                    <div key={index} className="space-y-2">
+                                                        {moment.question && (
+                                                            <p className="text-xs text-white/40">Q: {moment.question}</p>
+                                                        )}
+                                                        <blockquote className="text-white/80 italic border-l-2 border-green-500 pl-4">
+                                                            &ldquo;{moment.quote}&rdquo;
+                                                        </blockquote>
+                                                        <p className="text-sm text-white/50">{moment.why}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
                                 {selectedRoundData.candidate_analytics.worst_answer && (
                                     <div className="p-6 rounded-2xl bg-red-500/5 border border-red-500/10">
                                         <h4 className="font-medium text-red-400 mb-4 flex items-center gap-2">

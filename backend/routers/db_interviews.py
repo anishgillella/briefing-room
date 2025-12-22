@@ -7,7 +7,7 @@ Provides:
 """
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from typing import Optional, List
 import os
 import uuid
@@ -24,6 +24,7 @@ from repositories.interviewer_analytics_repository import get_interviewer_analyt
 # Services
 from services.transcript_parser import get_transcript_parser, ParsedTranscript
 from services.interviewer_analyzer import get_interviewer_analyzer
+from models.analytics import StandoutMoment
 
 logger = logging.getLogger(__name__)
 
@@ -831,7 +832,14 @@ Return a JSON object with this exact structure:
     }},
     "quotable_moments": ["memorable quotes"],
     "unexpected_strengths": ["strengths that weren't expected"],
-    "areas_to_probe": ["topics needing deeper exploration in next round"]
+    "areas_to_probe": ["topics needing deeper exploration in next round"],
+    "standout_moments": [
+      {{
+        "question": "Question that prompted the standout answer",
+        "quote": "Verbatim transcript quote (do not paraphrase)",
+        "why": "Why this moment stands out"
+      }}
+    ]
   }},
 
   "executive_summary": {{
@@ -883,6 +891,20 @@ IMPORTANT: Return ONLY valid JSON. No markdown, no code blocks, no explanatory t
                     content = content.split("```")[1].split("```")[0]
 
                 candidate_analytics = json.loads(content.strip())
+
+                highlights_data = candidate_analytics.get("highlights")
+                if isinstance(highlights_data, dict):
+                    standout_raw = highlights_data.get("standout_moments", [])
+                    if isinstance(standout_raw, list):
+                        validated_standouts = []
+                        for item in standout_raw[:3]:
+                            if not isinstance(item, dict):
+                                continue
+                            try:
+                                validated_standouts.append(StandoutMoment(**item).model_dump())
+                            except ValidationError:
+                                continue
+                        highlights_data["standout_moments"] = validated_standouts
 
                 # Save to database
                 analytics_repo.save_analytics(interview_id, candidate_analytics)
@@ -1168,6 +1190,7 @@ async def get_all_candidate_analytics(candidate_id: str):
                 "qa_pairs": question_analytics[:10] if question_analytics else [],  # Include top 10 Q&As
                 "best_answer": communication_metrics.get("best_answer") if isinstance(communication_metrics, dict) else None,
                 "quotable_moment": communication_metrics.get("quotable_moment") if isinstance(communication_metrics, dict) else None,
+                "standout_moments": communication_metrics.get("standout_moments") if isinstance(communication_metrics, dict) else None,
             }
 
             # Collect for cumulative

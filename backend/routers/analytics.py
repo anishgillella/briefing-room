@@ -105,7 +105,14 @@ Respond with a JSON object matching this exact structure:
       "context": "Why this is a concern"
     }},
     "quotable_moment": "A memorable quote that captures the candidate's personality/values",
-    "areas_to_probe": ["Topic 1 needing follow-up", "Topic 2"]
+    "areas_to_probe": ["Topic 1 needing follow-up", "Topic 2"],
+    "standout_moments": [
+      {{
+        "question": "Question that prompted the standout answer",
+        "quote": "Verbatim transcript quote (do not paraphrase)",
+        "why": "Why this moment stands out"
+      }}
+    ]
   }}
 }}
 
@@ -135,6 +142,10 @@ def normalize_analytics_data(data: dict) -> dict:
         # Ensure areas_to_probe is a list
         if highlights.get("areas_to_probe") is None:
             highlights["areas_to_probe"] = []
+
+        # Ensure standout_moments is a list
+        if highlights.get("standout_moments") is None:
+            highlights["standout_moments"] = []
     
     return data
 
@@ -311,4 +322,3 @@ async def get_interview_analytics(room_name: str, request: AnalyticsRequest) -> 
     
     # Should not reach here, but just in case
     raise HTTPException(status_code=500, detail=last_error or "Analytics failed after retries")
-
