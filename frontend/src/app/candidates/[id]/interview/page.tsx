@@ -311,6 +311,227 @@ export default function InterviewPage() {
     const transcriptEndRef = useRef<HTMLDivElement>(null);
     const hasStartedRef = useRef(false);
 
+    const renderInline = (text: string) => {
+        const parts: Array<string | JSX.Element> = [];
+        let lastIndex = 0;
+        let matchIndex = 0;
+        const regex = /(\*\*(.+?)\*\*|`([^`]+)`)/g;
+        let match: RegExpExecArray | null;
+
+        while ((match = regex.exec(text)) !== null) {
+            if (match.index > lastIndex) {
+                parts.push(text.slice(lastIndex, match.index));
+            }
+            if (match[2]) {
+                parts.push(
+                    <strong key={`bold-${matchIndex++}`} className="font-semibold text-white">
+                        {match[2]}
+                    </strong>
+                );
+            } else if (match[3]) {
+                parts.push(
+                    <code
+                        key={`code-${matchIndex++}`}
+                        className="px-1 py-0.5 rounded bg-black/30 text-blue-200 text-[11px]"
+                    >
+                        {match[3]}
+                    </code>
+                );
+            }
+            lastIndex = match.index + match[0].length;
+        }
+
+        if (lastIndex < text.length) {
+            parts.push(text.slice(lastIndex));
+        }
+
+        return parts;
+    };
+
+    const renderLines = (text: string) => {
+        const lines = text.split(/\r?\n/);
+        const blocks: JSX.Element[] = [];
+        let unorderedItems: string[] = [];
+        let orderedItems: string[] = [];
+        let paragraphBuffer: string[] = [];
+
+        const flushParagraph = () => {
+            if (!paragraphBuffer.length) return;
+            const paragraphText = paragraphBuffer.join(" ").trim();
+            paragraphBuffer = [];
+            if (!paragraphText) return;
+            blocks.push(
+                <p key={`para-${blocks.length}`} className="text-xs text-white/85 leading-relaxed">
+                    {renderInline(paragraphText)}
+                </p>
+            );
+        };
+
+        const flushUnordered = () => {
+            if (!unorderedItems.length) return;
+            blocks.push(
+                <ul key={`ul-${blocks.length}`} className="list-disc pl-4 space-y-1 text-xs text-white/85 leading-relaxed">
+                    {unorderedItems.map((item, idx) => (
+                        <li key={`ul-item-${blocks.length}-${idx}`}>{renderInline(item)}</li>
+                    ))}
+                </ul>
+            );
+            unorderedItems = [];
+        };
+
+        const flushOrdered = () => {
+            if (!orderedItems.length) return;
+            blocks.push(
+                <ol key={`ol-${blocks.length}`} className="list-decimal pl-4 space-y-1 text-xs text-white/85 leading-relaxed">
+                    {orderedItems.map((item, idx) => (
+                        <li key={`ol-item-${blocks.length}-${idx}`}>{renderInline(item)}</li>
+                    ))}
+                </ol>
+            );
+            orderedItems = [];
+        };
+
+        lines.forEach((rawLine) => {
+            const line = rawLine.trim();
+            if (!line) {
+                flushParagraph();
+                flushUnordered();
+                flushOrdered();
+                return;
+            }
+
+            const headingMatch = line.match(/^(#{1,3})\s+(.*)$/);
+            if (headingMatch) {
+                flushParagraph();
+                flushUnordered();
+                flushOrdered();
+                const level = headingMatch[1].length;
+                const headingText = headingMatch[2].trim();
+                const headingClass =
+                    level === 1
+                        ? "text-sm font-semibold text-white"
+                        : level === 2
+                            ? "text-xs font-semibold text-white"
+                            : "text-xs font-medium text-white/80 uppercase tracking-wider";
+                blocks.push(
+                    <div key={`h-${blocks.length}`} className={headingClass}>
+                        {renderInline(headingText)}
+                    </div>
+                );
+                return;
+            }
+
+            if (/^>\s?/.test(line)) {
+                flushParagraph();
+                flushUnordered();
+                flushOrdered();
+                const quoteText = line.replace(/^>\s?/, "");
+                blocks.push(
+                    <div
+                        key={`quote-${blocks.length}`}
+                        className="border-l-2 border-white/20 pl-3 text-xs text-white/70 italic leading-relaxed"
+                    >
+                        {renderInline(quoteText)}
+                    </div>
+                );
+                return;
+            }
+
+            if (/^[-*•]\s+/.test(line)) {
+                flushParagraph();
+                flushOrdered();
+                unorderedItems.push(line.replace(/^[-*•]\s+/, "").trim());
+                return;
+            }
+
+            if (/^\d+\.\s+/.test(line)) {
+                flushParagraph();
+                flushUnordered();
+                orderedItems.push(line.replace(/^\d+\.\s+/, "").trim());
+                return;
+            }
+
+            paragraphBuffer.push(line);
+        });
+
+        flushParagraph();
+        flushUnordered();
+        flushOrdered();
+
+        return blocks;
+    };
+
+    const renderAssistantMessage = (content: string) => {
+        const sections = content
+            .split(/(\bSuggestion for the interviewer:|\bFollow-up Question:)/i)
+            .filter(Boolean);
+
+        const blocks: JSX.Element[] = [];
+        let i = 0;
+
+        while (i < sections.length) {
+            const segment = sections[i];
+            if (/^Suggestion for the interviewer:$/i.test(segment) || /^Follow-up Question:$/i.test(segment)) {
+                const label = segment.replace(/:$/, "");
+                const body = sections[i + 1] || "";
+                blocks.push(
+                    <div key={`label-${i}`} className="space-y-1">
+                        <div className="text-[10px] uppercase tracking-wider text-white/50">
+                            {label}
+                        </div>
+                        <div className="space-y-2">
+                            {renderLines(body.trim())}
+                        </div>
+                    </div>
+                );
+                i += 2;
+                continue;
+            }
+
+            const text = segment.trim();
+            if (!text) {
+                i += 1;
+                continue;
+            }
+
+            const numberedMatches = text.match(/\b\d+\.\s+/g);
+            if (numberedMatches && numberedMatches.length >= 2) {
+                const firstIndex = text.search(/\b\d+\.\s+/);
+                const intro = text.slice(0, firstIndex).trim();
+                const listText = text.slice(firstIndex).trim();
+                const items = listText.split(/\s(?=\d+\.\s+)/).map((item) =>
+                    item.replace(/^\d+\.\s+/, "").trim()
+                );
+
+                blocks.push(
+                    <div key={`list-${i}`} className="space-y-2">
+                        {intro && (
+                            <p className="text-xs text-white/85 leading-relaxed">
+                                {renderInline(intro)}
+                            </p>
+                        )}
+                        <ol className="list-decimal pl-4 space-y-1 text-xs text-white/85 leading-relaxed">
+                            {items.map((item, idx) => (
+                                <li key={`item-${i}-${idx}`}>{renderInline(item)}</li>
+                            ))}
+                        </ol>
+                    </div>
+                );
+            } else {
+                const rendered = renderLines(text);
+                blocks.push(
+                    <div key={`para-${i}`} className="space-y-2">
+                        {rendered}
+                    </div>
+                );
+            }
+
+            i += 1;
+        }
+
+        return <div className="space-y-3">{blocks}</div>;
+    };
+
     // Timer effect
     useEffect(() => {
         if (connected && !interviewEnded) {
@@ -1272,7 +1493,7 @@ export default function InterviewPage() {
                                             ? "bg-blue-600 text-white"
                                             : "bg-white/10 text-white/80"
                                             }`}>
-                                            {msg.content}
+                                            {msg.role === "assistant" ? renderAssistantMessage(msg.content) : msg.content}
                                         </div>
                                     </div>
                                 ))
