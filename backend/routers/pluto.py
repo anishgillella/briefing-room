@@ -784,12 +784,49 @@ async def start_full_interview(candidate_id: str) -> FullInterviewResponse:
     }
     
     token = jwt.encode(claims, livekit_api_secret, algorithm="HS256")
-    
+
     print(f"[Interview] Created LiveKit room '{room_name}' for candidate '{candidate.name}'")
-    
-    # Update candidate status
+
+    # Update candidate status in JSON
     update_candidate(candidate_id, {"interview_status": "in_progress", "room_name": room_name})
-    
+
+    # Create database interview record for tracking
+    db_interview_id = None
+    try:
+        from repositories.interview_repository import InterviewRepository
+        from repositories.candidate_repository import CandidateRepository
+
+        interview_repo = InterviewRepository()
+        candidate_repo = CandidateRepository()
+
+        # Look up DB candidate by json_id first, then by name
+        db_candidate = candidate_repo.get_by_json_id(candidate_id)
+        if not db_candidate:
+            db_candidate = candidate_repo.get_by_name(candidate.name)
+            if db_candidate:
+                # Update json_id for future lookups
+                try:
+                    candidate_repo.set_json_id(db_candidate["id"], candidate_id)
+                except Exception:
+                    pass
+
+        if db_candidate:
+            db_candidate_id = db_candidate["id"]
+            # Use start_next_interview which handles existing interviews
+            interview = interview_repo.start_next_interview(
+                candidate_id=db_candidate_id,
+                interviewer_name="Interviewer"
+            )
+            if interview:
+                db_interview_id = interview["id"]
+                # Mark as active
+                interview_repo.start_interview(db_interview_id)
+                # Store room_name in interview record
+                interview_repo.update(db_interview_id, {"room_name": room_name})
+                print(f"[Interview] Created/resumed DB interview {db_interview_id} for candidate {db_candidate_id}")
+    except Exception as e:
+        print(f"[Interview] Warning: Could not create DB interview record: {e}")
+
     return FullInterviewResponse(
         room_name=room_name,
         room_url=livekit_url,  # Use LiveKit URL instead of Daily URL
@@ -908,6 +945,8 @@ async def save_interview_analytics(candidate_id: str, request: SaveAnalyticsRequ
             if db_candidate_id:
                 # Check if interview already exists for this candidate
                 existing_interviews = interview_repo.get_candidate_interviews(db_candidate_id)
+
+                # First check for active/in_progress interview
                 active_interview = next(
                     (i for i in existing_interviews if i.get("status") in ["active", "in_progress"]),
                     None
@@ -919,15 +958,27 @@ async def save_interview_analytics(candidate_id: str, request: SaveAnalyticsRequ
                     interview_id = active_interview["id"]
                     logger.info(f"Completed existing interview: {interview_id}")
                 else:
-                    # Create a new interview record
-                    new_interview = interview_repo.create({
-                        "candidate_id": db_candidate_id,
-                        "stage": "round_1",
-                        "status": "completed",
-                    })
-                    if new_interview:
-                        interview_id = new_interview["id"]
-                        logger.info(f"Created new interview: {interview_id}")
+                    # Check for existing round_1 interview (reuse it for analytics update)
+                    existing_round1 = next(
+                        (i for i in existing_interviews if i.get("stage") == "round_1"),
+                        None
+                    )
+
+                    if existing_round1:
+                        # Reuse existing round_1 interview - analytics will be updated
+                        interview_id = existing_round1["id"]
+                        interview_repo.update(interview_id, {"status": "completed"})
+                        logger.info(f"Reusing existing round_1 interview: {interview_id}")
+                    else:
+                        # Create a new interview record only if none exists
+                        new_interview = interview_repo.create({
+                            "candidate_id": db_candidate_id,
+                            "stage": "round_1",
+                            "status": "completed",
+                        })
+                        if new_interview:
+                            interview_id = new_interview["id"]
+                            logger.info(f"Created new interview: {interview_id}")
             else:
                 candidate_name = candidate.name if hasattr(candidate, 'name') else candidate.get('name', 'Unknown')
                 logger.warning(f"Could not find DB candidate for JSON ID '{candidate_id}' (name: '{candidate_name}') - analytics will only be saved locally")

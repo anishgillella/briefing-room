@@ -1154,7 +1154,7 @@ export default function CandidateAnalytics({ candidateId, candidateName }: Candi
                             </div>
 
                             {/* Answer Quality Distribution */}
-                            {selectedRoundData.candidate_analytics.qa_pairs.length > 0 && (
+                            {selectedRoundData.candidate_analytics.qa_pairs.length > 0 && selectedRoundData.candidate_analytics.qa_pairs.some(qa => qa.metrics) && (
                                 <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
                                     <h4 className="text-sm font-medium text-white/50 mb-4 flex items-center gap-2">
                                         <BarChart3 className="w-4 h-4" />
@@ -1163,11 +1163,11 @@ export default function CandidateAnalytics({ candidateId, candidateName }: Candi
                                     <div className="h-48">
                                         <ResponsiveContainer width="100%" height="100%">
                                             <BarChart
-                                                data={selectedRoundData.candidate_analytics.qa_pairs.slice(0, 8).map((qa, i) => ({
+                                                data={selectedRoundData.candidate_analytics.qa_pairs.slice(0, 8).filter(qa => qa.metrics).map((qa, i) => ({
                                                     name: `Q${i + 1}`,
-                                                    Relevance: qa.metrics.relevance * 10,
-                                                    Clarity: qa.metrics.clarity * 10,
-                                                    Depth: qa.metrics.depth * 10,
+                                                    Relevance: (qa.metrics?.relevance ?? 0) * 10,
+                                                    Clarity: (qa.metrics?.clarity ?? 0) * 10,
+                                                    Depth: (qa.metrics?.depth ?? 0) * 10,
                                                 }))}
                                                 margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                                             >
@@ -1451,26 +1451,28 @@ export default function CandidateAnalytics({ candidateId, candidateName }: Candi
                                                         </div>
                                                         <p className="text-white font-medium mb-2">{qa.question}</p>
                                                         <p className="text-sm text-white/50 mb-3">{qa.answer}</p>
+                                                        {qa.metrics && (
                                                         <div className="flex flex-wrap gap-4 text-xs">
                                                             <div className="flex items-center gap-1">
                                                                 <span className="text-white/30">Relevance:</span>
-                                                                <span className={`font-medium ${qa.metrics.relevance >= 8 ? "text-green-400" : qa.metrics.relevance >= 6 ? "text-yellow-400" : "text-red-400"}`}>
-                                                                    {qa.metrics.relevance}/10
+                                                                <span className={`font-medium ${(qa.metrics.relevance ?? 0) >= 8 ? "text-green-400" : (qa.metrics.relevance ?? 0) >= 6 ? "text-yellow-400" : "text-red-400"}`}>
+                                                                    {qa.metrics.relevance ?? 0}/10
                                                                 </span>
                                                             </div>
                                                             <div className="flex items-center gap-1">
                                                                 <span className="text-white/30">Clarity:</span>
-                                                                <span className={`font-medium ${qa.metrics.clarity >= 8 ? "text-green-400" : qa.metrics.clarity >= 6 ? "text-yellow-400" : "text-red-400"}`}>
-                                                                    {qa.metrics.clarity}/10
+                                                                <span className={`font-medium ${(qa.metrics.clarity ?? 0) >= 8 ? "text-green-400" : (qa.metrics.clarity ?? 0) >= 6 ? "text-yellow-400" : "text-red-400"}`}>
+                                                                    {qa.metrics.clarity ?? 0}/10
                                                                 </span>
                                                             </div>
                                                             <div className="flex items-center gap-1">
                                                                 <span className="text-white/30">Depth:</span>
-                                                                <span className={`font-medium ${qa.metrics.depth >= 8 ? "text-green-400" : qa.metrics.depth >= 6 ? "text-yellow-400" : "text-red-400"}`}>
-                                                                    {qa.metrics.depth}/10
+                                                                <span className={`font-medium ${(qa.metrics.depth ?? 0) >= 8 ? "text-green-400" : (qa.metrics.depth ?? 0) >= 6 ? "text-yellow-400" : "text-red-400"}`}>
+                                                                    {qa.metrics.depth ?? 0}/10
                                                                 </span>
                                                             </div>
                                                         </div>
+                                                        )}
                                                         {qa.star_breakdown && qa.question_type === "behavioral" && (
                                                             <div className="mt-3 p-3 rounded-lg bg-purple-500/5 border border-purple-500/10">
                                                                 <div className="text-xs text-purple-400 mb-2 font-medium">STAR Breakdown</div>

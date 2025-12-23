@@ -325,20 +325,28 @@ Say: "Hi, thank you for having me! I'm {candidate_name.split()[0]}, excited to b
         api_key=OPENROUTER_API_KEY,
     )
     
-    # Initialize TTS
-    if ELEVENLABS_API_KEY:
-        # Use ElevenLabs for high-quality voice
+    # Initialize TTS - Use Deepgram Aura (cost-effective, same API key as STT)
+    if DEEPGRAM_API_KEY:
+        tts_instance = deepgram.TTS(
+            api_key=DEEPGRAM_API_KEY,
+            model="aura-asteria-en",  # Female voice, natural sounding
+        )
+        logger.info("Using Deepgram Aura TTS")
+    elif ELEVENLABS_API_KEY:
+        # Fallback to ElevenLabs if configured
         tts_instance = elevenlabs.TTS(
             api_key=ELEVENLABS_API_KEY,
             model="eleven_turbo_v2_5",
             voice_id="21m00Tcm4TlvDq8ikWAM",  # Rachel voice
         )
+        logger.info("Using ElevenLabs TTS")
     else:
-        # Fallback to OpenAI TTS via OpenRouter
+        # Last resort - OpenAI TTS via OpenRouter
         tts_instance = openai.TTS(
             base_url=OPENROUTER_BASE_URL,
             api_key=OPENROUTER_API_KEY,
         )
+        logger.info("Using OpenAI TTS via OpenRouter")
     
     # Initialize STT
     if DEEPGRAM_API_KEY:
@@ -365,9 +373,26 @@ Say: "Hi, thank you for having me! I'm {candidate_name.split()[0]}, excited to b
     from typing import Literal, Optional
 
     class CopilotInsight(BaseModel):
-        verdict: Literal["STRONG", "ADEQUATE", "WEAK", "NEEDS_PROBING"] = Field(description="Is the answer satisfactory?")
-        question_type: Optional[str] = Field(default="general", description="Type of question being asked")
-        issue_type: Literal[
+        # First, classify whether this exchange warrants a suggestion
+        should_suggest: bool = Field(
+            description="True ONLY if this is a substantive interview exchange worth analyzing. False for greetings, small talk, acknowledgments, clarifications, or transitional phrases."
+        )
+        exchange_type: Literal[
+            "substantive",      # Real interview Q&A - technical, behavioral, situational answers
+            "greeting",         # "Nice to meet you", "Thank you for having me"
+            "acknowledgment",   # "Yes", "Sure", "Okay", "Got it", "I understand"
+            "clarification",    # "Could you repeat that?", "What do you mean?"
+            "transitional",     # "Let me think...", "That's a great question"
+            "small_talk"        # Weather, weekend plans, non-interview chat
+        ] = Field(description="Classification of the exchange type")
+
+        # Only populated when should_suggest is True
+        verdict: Optional[Literal["STRONG", "ADEQUATE", "WEAK", "NEEDS_PROBING"]] = Field(
+            default=None,
+            description="Answer quality assessment. Only set if should_suggest is True."
+        )
+        question_type: Optional[str] = Field(default=None, description="Type of question: technical/behavioral/cultural_fit/problem_solving/situational/opening")
+        issue_type: Optional[Literal[
             "none",
             "resume_contradiction",
             "prior_interview_contradiction",
@@ -375,10 +400,10 @@ Say: "Hi, thank you for having me! I'm {candidate_name.split()[0]}, excited to b
             "rambling",
             "vague",
             "off_topic"
-        ] = Field(description="The specific type of issue found, if any.")
-        reasoning: str = Field(description="Brief explanation of the verdict and any issues.")
-        suggestion: str = Field(description="The probing question or next topic question.")
-        probe_recommendation: Literal["stay_on_topic", "probe_deeper", "change_topic"] = Field(default="stay_on_topic")
+        ]] = Field(default="none", description="The specific type of issue found, if any.")
+        reasoning: Optional[str] = Field(default=None, description="Brief explanation of the verdict and any issues.")
+        suggestion: Optional[str] = Field(default=None, description="The probing question or next topic question.")
+        probe_recommendation: Optional[Literal["stay_on_topic", "probe_deeper", "change_topic"]] = Field(default=None)
         topic_to_explore: Optional[str] = Field(default=None)
         prior_round: Optional[str] = Field(default=None, description="Prior interview stage if contradiction found")
         prior_quote: Optional[str] = Field(default=None, description="Verbatim prior quote if contradiction found")
@@ -466,45 +491,67 @@ Say: "Hi, thank you for having me! I'm {candidate_name.split()[0]}, excited to b
         # Count how many exchanges on current topic (simple heuristic)
         exchange_count = len(history) // 2
         
-        prompt = f"""
-You are an expert Interview Coach. Analyze the Candidate's most recent answer.
+        prompt = f"""You are an expert Interview Coach providing real-time guidance. Your job is to help interviewers get better signal from candidates.
 
-CONTEXT:
+## STEP 1: CLASSIFY THE EXCHANGE
+
+First, determine if this exchange is worth analyzing. NOT every response needs coaching feedback.
+
+Set should_suggest=FALSE for:
+- Greetings: "Nice to meet you", "Thank you for having me", "Hello"
+- Acknowledgments: "Yes", "Sure", "Okay", "Got it", "I understand", "Right"
+- Clarifications: "Could you repeat that?", "What do you mean by...?"
+- Transitional: "Let me think...", "That's a great question", "Hmm..."
+- Small talk: Weather, weekend plans, "How are you?", general pleasantries
+- Very short responses (<15 words) that don't answer an interview question
+
+Set should_suggest=TRUE for:
+- Substantive answers to interview questions (technical, behavioral, situational)
+- Responses that reveal skills, experience, problem-solving, or red flags
+- Answers where you can assess quality, depth, or identify issues
+
+## CONTEXT
+
 Candidate: {candidate_name}
 Job: {job_title}
 Resume: {resume_context[:500]}...
 {prior_interview_context if prior_interview_context else "PRIOR INTERVIEW QUOTES: None"}
 
-CONVERSATION HISTORY (last 3 exchanges):
+## CONVERSATION (last 3 exchanges):
 {json.dumps(recent_context, indent=2)}
 
-TOTAL EXCHANGES SO FAR: {exchange_count}
+Total exchanges so far: {exchange_count}
 
-ANALYSIS CRITERIA:
-1. FACT CHECK: Direct contradictions with Resume? (e.g. wrong dates/roles).
-2. CONSISTENCY CHECK: If current answer contradicts PRIOR INTERVIEW QUOTES, flag it.
-   - Only flag high-confidence contradictions (dates, titles, company names, metrics, compensation, timelines).
-   - Use VERBATIM quotes from both prior and current context.
-3. BEHAVIORAL: If telling a story, did they use S.T.A.R. (Situation, Task, Action, Result)? If "Result" is missing, that's an issue.
-4. QUALITY: Is the answer vague or rambling?
-5. TOPIC: Classify the question type and suggest if we should change topics after 2-3 exchanges.
+## STEP 2: IF should_suggest=TRUE, ANALYZE THE ANSWER
 
-OUTPUT JSON SCHEMA:
+Only perform deep analysis if this is a substantive exchange:
+
+1. **FACT CHECK**: Direct contradictions with Resume? (wrong dates, roles, companies)
+2. **CONSISTENCY**: Contradicts PRIOR INTERVIEW QUOTES? Only flag HIGH-confidence contradictions (dates, titles, metrics, compensation). Include VERBATIM quotes.
+3. **BEHAVIORAL (S.T.A.R.)**: For stories - did they include Situation, Task, Action, AND Result? Missing Result = issue.
+4. **QUALITY**: Is the answer vague (lacks specifics), rambling (unfocused), or off-topic?
+5. **TOPIC FLOW**: After 2-3 exchanges on same topic, recommend changing topics.
+
+## OUTPUT JSON
+
 {{
-    "verdict": "STRONG" | "ADEQUATE" | "WEAK" | "NEEDS_PROBING",
-    "question_type": "technical" | "behavioral" | "cultural_fit" | "problem_solving" | "situational" | "opening",
+    "should_suggest": true/false,
+    "exchange_type": "substantive" | "greeting" | "acknowledgment" | "clarification" | "transitional" | "small_talk",
+
+    // ONLY populate these if should_suggest=true:
+    "verdict": "STRONG" | "ADEQUATE" | "WEAK" | "NEEDS_PROBING" | null,
+    "question_type": "technical" | "behavioral" | "cultural_fit" | "problem_solving" | "situational" | "opening" | null,
     "issue_type": "none" | "resume_contradiction" | "prior_interview_contradiction" | "missing_star" | "rambling" | "vague" | "off_topic",
-    "reasoning": "Analysis of answer + Rationale for next question.",
-    "suggestion": "Verbatim question text to display to interviewer.",
-    "probe_recommendation": "stay_on_topic" | "probe_deeper" | "change_topic",
-    "topic_to_explore": "If changing topic, what area: technical_skills | leadership | teamwork | challenges | achievements | culture_fit | null",
-    "prior_round": "If contradiction, the prior interview stage (e.g., round_1) else null",
-    "prior_quote": "If contradiction, verbatim prior quote else null",
-    "current_quote": "If contradiction, verbatim current quote else null"
+    "reasoning": "Concise analysis + rationale for suggested question" | null,
+    "suggestion": "Verbatim follow-up question for interviewer" | null,
+    "probe_recommendation": "stay_on_topic" | "probe_deeper" | "change_topic" | null,
+    "topic_to_explore": "technical_skills | leadership | teamwork | challenges | achievements | culture_fit" | null,
+    "prior_round": "round_1 | round_2 | null (only if prior_interview_contradiction)",
+    "prior_quote": "Verbatim prior quote | null",
+    "current_quote": "Verbatim current quote | null"
 }}
 
-IMPORTANT: Return ONLY valid JSON. Do not wrap in markdown code blocks.
-"""
+Return ONLY valid JSON. No markdown code blocks."""
         # Retry logic
         max_retries = 2
         for attempt in range(max_retries):
@@ -522,33 +569,30 @@ IMPORTANT: Return ONLY valid JSON. Do not wrap in markdown code blocks.
                 # Parse JSON with robust cleaning and Pydantic validation
                 raw_content = response.choices[0].message.content
                 json_str = clean_json_text(raw_content)
-                
+
                 # Use Pydantic to validate
                 insight = CopilotInsight.model_validate_json(json_str)
+
+                # Check if this exchange warrants a suggestion
+                if not insight.should_suggest:
+                    logger.info(f"⏭️ Skipping suggestion - exchange_type: {insight.exchange_type}")
+                    return  # Exit without sending suggestion
 
                 # Access fields from the Pydantic model
                 if insight.issue_type == "prior_interview_contradiction":
                     if consistency_flags_sent >= 2:
                         return
                     consistency_flags_sent += 1
-                
-                # Send structured data with full details
+
+                # Send structured data with full details (only for substantive exchanges)
                 await send_ai_suggestion(
-                    suggestion=insight.suggestion or "Continue with follow-up question.", 
-                    category=insight.verdict,
-                    issue_type=insight.issue_type,
-                    reasoning=insight.reasoning,
-                    question_type=insight.question_type or "general",  # Handle optional if model allows, though schema says required? Model def allows defaults? No, let's treat as unsafe.
-                    # Actually, CopilotInsight doesn't have question_type in the definition I saw earlier? 
-                    # Wait, I need to check the Pydantic definition above.
-                    # It was checking insight.get("question_type") before.
-                    # Let's verify the Pydantic model definition in the file.
-                    # I will assume I need to ADD these fields to proper Pydantic model if they are missing or accept loose typing?
-                    # The Pydantic model defined in the file only had a few fields?
-                    # Let's check line 367 in previous view_file.
-                    
-                    probe_recommendation=getattr(insight, "probe_recommendation", "stay_on_topic"), # defensive
-                    topic_to_explore=getattr(insight, "topic_to_explore", None),
+                    suggestion=insight.suggestion or "Continue with follow-up question.",
+                    category=insight.verdict or "ADEQUATE",
+                    issue_type=insight.issue_type or "none",
+                    reasoning=insight.reasoning or "",
+                    question_type=insight.question_type or "general",
+                    probe_recommendation=insight.probe_recommendation or "stay_on_topic",
+                    topic_to_explore=insight.topic_to_explore,
                     prior_round=insight.prior_round,
                     prior_quote=insight.prior_quote,
                     current_quote=insight.current_quote
