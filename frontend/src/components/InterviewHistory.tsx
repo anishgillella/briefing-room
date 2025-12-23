@@ -17,7 +17,9 @@ import {
     FileText,
     X,
     Gift,
-    Sparkles
+    Sparkles,
+    Eye,
+    ArrowLeft
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
@@ -31,6 +33,7 @@ import {
     type InterviewSummary,
 } from "@/lib/interviewApi";
 import TranscriptPasteTab from "@/components/interview/TranscriptPasteTab";
+import AnalyticsDisplay, { type Analytics } from "@/components/AnalyticsDisplay";
 
 interface InterviewHistoryProps {
     candidateId: string;
@@ -60,6 +63,12 @@ export default function InterviewHistory({
         stage: string;
     } | null>(null);
     const [hasCoachingSummary, setHasCoachingSummary] = useState(false);
+    const [showFullAnalyticsModal, setShowFullAnalyticsModal] = useState<{
+        interviewId: string;
+        stage: string;
+    } | null>(null);
+    const [fullAnalytics, setFullAnalytics] = useState<Analytics | null>(null);
+    const [loadingFullAnalytics, setLoadingFullAnalytics] = useState(false);
 
     useEffect(() => {
         loadInterviews();
@@ -120,6 +129,28 @@ export default function InterviewHistory({
             setError(err instanceof Error ? err.message : "Failed to load interviews");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const loadFullAnalytics = async (interviewId: string, stage: string) => {
+        setLoadingFullAnalytics(true);
+        setFullAnalytics(null);
+        setShowFullAnalyticsModal({ interviewId, stage });
+
+        try {
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+            const res = await fetch(`${API_URL}/api/interviews/${interviewId}/full-analytics`);
+
+            if (res.ok) {
+                const data = await res.json();
+                setFullAnalytics(data.analytics);
+            } else {
+                console.error("Failed to load full analytics");
+            }
+        } catch (err) {
+            console.error("Error loading full analytics:", err);
+        } finally {
+            setLoadingFullAnalytics(false);
         }
     };
 
@@ -420,13 +451,32 @@ export default function InterviewHistory({
                                 {interview.analytics && (
                                     <>
 
+                                {/* View Full Analytics Button */}
+                                <div className="mb-8">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            loadFullAnalytics(interview.id, interview.stage);
+                                        }}
+                                        className="w-full py-4 rounded-xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 hover:from-indigo-500/20 hover:to-purple-500/20 border border-indigo-500/20 hover:border-indigo-500/40 transition-all flex items-center justify-center gap-3 group"
+                                    >
+                                        <Eye className="w-5 h-5 text-indigo-400 group-hover:scale-110 transition-transform" />
+                                        <span className="text-white/80 group-hover:text-white font-medium">
+                                            View Full Analytics
+                                        </span>
+                                    </button>
+                                    <p className="text-center text-white/30 text-xs mt-3">
+                                        See complete interview analysis with all metrics
+                                    </p>
+                                </div>
+
                                 {/* 1. The Verdict (Synthesis) */}
                                 <div className="mb-10">
                                     <h5 className="text-white/40 text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
                                         <Lightbulb className="w-4 h-4" /> Executive Synthesis
                                     </h5>
                                     <p className="text-white/90 text-lg font-light leading-relaxed border-l-2 border-purple-500/50 pl-6 italic">
-                                        "{interview.analytics.synthesis}"
+                                        &quot;{interview.analytics.synthesis}&quot;
                                     </p>
                                 </div>
 
@@ -755,6 +805,68 @@ export default function InterviewHistory({
                                 stage={showTranscriptModal.stage}
                                 onTranscriptSaved={handleTranscriptSaved}
                             />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Full Analytics Modal */}
+            {showFullAnalyticsModal && (
+                <div className="fixed inset-0 bg-black/95 backdrop-blur-sm z-50 animate-fade-in overflow-hidden">
+                    <div className="h-full w-full overflow-y-auto">
+                        {/* Modal Header */}
+                        <div className="sticky top-0 bg-black/80 backdrop-blur-xl border-b border-white/10 px-8 py-5 flex items-center justify-between z-10">
+                            <div className="flex items-center gap-4">
+                                <button
+                                    onClick={() => {
+                                        setShowFullAnalyticsModal(null);
+                                        setFullAnalytics(null);
+                                    }}
+                                    className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+                                >
+                                    <ArrowLeft className="w-5 h-5 text-white/60" />
+                                </button>
+                                <div>
+                                    <h3 className="text-xl font-semibold text-white">
+                                        {formatStageName(showFullAnalyticsModal.stage)} - Full Analytics
+                                    </h3>
+                                    <p className="text-sm text-white/40">
+                                        Interview with {candidateName}
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    setShowFullAnalyticsModal(null);
+                                    setFullAnalytics(null);
+                                }}
+                                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+                            >
+                                <X className="w-5 h-5 text-white/60" />
+                            </button>
+                        </div>
+
+                        {/* Modal Content */}
+                        <div className="max-w-6xl mx-auto p-8">
+                            {loadingFullAnalytics ? (
+                                <div className="flex flex-col items-center justify-center py-24">
+                                    <Loader2 className="w-12 h-12 text-purple-500 animate-spin mb-4" />
+                                    <p className="text-white/60">Loading full analytics...</p>
+                                </div>
+                            ) : fullAnalytics ? (
+                                <AnalyticsDisplay
+                                    analytics={fullAnalytics}
+                                    candidateName={candidateName}
+                                />
+                            ) : (
+                                <div className="flex flex-col items-center justify-center py-24">
+                                    <AlertTriangle className="w-12 h-12 text-yellow-500 mb-4" />
+                                    <p className="text-white/60">No analytics data available</p>
+                                    <p className="text-white/40 text-sm mt-2">
+                                        Analytics may not have been saved for this interview.
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

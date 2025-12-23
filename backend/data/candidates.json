@@ -1,6 +1,95 @@
 {
   "candidates": [
     {
+      "id": "0",
+      "name": "Zachary Leyden",
+      "email": null,
+      "linkedin_url": null,
+      "job_title": "Mid-Market & Enterprise Account Executive",
+      "current_company": null,
+      "location_city": "San Francisco",
+      "location_state": "CA",
+      "years_experience": 8.0,
+      "bio_summary": "I am a 3x exited founder and military veteran specializing in driving enterprise growth within legacy industries, particularly AgTech and the equestrian sector. I have a proven track record in full-cycle GTM leadership, ERP strategy, and translating relationship-driven markets into scalable, repeatable revenue streams, focusing on securing high-ACV deals ($50k-$500k+).",
+      "industries": [
+        "Enterprise Software",
+        "AgTech",
+        "Equestrian",
+        "Non-profit",
+        "Military",
+        "B2B"
+      ],
+      "skills": [
+        "GTM Strategy",
+        "ERP Implementation",
+        "Enterprise Sales",
+        "Account Management",
+        "Revenue Operations",
+        "Process Optimization",
+        "Digital Transformation",
+        "Corporate Partnerships",
+        "RFP Response",
+        "Sales Enablement"
+      ],
+      "education": null,
+      "sales_methodologies": [],
+      "sold_to_finance": false,
+      "is_founder": true,
+      "startup_experience": true,
+      "enterprise_experience": true,
+      "max_acv_mentioned": null,
+      "quota_attainment": null,
+      "algo_score": 55,
+      "ai_score": 78,
+      "combined_score": 66,
+      "tier": "Strong",
+      "one_line_summary": "Exited founder and enterprise AE with strong GTM leadership.",
+      "pros": [
+        "Extensive experience (8 years) as an AE, exceeding the 1+ year requirement",
+        "Proven track record in full-cycle GTM leadership and enterprise sales",
+        "Strong startup experience (3x exited founder) demonstrating hustle and problem-solving",
+        "Experience securing high-ACV deals ($50k-$500k+)"
+      ],
+      "cons": [
+        "No explicit experience selling to finance/accounting leaders (CFOs, Controllers)",
+        "Industry experience (AgTech, Equestrian) is not directly relevant to AI SaaS/Fintech",
+        "Experience is heavily focused on legacy industries, not high-growth tech"
+      ],
+      "reasoning": "This candidate is a strong AE with exceptional startup and enterprise experience, fulfilling the 'Founding AE' and 'closing experience' requirements. However, the critical requirement of selling to finance/accounting stakeholders is missing, and their industry background is not in SaaS/Fintech, which limits the score to the high 'Strong' range.",
+      "interview_questions": [
+        "Your background is heavily focused on AgTech and Equestrian; how would you translate your enterprise sales process to selling an AI SaaS marketplace solution to CFOs and Controllers?",
+        "As a 3x exited founder, describe a time you had to build a sales process from scratch with minimal resources and structure, and what were the key metrics you focused on?",
+        "Can you walk me through a complex deal where you engaged with a finance or accounting stakeholder, even if they were not the primary decision-maker, and what their concerns were?"
+      ],
+      "missing_required": [],
+      "missing_preferred": [
+        "Education",
+        "Notable Achievements",
+        "Certifications"
+      ],
+      "red_flags": [
+        "High frequency of job changes between 2020 and 2023 (Wounded Warrior Project, Saluti, Trail Brothers, US Army overlap/short tenures).",
+        "Limited direct, continuous experience in a pure SaaS AE role (only 0.5 years at Odoo)."
+      ],
+      "red_flag_count": 1,
+      "completeness": 73,
+      "interview_status": "not_scheduled",
+      "room_name": null,
+      "interview_score": null,
+      "recommendation": null,
+      "created_at": "2025-12-23 16:24:16.833594",
+      "updated_at": "2025-12-23 16:24:31.255104",
+      "source": "csv_upload",
+      "has_enrichment_data": true,
+      "years_closing_experience_saas": 0.5,
+      "sold_to_finance_persona": true,
+      "startup_experience_early_stage": true,
+      "average_deal_size_mid_market_enterprise": "$50k\u2013$500k+ ACV (stated in summary)",
+      "quota_attainment_history": [],
+      "fintech_or_accounting_background": false,
+      "full_cycle_ownership": true
+    },
+    {
       "id": "13",
       "name": "David-Michael Ajudua",
       "email": null,
@@ -10,20 +99,22 @@
       "location_city": "New York",
       "location_state": "NY",
       "years_experience": 4.0,
-      "bio_summary": "I have a background in financial technology, having co-founded an AI-powered invoicing and accounting tool, Aiazing, which has several thousand users. I also have experience in investment management software at BlackRock and data analytics software at Imply, alongside prior internships in investment banking at Citi. My career focus is on business development within the fintech space.",
+      "bio_summary": "I have a strong background in financial technology, having co-founded an AI-driven invoicing and accounting tool, Aiazing, which serves several thousand users. My career includes experience in investment management software at BlackRock and data analytics software at Imply, alongside prior investment banking internships at Citi. I am focused on leveraging technology to drive business development and financial efficiency.",
       "industries": [
         "Financial Technology",
         "Investment Management",
-        "Data Analytics",
-        "Investment Banking"
+        "Computer Software",
+        "Financial Services"
       ],
       "skills": [
-        "Investment Management Software",
-        "Co-Founder",
-        "Data Analytics Software",
-        "Investment Banking",
+        "Business Development",
+        "Investment Management",
+        "Software",
+        "Data Analytics",
         "Fintech",
-        "Accounting"
+        "Invoicing",
+        "Accounting",
+        "AI"
       ],
       "education": null,
       "sales_methodologies": [],
@@ -37,24 +128,24 @@
       "ai_score": 70,
       "combined_score": 62,
       "tier": "Good",
-      "one_line_summary": "Fintech co-founder with strong finance background lacking closing AE experience.",
+      "one_line_summary": "Fintech founder with strong domain expertise and enterprise background.",
       "pros": [
-        "Co-founder experience demonstrates startup hustle and ownership (Preferred)",
-        "Deep background in Financial Technology, Accounting, and Investment Management (Preferred)",
-        "Experience selling/working with finance/accounting tools (Aiazing)",
-        "4.0 years of relevant experience in business development/fintech"
+        "Co-founded an AI-driven invoicing/accounting tool (Aiazing), providing deep domain expertise (Fintech/Accounting/AI)",
+        "Strong startup experience and demonstrated 'scrappiness' (Founder signal)",
+        "Experience in enterprise software (BlackRock, Imply) and financial services (Citi)",
+        "4.0 years of relevant experience exceeds the 1+ year AE closing requirement"
       ],
       "cons": [
-        "No explicit mention of 1+ years of closing experience as an Account Executive (Required)",
-        "No explicit mention of a proven track record of selling to CFOs/Controllers (Required)",
-        "Current Title is missing, making recent closing experience difficult to verify",
-        "Experience appears to be more product/BD focused than full-cycle AE closing"
+        "Lacks explicit mention of 1+ years of quota-carrying Account Executive closing experience",
+        "No explicit signal of selling to finance/accounting leaders (CFOs/Controllers) as a closer",
+        "Experience is heavily weighted toward founding/product/BD rather than full-cycle AE closing",
+        "Red Flag: 1 (Need to clarify the nature of the red flag, assuming it relates to the lack of AE title)"
       ],
-      "reasoning": "The candidate brings exceptional domain expertise in fintech and accounting, coupled with valuable co-founder startup experience, which meets several preferred qualifications. However, the profile critically lacks confirmation of the required 1+ years of full-cycle closing experience as an AE and a proven track record of selling to finance leaders, placing the candidate in the 'Potential' category until these gaps are clarified.",
+      "reasoning": "David-Michael possesses exceptional domain knowledge in AI and Fintech, startup experience, and the ambition required for a Founding AE role. However, the profile lacks explicit confirmation of 1+ years of full-cycle AE closing experience, especially selling to the required ICP (CFOs/Controllers), placing him in the 'Potential' category until this is validated.",
       "interview_questions": [
-        "Please detail your closing experience: Specifically, what was your quota, deal size, and how many deals did you personally close end-to-end in your most recent role?",
-        "As a co-founder of Aiazing, describe your direct involvement in the sales process. Did you own the full sales cycle to mid-market/enterprise clients, and if so, what was your largest closed deal?",
-        "The role requires selling to CFOs and Controllers; describe a specific time you successfully navigated a complex sales cycle with a senior finance stakeholder, including the challenges and outcome."
+        "Can you detail your specific closing experience (quota, deal size, sales cycle) and how you handled the full sales cycle at Aiazing or Imply?",
+        "Describe a time you successfully closed a deal with a CFO or Controller in a mid-market or enterprise setting. What was your specific role in that process?",
+        "Given your background as a founder, how will you transition your focus to the structured, repeatable process of an Account Executive closing role?"
       ],
       "missing_required": [
         "Current/Target Role"
@@ -65,9 +156,8 @@
         "Certifications"
       ],
       "red_flags": [
-        "Short tenure at Imply (8 months)",
-        "Short tenure at Aiazing (9 months, though as Co-Founder)",
-        "Short tenure at BlackRock (2 years, but end date is future/estimated)"
+        "High frequency of job changes (5 roles in 4 years, excluding internships).",
+        "Lack of explicit quota-carrying sales experience (AE/SDR/BDR titles are missing)."
       ],
       "red_flag_count": 1,
       "completeness": 55,
@@ -75,683 +165,40 @@
       "room_name": null,
       "interview_score": null,
       "recommendation": null,
-      "created_at": "2025-12-22 22:27:51.064255",
-      "updated_at": "2025-12-22 22:28:04.113360",
+      "created_at": "2025-12-23 16:24:16.833724",
+      "updated_at": "2025-12-23 16:24:31.385220",
       "source": "csv_upload",
       "has_enrichment_data": true,
-      "years_ae_closing_experience": null,
-      "sold_to_finance_stakeholders": true,
-      "saas_fintech_recruiting_tech_experience": [
-        "Fintech",
-        "SaaS"
-      ],
-      "startup_early_stage_experience": true,
-      "average_deal_size_mid_enterprise": "Not specified in profile data.",
-      "quota_attainment_history": "Not specified in profile data.",
-      "finance_accounting_background": true,
-      "sold_to_healthcare": false
+      "years_closing_experience_saas": 0,
+      "sold_to_finance_persona": true,
+      "startup_experience_early_stage": true,
+      "average_deal_size_mid_market_enterprise": "N/A",
+      "quota_attainment_history": [],
+      "fintech_or_accounting_background": true,
+      "full_cycle_ownership": false
     },
     {
-      "id": "0",
-      "name": "Zachary Leyden",
-      "email": null,
-      "linkedin_url": null,
-      "job_title": "Mid-Market & Enterprise Account Executive",
-      "current_company": null,
-      "location_city": "San Francisco",
-      "location_state": "CA",
-      "years_experience": 8.0,
-      "bio_summary": "I am a 3x exited founder and military veteran specializing in driving enterprise growth within legacy industries like AgTech and equestrian B2B. I currently serve as a Mid-Market & Enterprise Account Executive at Odoo, where I leverage my expertise in GTM strategy, ERP implementation, and translating trust-based networks into scalable, high-ACV revenue streams.",
-      "industries": [
-        "ERP",
-        "SaaS",
-        "Technology",
-        "Equestrian",
-        "AgTech",
-        "B2B",
-        "Non-profit",
-        "Military"
-      ],
-      "skills": [
-        "GTM Strategy",
-        "ERP Implementation",
-        "Enterprise Sales",
-        "Mid-Market Sales",
-        "Account Management",
-        "Revenue Operations",
-        "Sales Enablement",
-        "Process Optimization",
-        "Digital Transformation",
-        "Salesforce",
-        "RFP Management"
-      ],
-      "education": null,
-      "sales_methodologies": [],
-      "sold_to_finance": false,
-      "is_founder": true,
-      "startup_experience": true,
-      "enterprise_experience": true,
-      "max_acv_mentioned": null,
-      "quota_attainment": null,
-      "algo_score": 55,
-      "ai_score": 65,
-      "combined_score": 60,
-      "tier": "Good",
-      "one_line_summary": "Exited founder with enterprise ERP experience, missing finance buyer exposure.",
-      "pros": [
-        "Exceptional startup DNA as a 3x exited founder, ideal for a 'Founding AE' role.",
-        "8 years of Enterprise and Mid-Market Account Executive closing experience.",
-        "Strong GTM Strategy, ERP implementation, and process optimization skills relevant to building an early sales function."
-      ],
-      "cons": [
-        "Critically lacks proven track record selling to finance and accounting stakeholders (CFOs/Controllers), a core requirement.",
-        "Experience is heavily weighted toward legacy industries (AgTech, Equestrian) and established ERP sales (Odoo).",
-        "Potential mismatch between selling complex, established ERP vs. a fast-moving, early-stage AI SaaS marketplace."
-      ],
-      "reasoning": "Zachary brings exceptional startup DNA as a 3x exited founder and strong enterprise sales experience, which aligns perfectly with the 'Founding' aspect of the role. However, he critically lacks the required proven track record of selling directly to finance and accounting stakeholders (CFOs/Controllers), which is essential for this specific AI SaaS marketplace role, moving him into the 'Potential' category.",
-      "interview_questions": [
-        "The role requires selling directly to CFOs and Controllers. Given your background in AgTech and ERP, how would you immediately adapt your value proposition and persona to effectively engage and close finance leaders?",
-        "As a 3x exited founder, describe the most challenging GTM strategy you personally designed and executed. How would you apply that experience to building the initial sales motion for our AI SaaS marketplace?",
-        "You have extensive experience selling complex ERP solutions. How do you anticipate the sales cycle and required 'scrappiness' will differ when selling a nascent, AI-driven marketplace solution in a high-growth environment?"
-      ],
-      "missing_required": [],
-      "missing_preferred": [
-        "Education",
-        "Notable Achievements",
-        "Certifications"
-      ],
-      "red_flags": [
-        "6-month employment gap (Jul 2023 - Jan 2024)",
-        "Short tenure in current AE role (6 months)"
-      ],
-      "red_flag_count": 1,
-      "completeness": 73,
-      "interview_status": "not_scheduled",
-      "room_name": null,
-      "interview_score": null,
-      "recommendation": null,
-      "created_at": "2025-12-22 22:27:51.063860",
-      "updated_at": "2025-12-22 22:28:08.207685",
-      "source": "csv_upload",
-      "has_enrichment_data": true,
-      "years_ae_closing_experience": 1,
-      "sold_to_finance_stakeholders": true,
-      "saas_fintech_recruiting_tech_experience": [
-        "SaaS",
-        "ERP"
-      ],
-      "startup_early_stage_experience": true,
-      "average_deal_size_mid_enterprise": "Mid-Market/Enterprise focus; proven track record managing $100K - $1M+ partnerships and landing $50K - $500K+ ACV deals.",
-      "quota_attainment_history": "Not explicitly stated; demonstrated revenue growth and successful exits.",
-      "finance_accounting_background": false,
-      "sold_to_healthcare": false
-    },
-    {
-      "id": "20",
-      "name": "Alex Trujillo",
-      "email": null,
-      "linkedin_url": null,
-      "job_title": "Mid Market Account Executive ",
-      "current_company": null,
-      "location_city": "Livermore",
-      "location_state": "CA",
-      "years_experience": 4.2,
-      "bio_summary": "I am a high-performing sales professional with a proven track record of exceeding quota, including averaging 200% attainment during my time at Yelp. I have significant experience in high-growth environments, having joined Bolt early during its Series B funding, where I focused on mid-market sales using methodologies like MEDDIC. I specialize in driving complex sales cycles and securing multi-year contracts.",
-      "industries": [
-        "Fintech",
-        "SaaS",
-        "E-commerce",
-        "Advertising Technology",
-        "Local Business Services"
-      ],
-      "skills": [
-        "Sales",
-        "Account Executive",
-        "MEDDIC",
-        "Challenger Sales",
-        "Consultative Approach",
-        "Salesforce CRM",
-        "Sales Management",
-        "Training",
-        "Online Advertising"
-      ],
-      "education": null,
-      "sales_methodologies": [],
-      "sold_to_finance": false,
-      "is_founder": false,
-      "startup_experience": true,
-      "enterprise_experience": true,
-      "max_acv_mentioned": null,
-      "quota_attainment": null,
-      "algo_score": 45,
-      "ai_score": 68,
-      "combined_score": 56,
-      "tier": "Good",
-      "one_line_summary": "High-performing Mid-Market AE with strong startup and closing experience.",
-      "pros": [
-        "4.2 years of closing experience with a proven track record of high quota attainment (averaging 200% at Yelp).",
-        "Strong startup experience, having joined Bolt early (Series B), demonstrating comfort in high-growth, unstructured environments.",
-        "Proficient in complex sales methodologies like MEDDIC and consultative selling, suitable for mid-market/enterprise deals."
-      ],
-      "cons": [
-        "Lacks proven experience selling directly to finance and accounting stakeholders (CFOs/Controllers), the core ICP required by the JD.",
-        "Previous experience is heavily weighted toward Advertising Tech and E-commerce, which may not directly translate to AI SaaS complexity.",
-        "The profile lacks specific details on typical deal size or the complexity of 'multi-year contracts' secured."
-      ],
-      "reasoning": "Alex is a high-performing AE who meets the experience and startup hustle requirements for a Founding AE role. However, the candidate is missing the critical qualification of having a proven track record selling to finance and accounting leaders (CFOs/Controllers), which is central to the job description's success criteria.",
-      "interview_questions": [
-        "The JD requires selling to CFOs/Controllers. Can you walk me through your most complex deal where the Economic Buyer was a finance leader, and detail their specific pain points?",
-        "You mentioned thriving in a high-growth environment at Bolt. Describe a time you had to build a sales process or GTM strategy from scratch due to minimal structure, and what was the outcome?",
-        "You have experience in Fintech and SaaS. How do you adapt your consultative selling approach when introducing a novel, AI-driven marketplace solution versus a more established product?"
-      ],
-      "missing_required": [],
-      "missing_preferred": [
-        "Education",
-        "Notable Achievements",
-        "Certifications"
-      ],
-      "red_flags": [
-        "Significant employment gap between September 2020 and May 2025 (4 years, 8 months) needs clarification."
-      ],
-      "red_flag_count": 1,
-      "completeness": 73,
-      "interview_status": "not_scheduled",
-      "room_name": null,
-      "interview_score": null,
-      "recommendation": null,
-      "created_at": "2025-12-22 22:28:00.482300",
-      "updated_at": "2025-12-22 22:28:08.632456",
-      "source": "csv_upload",
-      "has_enrichment_data": true,
-      "years_ae_closing_experience": 3.1,
-      "sold_to_finance_stakeholders": false,
-      "saas_fintech_recruiting_tech_experience": [
-        "SaaS",
-        "Fintech"
-      ],
-      "startup_early_stage_experience": true,
-      "average_deal_size_mid_enterprise": "Deals ranging from $20k to $120k. Current role is Mid Market Account Executive.",
-      "quota_attainment_history": "Averaged 200% of quota; Top account executive on multi-year contracts; 2017 Q1, Q2 Century Club Attendee (Top 2% in hiring class).",
-      "finance_accounting_background": false,
-      "sold_to_healthcare": false
-    },
-    {
-      "id": "5",
-      "name": "Armando F.",
+      "id": "10",
+      "name": "Jacob Hanna",
       "email": null,
       "linkedin_url": null,
       "job_title": "Account Executive",
       "current_company": null,
-      "location_city": "New York",
-      "location_state": "NY",
-      "years_experience": 5.25,
-      "bio_summary": "I am an experienced Account Executive with 4 years of dedicated closing experience in the Fintech and SaaS sectors. I specialize in selling complex financial management and lending solutions, having previously driven sales at major firms like Finastra and high-growth startups. My focus is on optimizing cash flow and automating operations for businesses through advanced technology.",
-      "industries": [
-        "Fintech",
-        "Financial Services",
-        "SaaS",
-        "Legal"
-      ],
-      "skills": [
-        "Account Executive",
-        "Sales",
-        "Business Development",
-        "Financial Management",
-        "AR/AP Solutions",
-        "Commercial Lending",
-        "Equipment Financing",
-        "Working Capital Loans",
-        "Leadership",
-        "Budget Management"
-      ],
-      "education": null,
-      "sales_methodologies": [],
-      "sold_to_finance": false,
-      "is_founder": false,
-      "startup_experience": true,
-      "enterprise_experience": true,
-      "max_acv_mentioned": null,
-      "quota_attainment": null,
-      "algo_score": 40,
-      "ai_score": 72,
-      "combined_score": 56,
-      "tier": "Good",
-      "one_line_summary": "Experienced Fintech AE with strong startup background and relevant domain knowledge.",
-      "pros": [
-        "4+ years of dedicated closing experience in the highly relevant Fintech and SaaS sectors.",
-        "Deep domain expertise in financial management, AR/AP solutions, and cash flow optimization.",
-        "Proven experience in high-growth startup environments, demonstrating required scrappiness and hustle."
-      ],
-      "cons": [
-        "Lacks a proven track record selling directly to the required ICP (CFOs/Controllers), which is a critical requirement.",
-        "The role requires shaping GTM strategy, demanding validation of strategic sales skills beyond transactional closing.",
-        "Specific deal size and enterprise complexity are not detailed, needing clarification for mid-market/enterprise focus."
-      ],
-      "reasoning": "Armando has strong closing experience (4+ years) and highly relevant Fintech/Financial Management domain knowledge, making him a strong industry fit for this AI SaaS marketplace. However, the critical requirement of a proven track record selling directly to CFOs and Controllers is marked as missing, which is essential for a Founding AE role targeting finance leaders.",
-      "interview_questions": [
-        "Your background is strong in financial solutions; can you detail who the primary decision-makers and budget holders were in your largest deals, and how you navigated the sale if they were not the CFO or Controller?",
-        "As a Founding AE, you will help refine our GTM strategy. Describe a time at a previous startup where you successfully collaborated with founders to pivot or significantly improve a core sales process.",
-        "Given your focus on AR/AP and cash flow, how would you articulate the value of an AI-driven marketplace solution to a CFO who is currently focused on cost reduction and operational efficiency?"
-      ],
-      "missing_required": [],
-      "missing_preferred": [
-        "Education",
-        "Notable Achievements",
-        "Certifications"
-      ],
-      "red_flags": [
-        "Short tenure (6 months) at SBG Funding",
-        "3-month employment gap between Finastra and SBG Funding",
-        "5-month employment gap between SBG Funding and Metaprise (future role)"
-      ],
-      "red_flag_count": 2,
-      "completeness": 73,
-      "interview_status": "not_scheduled",
-      "room_name": null,
-      "interview_score": null,
-      "recommendation": null,
-      "created_at": "2025-12-22 22:27:51.063988",
-      "updated_at": "2025-12-22 22:28:08.466732",
-      "source": "csv_upload",
-      "has_enrichment_data": true,
-      "years_ae_closing_experience": 4.0,
-      "sold_to_finance_stakeholders": true,
-      "saas_fintech_recruiting_tech_experience": [
-        "Fintech",
-        "SaaS"
-      ],
-      "startup_early_stage_experience": true,
-      "average_deal_size_mid_enterprise": "Not specified in profile data.",
-      "quota_attainment_history": "Not specified in profile data.",
-      "finance_accounting_background": false,
-      "sold_to_healthcare": false
-    },
-    {
-      "id": "4",
-      "name": "Parampreet Atwal",
-      "email": null,
-      "linkedin_url": null,
-      "job_title": "Account Executive",
-      "current_company": null,
-      "location_city": "Calgary",
-      "location_state": "Alberta",
-      "years_experience": 3.58,
-      "bio_summary": "I am an Account Executive focused on transforming the legal experience through cloud-based legal technology. I have a strong background in B2B SaaS sales, having successfully closed mid-market and enterprise accounts across various industries, and I was promoted quickly from a BDR role to an AE role early in my career.",
-      "industries": [
-        "Legal Technology",
-        "Cloud-Based Legal Technology",
-        "Video Platform",
-        "AR/AI Technology",
-        "Digital Learning Platform",
-        "Professional Education",
-        "Digital Media",
-        "Marketing Solutions"
-      ],
-      "skills": [
-        "Account Executive",
-        "Business Development Representative",
-        "Distribution Manager",
-        "Distribution Coordinator",
-        "SaaS Sales",
-        "Mid Market Sales",
-        "Enterprise Sales",
-        "B2B Sales"
-      ],
-      "education": null,
-      "sales_methodologies": [],
-      "sold_to_finance": false,
-      "is_founder": false,
-      "startup_experience": true,
-      "enterprise_experience": true,
-      "max_acv_mentioned": null,
-      "quota_attainment": null,
-      "algo_score": 45,
-      "ai_score": 65,
-      "combined_score": 55,
-      "tier": "Good",
-      "one_line_summary": "Experienced SaaS AE lacking specific finance stakeholder expertise.",
-      "pros": [
-        "Strong B2B SaaS closing experience (3.5+ years) in mid-market and enterprise segments.",
-        "Demonstrated ability to succeed in a high-growth environment (quick promotion, startup experience).",
-        "Experience collaborating with cross-functional teams in a cloud-based technology setting."
-      ],
-      "cons": [
-        "No proven track record selling to the required finance and accounting stakeholders (CFOs, Controllers).",
-        "Industry experience is focused on Legal Technology, not Fintech or Finance SaaS.",
-        "Must quickly adapt to a new, highly specialized buyer persona, which is a critical requirement for this Founding AE role."
-      ],
-      "reasoning": "Parampreet possesses strong foundational SaaS AE skills, enterprise experience, and startup hustle, which aligns with the Founding AE environment. However, the role critically requires a proven track record of selling to CFOs and Controllers, a domain where the candidate explicitly lacks experience, necessitating a steep learning curve for the core ICP.",
-      "interview_questions": [
-        "Given your background in Legal Tech, how would you approach building credibility and trust when engaging with a CFO or Controller about an AI SaaS marketplace?",
-        "Describe a time you had to pivot your sales strategy quickly when moving to a new, unfamiliar buyer persona or industry. What was the outcome?",
-        "The Founding AE role requires significant process building and working with minimal structure. Can you share an example of a sales process or strategy you built from scratch at a previous company?"
-      ],
-      "missing_required": [],
-      "missing_preferred": [
-        "Education",
-        "Notable Achievements",
-        "Certifications"
-      ],
-      "red_flags": [
-        "Short tenure at IrisCX (5 months)",
-        "Short tenure at LumiQ as AE (10 months)"
-      ],
-      "red_flag_count": 1,
-      "completeness": 73,
-      "interview_status": "not_scheduled",
-      "room_name": null,
-      "interview_score": null,
-      "recommendation": null,
-      "created_at": "2025-12-22 22:27:51.063965",
-      "updated_at": "2025-12-22 22:28:07.078527",
-      "source": "csv_upload",
-      "has_enrichment_data": true,
-      "years_ae_closing_experience": 2.08,
-      "sold_to_finance_stakeholders": true,
-      "saas_fintech_recruiting_tech_experience": [
-        "SaaS"
-      ],
-      "startup_early_stage_experience": true,
-      "average_deal_size_mid_enterprise": "Experience working Mid Market & Enterprise accounts at IrisCX. Closed significant logos (EPCOR Energy, Black & McDonald, AESO) at LumiQ.",
-      "quota_attainment_history": "Booked 42 qualified meetings on 113 connects (37.2% conversion rate) as a BDR. Was the #2 BDR with highest KPIs.",
-      "finance_accounting_background": false,
-      "sold_to_healthcare": true
-    },
-    {
-      "id": "19",
-      "name": "Liam Artus, QKS\u2122",
-      "email": null,
-      "linkedin_url": null,
-      "job_title": "Associate, Internal Wholesaler",
-      "current_company": null,
-      "location_city": "New York",
-      "location_state": "NY",
-      "years_experience": 4.0,
-      "bio_summary": "I am a high-achieving financial services professional currently working as an Internal Wholesaler at Vestwell while pursuing my graduate studies. I have a proven track record of exceeding sales targets, including achieving 157.8% lifetime attainment as an SDR and driving over $1.5M in deposit growth in a single quarter at Flagstar Bank. My career is focused on leveraging my deep financial background to deliver tailored savings and investment solutions to businesses.",
-      "industries": [
-        "Fintech",
-        "Financial Services",
-        "Banking",
-        "Investment Management",
-        "Real Estate",
-        "Retail"
-      ],
-      "skills": [
-        "Internal Wholesaling",
-        "Sales Development",
-        "Business Development",
-        "Client Acquisition",
-        "Prospecting",
-        "Financial Services",
-        "Relationship Management",
-        "Financial Reporting",
-        "Investment Analysis",
-        "Portfolio Construction"
-      ],
-      "education": null,
-      "sales_methodologies": [],
-      "sold_to_finance": false,
-      "is_founder": false,
-      "startup_experience": true,
-      "enterprise_experience": true,
-      "max_acv_mentioned": null,
-      "quota_attainment": null,
-      "algo_score": 45,
-      "ai_score": 65,
-      "combined_score": 55,
-      "tier": "Good",
-      "one_line_summary": "High-achieving financial services wholesaler lacking direct SaaS closing experience.",
-      "pros": [
-        "Deep domain expertise in Financial Services and Fintech, aligning well with the target buyer's world.",
-        "Demonstrated high sales drive and ambition (157.8% SDR attainment, $1.5M deposit growth).",
-        "Experience in high-stakes B2B sales environments (Wholesaling/Banking) and relationship management."
-      ],
-      "cons": [
-        "Lacks explicit full-cycle Account Executive (AE) closing experience required for a Founding role (currently Internal Wholesaler).",
-        "No proven track record selling SaaS or technology solutions, which is critical for an AI marketplace.",
-        "Missing validated experience selling directly to CFOs/Controllers (the critical finance ICP)."
-      ],
-      "reasoning": "Liam possesses strong financial domain knowledge and sales ambition, fulfilling preferred background requirements. However, he lacks the required 1+ years of full-cycle AE closing experience and a proven track record of selling technology solutions directly to the CFO/Controller ICP, which is essential for a Founding AE role requiring immediate closing capability.",
-      "interview_questions": [
-        "Describe your current role as an Internal Wholesaler. Specifically, what percentage of your time is dedicated to full-cycle closing, and what was the average contract value of the deals you personally closed?",
-        "The role requires selling AI SaaS to finance leaders. How do you plan to pivot your consultative selling approach from investment/deposit solutions to selling a complex technology platform to a CFO?",
-        "As a Founding AE, you will be building processes from scratch. Can you share an example of a time you successfully built a sales process or strategy where none existed before in a previous role?"
-      ],
-      "missing_required": [],
-      "missing_preferred": [
-        "Education",
-        "Notable Achievements",
-        "Certifications"
-      ],
-      "red_flags": [
-        "Short tenure in several roles (Flagstar, Tenere Management Group).",
-        "Lack of dedicated Account Executive closing experience."
-      ],
-      "red_flag_count": 1,
-      "completeness": 73,
-      "interview_status": "not_scheduled",
-      "room_name": null,
-      "interview_score": null,
-      "recommendation": null,
-      "created_at": "2025-12-22 22:28:00.482279",
-      "updated_at": "2025-12-22 22:28:08.950646",
-      "source": "csv_upload",
-      "has_enrichment_data": true,
-      "years_ae_closing_experience": 0,
-      "sold_to_finance_stakeholders": true,
-      "saas_fintech_recruiting_tech_experience": [
-        "Fintech"
-      ],
-      "startup_early_stage_experience": true,
-      "average_deal_size_mid_enterprise": "Small to Mid-Market ($10K\u2013$100K+ deals in previous roles). Current role is Internal Wholesaler supporting business savings programs.",
-      "quota_attainment_history": "Strong history, including 157.8% Lifetime Attainment as an SDR and exceeding a $1.5M deposit growth goal at Flagstar.",
-      "finance_accounting_background": true,
-      "sold_to_healthcare": false
-    },
-    {
-      "id": "17",
-      "name": "Darrell Sung",
-      "email": null,
-      "linkedin_url": null,
-      "job_title": "Senior Account Executive",
-      "current_company": null,
-      "location_city": "Dallas",
-      "location_state": "TX",
-      "years_experience": 6.0,
-      "bio_summary": "I am a driven individual with a proven track record in strategic partnerships, currently serving as a Senior Account Executive at Macrobond Financial. My career has focused on sales and account management within the financial institutions vertical, working with companies like Sensor Tower, Daloopa, and Visible Alpha.",
-      "industries": [
-        "Financial Services",
-        "Information Technology and Services",
-        "Computer Software"
-      ],
-      "skills": [
-        "Strategic Partnerships",
-        "Sales",
-        "Account Management"
-      ],
-      "education": null,
-      "sales_methodologies": [],
-      "sold_to_finance": false,
-      "is_founder": false,
-      "startup_experience": true,
-      "enterprise_experience": true,
-      "max_acv_mentioned": null,
-      "quota_attainment": null,
-      "algo_score": 45,
-      "ai_score": 62,
-      "combined_score": 54,
-      "tier": "Good",
-      "one_line_summary": "Senior AE with deep Financial Services SaaS experience.",
-      "pros": [
-        "Extensive 6 years of sales experience in Financial Services and B2B software, exceeding the minimum requirement.",
-        "Confirmed startup and enterprise sales experience, aligning well with the Founding AE role's high-growth environment.",
-        "Current Senior AE title and history with relevant B2B data/fintech adjacent companies (Macrobond, Visible Alpha)."
-      ],
-      "cons": [
-        "Lacks a proven track record selling directly to finance and accounting stakeholders (CFOs/Controllers), which is a critical requirement.",
-        "Profile emphasizes 'Strategic Partnerships' and 'Account Management,' potentially indicating less focus on pure new logo closing required for a Founding AE.",
-        "No specific mention of experience selling AI-driven solutions or marketplace platforms."
-      ],
-      "reasoning": "Darrell possesses strong overall SaaS/Fintech sales experience and startup acumen, placing him in the 'Potential' category. However, he is missing the critical requirement of selling directly to finance and accounting stakeholders (CFOs/Controllers), which is essential for this role's ICP, making him a riskier fit despite his domain knowledge.",
-      "interview_questions": [
-        "The JD requires selling to CFOs/Controllers. Can you walk me through your largest recent deal and specifically detail the role the CFO or Controller played in the decision-making process?",
-        "As a Founding AE, you will need to build processes from scratch. Describe a time you successfully implemented a new sales strategy in an environment with minimal structure.",
-        "Your background is heavily focused on Financial Services data/software. How would you leverage that domain expertise to prospect and close deals for an AI SaaS marketplace?"
-      ],
-      "missing_required": [],
-      "missing_preferred": [
-        "Education",
-        "Notable Achievements",
-        "Certifications"
-      ],
-      "red_flags": [
-        "The candidate has held five roles in the last five years (2019-2024), indicating a pattern of short tenures (1-2 years per role)."
-      ],
-      "red_flag_count": 1,
-      "completeness": 73,
-      "interview_status": "not_scheduled",
-      "room_name": null,
-      "interview_score": null,
-      "recommendation": null,
-      "created_at": "2025-12-22 22:28:00.482217",
-      "updated_at": "2025-12-22 22:28:09.112897",
-      "source": "csv_upload",
-      "has_enrichment_data": true,
-      "years_ae_closing_experience": 3.0,
-      "sold_to_finance_stakeholders": true,
-      "saas_fintech_recruiting_tech_experience": [
-        "Fintech",
-        "SaaS"
-      ],
-      "startup_early_stage_experience": true,
-      "average_deal_size_mid_enterprise": "The profile indicates a focus on the Financial Institutions vertical and roles at companies like Macrobond, Sensor Tower, Daloopa, and Visible Alpha, suggesting a focus on mid-market to enterprise clients.",
-      "quota_attainment_history": "Not explicitly mentioned in the profile data.",
-      "finance_accounting_background": false,
-      "sold_to_healthcare": false
-    },
-    {
-      "id": "14",
-      "name": "Muhammad Qasim Shamim Ali Khan",
-      "email": "qasimshamim9@gmail.com",
-      "linkedin_url": null,
-      "job_title": "Sales Consultant",
-      "current_company": null,
-      "location_city": "Toronto",
-      "location_state": "ON",
-      "years_experience": 8.0,
-      "bio_summary": "I am a GTM professional with over 8 years of experience specializing in growing revenue for early-stage companies. I focus on building sales processes from the ground up, launching products in new markets, and leading teams to acquire and retain customers. My recent achievements include overseeing a $2M portfolio and achieving an 18% increase in annual revenue for Canadian clients.",
-      "industries": [
-        "Technology",
-        "Software Development",
-        "Healthcare",
-        "AI",
-        "Recruiting Tech",
-        "Fintech"
-      ],
-      "skills": [
-        "GTM",
-        "Market Intelligence",
-        "Sales",
-        "Business Development",
-        "Account Management",
-        "Strategic Partnerships",
-        "AI",
-        "LLMs",
-        "RAG",
-        "Agentic AI Engineering",
-        "Product-Market Fit",
-        "Competitive Intelligence",
-        "Cross-functional Collaboration"
-      ],
-      "education": null,
-      "sales_methodologies": [],
-      "sold_to_finance": false,
-      "is_founder": false,
-      "startup_experience": true,
-      "enterprise_experience": true,
-      "max_acv_mentioned": null,
-      "quota_attainment": null,
-      "algo_score": 40,
-      "ai_score": 68,
-      "combined_score": 54,
-      "tier": "Good",
-      "one_line_summary": "Experienced GTM builder with strong startup and AI background.",
-      "pros": [
-        "Extensive 8 years of sales experience, exceeding the 1+ year closing requirement.",
-        "Proven ability to build GTM strategies and sales processes from the ground up, ideal for a Founding AE role.",
-        "Strong industry alignment (AI, Fintech, Recruiting Tech, SaaS) and technical skills (LLMs, RAG)."
-      ],
-      "cons": [
-        "No proven track record of selling specifically to finance and accounting stakeholders (CFOs/Controllers), a critical JD requirement.",
-        "Current title is 'Sales Consultant,' necessitating clarification on recent full-cycle closing responsibilities.",
-        "Lack of specific metrics regarding average deal size or quota attainment."
-      ],
-      "reasoning": "Muhammad is a highly experienced GTM professional with excellent startup and process-building skills, fitting the 'Founding AE' mandate well. However, he lacks the critical requirement of proven experience selling to finance and accounting leaders (CFOs/Controllers), which is essential for this specific marketplace role, resulting in a moderate fit score.",
-      "interview_questions": [
-        "The JD requires selling to CFOs and Controllers; can you walk me through your experience selling complex SaaS solutions specifically to finance/accounting leadership?",
-        "Given your background in building sales processes, describe a time you had to create a GTM strategy from scratch for a product launching into a completely new market segment.",
-        "Your current title is Sales Consultant; what percentage of your time in your last role was dedicated to full-cycle closing, and what was your average deal size?"
-      ],
-      "missing_required": [],
-      "missing_preferred": [
-        "Education",
-        "Notable Achievements",
-        "Certifications"
-      ],
-      "red_flags": [
-        "Significant overlap in employment dates (Futurenostics, Parallel, and Semantic Health all overlap between 2023 and 2025), suggesting simultaneous roles or consulting work.",
-        "One-year employment gap between December 2021 and January 2023.",
-        "Employment dates for Semantic Health and Parallel extend into the future (August 2025)."
-      ],
-      "red_flag_count": 2,
-      "completeness": 73,
-      "interview_status": "not_scheduled",
-      "room_name": null,
-      "interview_score": null,
-      "recommendation": null,
-      "created_at": "2025-12-22 22:27:51.064279",
-      "updated_at": "2025-12-22 22:28:07.889579",
-      "source": "csv_upload",
-      "has_enrichment_data": true,
-      "years_ae_closing_experience": 5.5,
-      "sold_to_finance_stakeholders": false,
-      "saas_fintech_recruiting_tech_experience": [
-        "SaaS",
-        "Recruiting Tech",
-        "Fintech"
-      ],
-      "startup_early_stage_experience": true,
-      "average_deal_size_mid_enterprise": "Managed high-value enterprise accounts and a portfolio exceeding $2 million; focus on hospital/clinic prospects (Mid-Market/Enterprise).",
-      "quota_attainment_history": "Achieved 18% increase in annual revenue for a $2M portfolio; increased MRR by 30% by introducing new markets.",
-      "finance_accounting_background": false,
-      "sold_to_healthcare": true
-    },
-    {
-      "id": "8",
-      "name": "David Catalano",
-      "email": null,
-      "linkedin_url": null,
-      "job_title": "Founding Senior Business Development",
-      "current_company": null,
-      "location_city": "Rockville",
-      "location_state": "MD",
+      "location_city": "Augusta",
+      "location_state": "GA",
       "years_experience": 3.5,
-      "bio_summary": "I am a high-achieving Business Development professional with over three years of experience driving pipeline growth in SaaS and GTM platforms, notably achieving quota attainment up to 321% at ZoomInfo. I currently serve as Founding Senior Business Development at Orbb, focused on helping sales leaders unlock hidden pipeline and advance stalled deals through organizational network leverage. I specialize in Mid-Market and Enterprise prospecting and thrive in early-stage, high-growth environments.",
+      "bio_summary": "I specialize in helping major brands optimize their retailer channel support through strategic digital marketing solutions. With over three years of experience at Promoboxx, I have progressed through roles focused on brand partnerships and account execution, driving better business outcomes for clients by engaging their independent retailers. I am currently focused on closing deals as an Account Executive.",
       "industries": [
         "SaaS",
-        "Sales Intelligence",
-        "Retail Technology",
-        "Go-to-Market (GTM)"
+        "Marketing Technology",
+        "Retail Technology"
       ],
       "skills": [
-        "Business Development",
-        "Sales Development",
-        "Pipeline Generation",
-        "Prospecting",
-        "Referral Strategy",
-        "GTM Strategy",
-        "Mid-Market Sales",
-        "Enterprise Sales"
+        "Account Management",
+        "Sales",
+        "Brand Partnerships",
+        "Digital Marketing",
+        "Retail Channel Management"
       ],
       "education": null,
       "sales_methodologies": [],
@@ -762,27 +209,25 @@
       "max_acv_mentioned": null,
       "quota_attainment": null,
       "algo_score": 50,
-      "ai_score": 55,
-      "combined_score": 52,
+      "ai_score": 65,
+      "combined_score": 58,
       "tier": "Good",
-      "one_line_summary": "High-performing BDR lacking direct AE closing experience or CFO sales.",
+      "one_line_summary": "SaaS AE with strong startup experience, but lacks finance/CFO sales history.",
       "pros": [
-        "Proven success in pipeline generation, achieving up to 321% quota attainment at a major SaaS company.",
-        "Strong fit for the early-stage, high-growth environment (Founding Senior BD title, thrives in minimal structure).",
-        "Extensive experience targeting Mid-Market and Enterprise accounts.",
-        "Expertise in GTM and referral strategy, valuable for a founding sales team."
+        "Exceeds minimum closing experience (3.5 years vs 1+ required)",
+        "Experience in SaaS and startup environment (Promoboxx)",
+        "Demonstrated progression and focus on closing deals"
       ],
       "cons": [
-        "Lacks verifiable full-cycle Account Executive (AE) closing experience, as his title is 'Business Development'.",
-        "No proven track record of selling specifically to Finance/Accounting leaders (CFOs, Controllers), which is a critical requirement.",
-        "Current and past roles focus on selling to Sales Leaders/GTM teams, not the required ICP.",
-        "Missing the 1+ years of closing experience required for this Founding AE role."
+        "No proven track record of selling to finance/accounting stakeholders (CFOs, Controllers)",
+        "Current industry focus (Retail/Marketing Tech) is not aligned with FinTech/Accounting target ICP",
+        "Experience is primarily in Marketing/Retail channel optimization, not B2B finance solutions"
       ],
-      "reasoning": "David is an exceptional pipeline generator who fits the startup culture, but he lacks the required 1+ years of AE closing experience and the critical background selling to finance stakeholders (CFOs/Controllers). This Founding AE role requires a proven closer who can immediately own the full sales cycle against a specific ICP, which his profile does not demonstrate.",
+      "reasoning": "Jacob meets the core requirement of 1+ years of AE closing experience in SaaS and has valuable startup experience. However, the critical requirement of selling to finance and accounting leaders (CFOs/Controllers) is missing, which is central to this Founding AE role, placing him in the 'Potential' category.",
       "interview_questions": [
-        "Your background is heavily focused on pipeline generation. Can you walk me through the largest deal you personally closed from start to finish, detailing your specific role in negotiation and contracting?",
-        "The role requires selling to CFOs and Controllers. How would you adjust your current GTM strategy\u2014which focuses on Sales Leaders\u2014to effectively engage and build trust with senior finance executives?",
-        "Describe a time you had to transition from a high-structure sales environment to a low-structure, ambiguous startup setting. What sales processes did you build from scratch?"
+        "The role requires selling to CFOs and Controllers; describe a time you successfully navigated a sales cycle with a high-level finance executive, even if they weren't the primary decision-maker.",
+        "The JD requires selling an AI SaaS marketplace solution; how would you adapt your current sales process, focused on retail channel optimization, to selling a financial/accounting solution?",
+        "This is a Founding AE role requiring significant scrappiness and process building; can you share an example of a time you built a sales process or strategy from scratch in a highly unstructured environment?"
       ],
       "missing_required": [],
       "missing_preferred": [
@@ -791,7 +236,90 @@
         "Certifications"
       ],
       "red_flags": [
-        "No dedicated Account Executive (closing) experience listed."
+        "Limited tenure (0.5 years) in the dedicated Account Executive closing role.",
+        "Lack of quantifiable achievements (quota attainment, deal size) in the provided data."
+      ],
+      "red_flag_count": 0,
+      "completeness": 73,
+      "interview_status": "completed",
+      "room_name": "interview-10-6da0a948",
+      "interview_score": 55,
+      "recommendation": "No Hire",
+      "created_at": "2025-12-23 16:24:16.833692",
+      "updated_at": "2025-12-23T16:28:09.815199",
+      "source": "csv_upload",
+      "has_enrichment_data": true,
+      "years_closing_experience_saas": 0.5,
+      "sold_to_finance_persona": false,
+      "startup_experience_early_stage": false,
+      "average_deal_size_mid_market_enterprise": null,
+      "quota_attainment_history": [],
+      "fintech_or_accounting_background": false,
+      "full_cycle_ownership": true
+    },
+    {
+      "id": "17",
+      "name": "Darrell Sung",
+      "email": null,
+      "linkedin_url": null,
+      "job_title": "Senior Account Executive",
+      "current_company": null,
+      "location_city": "Dallas",
+      "location_state": "TX",
+      "years_experience": 6.5,
+      "bio_summary": "I am a driven Senior Account Executive specializing in strategic partnerships within the financial institutions vertical. I have a proven track record of success selling complex data and SaaS solutions at companies like Macrobond Financial, Sensor Tower, and Visible Alpha, demonstrating over five years of expertise in the fintech space.",
+      "industries": [
+        "Fintech",
+        "SaaS",
+        "Data Analytics",
+        "Investment Research",
+        "Enterprise Technology"
+      ],
+      "skills": [
+        "Strategic Partnerships",
+        "Institutional Sales",
+        "Account Management",
+        "Financial Institutions",
+        "SaaS Sales",
+        "Data Sales"
+      ],
+      "education": null,
+      "sales_methodologies": [],
+      "sold_to_finance": false,
+      "is_founder": false,
+      "startup_experience": true,
+      "enterprise_experience": true,
+      "max_acv_mentioned": null,
+      "quota_attainment": null,
+      "algo_score": 50,
+      "ai_score": 65,
+      "combined_score": 58,
+      "tier": "Good",
+      "one_line_summary": "Senior AE with deep fintech and institutional sales experience.",
+      "pros": [
+        "Extensive 6.5 years of closing experience in complex SaaS and Data sales within the Fintech industry.",
+        "Proven track record of handling Institutional and Enterprise accounts and strategic partnerships.",
+        "Confirmed startup experience, suggesting comfort with a high-growth, unstructured environment."
+      ],
+      "cons": [
+        "Lacks direct, proven experience selling to corporate finance/accounting leaders (CFOs/Controllers), a critical JD requirement.",
+        "Focus on 'Institutional Sales' may not translate directly to the mid-market/enterprise corporate sales cycle required.",
+        "Profile emphasizes Strategic Partnerships, potentially suggesting less focus on pure net-new hunting/closing."
+      ],
+      "reasoning": "Darrell has strong relevant experience in fintech SaaS and enterprise sales, aligning well with the industry and complexity of the product. However, the profile lacks the critical requirement of selling directly to CFOs and Controllers, which is essential for a Founding AE role focused on finance/accounting stakeholders and requires immediate domain expertise.",
+      "interview_questions": [
+        "Your background is heavily focused on financial institutions; can you walk me through a deal where you successfully sold a solution to a corporate CFO or Controller responsible for internal finance operations?",
+        "As a Founding AE, you will need to help refine our GTM strategy. Based on your experience selling complex data solutions, what is your process for creating structure and repeatable sales processes where none currently exist?",
+        "How do you differentiate between selling to a trading desk or research head versus selling to a corporate finance leader, and what adjustments would you make to your pitch for the latter?"
+      ],
+      "missing_required": [],
+      "missing_preferred": [
+        "Education",
+        "Notable Achievements",
+        "Certifications"
+      ],
+      "red_flags": [
+        "One 1-year tenure (Daloopa) in the middle of the career progression."
       ],
       "red_flag_count": 0,
       "completeness": 73,
@@ -799,110 +327,200 @@
       "room_name": null,
       "interview_score": null,
       "recommendation": null,
-      "created_at": "2025-12-22 22:27:51.064055",
-      "updated_at": "2025-12-22 22:28:08.743109",
+      "created_at": "2025-12-23 16:24:27.320208",
+      "updated_at": "2025-12-23 16:24:35.806720",
       "source": "csv_upload",
       "has_enrichment_data": true,
-      "years_ae_closing_experience": null,
-      "sold_to_finance_stakeholders": false,
-      "saas_fintech_recruiting_tech_experience": [
-        "SaaS"
-      ],
-      "startup_early_stage_experience": true,
-      "average_deal_size_mid_enterprise": "Mid-Market and Enterprise focus (BDR/SDR roles). Target audience at Orbb includes C-Suite/VPs/CROs.",
-      "quota_attainment_history": "Consistently high attainment at ZoomInfo, ranging from 120% to 321% across 8 consecutive quarters (Inbound, Outbound, and Mid-Market SDR roles).",
-      "finance_accounting_background": false,
-      "sold_to_healthcare": false
+      "years_closing_experience_saas": 5.5,
+      "sold_to_finance_persona": true,
+      "startup_experience_early_stage": true,
+      "average_deal_size_mid_market_enterprise": "Cannot be determined from profile.",
+      "quota_attainment_history": [],
+      "fintech_or_accounting_background": true,
+      "full_cycle_ownership": true
     },
     {
-      "id": "6",
-      "name": "Will Garrison",
+      "id": "11",
+      "name": "Connor Comensoli",
       "email": null,
       "linkedin_url": null,
-      "job_title": "",
+      "job_title": "Account Executive",
       "current_company": null,
-      "location_city": "Philadelphia",
-      "location_state": "PA",
-      "years_experience": 4.0,
-      "bio_summary": "I am a dedicated B2B SaaS professional with 3 years of experience in Account Executive closing roles across financial services, recruiting tech, and healthcare technology. I specialize in driving revenue growth, most recently focusing on the healthcare sector at Anagram, where I leverage my background in sales development and full-cycle recruiting to build strong client relationships.",
+      "location_city": "Saint Petersburg",
+      "location_state": "FL",
+      "years_experience": 2.75,
+      "bio_summary": "I am a high-achieving Account Executive with a proven track record of exceeding sales quotas, earning Winners Circle recognition in both 2023 and 2024. I specialize in driving growth for technology and service providers, leveraging strategic insights in areas like competitive intelligence and product development. I recently transitioned into the SaaS space, focusing on performance management solutions.",
       "industries": [
-        "B2B SaaS",
-        "Healthcare Technology",
-        "Recruiting/Staffing",
-        "Financial Services"
+        "Information Technology",
+        "Research",
+        "Consulting",
+        "SaaS",
+        "HR Tech"
       ],
       "skills": [
-        "B2B Sales",
+        "Quota Attainment",
+        "Client Retention",
+        "Competitive Intelligence",
+        "Sales Effectiveness",
         "Account Management",
-        "Sales Development",
-        "Full Cycle Sales",
-        "Healthcare",
-        "SaaS",
-        "Recruiting"
+        "Business Development",
+        "Mentoring",
+        "AI Champion"
       ],
       "education": null,
       "sales_methodologies": [],
       "sold_to_finance": false,
       "is_founder": false,
       "startup_experience": true,
-      "enterprise_experience": false,
+      "enterprise_experience": true,
       "max_acv_mentioned": null,
       "quota_attainment": null,
-      "algo_score": 40,
-      "ai_score": 65,
-      "combined_score": 52,
+      "algo_score": 42,
+      "ai_score": 72,
+      "combined_score": 57,
       "tier": "Good",
-      "one_line_summary": "Experienced SaaS AE lacking required proven track record selling to CFOs.",
+      "one_line_summary": "High-achieving AE with closing experience, but lacking finance ICP focus.",
       "pros": [
-        "Strong closing experience with 3 years as an Account Executive, exceeding the minimum requirement.",
-        "Relevant industry exposure in B2B SaaS, Recruiting/Staffing, and Financial Services.",
-        "Demonstrated ability to own the full sales cycle from sales development through closing."
+        "Exceeds minimum closing experience requirement (2.75 years vs 1+ required)",
+        "Proven high performance with multiple 'Winners Circle' recognitions (drive/ambition)",
+        "Recent transition into SaaS space, aligning with the role's industry",
+        "Experience with Enterprise/Startup environments (implied by bio/signals)"
       ],
       "cons": [
-        "Missing the critical required qualification: proven track record selling to finance and accounting stakeholders (CFOs/Controllers).",
-        "Recent experience is focused on Healthcare Technology, requiring a pivot in domain expertise.",
-        "Ambition and ability to thrive with minimal structure (scrappiness) need further validation for a Founding AE role."
+        "Lacks proven track record of selling specifically to finance/accounting stakeholders (CFOs, Controllers)",
+        "Current focus is on performance management/HR Tech, not finance/fintech",
+        "Bio is light on details regarding full sales cycle ownership and scrappiness",
+        "One red flag noted in the extracted signals"
       ],
-      "reasoning": "Will has solid foundational B2B SaaS closing experience (3 years) across relevant sectors like recruiting tech and financial services. However, he is missing the critical requirement of having a proven track record selling specifically to finance and accounting stakeholders (CFOs/Controllers), which is essential for this Founding AE role selling an AI SaaS marketplace to that ICP.",
+      "reasoning": "Connor meets the core requirement of 1+ years of AE closing experience and demonstrates high achievement. However, he critically misses the requirement of a 'proven track record of selling to finance and accounting stakeholders,' which is central to this role. His background suggests a strong sales foundation, placing him in the 'Potential' category.",
       "interview_questions": [
-        "The role requires selling directly to CFOs and Controllers. Describe the highest-level finance or accounting leader you successfully closed, and what specific value drivers resonated with them.",
-        "You will be helping to shape the GTM strategy. Can you describe a time you had to build a sales process or go-to-market motion from scratch in a high-growth, unstructured environment?",
-        "Your recent focus has been in Healthcare Technology. How will you quickly pivot your domain expertise to effectively engage and build credibility with finance leaders in the AI SaaS marketplace space?"
+        "Your current focus is on performance management solutions; how would you adapt your sales approach and value proposition to engage and close a CFO or Controller?",
+        "The JD requires thriving with minimal structure. Can you describe a time you had to build a sales process or GTM strategy from scratch, and what was the outcome?",
+        "The role involves selling an AI SaaS Marketplace. How have you leveraged or championed AI in your previous sales roles, and how would you apply that to selling this product?"
       ],
-      "missing_required": [
-        "Current/Target Role"
-      ],
+      "missing_required": [],
       "missing_preferred": [
         "Education",
         "Notable Achievements",
         "Certifications"
       ],
       "red_flags": [
-        "Lack of quantifiable sales achievements",
-        "No explicit experience selling to Enterprise/Mid-Market",
-        "No explicit proof of selling to CFO/Finance stakeholders"
+        "Gaps in early employment history (likely school related)",
+        "Primary closing experience is in advisory/research (Gartner), not pure SaaS prior to current role"
       ],
-      "red_flag_count": 0,
-      "completeness": 55,
+      "red_flag_count": 1,
+      "completeness": 73,
       "interview_status": "not_scheduled",
       "room_name": null,
       "interview_score": null,
       "recommendation": null,
-      "created_at": "2025-12-22 22:27:51.064011",
-      "updated_at": "2025-12-22 22:28:08.041764",
+      "created_at": "2025-12-23 16:24:16.833707",
+      "updated_at": "2025-12-23 16:24:31.355565",
       "source": "csv_upload",
       "has_enrichment_data": true,
-      "years_ae_closing_experience": 3.0,
-      "sold_to_finance_stakeholders": false,
-      "saas_fintech_recruiting_tech_experience": [
-        "SaaS",
-        "Recruiting/Staffing"
+      "years_closing_experience_saas": 2.8,
+      "sold_to_finance_persona": false,
+      "startup_experience_early_stage": false,
+      "average_deal_size_mid_market_enterprise": "Territory value of $1.1M+ CV (2024) and $843k+ CV (2023). Average deal size is not specified, but focus is on mid-market/high-growth tech.",
+      "quota_attainment_history": [
+        "112.1% Quota Attainment (2024)",
+        "109% Q1 Quota Attainment (2024)",
+        "108.3% Quota Attainment (2023)",
+        "Winners Circle Achiever (2024, 2023)"
       ],
-      "startup_early_stage_experience": true,
-      "average_deal_size_mid_enterprise": "N/A - Data not available in profile.",
-      "quota_attainment_history": "N/A - Data not available in profile.",
-      "finance_accounting_background": false,
-      "sold_to_healthcare": true
+      "fintech_or_accounting_background": false,
+      "full_cycle_ownership": true
+    },
+    {
+      "id": "7",
+      "name": "Sofia Drabkin",
+      "email": null,
+      "linkedin_url": null,
+      "job_title": "Account Executive",
+      "current_company": null,
+      "location_city": "Encinitas",
+      "location_state": "CA",
+      "years_experience": 3.4,
+      "bio_summary": "I am a results-driven Account Executive with over three years of experience, specializing in SaaS and Connected Operations technology. I successfully progressed through the sales ranks at Samsara, moving from Account Development Representative to Commercial Account Executive, where I focused on driving revenue through strategic account management. I leverage my background in financial operations and healthcare sales to approach complex deals and consistently achieve sales objectives.",
+      "industries": [
+        "SaaS",
+        "IoT",
+        "Transportation & Logistics",
+        "Financial Services",
+        "Investment Management",
+        "Healthcare",
+        "MedTech",
+        "Restaurant Technology"
+      ],
+      "skills": [
+        "Account Executive",
+        "Commercial Sales",
+        "Business Development",
+        "Account Development",
+        "Full Cycle Sales",
+        "SaaS Sales",
+        "Client Operations",
+        "Orthopaedic Trauma Sales"
+      ],
+      "education": null,
+      "sales_methodologies": [],
+      "sold_to_finance": false,
+      "is_founder": false,
+      "startup_experience": true,
+      "enterprise_experience": true,
+      "max_acv_mentioned": null,
+      "quota_attainment": null,
+      "algo_score": 40,
+      "ai_score": 70,
+      "combined_score": 55,
+      "tier": "Good",
+      "one_line_summary": "Experienced SaaS AE with strong closing background, but lacks finance ICP.",
+      "pros": [
+        "3.4 years of closing experience as an Account Executive (meets/exceeds 1+ year requirement)",
+        "Experience in SaaS and high-growth environments (Samsara)",
+        "Demonstrated career progression (ADR to AE) showing drive and ambition",
+        "Experience in full-cycle Commercial/Enterprise sales"
+      ],
+      "cons": [
+        "Lacks proven track record of selling to finance/accounting stakeholders (CFOs, Controllers)",
+        "Primary experience appears to be in IoT/Logistics (Samsara) rather than pure FinTech/AI SaaS",
+        "No specific mention of selling to mid-market/enterprise finance leaders",
+        "Limited information on ability to thrive with 'minimal structure' (founding AE requirement)"
+      ],
+      "reasoning": "The candidate meets the core requirement of 1+ years of closing experience in SaaS and has a strong sales background. However, the critical requirement of 'Proven track record of selling to finance and accounting stakeholders (CFOs, Controllers, etc.)' is not met, placing the candidate in the 'Potential' category. They are coachable but have a significant gap in the required ICP experience.",
+      "interview_questions": [
+        "Your background includes experience in Financial Operations; how have you leveraged that knowledge specifically to engage and close deals with CFOs or Controllers in your AE role?",
+        "The Founding AE role requires significant autonomy and building processes from scratch. Can you describe a time at Samsara where you had to proactively build a new sales process or strategy with minimal guidance?",
+        "The role focuses on an AI SaaS Marketplace. How do you approach selling highly technical, innovative solutions to finance leaders who may be resistant to new technology adoption?"
+      ],
+      "missing_required": [],
+      "missing_preferred": [
+        "Education",
+        "Notable Achievements",
+        "Certifications"
+      ],
+      "red_flags": [
+        "Short tenure in initial roles (J&J, Fisher Investments).",
+        "5-month employment gap between March 2022 and August 2022.",
+        "Short tenure in current role (started April 2024)."
+      ],
+      "red_flag_count": 2,
+      "completeness": 73,
+      "interview_status": "not_scheduled",
+      "room_name": null,
+      "interview_score": null,
+      "recommendation": null,
+      "created_at": "2025-12-23 16:24:16.833668",
+      "updated_at": "2025-12-23 16:24:31.529229",
+      "source": "csv_upload",
+      "has_enrichment_data": true,
+      "years_closing_experience_saas": 1.25,
+      "sold_to_finance_persona": false,
+      "startup_experience_early_stage": false,
+      "average_deal_size_mid_market_enterprise": "Not available",
+      "quota_attainment_history": [],
+      "fintech_or_accounting_background": false,
+      "full_cycle_ownership": true
     },
     {
       "id": "2",
@@ -913,28 +531,33 @@
       "current_company": null,
       "location_city": "San Francisco",
       "location_state": "CA",
-      "years_experience": 3.5,
-      "bio_summary": "I am a marketing graduate with expertise in B2B sales, digital marketing, and strategic partnerships. I have successfully managed the full sales cycle, selling blockchain payment solutions to enterprise AI companies and BPOs at Airtm, and currently drive partnership recruitment and full-cycle sales for Odoo's ERP software, consistently exceeding my quota. I combine marketing insights with a relationship-driven sales approach, focusing on fintech and AI.",
+      "years_experience": 4.0,
+      "bio_summary": "I am a strategic Account Executive specializing in Partnerships and B2B sales, combining a marketing background with a relationship-driven approach. I have successfully managed the full sales cycle, exceeding quota targets (up to 201% MRR) while selling complex solutions like ERP software and blockchain payment platforms to enterprise AI companies and BPOs.",
       "industries": [
-        "Computer Software",
-        "Financial Services",
-        "Marketing and Advertising",
+        "SaaS",
+        "ERP",
+        "Fintech",
+        "Blockchain",
+        "Payments",
+        "Technology",
+        "Digital Marketing",
         "Retail"
       ],
       "skills": [
+        "Partnerships",
+        "Strategic Accounts",
         "B2B Sales",
-        "Digital Marketing",
-        "Programmatic Media",
-        "Paid Media",
-        "Partnership Recruitment",
         "Full Sales Cycle Management",
         "ERP Software",
         "SaaS",
-        "PaaS",
+        "Fintech",
+        "Blockchain",
         "Consultative Sales",
         "Python",
         "SQL",
-        "Blockchain Payment Solutions",
+        "Digital Marketing",
+        "Programmatic Advertising",
+        "Paid Media",
         "Lead Generation",
         "Account Management"
       ],
@@ -946,26 +569,28 @@
       "enterprise_experience": true,
       "max_acv_mentioned": null,
       "quota_attainment": null,
-      "algo_score": 45,
-      "ai_score": 55,
-      "combined_score": 50,
+      "algo_score": 40,
+      "ai_score": 68,
+      "combined_score": 54,
       "tier": "Good",
-      "one_line_summary": "Experienced SaaS/Fintech AE lacking direct experience selling to finance leaders.",
+      "one_line_summary": "Experienced AE with strong SaaS/Fintech background, but lacks finance stakeholder proof.",
       "pros": [
-        "3.5 years of full-cycle AE experience, exceeding quota in SaaS and Fintech environments (ERP, blockchain payments).",
-        "Demonstrated ability to manage the full sales cycle and engage enterprise clients.",
-        "Proven startup experience and ability to operate in high-growth, fast-paced settings."
+        "4.0 years of closing experience exceeds the minimum 1+ year requirement",
+        "Experience selling complex solutions (ERP, Blockchain, Fintech) to Enterprise accounts",
+        "Proven track record of exceeding quota targets (up to 201% MRR)",
+        "Experience in SaaS and Fintech industries is highly relevant"
       ],
       "cons": [
-        "Critically lacks proven track record selling directly to finance and accounting stakeholders (CFOs/Controllers).",
-        "Current role includes a focus on Partnerships and Alliances, which may not align with the pure closing focus required.",
-        "Experience selling to BPOs and AI companies is not a direct substitute for finance department sales expertise."
+        "Current role is focused on Partnerships/Alliances, not pure Account Executive closing",
+        "No explicit proof of selling to finance/accounting leaders (CFOs, Controllers), a critical requirement",
+        "Bio emphasizes marketing background and relationship-driven approach, potentially lacking 'hunter' focus",
+        "Lack of specific AI SaaS marketplace experience"
       ],
-      "reasoning": "Luke has strong foundational sales skills and relevant industry experience (SaaS/Fintech), meeting the general AE requirements. However, the candidate critically misses the most important requirement for this Founding AE role: a proven track record of selling to CFOs and Controllers, making the fit weak for a position that demands immediate domain expertise.",
+      "reasoning": "Luke meets the core requirement of 1+ years of closing experience in SaaS/Fintech and has a strong track record of quota attainment. However, he is missing the critical requirement of demonstrated success selling directly to finance and accounting stakeholders (CFOs/Controllers), which is essential for this role. His current focus on Partnerships is also a slight deviation from the pure AE closing role required.",
       "interview_questions": [
-        "The JD requires selling specifically to CFOs and Controllers. How would you immediately adapt your current sales process and value proposition, which focused on BPOs and AI companies, to resonate with finance executives?",
-        "Describe a complex deal you closed where the primary decision-maker was a finance leader. What specific financial metrics or ROI calculations did you use to secure the win?",
-        "Your current title includes 'Partnerships and Alliances.' How do you ensure that your focus remains 100% on direct closing and revenue generation, rather than partnership management, in this Founding AE role?"
+        "The JD requires selling to CFOs and Controllers; can you detail a specific deal where you successfully navigated and closed a deal with a finance leader?",
+        "Your current role involves Partnerships and Alliances; how will you transition back to owning the full, end-to-end sales cycle, including outbound prospecting, in a founding AE capacity?",
+        "You sold ERP and Blockchain solutions; what is your process for quickly mastering a new, complex AI SaaS marketplace product and positioning it against competitors?"
       ],
       "missing_required": [],
       "missing_preferred": [
@@ -974,8 +599,382 @@
         "Certifications"
       ],
       "red_flags": [
-        "Short tenure at Airtm (6 months) and Odoo (current, 4 months).",
-        "Rapid career progression from intern/retail to Founding AE to AE in 2 years."
+        "Short tenure at Airtm (5 months)",
+        "Significant employment gap (Aug 2022 - May 2024), likely due to finishing education",
+        "Pattern of short tenures in early career roles."
+      ],
+      "red_flag_count": 2,
+      "completeness": 73,
+      "interview_status": "not_scheduled",
+      "room_name": null,
+      "interview_score": null,
+      "recommendation": null,
+      "created_at": "2025-12-23 16:24:16.833627",
+      "updated_at": "2025-12-23 16:24:31.547659",
+      "source": "csv_upload",
+      "has_enrichment_data": true,
+      "years_closing_experience_saas": 0.5,
+      "sold_to_finance_persona": true,
+      "startup_experience_early_stage": true,
+      "average_deal_size_mid_market_enterprise": "Not specified",
+      "quota_attainment_history": [
+        "Odoo Month 1: 130%",
+        "Odoo Month 2: 143% MRR, 233% NRR",
+        "Odoo Month 3: 131% MRR, 217% NRR",
+        "Odoo Month 4: 201% MRR, 113% NRR"
+      ],
+      "fintech_or_accounting_background": true,
+      "full_cycle_ownership": true
+    },
+    {
+      "id": "9",
+      "name": "Yara Lacerda",
+      "email": null,
+      "linkedin_url": null,
+      "job_title": "Account Executive SMB",
+      "current_company": null,
+      "location_city": "Miami",
+      "location_state": "FL",
+      "years_experience": 15.0,
+      "bio_summary": "I am an Account Executive with 15 years of experience at top-tier companies like Cloudflare, Apple, and Disney, specializing in complex sales and financial operations across the LATAM market. I consistently exceed sales quotas, driving substantial revenue growth by managing large account portfolios and leveraging my trilingual proficiency in English, Portuguese, and Spanish. My focus is on innovative software sales within the SaaS, Fintech, and E-commerce sectors.",
+      "industries": [
+        "Corporate Wellness",
+        "Cloud Computing",
+        "Internet Security",
+        "Entertainment",
+        "Media",
+        "Content Management",
+        "Technology",
+        "Computer Hardware",
+        "Financial Services"
+      ],
+      "skills": [
+        "Complex Sales",
+        "Financial Operations",
+        "Client Relationship Management",
+        "Revenue Growth",
+        "Sales Presentations",
+        "Strategic Outreach",
+        "Technical Acumen",
+        "Coaching",
+        "Account Management",
+        "Collections",
+        "Credit Analysis",
+        "Team Leadership",
+        "Outbound Sales",
+        "SaaS Sales"
+      ],
+      "education": null,
+      "sales_methodologies": [],
+      "sold_to_finance": false,
+      "is_founder": false,
+      "startup_experience": true,
+      "enterprise_experience": true,
+      "max_acv_mentioned": null,
+      "quota_attainment": null,
+      "algo_score": 40,
+      "ai_score": 68,
+      "combined_score": 54,
+      "tier": "Good",
+      "one_line_summary": "Highly experienced AE with strong complex sales background.",
+      "pros": [
+        "15 years of sales experience at top-tier companies (Apple, Cloudflare)",
+        "Extensive experience in complex sales and managing large account portfolios",
+        "Experience in SaaS, Fintech, and E-commerce sectors",
+        "Strong closing experience (implied by AE title and quota exceeding)",
+        "Trilingual proficiency (English, Portuguese, Spanish) is valuable"
+      ],
+      "cons": [
+        "Over-qualified/Seniority mismatch for a 'Founding AE' role requiring scrappiness",
+        "No explicit track record of selling to finance/accounting stakeholders (CFOs, Controllers)",
+        "Experience heavily focused on LATAM market, potentially lacking US mid-market/enterprise focus",
+        "SMB title suggests lack of recent enterprise closing experience (JD requires mid-market/enterprise)"
+      ],
+      "reasoning": "The candidate brings exceptional sales experience and a strong background in SaaS/Fintech, meeting the core AE requirement. However, they lack the critical requirement of proven experience selling specifically to finance/accounting leaders (CFOs/Controllers) and their SMB title suggests a potential mismatch for the required mid-market/enterprise focus, placing them in the 'Potential' category.",
+      "interview_questions": [
+        "Can you describe your experience selling to CFOs, Controllers, or other finance/accounting leaders, and what specific financial problems you helped them solve?",
+        "The role requires a 'Founding AE' mindset with minimal structure and high scrappiness; how do you adapt your 15 years of experience to thrive in a fast-paced, early-stage startup environment?",
+        "Your background is heavily focused on the LATAM market; how would you quickly pivot your network and sales strategy to target US mid-market and enterprise clients?"
+      ],
+      "missing_required": [],
+      "missing_preferred": [
+        "Education",
+        "Notable Achievements",
+        "Certifications"
+      ],
+      "red_flags": [
+        "Short tenure at Cloudflare (2 years, 8 months)",
+        "Short tenure at Disney (1 year)",
+        "Short tenure at Box (2 years)",
+        "Gap between Cloudflare (Nov 2022) and Wellhub (Aug 2024) (1 year, 9 months)"
+      ],
+      "red_flag_count": 2,
+      "completeness": 73,
+      "interview_status": "not_scheduled",
+      "room_name": null,
+      "interview_score": null,
+      "recommendation": null,
+      "created_at": "2025-12-23 16:24:16.833685",
+      "updated_at": "2025-12-23 16:24:31.436998",
+      "source": "csv_upload",
+      "has_enrichment_data": true,
+      "years_closing_experience_saas": 4,
+      "sold_to_finance_persona": true,
+      "startup_experience_early_stage": false,
+      "average_deal_size_mid_market_enterprise": "$38K (Cloudflare)",
+      "quota_attainment_history": [
+        "Exceed quota by 110% to 166% in all quarters (Cloudflare)"
+      ],
+      "fintech_or_accounting_background": true,
+      "full_cycle_ownership": true
+    },
+    {
+      "id": "5",
+      "name": "Armando F.",
+      "email": null,
+      "linkedin_url": null,
+      "job_title": "Account Executive",
+      "current_company": null,
+      "location_city": "New York",
+      "location_state": "NY",
+      "years_experience": 5.25,
+      "bio_summary": "I am an experienced Account Executive with over five years of dedicated sales experience, primarily focused on the dynamic Fintech sector. I have a proven track record of driving revenue growth and managing complex sales cycles, having spent nearly five years in various sales roles at the enterprise level with Finastra. I am currently focused on leveraging AI-driven solutions to revolutionize financial management and optimize cash flow for businesses.",
+      "industries": [
+        "Fintech",
+        "Financial Services",
+        "Software",
+        "SaaS",
+        "Legal"
+      ],
+      "skills": [
+        "Account Executive",
+        "Sales Executive",
+        "Business Development",
+        "Financial Management",
+        "AR/AP Solutions",
+        "Leadership",
+        "Budget Management",
+        "Full Cycle Sales"
+      ],
+      "education": null,
+      "sales_methodologies": [],
+      "sold_to_finance": false,
+      "is_founder": false,
+      "startup_experience": true,
+      "enterprise_experience": true,
+      "max_acv_mentioned": null,
+      "quota_attainment": null,
+      "algo_score": 40,
+      "ai_score": 65,
+      "combined_score": 52,
+      "tier": "Good",
+      "one_line_summary": "Experienced Fintech AE with strong enterprise sales background.",
+      "pros": [
+        "Over five years of full-cycle sales experience, exceeding the minimum requirement.",
+        "Strong background in the relevant Fintech/SaaS industry and financial management concepts.",
+        "Proven experience managing complex, enterprise-level sales cycles."
+      ],
+      "cons": [
+        "Lacks proven track record selling directly to finance/accounting leaders (CFOs, Controllers), a critical JD requirement.",
+        "Primary experience is with a large enterprise (Finastra), potentially lacking the 'scrappiness' needed for a Founding AE role.",
+        "Startup experience needs validation to ensure ability to thrive with minimal structure."
+      ],
+      "reasoning": "Armando meets the general experience requirements (5+ years in Fintech/SaaS) and has strong enterprise sales skills. However, he critically lacks proven experience selling directly to the required ICP (CFOs/Controllers), which is mandatory for this Founding AE role. His fit for a high-ambiguity, early-stage environment also needs rigorous vetting.",
+      "interview_questions": [
+        "The JD requires selling to CFOs/Controllers; can you describe a complex deal where the ultimate decision-maker was the CFO, and what unique challenges you faced engaging that specific persona?",
+        "Given your extensive experience at a large enterprise like Finastra, how do you anticipate adapting your sales process and approach to thrive in a high-ambiguity, minimal-structure, founding team environment?",
+        "Can you walk me through a recent deal where you successfully introduced a novel, AI-powered solution to a skeptical financial leader, demonstrating your consultative selling skills?"
+      ],
+      "missing_required": [],
+      "missing_preferred": [
+        "Education",
+        "Notable Achievements",
+        "Certifications"
+      ],
+      "red_flags": [
+        "Short tenure (6 months) at SBG Funding.",
+        "5-month employment gap between March 2025 and August 2025 (before the future role starts)."
+      ],
+      "red_flag_count": 2,
+      "completeness": 73,
+      "interview_status": "not_scheduled",
+      "room_name": null,
+      "interview_score": null,
+      "recommendation": null,
+      "created_at": "2025-12-23 16:24:16.833652",
+      "updated_at": "2025-12-23 16:24:35.749284",
+      "source": "csv_upload",
+      "has_enrichment_data": true,
+      "years_closing_experience_saas": 4.0,
+      "sold_to_finance_persona": true,
+      "startup_experience_early_stage": true,
+      "average_deal_size_mid_market_enterprise": "Unknown (Profile lacks ACV data, but Finastra experience suggests mid-market/enterprise deals in core banking software.)",
+      "quota_attainment_history": [
+        "Unknown (Not provided in profile data)"
+      ],
+      "fintech_or_accounting_background": true,
+      "full_cycle_ownership": true
+    },
+    {
+      "id": "3",
+      "name": "Joey Sanford",
+      "email": null,
+      "linkedin_url": null,
+      "job_title": "Full Cycle Account Executive (Hunter)",
+      "current_company": null,
+      "location_city": "New York",
+      "location_state": "NY",
+      "years_experience": 1.5,
+      "bio_summary": "I am a strategic GTM leader focused on AI and SaaS, specializing in product-led growth within B2B startups. I have successfully built an outbound sales motion from scratch at Hatch, securing the company's first enterprise-level deal and consistently exceeding revenue targets.",
+      "industries": [
+        "Information Technology and Services",
+        "Non-profit Organization Management",
+        "Hospitality",
+        "Military"
+      ],
+      "skills": [
+        "AI GTM Strategy",
+        "SaaS GTM Strategy",
+        "Product-Led Growth",
+        "B2B Sales",
+        "Account-Based Marketing",
+        "Objection Handling",
+        "Consultative Sales",
+        "Cross-functional Collaboration",
+        "Outbound Sales",
+        "Pipeline Velocity"
+      ],
+      "education": null,
+      "sales_methodologies": [],
+      "sold_to_finance": false,
+      "is_founder": false,
+      "startup_experience": true,
+      "enterprise_experience": true,
+      "max_acv_mentioned": null,
+      "quota_attainment": null,
+      "algo_score": 35,
+      "ai_score": 70,
+      "combined_score": 52,
+      "tier": "Good",
+      "one_line_summary": "Strategic AE with AI/SaaS GTM experience, lacking finance sales background.",
+      "pros": [
+        "1.5 years of closing experience meets the minimum requirement (1+ years)",
+        "Strong background in AI/SaaS GTM strategy and B2B sales",
+        "Demonstrated startup experience (built outbound motion from scratch)",
+        "Secured first enterprise-level deal, showing ability to close large accounts"
+      ],
+      "cons": [
+        "No proven track record of selling to finance/accounting stakeholders (CFOs, Controllers)",
+        "Experience is slightly below the preferred 2+ years of closing",
+        "Industries listed (Non-profit, Hospitality, Military) do not align with finance/fintech ICP"
+      ],
+      "reasoning": "Joey meets the core AE experience requirements (1.5 years closing, startup/enterprise experience, SaaS GTM) but critically lacks the required experience selling to finance and accounting leaders (CFOs/Controllers), which is a key responsibility and qualification for this role.",
+      "interview_questions": [
+        "The JD requires selling to CFOs and Controllers. Can you describe a complex deal where the primary decision-maker was a finance executive, and what unique challenges you faced?",
+        "You built an outbound sales motion from scratch at Hatch. Can you walk me through the specific steps you took and how you maintained pipeline velocity in a high-growth, unstructured environment?",
+        "Given your experience is not in finance or fintech, how will you quickly develop the necessary domain expertise to effectively consult with and sell to senior finance leaders?"
+      ],
+      "missing_required": [],
+      "missing_preferred": [
+        "Education",
+        "Notable Achievements",
+        "Certifications"
+      ],
+      "red_flags": [
+        "Limited tenure (6 months) in BDR/JAE role before promotion to AE.",
+        "Limited total experience (0.5 years) as a full-cycle AE."
+      ],
+      "red_flag_count": 0,
+      "completeness": 73,
+      "interview_status": "not_scheduled",
+      "room_name": null,
+      "interview_score": null,
+      "recommendation": null,
+      "created_at": "2025-12-23 16:24:16.833637",
+      "updated_at": "2025-12-23 16:24:31.744231",
+      "source": "csv_upload",
+      "has_enrichment_data": true,
+      "years_closing_experience_saas": 0.5,
+      "sold_to_finance_persona": false,
+      "startup_experience_early_stage": true,
+      "average_deal_size_mid_market_enterprise": "Six-figure opportunities (implied ACV)",
+      "quota_attainment_history": [
+        "Consistently exceeded revenue targets"
+      ],
+      "fintech_or_accounting_background": false,
+      "full_cycle_ownership": true
+    },
+    {
+      "id": "20",
+      "name": "Alex Trujillo",
+      "email": null,
+      "linkedin_url": null,
+      "job_title": "Mid Market Account Executive ",
+      "current_company": null,
+      "location_city": "Livermore",
+      "location_state": "CA",
+      "years_experience": 4.0,
+      "bio_summary": "I am a high-achieving sales professional with a proven track record in high-growth environments, having joined Bolt as an early Account Executive during its Series B phase. I specialize in full-cycle sales, utilizing methodologies like MEDDIC to close mid-market deals up to $120k ACV. I have demonstrated exceptional performance, including averaging 200% of quota during my tenure as a Senior Account Executive.",
+      "industries": [
+        "Fintech",
+        "E-commerce",
+        "Payments",
+        "SaaS",
+        "Local Advertising",
+        "Internet"
+      ],
+      "skills": [
+        "Sales",
+        "Account Executive",
+        "MEDDIC",
+        "Challenger Sales",
+        "Consultative Selling",
+        "Sales Management",
+        "Coaching",
+        "Training",
+        "Salesforce",
+        "Prospecting",
+        "Closing"
+      ],
+      "education": null,
+      "sales_methodologies": [],
+      "sold_to_finance": false,
+      "is_founder": false,
+      "startup_experience": true,
+      "enterprise_experience": false,
+      "max_acv_mentioned": null,
+      "quota_attainment": null,
+      "algo_score": 35,
+      "ai_score": 68,
+      "combined_score": 52,
+      "tier": "Good",
+      "one_line_summary": "High-performing fintech AE lacking critical CFO buyer experience.",
+      "pros": [
+        "4 years of closing experience, exceeding the 1+ year requirement, with a proven track record (200% quota average).",
+        "Strong background in Fintech and SaaS, aligning with preferred industry experience.",
+        "Demonstrated startup experience, joining a company early (Series B), indicating comfort with high-growth, unstructured environments.",
+        "Proficiency in structured sales methodologies like MEDDIC and Challenger Sales."
+      ],
+      "cons": [
+        "Lacks the critical required experience selling to finance and accounting stakeholders (CFOs, Controllers).",
+        "Focus appears strictly mid-market ($120k ACV mentioned), potentially lacking experience with larger enterprise deals mentioned in the JD.",
+        "Must quickly develop expertise in the specific pain points and language of the finance buyer persona."
+      ],
+      "reasoning": "Alex is a high-potential candidate due to strong performance and relevant SaaS/Fintech/startup experience. However, the candidate is missing the critical required qualification of a proven track record selling specifically to finance and accounting leaders, which is non-negotiable for a Founding AE role targeting this ICP.",
+      "interview_questions": [
+        "Your background is strong in Fintech, but who was your typical champion and economic buyer at Bolt, and how does that experience prepare you to sell specifically to CFOs and Controllers?",
+        "As a Founding AE, you will need to operate with minimal structure. Can you describe a time you successfully built a sales process or strategy from scratch in a highly ambiguous environment?",
+        "You achieved 200% of quota as a Senior AE. What was the most complex deal you closed, and how did you use MEDDIC to navigate the internal politics and secure the win?"
+      ],
+      "missing_required": [],
+      "missing_preferred": [
+        "Education",
+        "Notable Achievements",
+        "Certifications"
+      ],
+      "red_flags": [
+        "4.5-year gap in employment between September 2020 and May 2025.",
+        "The start date for the current role (2025-05-01) is in the future, suggesting the profile data may be outdated or contain errors."
       ],
       "red_flag_count": 1,
       "completeness": 73,
@@ -983,49 +982,399 @@
       "room_name": null,
       "interview_score": null,
       "recommendation": null,
-      "created_at": "2025-12-22 22:27:51.063919",
-      "updated_at": "2025-12-22 22:28:09.160885",
+      "created_at": "2025-12-23 16:24:27.320231",
+      "updated_at": "2025-12-23 16:24:42.663782",
       "source": "csv_upload",
       "has_enrichment_data": true,
-      "years_ae_closing_experience": 1.0,
-      "sold_to_finance_stakeholders": false,
-      "saas_fintech_recruiting_tech_experience": [
-        "SaaS",
-        "Fintech"
+      "years_closing_experience_saas": 2,
+      "sold_to_finance_persona": false,
+      "startup_experience_early_stage": true,
+      "average_deal_size_mid_market_enterprise": "$20k - $120k ACV",
+      "quota_attainment_history": [
+        "Averaged 200% of quota (Yelp, 2016-2017)"
       ],
-      "startup_early_stage_experience": true,
-      "average_deal_size_mid_enterprise": "The current role at Odoo focuses on ERP partnerships and end clients, suggesting Mid-Market/Enterprise focus. The previous role at Airtm involved selling to enterprise AI companies and BPOs.",
-      "quota_attainment_history": "Consistently exceeding quota in the current role at Odoo: Month 1 - 130%, Month 2 - 143% MRR, Month 3 - 131% MRR, Month 4 - 201% MRR.",
-      "finance_accounting_background": false,
-      "sold_to_healthcare": false
+      "fintech_or_accounting_background": true,
+      "full_cycle_ownership": true
     },
     {
-      "id": "11",
-      "name": "Connor Comensoli",
+      "id": "8",
+      "name": "David Catalano",
+      "email": null,
+      "linkedin_url": null,
+      "job_title": "Founding Senior Business Development",
+      "current_company": null,
+      "location_city": "Rockville",
+      "location_state": "MD",
+      "years_experience": 3.25,
+      "bio_summary": "I am a Founding Senior Business Development professional at Orbb, focused on leveraging organizational networks to unlock hidden pipeline and advance stalled deals. Previously, I spent over two years at ZoomInfo, consistently exceeding my sales development quotas, achieving up to 321% of my target in Q2 2024.",
+      "industries": [
+        "Software",
+        "Retail Technology",
+        "Go-to-Market (GTM) Platform"
+      ],
+      "skills": [
+        "Business Development",
+        "Sales Development",
+        "Outbound Sales",
+        "Inbound Sales",
+        "Pipeline Generation",
+        "Referral Marketing",
+        "CRM Data Analysis"
+      ],
+      "education": null,
+      "sales_methodologies": [],
+      "sold_to_finance": false,
+      "is_founder": false,
+      "startup_experience": true,
+      "enterprise_experience": true,
+      "max_acv_mentioned": null,
+      "quota_attainment": null,
+      "algo_score": 50,
+      "ai_score": 52,
+      "combined_score": 51,
+      "tier": "Good",
+      "one_line_summary": "High-performing SDR seeking first AE closing role.",
+      "pros": [
+        "Demonstrated high performance and drive (achieved 321% quota) indicating strong ambition.",
+        "Relevant startup experience in a 'Founding' capacity, suggesting comfort with ambiguity and building processes.",
+        "Strong foundation in pipeline generation, outbound, and inbound sales development."
+      ],
+      "cons": [
+        "Lacks proven Account Executive closing experience; background is heavily focused on Sales Development/Business Development.",
+        "No proven track record of selling specifically to finance and accounting stakeholders (CFOs/Controllers), a mandatory requirement.",
+        "Skills listed are focused on pipeline generation (SDR functions), not full-cycle deal ownership."
+      ],
+      "reasoning": "David meets the requirement for startup hustle and high performance but critically lacks the mandatory 1+ years of AE closing experience and the proven track record of selling to the required ICP (CFOs/Controllers). This role requires a Founding AE who can immediately own and close deals with finance leaders, making the current profile a weak fit for the core responsibilities.",
+      "interview_questions": [
+        "How have you transitioned from pipeline generation responsibilities to full-cycle deal ownership, including contract negotiation and closing, in your current 'Founding Senior Business Development' role?",
+        "Describe a complex deal you closed where the primary decision-maker was a CFO or Controller. What was your specific value proposition to them?",
+        "Given the requirement for minimal structure, describe a time you had to build a sales process from scratch and how you measured its success."
+      ],
+      "missing_required": [],
+      "missing_preferred": [
+        "Education",
+        "Notable Achievements",
+        "Certifications"
+      ],
+      "red_flags": [
+        "All experience is in Sales Development/BDR roles; no full-cycle closing experience.",
+        "The 'Founding Senior Business Development' role at Orbb is very new (started Jan 2025) and the company is likely early stage, which is a significant shift from ZoomInfo."
+      ],
+      "red_flag_count": 0,
+      "completeness": 73,
+      "interview_status": "not_scheduled",
+      "room_name": null,
+      "interview_score": null,
+      "recommendation": null,
+      "created_at": "2025-12-23 16:24:16.833676",
+      "updated_at": "2025-12-23 16:24:35.409953",
+      "source": "csv_upload",
+      "has_enrichment_data": true,
+      "years_closing_experience_saas": null,
+      "sold_to_finance_persona": false,
+      "startup_experience_early_stage": true,
+      "average_deal_size_mid_market_enterprise": "Not specified, but experience is in Mid Market SDR/BDR roles.",
+      "quota_attainment_history": [
+        "2024 Q2 - 321%",
+        "2024 Q1 - 220%",
+        "2023 Q4 - 210%",
+        "2023 Q3 - 149%",
+        "2023 Q2 - 120%",
+        "2023 Q1 - 153%",
+        "2022 Q4 - 163%"
+      ],
+      "fintech_or_accounting_background": false,
+      "full_cycle_ownership": false
+    },
+    {
+      "id": "18",
+      "name": "Paul Avila",
       "email": null,
       "linkedin_url": null,
       "job_title": "Account Executive",
       "current_company": null,
-      "location_city": "Saint Petersburg",
-      "location_state": "FL",
-      "years_experience": 3.0,
-      "bio_summary": "I am a high-performing Account Executive with a strong history of exceeding sales targets, achieving Winners Circle status in both 2023 (108.3% attainment) and 2024 (112.1% attainment) during my tenure at Gartner. I specialize in providing strategic advisory and driving growth for technology and service providers, focusing on areas like competitive intelligence and market expansion. I am currently applying my expertise in the SaaS performance management space at PerformYard.",
+      "location_city": "Hoboken",
+      "location_state": "NJ",
+      "years_experience": 2.75,
+      "bio_summary": "I am an Account Executive at BrightEdge, promoted from a Senior Sales Development Representative role. I have a strong track record of quota attainment, consistently achieving 100% or more of my goals and being recognized multiple times as a top performer (Top 20% and Regional Top Dog Winner). My career focus is on driving sales results and advancing within the SaaS industry.",
       "industries": [
-        "SaaS",
-        "Performance Management Software",
-        "Research and Advisory",
-        "Technology"
+        "Marketing & Advertising",
+        "Financial Services",
+        "Higher Education"
       ],
       "skills": [
-        "Quota Attainment",
-        "Client Retention",
-        "Competitive Intelligence",
-        "Sales Effectiveness",
-        "Product Development",
-        "Positioning & Messaging",
-        "Mergers & Acquisitions",
-        "Brand Awareness",
-        "Continuous Feedback"
+        "Sales Development",
+        "Account Executive",
+        "Financial Services",
+        "Residential Life"
+      ],
+      "education": null,
+      "sales_methodologies": [],
+      "sold_to_finance": false,
+      "is_founder": false,
+      "startup_experience": false,
+      "enterprise_experience": true,
+      "max_acv_mentioned": null,
+      "quota_attainment": null,
+      "algo_score": 37,
+      "ai_score": 65,
+      "combined_score": 51,
+      "tier": "Good",
+      "one_line_summary": "High-performing AE lacking direct experience selling to CFOs/Controllers.",
+      "pros": [
+        "Strong closing experience (2.75 years in sales) with a clear promotion trajectory.",
+        "Proven track record of quota attainment (100%+) and recognized as a top performer.",
+        "Experience in the Financial Services industry, providing some relevant domain context."
+      ],
+      "cons": [
+        "Critically lacks proven experience selling specifically to finance and accounting stakeholders (CFOs/Controllers).",
+        "No apparent startup experience, which is essential for a 'Founding AE' role requiring minimal structure.",
+        "Primary industry experience (Marketing & Advertising) may not align directly with the finance/accounting focus of the product."
+      ],
+      "reasoning": "Paul is a high-performing AE who meets the minimum experience requirement. However, he critically lacks the proven track record of selling to CFOs and Controllers, which is the core ICP for this role. Furthermore, the absence of startup experience is a significant gap for a Founding AE position requiring high autonomy and process building.",
+      "interview_questions": [
+        "The job requires selling to CFOs and Controllers; your background is in Financial Services, but have you specifically targeted these stakeholders? Describe a complex deal you closed with a finance leader.",
+        "This is a Founding AE role with minimal structure. Describe a time you had to build a sales process or strategy from scratch without existing playbooks or resources.",
+        "Your experience is primarily with BrightEdge (Marketing/Advertising). How will you rapidly transition your domain expertise to selling a SaaS marketplace solution focused on finance and accounting needs?"
+      ],
+      "missing_required": [],
+      "missing_preferred": [
+        "Education",
+        "Notable Achievements",
+        "Certifications"
+      ],
+      "red_flags": [
+        "Limited tenure as a full Account Executive (less than 1 year)."
+      ],
+      "red_flag_count": 0,
+      "completeness": 73,
+      "interview_status": "not_scheduled",
+      "room_name": null,
+      "interview_score": null,
+      "recommendation": null,
+      "created_at": "2025-12-23 16:24:27.320217",
+      "updated_at": "2025-12-23 16:24:35.410881",
+      "source": "csv_upload",
+      "has_enrichment_data": true,
+      "years_closing_experience_saas": 0.75,
+      "sold_to_finance_persona": false,
+      "startup_experience_early_stage": false,
+      "average_deal_size_mid_market_enterprise": "Not specified",
+      "quota_attainment_history": [
+        "100% of Goal (May 2023)",
+        "100% of Goal (August 2023)",
+        "125% of Goal (May 2022)",
+        "3x Top 20% (SDR)",
+        "2x Top 20% (Specialist SDR)",
+        "2x Regional Top Dog Winner (Specialist SDR)",
+        "Regional Top Dog Winner (Senior SDR)"
+      ],
+      "fintech_or_accounting_background": true,
+      "full_cycle_ownership": true
+    },
+    {
+      "id": "12",
+      "name": "Donald Brossman III",
+      "email": null,
+      "linkedin_url": null,
+      "job_title": "Account Executive",
+      "current_company": null,
+      "location_city": "Jersey City",
+      "location_state": "NJ",
+      "years_experience": 3.17,
+      "bio_summary": "I am an MBA Candidate at Hofstra University with a strong background in finance, sales, and lending operations. I have experience coordinating loan origination processes for a private lender debt fund and have held sales roles in both fintech and financial services, focusing on driving efficiency and optimizing returns.",
+      "industries": [
+        "Financial Services",
+        "Fintech",
+        "Real Estate",
+        "SaaS",
+        "Automotive"
+      ],
+      "skills": [
+        "Financial Analysis",
+        "Risk Assessment",
+        "Strategic Planning",
+        "Communication",
+        "Collaboration",
+        "Loan Origination",
+        "Sales",
+        "CRM"
+      ],
+      "education": null,
+      "sales_methodologies": [],
+      "sold_to_finance": false,
+      "is_founder": false,
+      "startup_experience": true,
+      "enterprise_experience": false,
+      "max_acv_mentioned": null,
+      "quota_attainment": null,
+      "algo_score": 30,
+      "ai_score": 72,
+      "combined_score": 51,
+      "tier": "Good",
+      "one_line_summary": "Fintech AE with finance background and startup experience.",
+      "pros": [
+        "3.17 years of AE closing experience meets/exceeds minimum requirement (1+ years)",
+        "Strong background in finance, lending operations, and fintech/financial services sales",
+        "MBA candidate demonstrates ambition and drive (startup requirement)",
+        "Relevant industry experience (Fintech, SaaS, Startup Experience)"
+      ],
+      "cons": [
+        "No explicit signal of selling to CFOs/Controllers (a critical requirement)",
+        "Experience is heavily weighted toward financial services/lending, not pure SaaS marketplace",
+        "Lacks Enterprise experience (focus seems mid-market/smaller scale)",
+        "Red Flags (2) are concerning and need clarification"
+      ],
+      "reasoning": "Donald meets the minimum AE experience and possesses a strong finance background, which is highly relevant. However, the lack of confirmed experience selling directly to CFOs/Controllers and the heavy focus on lending/financial services over pure SaaS marketplace sales places him in the 'Potential' category, requiring further validation of his closing ability in the required ICP.",
+      "interview_questions": [
+        "Can you describe your largest or most complex deal, specifically detailing the financial stakeholders (CFO, Controller, VP Finance) involved in the decision process?",
+        "Your experience is heavily in lending/financial services; how will you adapt your sales approach to selling an AI-driven SaaS marketplace solution?",
+        "The role requires thriving with minimal structure; can you provide an example of a time you successfully built a sales process or GTM strategy from scratch at a previous role?"
+      ],
+      "missing_required": [],
+      "missing_preferred": [
+        "Education",
+        "Notable Achievements",
+        "Certifications"
+      ],
+      "red_flags": [
+        "High frequency of job changes: 5 roles in 3.17 years.",
+        "Gap between Seamless.AI (07/2023) and Brick City Capital (09/2023).",
+        "Gap between Brick City Capital (06/2024) and Revv (10/2024)."
+      ],
+      "red_flag_count": 2,
+      "completeness": 73,
+      "interview_status": "not_scheduled",
+      "room_name": null,
+      "interview_score": null,
+      "recommendation": null,
+      "created_at": "2025-12-23 16:24:16.833716",
+      "updated_at": "2025-12-23 16:24:38.196040",
+      "source": "csv_upload",
+      "has_enrichment_data": true,
+      "years_closing_experience_saas": 0.0,
+      "sold_to_finance_persona": true,
+      "startup_experience_early_stage": true,
+      "average_deal_size_mid_market_enterprise": "Not specified",
+      "quota_attainment_history": [
+        "Not specified"
+      ],
+      "fintech_or_accounting_background": true,
+      "full_cycle_ownership": true
+    },
+    {
+      "id": "6",
+      "name": "Will Garrison",
+      "email": null,
+      "linkedin_url": null,
+      "job_title": "",
+      "current_company": null,
+      "location_city": "Philadelphia",
+      "location_state": "PA",
+      "years_experience": 4.58,
+      "bio_summary": "I am a dedicated sales professional with a strong focus on B2B SaaS, particularly within the healthcare sector. I have progressed rapidly, moving from an SDR role to an Account Executive position at Anagram, demonstrating my ability to close deals and drive revenue. My background includes extensive experience in sales and recruiting across multiple industries, including financial services and IT/Healthcare staffing.",
+      "industries": [
+        "Healthcare",
+        "SaaS",
+        "Staffing and Recruiting",
+        "Financial Services"
+      ],
+      "skills": [
+        "B2B SaaS",
+        "Healthcare Sales",
+        "Account Executive",
+        "Sales Development",
+        "Recruiting"
+      ],
+      "education": null,
+      "sales_methodologies": [],
+      "sold_to_finance": false,
+      "is_founder": false,
+      "startup_experience": true,
+      "enterprise_experience": false,
+      "max_acv_mentioned": null,
+      "quota_attainment": null,
+      "algo_score": 35,
+      "ai_score": 65,
+      "combined_score": 50,
+      "tier": "Good",
+      "one_line_summary": "B2B SaaS AE with strong sales foundation, but missing finance domain expertise.",
+      "pros": [
+        "4.58 years of sales experience, including AE closing role (meets 1+ year requirement)",
+        "Experience in B2B SaaS and staffing/recruiting tech (relevant industry exposure)",
+        "Demonstrated rapid progression from SDR to AE (suggests drive and ambition)",
+        "Startup experience is implied/signaled"
+      ],
+      "cons": [
+        "No proven track record of selling to finance/accounting stakeholders (CFOs, Controllers)",
+        "Primary industry focus is Healthcare, not Finance/Fintech",
+        "Closing experience length is not explicitly stated (only total sales experience)",
+        "Lacks background in finance, accounting, or fintech sales (preferred qualification)"
+      ],
+      "reasoning": "Will meets the minimum requirement of 1+ years of AE closing experience in SaaS/recruiting tech and shows ambition. However, he critically lacks the required proven track record of selling to finance and accounting leaders (CFOs/Controllers), which is essential for this role. His background is primarily in Healthcare SaaS, making him a 'Potential' fit who requires validation on domain transferability.",
+      "interview_questions": [
+        "Can you detail your experience as an Account Executive, specifically focusing on the length of time you have been in a closing role and the average deal size?",
+        "Your background is heavily focused on Healthcare SaaS; how do you plan to quickly build credibility and expertise when engaging with CFOs and Controllers about their finance and accounting needs?",
+        "Describe a time you had to quickly learn a highly technical or specialized domain (like finance/accounting) to successfully close a complex deal."
+      ],
+      "missing_required": [
+        "Current/Target Role"
+      ],
+      "missing_preferred": [
+        "Education",
+        "Notable Achievements",
+        "Certifications"
+      ],
+      "red_flags": [
+        "Short tenure at multiple roles: 17 months at J.G. Wentworth, 5 months as Recruiter, 19 months as AE at Alpine, 6 months as SDR at Anagram, and projected 12 months as AE at Anagram.",
+        "Lack of specific metrics (ACV, quota attainment) to assess sales performance."
+      ],
+      "red_flag_count": 1,
+      "completeness": 55,
+      "interview_status": "not_scheduled",
+      "room_name": null,
+      "interview_score": null,
+      "recommendation": null,
+      "created_at": "2025-12-23 16:24:16.833659",
+      "updated_at": "2025-12-23 16:24:38.180726",
+      "source": "csv_upload",
+      "has_enrichment_data": true,
+      "years_closing_experience_saas": 1.5,
+      "sold_to_finance_persona": false,
+      "startup_experience_early_stage": true,
+      "average_deal_size_mid_market_enterprise": null,
+      "quota_attainment_history": [],
+      "fintech_or_accounting_background": false,
+      "full_cycle_ownership": true
+    },
+    {
+      "id": "16",
+      "name": "Hassan Beydoun",
+      "email": null,
+      "linkedin_url": null,
+      "job_title": "Sales",
+      "current_company": null,
+      "location_city": "New York",
+      "location_state": "NY",
+      "years_experience": 5.75,
+      "bio_summary": "I am a sales professional skilled in building client relationships, identifying opportunities, and closing complex deals, particularly within the financial services sector. I have experience in consultative selling, strategic account management, and driving business success in fast-paced environments. I am currently exploring Sales Executive roles at fintech companies where I can leverage my Series 7 and Series 63 licenses.",
+      "industries": [
+        "Financial Services",
+        "Management Consulting",
+        "Investment Banking",
+        "Fintech"
+      ],
+      "skills": [
+        "Client Relationship Management",
+        "Consultative Selling",
+        "Strategic Account Management",
+        "Negotiation",
+        "Communication",
+        "Sales",
+        "Business Development",
+        "Financial Analysis",
+        "Wealth Management",
+        "Transaction Advisory"
       ],
       "education": null,
       "sales_methodologies": [],
@@ -1039,22 +1388,22 @@
       "ai_score": 65,
       "combined_score": 50,
       "tier": "Good",
-      "one_line_summary": "High-performing AE lacking specific CFO sales and startup experience.",
+      "one_line_summary": "Experienced financial services seller lacking proven CFO closing history.",
       "pros": [
-        "Proven track record of exceeding quota (100%+ attainment) at established firms, achieving Winners Circle status.",
-        "3.0 years of closing experience, exceeding the minimum requirement for an AE role.",
-        "Strong background in enterprise sales and strategic advisory, indicating consultative selling skills."
+        "Extensive sales experience (5.75 years) in highly relevant industries (Fintech, Financial Services).",
+        "Strong consultative selling, strategic account management, and financial analysis skills.",
+        "Deep financial knowledge confirmed by Series 7 and Series 63 licenses, aiding ICP understanding."
       ],
       "cons": [
-        "No proven experience selling to finance/accounting stakeholders (CFOs/Controllers), a core required qualification.",
-        "Lacks demonstrated startup or early-stage experience, which is crucial for a 'Founding AE' role.",
-        "Experience is primarily in highly structured environments (Gartner), potentially indicating a struggle with minimal structure."
+        "Lacks proven track record of selling specifically to finance and accounting stakeholders (CFOs/Controllers), a critical requirement.",
+        "No explicit confirmation of Account Executive closing experience or quota ownership.",
+        "Missing desired startup experience and demonstrated ability to thrive with minimal structure."
       ],
-      "reasoning": "Connor is a high-performing AE who meets the experience threshold but is missing two critical requirements: proven sales to finance leaders and demonstrated ability to thrive in a low-structure startup environment. While his performance history is strong, the lack of ICP fit and startup scrappiness places him in the 'Potential' category for this specific Founding AE role.",
+      "reasoning": "Hassan possesses strong consultative skills and a relevant industry background (Fintech/Financial Services), but he is missing the required proven track record of closing deals specifically with CFOs or Controllers. While his experience is extensive, the lack of confirmed AE closing experience and startup scrappiness suggests he may struggle in a Founding AE role that demands process creation and selling to a specific executive persona.",
       "interview_questions": [
-        "Your background is in strategic advisory and performance management; how would you quickly pivot your messaging and value proposition to resonate specifically with a CFO's financial priorities?",
-        "Describe a time you had to build a sales process or GTM strategy from scratch with minimal resources and structure. How did you approach problem-solving in that ambiguous environment?",
-        "Gartner is known for its structured environment. What steps have you taken to ensure you can thrive and drive results independently when structure and resources are limited?"
+        "Can you walk me through a complex deal where you successfully closed a Controller or CFO, detailing their specific pain points and how your solution addressed their financial needs?",
+        "Your background is in established financial environments. Describe a time you had to build a sales process or go-to-market strategy from scratch with minimal resources, as required for a Founding AE role.",
+        "Can you clarify your exact closing ratio and quota attainment history in your most recent role, and confirm that you owned the full sales cycle from prospecting to close?"
       ],
       "missing_required": [],
       "missing_preferred": [
@@ -1063,7 +1412,9 @@
         "Certifications"
       ],
       "red_flags": [
-        "Rapid job changes within the last year (4 months as Sr AE at Gartner, immediate move to PerformYard as AE)."
+        "Short tenure at Morgan Stanley (15 months) and Visible Alpha (current, 5 months).",
+        "Transition from Wealth Management Sales Associate back to a pure Sales role suggests a search for the right fit.",
+        "While the current role is at Visible Alpha (a data/fintech company), the primary closing experience (RSM) was in professional services, not SaaS/Fintech."
       ],
       "red_flag_count": 1,
       "completeness": 73,
@@ -1071,639 +1422,19 @@
       "room_name": null,
       "interview_score": null,
       "recommendation": null,
-      "created_at": "2025-12-22 22:27:51.064207",
-      "updated_at": "2025-12-22 22:28:15.872563",
+      "created_at": "2025-12-23 16:24:27.320200",
+      "updated_at": "2025-12-23 16:24:42.158473",
       "source": "csv_upload",
       "has_enrichment_data": true,
-      "years_ae_closing_experience": 2.2,
-      "sold_to_finance_stakeholders": false,
-      "saas_fintech_recruiting_tech_experience": [
-        "SaaS",
-        "HR Tech"
+      "years_closing_experience_saas": 0.25,
+      "sold_to_finance_persona": true,
+      "startup_experience_early_stage": false,
+      "average_deal_size_mid_market_enterprise": "Not specified, but experience is in mid-market private equity and enterprise financial services.",
+      "quota_attainment_history": [
+        "Consistently exceeded quarterly KPIs (at RSM US LLP)"
       ],
-      "startup_early_stage_experience": false,
-      "average_deal_size_mid_enterprise": "Experience managing large territories ($1.1M+ CV) and selling to mid-market and high-growth technology companies, indicating a focus on Mid-Market/Enterprise deal sizes.",
-      "quota_attainment_history": "Achieved Winners Circle status in 2023 (108.3% attainment) and 2024 (112.1% attainment).",
-      "finance_accounting_background": false,
-      "sold_to_healthcare": false
-    },
-    {
-      "id": "9",
-      "name": "Yara Lacerda",
-      "email": null,
-      "linkedin_url": null,
-      "job_title": "Account Executive SMB",
-      "current_company": null,
-      "location_city": "Miami",
-      "location_state": "FL",
-      "years_experience": 12.0,
-      "bio_summary": "I am an accomplished Account Executive with a 15-year background in complex sales and financial operations, specializing in the LATAM market. I have a proven track record of consistently exceeding sales quotas, managing diverse portfolios, and driving substantial revenue growth in the competitive SaaS landscape, leveraging deep technical acumen and trilingual proficiency.",
-      "industries": [
-        "SaaS",
-        "Technology",
-        "Corporate Wellness",
-        "Fintech",
-        "E-commerce",
-        "E-learning",
-        "Healthcare",
-        "Media",
-        "Financial Operations"
-      ],
-      "skills": [
-        "Complex Sales",
-        "Quota Attainment",
-        "Client Relationship Management",
-        "Strategic Outreach",
-        "SaaS Sales",
-        "LATAM Market",
-        "Trilingual (English, Portuguese, Spanish)",
-        "Coaching",
-        "Financial Operations",
-        "Accounts Receivable",
-        "SAP",
-        "Salesforce"
-      ],
-      "education": null,
-      "sales_methodologies": [],
-      "sold_to_finance": false,
-      "is_founder": false,
-      "startup_experience": true,
-      "enterprise_experience": true,
-      "max_acv_mentioned": null,
-      "quota_attainment": null,
-      "algo_score": 40,
-      "ai_score": 58,
-      "combined_score": 49,
-      "tier": "Evaluate",
-      "one_line_summary": "Experienced SaaS AE with deep financial operations knowledge.",
-      "pros": [
-        "Extensive 12+ year background in complex SaaS sales and consistent quota attainment.",
-        "Relevant industry experience in SaaS, Fintech, and Financial Operations.",
-        "Demonstrated ability to thrive in startup environments and handle scrappy GTM motions."
-      ],
-      "cons": [
-        "Lacks a proven track record selling directly to CFOs/Controllers (critical JD requirement).",
-        "Current title (SMB AE) suggests a potential mismatch with the required mid-market/enterprise focus.",
-        "Primary focus on the LATAM market may require significant adjustment to the core US GTM strategy."
-      ],
-      "reasoning": "While the candidate possesses extensive SaaS sales experience and relevant financial operations knowledge, the profile explicitly lacks a proven track record of closing deals with finance and accounting stakeholders (CFOs/Controllers), which is a critical requirement for this Founding AE role. The SMB focus also raises concerns regarding readiness for mid-market/enterprise deal sizes and the ability to own the full cycle for larger accounts.",
-      "interview_questions": [
-        "Your profile highlights expertise in Financial Operations and Accounts Receivable; how have you leveraged this knowledge to influence and close deals specifically with CFOs or Controllers?",
-        "Given your deep experience in the LATAM market, how would you adapt your GTM strategy and sales cadence to successfully target mid-market and enterprise clients in the US AI SaaS marketplace?",
-        "The role requires thriving with minimal structure. Can you describe a time you had to build a sales process from scratch or pivot the GTM strategy based on early market feedback?"
-      ],
-      "missing_required": [],
-      "missing_preferred": [
-        "Education",
-        "Notable Achievements",
-        "Certifications"
-      ],
-      "red_flags": [
-        "Two significant employment gaps (2018-2020 and 2022-2024) require explanation.",
-        "Recent move from Enterprise AE (Cloudflare) to SMB AE (Wellhub) should be explored."
-      ],
-      "red_flag_count": 2,
-      "completeness": 73,
-      "interview_status": "not_scheduled",
-      "room_name": null,
-      "interview_score": null,
-      "recommendation": null,
-      "created_at": "2025-12-22 22:27:51.064102",
-      "updated_at": "2025-12-22 22:28:09.381747",
-      "source": "csv_upload",
-      "has_enrichment_data": true,
-      "years_ae_closing_experience": 3,
-      "sold_to_finance_stakeholders": true,
-      "saas_fintech_recruiting_tech_experience": [
-        "SaaS",
-        "Fintech"
-      ],
-      "startup_early_stage_experience": true,
-      "average_deal_size_mid_enterprise": "$38K average deal size, targeting Enterprise accounts across LATAM.",
-      "quota_attainment_history": "Consistently exceeded quota, ranging from 110% to 166% attainment in all quarters at Cloudflare.",
-      "finance_accounting_background": true,
-      "sold_to_healthcare": true
-    },
-    {
-      "id": "12",
-      "name": "Donald Brossman III",
-      "email": null,
-      "linkedin_url": null,
-      "job_title": "Account Executive",
-      "current_company": null,
-      "location_city": "Jersey City",
-      "location_state": "NJ",
-      "years_experience": 3.0,
-      "bio_summary": "I am an MBA Candidate at Hofstra University with a background in finance and sales, currently serving as an Account Executive at Revv. I have experience in private lending, financial analysis, and strategic planning, focusing on driving efficiency and value in loan origination and sales processes.",
-      "industries": [
-        "Financial Services",
-        "Real Estate",
-        "Technology",
-        "SaaS"
-      ],
-      "skills": [
-        "Financial Analysis",
-        "Risk Assessment",
-        "Strategic Planning",
-        "Communication",
-        "Collaboration",
-        "Loan Origination",
-        "CRM",
-        "Sales"
-      ],
-      "education": null,
-      "sales_methodologies": [],
-      "sold_to_finance": false,
-      "is_founder": false,
-      "startup_experience": true,
-      "enterprise_experience": false,
-      "max_acv_mentioned": null,
-      "quota_attainment": null,
-      "algo_score": 30,
-      "ai_score": 68,
-      "combined_score": 49,
-      "tier": "Evaluate",
-      "one_line_summary": "Experienced AE with finance background, but lacking CFO sales track record.",
-      "pros": [
-        "3 years of closing experience, exceeding minimum requirements for an AE.",
-        "Strong finance and analytical background (MBA candidate, private lending) providing domain expertise for the ICP.",
-        "Demonstrated startup experience and ambition, fitting the high-growth environment."
-      ],
-      "cons": [
-        "Lacks proven track record of selling directly to finance and accounting stakeholders (CFOs/Controllers), a critical requirement.",
-        "Experience appears heavily focused on private lending/loan origination, potentially requiring a shift in sales motion for AI SaaS.",
-        "No confirmed mid-market or enterprise sales experience, which is necessary for target clients."
-      ],
-      "reasoning": "Donald is a strong candidate in terms of sales tenure and industry knowledge, possessing 3 years of AE experience and a valuable finance background. However, he critically misses the proven track record of selling to CFOs/Controllers, which is the core requirement for this Founding AE role. His background suggests a strong potential fit, but the lack of direct ICP experience is a significant gap for an early-stage revenue driver.",
-      "interview_questions": [
-        "The JD requires a proven track record of selling to CFOs/Controllers. Can you describe the largest deal you've closed and who the ultimate decision-maker was, and how you plan to bridge the gap in selling to executive finance leaders?",
-        "Your background includes private lending and loan origination. How does the sales cycle and consultative approach you used in that industry translate to selling a complex, AI-powered SaaS marketplace solution?",
-        "As a Founding AE, you must thrive with minimal structure. Describe a time you proactively built or significantly refined a sales process or go-to-market strategy without explicit direction from leadership."
-      ],
-      "missing_required": [],
-      "missing_preferred": [
-        "Education",
-        "Notable Achievements",
-        "Certifications"
-      ],
-      "red_flags": [
-        "High frequency of job changes: 6 roles in 3 years.",
-        "Gap between Seamless.AI (07/2023) and Brick City Capital (09/2023).",
-        "Gap between Brick City Capital (06/2024) and Revv (10/2024)."
-      ],
-      "red_flag_count": 2,
-      "completeness": 73,
-      "interview_status": "not_scheduled",
-      "room_name": null,
-      "interview_score": null,
-      "recommendation": null,
-      "created_at": "2025-12-22 22:27:51.064232",
-      "updated_at": "2025-12-22 22:28:15.933704",
-      "source": "csv_upload",
-      "has_enrichment_data": true,
-      "years_ae_closing_experience": 0.08,
-      "sold_to_finance_stakeholders": false,
-      "saas_fintech_recruiting_tech_experience": [
-        "SaaS",
-        "Fintech"
-      ],
-      "startup_early_stage_experience": true,
-      "average_deal_size_mid_enterprise": "Not specified. Current role is Account Executive at a SaaS company focused on automotive repair shops.",
-      "quota_attainment_history": "Not specified.",
-      "finance_accounting_background": true,
-      "sold_to_healthcare": false
-    },
-    {
-      "id": "7",
-      "name": "Sofia Drabkin",
-      "email": null,
-      "linkedin_url": null,
-      "job_title": "Account Executive",
-      "current_company": null,
-      "location_city": "Encinitas",
-      "location_state": "CA",
-      "years_experience": 3.5,
-      "bio_summary": "I am a results-driven Account Executive with 1.25 years of closing experience, specializing in SaaS and IoT solutions for Mid-Market and Commercial segments. I have a proven track record of rapid progression, moving from Account Development Representative to Commercial Account Executive at Samsara, and currently driving revenue at SpotHopper.",
-      "industries": [
-        "SaaS",
-        "Connected Operations",
-        "IoT",
-        "Restaurant Technology",
-        "Investment Management",
-        "Healthcare"
-      ],
-      "skills": [
-        "Account Executive",
-        "Commercial Sales",
-        "Enterprise Account Development",
-        "Client Operations",
-        "Sales Consulting"
-      ],
-      "education": null,
-      "sales_methodologies": [],
-      "sold_to_finance": false,
-      "is_founder": false,
-      "startup_experience": true,
-      "enterprise_experience": true,
-      "max_acv_mentioned": null,
-      "quota_attainment": null,
-      "algo_score": 40,
-      "ai_score": 55,
-      "combined_score": 48,
-      "tier": "Evaluate",
-      "one_line_summary": "Experienced SaaS AE lacking specific finance stakeholder sales history.",
-      "pros": [
-        "Meets the minimum requirement of 1+ years of closing experience in SaaS (1.25 years).",
-        "Demonstrated drive and ambition through rapid progression (ADR to CAE) in high-growth environments.",
-        "Has relevant startup experience, indicating ability to thrive in a fast-paced, less structured setting."
-      ],
-      "cons": [
-        "Lacks proven track record of selling directly to finance and accounting stakeholders (CFOs, Controllers), a critical requirement.",
-        "Industry experience (IoT, Restaurant Tech) is not directly aligned with Fintech or Finance SaaS.",
-        "Limited closing tenure (1.25 years) for a 'Founding' AE role requiring immediate, high-impact results."
-      ],
-      "reasoning": "Sofia meets the minimum AE closing experience and possesses valuable startup experience. However, she is missing the core required qualification: a proven track record of selling to finance and accounting leaders (CFOs/Controllers), which is non-negotiable for this role's ICP. This significant gap places her in the 'Weak' category despite her general sales acumen.",
-      "interview_questions": [
-        "Since your background is in IoT and Restaurant Tech, how would you adapt your sales methodology to effectively engage and close a CFO or Controller on a complex AI SaaS marketplace solution?",
-        "The Founding AE role requires building processes from scratch. Describe a time you successfully implemented a new sales process or strategy with minimal guidance in a previous role.",
-        "Can you walk me through your largest deal closed and specifically detail how you navigated the procurement and financial decision-making process with the economic buyer?"
-      ],
-      "missing_required": [],
-      "missing_preferred": [
-        "Education",
-        "Notable Achievements",
-        "Certifications"
-      ],
-      "red_flags": [
-        "Short tenure across multiple roles (6 months at J&J, 1 year at Fisher, 1 year 8 months total at Samsara, and recent move to SpotHopper).",
-        "5-month employment gap between Fisher Investments and Samsara (March 2022 - August 2022)."
-      ],
-      "red_flag_count": 2,
-      "completeness": 73,
-      "interview_status": "not_scheduled",
-      "room_name": null,
-      "interview_score": null,
-      "recommendation": null,
-      "created_at": "2025-12-22 22:27:51.064033",
-      "updated_at": "2025-12-22 22:28:07.605025",
-      "source": "csv_upload",
-      "has_enrichment_data": true,
-      "years_ae_closing_experience": 1.25,
-      "sold_to_finance_stakeholders": false,
-      "saas_fintech_recruiting_tech_experience": [
-        "SaaS"
-      ],
-      "startup_early_stage_experience": true,
-      "average_deal_size_mid_enterprise": "Focused on Mid Market and Commercial/Enterprise segments at Samsara.",
-      "quota_attainment_history": "Not specified.",
-      "finance_accounting_background": false,
-      "sold_to_healthcare": true
-    },
-    {
-      "id": "10",
-      "name": "Jacob Hanna",
-      "email": null,
-      "linkedin_url": null,
-      "job_title": "Account Executive",
-      "current_company": null,
-      "location_city": "Augusta",
-      "location_state": "GA",
-      "years_experience": 3.0,
-      "bio_summary": "I am an Account Executive focused on helping brands effectively support their retailer channels through digital marketing solutions. I have progressed through various roles at Promoboxx, demonstrating a commitment to brand partnerships and account management.",
-      "industries": [
-        "Software",
-        "Marketing and Advertising"
-      ],
-      "skills": [],
-      "education": null,
-      "sales_methodologies": [],
-      "sold_to_finance": false,
-      "is_founder": false,
-      "startup_experience": true,
-      "enterprise_experience": false,
-      "max_acv_mentioned": null,
-      "quota_attainment": null,
-      "algo_score": 40,
-      "ai_score": 55,
-      "combined_score": 48,
-      "tier": "Evaluate",
-      "one_line_summary": "Experienced AE with startup background but lacks finance sales expertise.",
-      "pros": [
-        "Meets the required 1+ years of closing experience (3.0 years total).",
-        "Has demonstrated experience working within a startup/high-growth environment.",
-        "Experience is within the Software/SaaS industry."
-      ],
-      "cons": [
-        "Lacks the critical requirement of selling to finance and accounting stakeholders (CFOs, Controllers).",
-        "Current domain focus (digital marketing solutions for retailers) does not align with fintech/GTM finance technology.",
-        "No confirmed enterprise experience, which is preferred for mid-market/enterprise clients."
-      ],
-      "reasoning": "While Jacob meets the tenure and startup experience requirements, he critically lacks the proven track record of selling to the required ICP (CFOs/Controllers), which is mandatory for this Founding AE role. His background in marketing solutions does not provide the immediate domain expertise needed to engage finance leaders effectively in an AI SaaS marketplace.",
-      "interview_questions": [
-        "The role requires selling directly to CFOs and Controllers. Can you describe the most senior finance stakeholder you have successfully closed a deal with, and how you aligned your solution to their financial priorities?",
-        "As a Founding AE, you will be defining the GTM strategy. Describe a time you had to pivot your sales process entirely due to market feedback or a lack of structure, and what results you drove.",
-        "Your current focus is digital marketing solutions for retailers. How do you plan to rapidly acquire the necessary domain knowledge regarding GTM finance technology and the specific financial pain points of a CFO?"
-      ],
-      "missing_required": [],
-      "missing_preferred": [
-        "Key Skills",
-        "Education",
-        "Notable Achievements",
-        "Certifications"
-      ],
-      "red_flags": [
-        "Very limited experience (less than 1 month) in a dedicated Account Executive closing role.",
-        "No information on deal size or target market (Mid-Market/Enterprise focus is required but not confirmed)."
-      ],
-      "red_flag_count": 0,
-      "completeness": 64,
-      "interview_status": "not_scheduled",
-      "room_name": null,
-      "interview_score": null,
-      "recommendation": null,
-      "created_at": "2025-12-22 22:27:51.064175",
-      "updated_at": "2025-12-22 22:28:08.158936",
-      "source": "csv_upload",
-      "has_enrichment_data": true,
-      "years_ae_closing_experience": 0.08,
-      "sold_to_finance_stakeholders": false,
-      "saas_fintech_recruiting_tech_experience": [
-        "SaaS"
-      ],
-      "startup_early_stage_experience": true,
-      "average_deal_size_mid_enterprise": "Not specified. Focus is on brands and their retailers.",
-      "quota_attainment_history": "Not specified.",
-      "finance_accounting_background": false,
-      "sold_to_healthcare": false
-    },
-    {
-      "id": "18",
-      "name": "Paul Avila",
-      "email": null,
-      "linkedin_url": null,
-      "job_title": "Account Executive",
-      "current_company": null,
-      "location_city": "Hoboken",
-      "location_state": "NJ",
-      "years_experience": 4.0,
-      "bio_summary": "I am an Account Executive at BrightEdge with a proven track record of high quota attainment, having been promoted rapidly through the Sales Development ranks. I consistently achieved top performance metrics as an SDR, earning multiple Top 20% and Regional Top Dog awards, and I am now focused on driving revenue in a closing role.",
-      "industries": [
-        "Software as a Service (SaaS)",
-        "Content Performance Marketing",
-        "Financial Services",
-        "Higher Education"
-      ],
-      "skills": [
-        "Account Executive",
-        "Sales Development",
-        "Quota Attainment",
-        "Lead Generation",
-        "Sales Strategy",
-        "SEO",
-        "Content Marketing"
-      ],
-      "education": null,
-      "sales_methodologies": [],
-      "sold_to_finance": false,
-      "is_founder": false,
-      "startup_experience": false,
-      "enterprise_experience": true,
-      "max_acv_mentioned": null,
-      "quota_attainment": null,
-      "algo_score": 40,
-      "ai_score": 55,
-      "combined_score": 48,
-      "tier": "Evaluate",
-      "one_line_summary": "High-performing AE lacking specific finance domain and startup experience.",
-      "pros": [
-        "Proven track record of high quota attainment and rapid promotion from SDR to AE.",
-        "Solid closing experience as an Account Executive in the SaaS industry.",
-        "Demonstrated drive and ambition, evidenced by multiple Top 20% performance awards."
-      ],
-      "cons": [
-        "Lacks proven experience selling specifically to finance and accounting stakeholders (CFOs/Controllers), a critical JD requirement.",
-        "No apparent startup experience, which is essential for a 'Founding AE' role requiring minimal structure.",
-        "Industry experience is primarily in Content Performance Marketing, not specialized fintech or finance tech."
-      ],
-      "reasoning": "Paul is a high-performing AE but critically lacks the required experience selling to finance/accounting leaders (CFOs), which is non-negotiable for this role. Furthermore, the absence of startup experience suggests he may struggle with the ambiguity and lack of structure inherent in a Founding AE position.",
-      "interview_questions": [
-        "Given your background, how would you quickly pivot your consultative selling approach to address the specific financial and operational pain points of a CFO or Controller?",
-        "The Founding AE role requires building processes from scratch. Describe a time you successfully operated and drove revenue in an environment with minimal existing structure or defined playbooks.",
-        "The JD requires selling to finance leaders. Can you walk me through your largest deal closed and specify the functional buyer and the economic buyer in that transaction?"
-      ],
-      "missing_required": [],
-      "missing_preferred": [
-        "Education",
-        "Notable Achievements",
-        "Certifications"
-      ],
-      "red_flags": [
-        "Short tenure (7 months) at MassMutual prior to joining BrightEdge."
-      ],
-      "red_flag_count": 0,
-      "completeness": 73,
-      "interview_status": "not_scheduled",
-      "room_name": null,
-      "interview_score": null,
-      "recommendation": null,
-      "created_at": "2025-12-22 22:28:00.482255",
-      "updated_at": "2025-12-22 22:28:07.702753",
-      "source": "csv_upload",
-      "has_enrichment_data": true,
-      "years_ae_closing_experience": 1,
-      "sold_to_finance_stakeholders": false,
-      "saas_fintech_recruiting_tech_experience": [
-        "SaaS",
-        "Fintech"
-      ],
-      "startup_early_stage_experience": false,
-      "average_deal_size_mid_enterprise": "Not provided in profile data. BrightEdge targets major brands/publishers, suggesting Mid-Market/Enterprise focus.",
-      "quota_attainment_history": "Excellent. Consistently achieved 100%+ of goal (e.g., May: 125% of Goal, May/August: 100% of Goal) and was recognized multiple times as a 'Top 20%' performer and 'Regional Top Dog Winner' during SDR tenure.",
-      "finance_accounting_background": true,
-      "sold_to_healthcare": false
-    },
-    {
-      "id": "16",
-      "name": "Hassan Beydoun",
-      "email": null,
-      "linkedin_url": null,
-      "job_title": "Sales",
-      "current_company": null,
-      "location_city": "New York",
-      "location_state": "NY",
-      "years_experience": 5.75,
-      "bio_summary": "I am a sales professional with experience in financial services and professional services, skilled in building client relationships, identifying opportunities, and closing complex deals. I have a strong background in consultative selling, strategic account management, and driving business success in fast-paced environments. I am currently seeking Sales Executive roles in fintech where I can leverage my Series 7 and 63 licenses to contribute to growth and expand client reach.",
-      "industries": [
-        "Financial Services",
-        "Professional Services",
-        "Fintech",
-        "Investment Banking"
-      ],
-      "skills": [
-        "Client Relationship Management",
-        "Consultative Selling",
-        "Strategic Account Management",
-        "Negotiation",
-        "Presentation Skills",
-        "Sales",
-        "Series 7 Licensed",
-        "Series 63 Licensed"
-      ],
-      "education": null,
-      "sales_methodologies": [],
-      "sold_to_finance": false,
-      "is_founder": false,
-      "startup_experience": false,
-      "enterprise_experience": true,
-      "max_acv_mentioned": null,
-      "quota_attainment": null,
-      "algo_score": 30,
-      "ai_score": 62,
-      "combined_score": 46,
-      "tier": "Evaluate",
-      "one_line_summary": "Experienced financial services salesperson lacking direct SaaS and CFO closing history.",
-      "pros": [
-        "5.75 years of robust sales tenure, exceeding the minimum experience requirement.",
-        "Background in Fintech and Financial Services aligns well with the product domain.",
-        "Strong skills in Consultative Selling and Strategic Account Management."
-      ],
-      "cons": [
-        "Lacks proven track record selling specifically to finance and accounting stakeholders (CFOs/Controllers), a critical requirement.",
-        "No explicit mention of SaaS Account Executive closing experience.",
-        "Missing startup experience required for a 'Founding AE' role that demands high autonomy and minimal structure."
-      ],
-      "reasoning": "Hassan has strong sales tenure and relevant industry exposure (Fintech). However, he critically lacks the proven track record of selling to the required ICP (CFOs/Controllers) and the necessary startup experience to thrive as a Founding AE in a high-growth, unstructured environment.",
-      "interview_questions": [
-        "The role requires selling directly to CFOs and Controllers; describe your most successful sale to a senior finance leader and the specific pain points you solved for them.",
-        "This is a Founding AE role requiring high autonomy and process creation; describe a time you successfully built a sales process from scratch in a highly ambiguous environment.",
-        "Your background is in financial/professional services; what is your track record selling recurring revenue SaaS products, and what was the typical sales cycle and average contract value (ACV)?"
-      ],
-      "missing_required": [],
-      "missing_preferred": [
-        "Education",
-        "Notable Achievements",
-        "Certifications"
-      ],
-      "red_flags": [
-        "Short tenure at Morgan Stanley (15 months)",
-        "Gap between RSM US LLP (Jan 2022) and Morgan Stanley (Jun 2022)",
-        "Gap between Morgan Stanley (Sep 2023) and Visible Alpha (Jan 2024)"
-      ],
-      "red_flag_count": 2,
-      "completeness": 73,
-      "interview_status": "not_scheduled",
-      "room_name": null,
-      "interview_score": null,
-      "recommendation": null,
-      "created_at": "2025-12-22 22:28:00.482110",
-      "updated_at": "2025-12-22 22:28:16.336588",
-      "source": "csv_upload",
-      "has_enrichment_data": true,
-      "years_ae_closing_experience": 2.75,
-      "sold_to_finance_stakeholders": true,
-      "saas_fintech_recruiting_tech_experience": [
-        "Fintech"
-      ],
-      "startup_early_stage_experience": false,
-      "average_deal_size_mid_enterprise": "Mid-market private equity and portfolio companies (RSM US LLP)",
-      "quota_attainment_history": "Consistently exceeded quarterly KPIs (RSM US LLP)",
-      "finance_accounting_background": true,
-      "sold_to_healthcare": true
-    },
-    {
-      "id": "3",
-      "name": "Joey Sanford",
-      "email": null,
-      "linkedin_url": null,
-      "job_title": "Full Cycle Account Executive (Hunter)",
-      "current_company": null,
-      "location_city": "New York",
-      "location_state": "NY",
-      "years_experience": 1.0,
-      "bio_summary": "I am a Full Cycle Account Executive specializing in AI and SaaS GTM strategy, driving product-led growth at a B2B startup from seed stage toward enterprise adoption. I successfully built the outbound motion from the ground up, achieving a 50%+ meeting booked rate, and secured the company's first enterprise-level deal, opening the door to six-figure opportunities.",
-      "industries": [
-        "SaaS",
-        "AI",
-        "Nonprofit",
-        "Giving Intelligence",
-        "Youth Organization",
-        "Hospitality",
-        "Defense"
-      ],
-      "skills": [
-        "AI",
-        "SaaS GTM Strategy",
-        "Product-Led Growth",
-        "Account-Based-Marketing",
-        "Objection Handling",
-        "Consultative Sales",
-        "Outbound Motion",
-        "Enterprise Sales",
-        "Pipeline Velocity"
-      ],
-      "education": null,
-      "sales_methodologies": [],
-      "sold_to_finance": false,
-      "is_founder": false,
-      "startup_experience": true,
-      "enterprise_experience": true,
-      "max_acv_mentioned": null,
-      "quota_attainment": null,
-      "algo_score": 20,
-      "ai_score": 70,
-      "combined_score": 45,
-      "tier": "Evaluate",
-      "one_line_summary": "Ambitious AE with strong startup hustle and AI/SaaS GTM experience.",
-      "pros": [
-        "1+ years of closing experience as an AE in SaaS/AI (Meets minimum requirement)",
-        "Strong startup experience, built outbound motion from scratch (Demonstrates scrappiness/hustle)",
-        "Experience securing the company's first enterprise deal (Enterprise sales skill)",
-        "Expertise in AI, SaaS GTM Strategy, and Product-Led Growth",
-        "Exceptional drive and ambition demonstrated by early career success"
-      ],
-      "cons": [
-        "Only 1.0 years of closing experience (JD prefers 2+ years)",
-        "No explicit mention of selling to finance/accounting leaders (CFOs, Controllers)",
-        "Industry background is not in finance, accounting, or fintech sales",
-        "Lacks degree in finance or related field (Preferred qualification)"
-      ],
-      "reasoning": "Joey meets the minimum requirement of 1+ years AE closing experience in SaaS and demonstrates the required startup hustle and enterprise sales ability. However, the critical requirement of selling to finance/accounting stakeholders (CFOs, Controllers) is not confirmed, and the overall experience is light (1 year vs. preferred 2+), placing the candidate in the 'Potential' category.",
-      "interview_questions": [
-        "The role requires selling to CFOs and Controllers. Can you describe your experience engaging with finance leaders and how you tailor your value proposition to their specific priorities?",
-        "You successfully built the outbound motion and secured the first enterprise deal. Can you walk me through the process of how you identified, engaged, and closed that first large account, especially given the minimal structure of a seed-stage company?",
-        "Given your background is primarily in AI/SaaS GTM strategy, how would you quickly ramp up your understanding of the financial and accounting pain points our product solves?"
-      ],
-      "missing_required": [],
-      "missing_preferred": [
-        "Education",
-        "Notable Achievements",
-        "Certifications"
-      ],
-      "red_flags": [
-        "6-month employment gap between January 2023 and July 2023.",
-        "Limited total sales experience (1 year).",
-        "Short tenure in non-sales roles prior to HATCH."
-      ],
-      "red_flag_count": 2,
-      "completeness": 73,
-      "interview_status": "not_scheduled",
-      "room_name": null,
-      "interview_score": null,
-      "recommendation": null,
-      "created_at": "2025-12-22 22:27:51.063942",
-      "updated_at": "2025-12-22 22:28:12.156512",
-      "source": "csv_upload",
-      "has_enrichment_data": true,
-      "years_ae_closing_experience": 0.5,
-      "sold_to_finance_stakeholders": false,
-      "saas_fintech_recruiting_tech_experience": [
-        "SaaS"
-      ],
-      "startup_early_stage_experience": true,
-      "average_deal_size_mid_enterprise": "Secured first enterprise-level deal, opening the door to six-figure opportunities. Focus is on medium-to-enterprise nonprofit clients.",
-      "quota_attainment_history": "Consistently exceeded revenue targets.",
-      "finance_accounting_background": false,
-      "sold_to_healthcare": false
+      "fintech_or_accounting_background": true,
+      "full_cycle_ownership": true
     },
     {
       "id": "15",
@@ -1714,8 +1445,8 @@
       "current_company": null,
       "location_city": "San Diego",
       "location_state": "CA",
-      "years_experience": 2.92,
-      "bio_summary": "I am a sales professional with experience in business development and account executive roles, primarily within the SaaS space. I have a strong background in early-stage startup environments, having served as a Founding Business Development Representative at Jolly. My career focus is on driving partnerships and sales growth in dynamic, high-growth companies.",
+      "years_experience": 2.9,
+      "bio_summary": "I am a Partnerships Lead with experience in sales development and account executive roles, primarily within the SaaS industry. I have a strong background in early-stage startup environments, having served as a Founding Business Development Representative at Jolly. My career focus is on driving growth and managing key accounts in the New York market.",
       "industries": [
         "Software",
         "Travel Management",
@@ -1725,9 +1456,9 @@
       "skills": [
         "Sales Development",
         "Account Executive",
-        "Business Development",
-        "Sports Marketing",
-        "Cold Outreach"
+        "Partnerships",
+        "Cold Outreach",
+        "Marketing"
       ],
       "education": null,
       "sales_methodologies": [],
@@ -1738,25 +1469,25 @@
       "max_acv_mentioned": null,
       "quota_attainment": null,
       "algo_score": 34,
-      "ai_score": 45,
-      "combined_score": 40,
-      "tier": "Evaluate",
-      "one_line_summary": "Experienced AE with strong startup background but lacking finance ICP exposure.",
+      "ai_score": 65,
+      "combined_score": 50,
+      "tier": "Good",
+      "one_line_summary": "Experienced SaaS AE with strong startup background but no finance sales history.",
       "pros": [
-        "Strong experience in early-stage startup environments, including a 'Founding BDR' role.",
-        "Meets the minimum 1+ year closing experience requirement for an AE.",
-        "Demonstrated drive and ambition suitable for a high-growth, fast-paced setting."
+        "Strong startup experience, including a 'Founding BDR' role, demonstrating comfort with early-stage environments.",
+        "Meets the minimum 1+ year AE closing experience requirement (2.9 years total sales).",
+        "Demonstrated experience in SaaS and cold outreach, crucial for a Founding AE role."
       ],
       "cons": [
-        "Critically lacks the required proven track record of selling specifically to CFOs or finance/accounting leaders.",
-        "Industry experience (Travel, Sports) does not align with the required SaaS marketplace selling to finance/fintech.",
-        "Mid-market/Enterprise deal size and complexity experience is not detailed or confirmed."
+        "Lacks proven experience selling to finance/accounting stakeholders (CFOs/Controllers), a critical requirement for this role.",
+        "Current title is Partnerships Lead, raising questions about recent full-cycle closing focus.",
+        "No explicit mid-market or enterprise sales experience mentioned in the profile."
       ],
-      "reasoning": "Andrew possesses valuable early-stage startup experience, which aligns well with the Founding AE title. However, he critically lacks the required experience selling to finance and accounting stakeholders (CFOs/Controllers), which is non-negotiable for this specialized AI SaaS marketplace role. His industry background is also misaligned with the required fintech/finance focus.",
+      "reasoning": "Andrew is a strong cultural fit due to his startup background and meets the minimum AE experience requirement. However, he critically lacks the proven track record of selling to finance and accounting leaders (CFOs/Controllers), which is essential for this specific AI SaaS marketplace targeting finance stakeholders. This gap places him in the 'Potential' category.",
       "interview_questions": [
-        "Given your background in Travel and Sports tech, how would you approach building credibility and rapport with a CFO or Controller in your first 90 days?",
-        "Describe a complex deal you closed recently. What was the typical deal size, who was the ultimate economic buyer, and what was the sales cycle length?",
-        "The JD requires thriving with minimal structure; can you provide an example of when you had to completely build a sales process or GTM strategy from scratch at an early-stage company?"
+        "The role requires selling to finance leaders (CFOs/Controllers). Can you walk me through the most complex deal you closed where the final decision-maker was a finance executive?",
+        "Your background includes a 'Founding BDR' role. Describe a time you had to build a sales process or GTM motion from scratch with minimal guidance, demonstrating the required scrappiness.",
+        "Your current title is Partnerships Lead. How much of your current day-to-day involves owning the full sales cycle, from prospecting to closing, versus managing existing relationships or channel partners?"
       ],
       "missing_required": [],
       "missing_preferred": [
@@ -1765,9 +1496,9 @@
         "Certifications"
       ],
       "red_flags": [
-        "Short tenure at Navan (3 months as Senior Commercial SDR, 9 months as Commercial SDR)",
-        "Short tenure at Jolly (9 months as Founding BDR, promoted to AE/Partnerships Lead)",
-        "The current role 'Account Executive' at Jolly started 2025-07-01, which is in the future relative to the BDR end date of 2025-08-01, suggesting overlapping or projected roles. The headline 'Partnerships Lead' conflicts with the current job title 'Account Executive'."
+        "High frequency of job changes within the last two years (4 roles since Nov 2023).",
+        "The current role 'Account Executive' at Jolly starts in the future (July 2025), which conflicts with the 'Partnerships Lead' headline and suggests potential data inaccuracy or future planning.",
+        "The 'Founding Business Development Representative' role at Jolly is very short (Nov 2024 - Aug 2025)."
       ],
       "red_flag_count": 1,
       "completeness": 73,
@@ -1775,20 +1506,302 @@
       "room_name": null,
       "interview_score": null,
       "recommendation": null,
-      "created_at": "2025-12-22 22:28:00.480612",
-      "updated_at": "2025-12-22 22:28:15.523010",
+      "created_at": "2025-12-23 16:24:27.320183",
+      "updated_at": "2025-12-23 16:24:42.432231",
       "source": "csv_upload",
       "has_enrichment_data": true,
-      "years_ae_closing_experience": 0.0,
-      "sold_to_finance_stakeholders": false,
-      "saas_fintech_recruiting_tech_experience": [
-        "SaaS"
+      "years_closing_experience_saas": 0.0,
+      "sold_to_finance_persona": true,
+      "startup_experience_early_stage": true,
+      "average_deal_size_mid_market_enterprise": "Not specified in profile data.",
+      "quota_attainment_history": [],
+      "fintech_or_accounting_background": false,
+      "full_cycle_ownership": false
+    },
+    {
+      "id": "4",
+      "name": "Parampreet Atwal",
+      "email": null,
+      "linkedin_url": null,
+      "job_title": "Account Executive",
+      "current_company": null,
+      "location_city": "Calgary",
+      "location_state": "Alberta",
+      "years_experience": 4.0,
+      "bio_summary": "I am an experienced Account Executive with a strong background in high-growth SaaS environments, specializing in legal technology, customer experience platforms, and professional education. I successfully transitioned from a top-performing BDR role to a quota-carrying AE, where I have focused on closing mid-market and enterprise accounts across various industries, including energy and healthcare.",
+      "industries": [
+        "Legal Technology",
+        "SaaS",
+        "EdTech",
+        "Customer Experience Technology",
+        "Media"
       ],
-      "startup_early_stage_experience": true,
-      "average_deal_size_mid_enterprise": "Not specified in the profile data.",
-      "quota_attainment_history": "Not specified in the profile data.",
-      "finance_accounting_background": false,
-      "sold_to_healthcare": false
+      "skills": [
+        "Account Executive",
+        "SaaS Sales",
+        "Business Development",
+        "Mid Market Sales",
+        "Enterprise Sales",
+        "Legal Technology",
+        "Quota Attainment",
+        "Full Cycle Sales"
+      ],
+      "education": null,
+      "sales_methodologies": [],
+      "sold_to_finance": false,
+      "is_founder": false,
+      "startup_experience": true,
+      "enterprise_experience": true,
+      "max_acv_mentioned": null,
+      "quota_attainment": null,
+      "algo_score": 40,
+      "ai_score": 55,
+      "combined_score": 48,
+      "tier": "Evaluate",
+      "one_line_summary": "Experienced AE lacking direct sales experience to finance leaders.",
+      "pros": [
+        "Strong 4.0 years of closing experience as an Account Executive in high-growth SaaS environments.",
+        "Proven track record managing full sales cycles for mid-market and enterprise accounts.",
+        "Demonstrated startup experience and ability to thrive in dynamic, less structured environments."
+      ],
+      "cons": [
+        "Critically lacks proven experience selling directly to finance and accounting stakeholders (CFOs, Controllers).",
+        "Industry focus (Legal Tech, EdTech) is not aligned with the preferred Fintech or recruiting tech background.",
+        "Must rapidly acquire specialized domain knowledge for an AI SaaS marketplace targeting GTM teams."
+      ],
+      "reasoning": "Parampreet has strong general AE experience and startup grit, exceeding the minimum years required. However, the profile critically fails to meet the core requirement of selling to finance/accounting stakeholders, which is essential for a Founding AE role shaping the GTM strategy for this specialized marketplace.",
+      "interview_questions": [
+        "The JD requires selling directly to CFOs and Controllers. Since your background is in Legal Tech, how would you immediately build credibility and understand the specific pain points of a finance leader regarding GTM technology investment?",
+        "Can you describe a time you had to build a sales process or GTM strategy from scratch in a highly ambiguous environment, and what specific metrics did you use to measure success?",
+        "Walk me through the typical buying committee structure in your previous enterprise deals, and specifically identify the highest-level finance stakeholder you engaged with and their role in the final decision."
+      ],
+      "missing_required": [],
+      "missing_preferred": [
+        "Education",
+        "Notable Achievements",
+        "Certifications"
+      ],
+      "red_flags": [
+        "Pattern of short tenure in Account Executive roles (3 roles in 19 months)",
+        "3-month employment gap between IrisCX and Clio"
+      ],
+      "red_flag_count": 2,
+      "completeness": 73,
+      "interview_status": "not_scheduled",
+      "room_name": null,
+      "interview_score": null,
+      "recommendation": null,
+      "created_at": "2025-12-23 16:24:16.833643",
+      "updated_at": "2025-12-23 16:24:35.458719",
+      "source": "csv_upload",
+      "has_enrichment_data": true,
+      "years_closing_experience_saas": 1.58,
+      "sold_to_finance_persona": true,
+      "startup_experience_early_stage": true,
+      "average_deal_size_mid_market_enterprise": "Focused on Mid Market and Enterprise accounts (e.g., EPCOR Energy, Black & McDonald). ACV not explicitly stated.",
+      "quota_attainment_history": [
+        "Exceeded BDR KPIs (37.2% conversion rate, #2 BDR)",
+        "Rapid promotion from BDR to AE in 4.5 months"
+      ],
+      "fintech_or_accounting_background": true,
+      "full_cycle_ownership": true
+    },
+    {
+      "id": "14",
+      "name": "Muhammad Qasim Shamim Ali Khan",
+      "email": "qasimshamim9@gmail.com",
+      "linkedin_url": null,
+      "job_title": "Sales Consultant",
+      "current_company": null,
+      "location_city": "Toronto",
+      "location_state": "ON",
+      "years_experience": 8.0,
+      "bio_summary": "I am a GTM professional with over 8 years of experience focused on growing revenue for early-stage companies. I specialize in building sales processes from the ground up, launching products in new markets, and leading teams to acquire and retain customers. My achievements include increasing annual revenue by 18% for a portfolio of Canadian clients and spearheading market entry strategies for AI platforms in the healthcare sector.",
+      "industries": [
+        "Software Development",
+        "Information Technology and Services",
+        "Health, Wellness and Fitness",
+        "Hospital & Health Care",
+        "Staffing and Recruiting"
+      ],
+      "skills": [
+        "GTM",
+        "Market Intelligence",
+        "Sales",
+        "Business Development",
+        "Account Management",
+        "AI",
+        "LLMs",
+        "RAG",
+        "Agentic AI Engineering",
+        "Market Entry Strategy",
+        "Pipeline Building",
+        "Discovery Efforts",
+        "Enterprise Accounts",
+        "Cross-functional Collaboration",
+        "Competitive Intelligence",
+        "Sales Operations",
+        "Outbound Reach",
+        "Sales Funnel",
+        "Hiring",
+        "Training",
+        "Clay",
+        "Apollo",
+        "Lemlist",
+        "Instantly"
+      ],
+      "education": null,
+      "sales_methodologies": [],
+      "sold_to_finance": false,
+      "is_founder": false,
+      "startup_experience": true,
+      "enterprise_experience": true,
+      "max_acv_mentioned": null,
+      "quota_attainment": null,
+      "algo_score": 40,
+      "ai_score": 55,
+      "combined_score": 48,
+      "tier": "Evaluate",
+      "one_line_summary": "Experienced GTM strategist lacking direct CFO closing experience.",
+      "pros": [
+        "Extensive 8 years of sales and GTM experience, including market entry strategy.",
+        "Demonstrated ability to build sales processes from the ground up, fitting the Founding AE scope.",
+        "Strong background and skills in AI/LLMs and startup environments."
+      ],
+      "cons": [
+        "Lacks proven closing experience as a quota-carrying Account Executive (current title is Sales Consultant).",
+        "Missing the critical requirement of selling to finance and accounting stakeholders (CFOs/Controllers).",
+        "Industry experience is primarily in Healthcare/Recruiting, not Fintech or Finance."
+      ],
+      "reasoning": "This candidate offers excellent GTM strategy and startup experience, which aligns with the 'Founding' aspect of the role. However, they fail to meet the two most critical requirements: proven closing experience as an AE and a track record of selling specifically to CFOs/finance leaders, making the fit weak for this specialized role.",
+      "interview_questions": [
+        "Since selling to CFOs and Controllers is critical, how would you adapt your current sales methodology, which appears focused on healthcare, to successfully engage and close finance and accounting leaders?",
+        "Your title is Sales Consultant. Can you walk me through your last three closed deals, detailing your specific role in negotiation, contracting, and final signature as the primary quota-carrying closer?",
+        "Describe a time you successfully built a sales process or launched a product in a new market with zero existing infrastructure, demonstrating your ability to thrive with minimal structure."
+      ],
+      "missing_required": [],
+      "missing_preferred": [
+        "Education",
+        "Notable Achievements",
+        "Certifications"
+      ],
+      "red_flags": [
+        "The profile shows overlapping employment dates (Semantic Health, Parallel, and Futurenostics all overlap in 2023/2024, suggesting some roles might be part-time, consulting, or the dates are inaccurate).",
+        "The role at Semantic Health (Account Executive) is listed with future end date (Aug 2025) and the role at Parallel (GTM Lead) is also listed with a future end date (Aug 2025), which is unusual for a current profile.",
+        "The title 'Head of Sales' at CyberSoft Vantage (2018-2021) followed by 'GTM Lead' and 'Account Executive' suggests a potential title demotion or shift in focus from leadership to individual contributor/consulting."
+      ],
+      "red_flag_count": 2,
+      "completeness": 73,
+      "interview_status": "not_scheduled",
+      "room_name": null,
+      "interview_score": null,
+      "recommendation": null,
+      "created_at": "2025-12-23 16:24:16.833731",
+      "updated_at": "2025-12-23 16:24:35.460283",
+      "source": "csv_upload",
+      "has_enrichment_data": true,
+      "years_closing_experience_saas": 0.67,
+      "sold_to_finance_persona": false,
+      "startup_experience_early_stage": true,
+      "average_deal_size_mid_market_enterprise": "Managed a portfolio worth over $2 million; managed high-value enterprise accounts.",
+      "quota_attainment_history": [
+        "Achieved an 18% increase in annual revenue (Futurenostics)",
+        "Increased MRR by 30% (CyberSoft Vantage)"
+      ],
+      "fintech_or_accounting_background": false,
+      "full_cycle_ownership": true
+    },
+    {
+      "id": "19",
+      "name": "Liam Artus, QKS\u2122",
+      "email": null,
+      "linkedin_url": null,
+      "job_title": "Associate, Internal Wholesaler",
+      "current_company": null,
+      "location_city": "New York",
+      "location_state": "NY",
+      "years_experience": 4.0,
+      "bio_summary": "I am a high-achieving sales professional with a strong background in financial services and fintech, demonstrated by my 157.8% lifetime attainment as a Sales Development Representative. I have proven success in full-cycle sales activities, including prospecting, client acquisition, and exceeding significant financial goals, such as driving over $1.5 million in deposit growth.",
+      "industries": [
+        "Fintech",
+        "Banking",
+        "Financial Services",
+        "Real Estate",
+        "Retail"
+      ],
+      "skills": [
+        "Internal Wholesaling",
+        "Sales Development",
+        "Business Development",
+        "Client Acquisition",
+        "Relationship Management",
+        "Financial Services",
+        "Prospecting",
+        "Quota Attainment",
+        "Budgeting",
+        "Financial Reporting"
+      ],
+      "education": null,
+      "sales_methodologies": [],
+      "sold_to_finance": false,
+      "is_founder": false,
+      "startup_experience": true,
+      "enterprise_experience": false,
+      "max_acv_mentioned": null,
+      "quota_attainment": null,
+      "algo_score": 30,
+      "ai_score": 65,
+      "combined_score": 48,
+      "tier": "Evaluate",
+      "one_line_summary": "High-achieving financial services professional with strong SDR/Wholesaler experience.",
+      "pros": [
+        "Strong sales track record (157.8% attainment) demonstrating drive and ambition.",
+        "Experience in Fintech and Financial Services, aligning with the target ICP/industry.",
+        "4.0 years of sales experience, including full-cycle activities and client acquisition.",
+        "Appears to have startup/scrappy experience given the 'Associate' title and high performance."
+      ],
+      "cons": [
+        "Current title is Associate, Internal Wholesaler, not closing Account Executive.",
+        "No explicit mention of 1+ years of closing experience as an AE (Required Qualification).",
+        "No explicit proof of selling to CFOs/Controllers in mid-market/enterprise environments.",
+        "Experience seems more focused on deposit growth/financial products rather than SaaS."
+      ],
+      "reasoning": "The candidate demonstrates strong sales aptitude and relevant industry experience (Fintech/Financial Services). However, they lack the required 1+ years of closing experience as a dedicated Account Executive, and there is no explicit proof of selling to the required ICP (CFOs/Controllers) in a mid-market/enterprise setting. This places them in the 'Potential' category, as they are coachable but have critical gaps.",
+      "interview_questions": [
+        "The JD requires 1+ years of AE closing experience. Can you detail your closing responsibilities and quota attainment in your current or previous roles?",
+        "Describe a time you had to sell a complex, intangible SaaS solution versus a financial product. What was your process for handling the full sales cycle?",
+        "How have you specifically engaged with and closed deals involving C-level finance stakeholders (CFOs, Controllers) in your career?"
+      ],
+      "missing_required": [],
+      "missing_preferred": [
+        "Education",
+        "Notable Achievements",
+        "Certifications"
+      ],
+      "red_flags": [
+        "Frequent job changes in the last two years (Flagstar, Vestwell SDR, Vestwell Internal Wholesaler)",
+        "8-month employment gap between September 2020 and May 2021"
+      ],
+      "red_flag_count": 2,
+      "completeness": 73,
+      "interview_status": "not_scheduled",
+      "room_name": null,
+      "interview_score": null,
+      "recommendation": null,
+      "created_at": "2025-12-23 16:24:27.320224",
+      "updated_at": "2025-12-23 16:24:38.263532",
+      "source": "csv_upload",
+      "has_enrichment_data": true,
+      "years_closing_experience_saas": 0,
+      "sold_to_finance_persona": true,
+      "startup_experience_early_stage": false,
+      "average_deal_size_mid_market_enterprise": "$10K - $100K+",
+      "quota_attainment_history": [
+        "157.8% Lifetime Attainment (SDR)",
+        "Exceeded $1.5M deposit growth goal"
+      ],
+      "fintech_or_accounting_background": true,
+      "full_cycle_ownership": true
     },
     {
       "id": "1",
@@ -1799,29 +1812,33 @@
       "current_company": null,
       "location_city": "Chicago",
       "location_state": "IL",
-      "years_experience": 1.5,
-      "bio_summary": "I am a Stealth Founder currently pursuing an M.S. in Computer Science with a focus on AI/ML, where I am building enterprise AI applications using LightRAG. I leverage a strong technical background in Physics and Mechanical Engineering from the University of Michigan, combined with experience as a Strategy Engineering Consultant for Fortune 500 clients in the Energy sector. I have successfully founded and open-sourced a no-code editor (AppFit) and hold a patent-pending AI-powered academic platform (Plandemy).",
+      "years_experience": 2.0,
+      "bio_summary": "I am a Stealth Founder and current M.S. student in Computer Science specializing in AI/ML, leveraging my background in Physics and Mechanical Engineering from the University of Michigan. I have experience as a strategy consultant for Fortune 500 clients and have successfully founded and open-sourced a no-code editor (AppFit), while currently innovating on enterprise AI applications using LightRAG. My focus is on pushing the boundaries of AI technology and applying deep technical knowledge to real-world problems.",
       "industries": [
-        "Artificial Intelligence",
-        "Machine Learning",
+        "AI",
+        "Technology",
+        "Software",
         "Consulting",
         "Energy",
         "Utilities",
-        "Software Development",
+        "Engineering",
         "Product Design"
       ],
       "skills": [
         "Artificial Intelligence",
         "Machine Learning",
-        "RAG Applications",
-        "Enterprise AI",
         "Strategy Consulting",
         "Mechanical Engineering",
-        "Physics",
-        "Finite Element Analysis (FEA)",
+        "Data Science",
+        "RAG Applications",
+        "LightRAG",
         "3D CAD",
-        "Due Diligence",
-        "Risk Assessment"
+        "SolidWorks",
+        "Finite Element Analysis",
+        "Risk Assessment",
+        "Product Development",
+        "No-Code Development",
+        "Enterprise AI"
       ],
       "education": null,
       "sales_methodologies": [],
@@ -1831,26 +1848,26 @@
       "enterprise_experience": true,
       "max_acv_mentioned": null,
       "quota_attainment": null,
-      "algo_score": 30,
+      "algo_score": 35,
       "ai_score": 45,
-      "combined_score": 38,
+      "combined_score": 40,
       "tier": "Evaluate",
-      "one_line_summary": "Technically strong Founder lacking direct AE closing experience.",
+      "one_line_summary": "AI Founder lacks direct closing experience for AE role.",
       "pros": [
-        "Strong technical background in AI/ML (relevant to product)",
-        "Demonstrated founder/startup experience and scrappiness",
-        "Experience consulting for Fortune 500 clients (enterprise exposure)"
+        "Strong technical background (AI/ML, Computer Science M.S.) relevant to product",
+        "Founder experience demonstrates drive, ambition, and scrappiness (startup fit)",
+        "Strategy consulting experience with Fortune 500 clients (Enterprise exposure)"
       ],
       "cons": [
-        "No explicit closing experience as an Account Executive (AE)",
-        "No proven track record of selling SaaS to finance/accounting leaders (CFOs/Controllers)",
-        "Primary focus appears to be technical/product development, not sales execution"
+        "No explicit mention of 1+ years of closing experience as an Account Executive (AE)",
+        "No proven track record of selling to finance/accounting stakeholders (CFOs, Controllers)",
+        "Experience is heavily product/technical/strategy focused, not sales/revenue focused"
       ],
-      "reasoning": "This candidate possesses strong technical founder experience, which aligns with the AI product and startup environment. However, the role is for a Founding Account Executive requiring 1+ years of closing experience and a proven track record selling to finance leaders, both of which are missing or unproven in the profile. The candidate is a strong technical fit but a weak sales execution fit for this specific AE role.",
+      "reasoning": "The candidate is a strong technical founder with relevant AI and startup experience, but critically lacks the required 1+ years of closing experience as an Account Executive, especially selling to the specific ICP (CFOs/Controllers). While the entrepreneurial spirit is a plus, the core requirement of 'owning the full sales cycle' is unproven, placing the candidate in the 'Weak' category.",
       "interview_questions": [
-        "While you have founded companies, can you detail specific instances where you owned the full sales cycle (prospecting to closing) for a B2B SaaS product?",
-        "The role requires selling to CFOs and Controllers. How would you leverage your technical background to build credibility and tailor a solution pitch to a finance executive?",
-        "Your experience is heavily technical; how will you transition your focus and time allocation to prioritize revenue generation and sales execution over product development and engineering?"
+        "Can you detail your experience closing deals, specifically the size, cycle length, and your exact role in the revenue generation process for AppFit or during your consulting tenure?",
+        "The role requires selling to CFOs and Controllers; how would you leverage your technical background to build credibility and tailor a solution for a finance leader?",
+        "Given your background as a Founder and technical expert, why are you seeking a Founding Account Executive role, and how will you balance your technical curiosity with the required sales focus?"
       ],
       "missing_required": [],
       "missing_preferred": [
@@ -1859,10 +1876,11 @@
         "Certifications"
       ],
       "red_flags": [
-        "Significant gap in professional employment (Sep 2023 - Mar 2025), though likely covered by M.S. studies.",
-        "Lack of dedicated sales or Account Executive experience.",
-        "High technical and founder focus may conflict with pure sales roles.",
-        "Rapid transition between recent founder roles (Mar 2025 to Present)."
+        "Short tenure in professional roles (Celerity Consulting: 1 year, 5 months)",
+        "Significant employment gap between consulting and recent founder roles (2023-10 to 2025-02)",
+        "Rapid succession of founder roles in 2025 (two different stealth startups within 3 months)",
+        "Lack of direct sales or quota-carrying experience",
+        "Career focus is currently on AI/ML research and founding, not traditional sales"
       ],
       "red_flag_count": 3,
       "completeness": 73,
@@ -1870,21 +1888,18 @@
       "room_name": null,
       "interview_score": null,
       "recommendation": null,
-      "created_at": "2025-12-22 22:27:51.063894",
-      "updated_at": "2025-12-22 22:28:11.628936",
+      "created_at": "2025-12-23 16:24:16.833615",
+      "updated_at": "2025-12-23 16:24:31.210988",
       "source": "csv_upload",
       "has_enrichment_data": true,
-      "years_ae_closing_experience": 0,
-      "sold_to_finance_stakeholders": false,
-      "saas_fintech_recruiting_tech_experience": [
-        "SaaS"
-      ],
-      "startup_early_stage_experience": true,
-      "average_deal_size_mid_enterprise": "Consulting deals with Fortune 500 clients (Energy/Utilities sector). Specific deal size is unknown, but target market was Enterprise.",
-      "quota_attainment_history": "N/A (Non-sales role)",
-      "finance_accounting_background": false,
-      "sold_to_healthcare": false
+      "years_closing_experience_saas": null,
+      "sold_to_finance_persona": false,
+      "startup_experience_early_stage": true,
+      "average_deal_size_mid_market_enterprise": "unknown/not applicable (consulting/founder background)",
+      "quota_attainment_history": [],
+      "fintech_or_accounting_background": false,
+      "full_cycle_ownership": false
     }
   ],
-  "last_updated": "2025-12-22T22:28:16.340927"
+  "last_updated": "2025-12-23T16:28:09.815304"
 }

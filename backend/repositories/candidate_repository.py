@@ -46,6 +46,23 @@ class CandidateRepository:
         except Exception as e:
             logger.error(f"Error getting candidate by name {name}: {e}")
             return None
+
+    def get_by_json_id(self, json_id: str) -> Optional[dict]:
+        """Get a candidate by their JSON ID (from Pluto system)."""
+        try:
+            result = self._get_db().table(self.table_name)\
+                .select("*")\
+                .eq("json_id", json_id)\
+                .single()\
+                .execute()
+            return result.data if result.data else None
+        except Exception as e:
+            logger.error(f"Error getting candidate by json_id {json_id}: {e}")
+            return None
+
+    def set_json_id(self, candidate_id: str, json_id: str) -> Optional[dict]:
+        """Set the JSON ID for a candidate (for linking Pluto data to DB)."""
+        return self.update(candidate_id, {"json_id": json_id})
     
     def get_all(
         self, 

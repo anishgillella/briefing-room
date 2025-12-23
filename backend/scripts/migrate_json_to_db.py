@@ -79,6 +79,7 @@ def migrate_candidates(job_posting_id: str) -> dict:
         # Map fields to database schema
         db_candidate = {
             "id": new_id,
+            "json_id": old_id,  # Store the original JSON ID for bridging
             "job_posting_id": job_posting_id,
             "name": candidate.get("name", "Unknown"),
             "email": candidate.get("email"),

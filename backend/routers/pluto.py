@@ -873,32 +873,64 @@ async def save_interview_analytics(candidate_id: str, request: SaveAnalyticsRequ
         update_candidate(candidate_id, update_data)
         
         # Create or get interview record for analytics linking
+        # First, we need to get the database UUID for this candidate (JSON ID -> DB UUID)
         interview_id = None
-        
+        db_candidate_id = None
+
         try:
             from repositories.interview_repository import InterviewRepository
+            from repositories.candidate_repository import CandidateRepository
+
             interview_repo = InterviewRepository()
-            
-            # Check if interview already exists for this candidate
-            existing_interviews = interview_repo.get_candidate_interviews(candidate_id)
-            active_interview = next(
-                (i for i in existing_interviews if i.get("status") == "active"),
-                None
-            )
-            
-            if active_interview:
-                # Complete existing interview and use its ID
-                interview_repo.complete_interview(active_interview["id"])
-                interview_id = active_interview["id"]
+            candidate_repo = CandidateRepository()
+
+            # First, try to look up the DB candidate by json_id (reliable)
+            db_candidate = candidate_repo.get_by_json_id(candidate_id)
+            if db_candidate:
+                db_candidate_id = db_candidate.get("id")
+                logger.info(f"Resolved candidate JSON ID '{candidate_id}' to DB UUID: {db_candidate_id}")
             else:
-                # Create a new interview record
-                new_interview = interview_repo.create({
-                    "candidate_id": candidate_id,
-                    "stage": "round_1",
-                    "status": "completed",
-                })
-                if new_interview:
-                    interview_id = new_interview["id"]
+                # Fallback: Look up the DB candidate by name (less reliable)
+                candidate_name = candidate.name if hasattr(candidate, 'name') else candidate.get('name', '')
+                if candidate_name:
+                    db_candidate = candidate_repo.get_by_name(candidate_name)
+                    if db_candidate:
+                        db_candidate_id = db_candidate.get("id")
+                        logger.info(f"Resolved candidate '{candidate_name}' to DB UUID: {db_candidate_id} (via name fallback)")
+                        # Update the json_id for future lookups
+                        try:
+                            candidate_repo.set_json_id(db_candidate_id, candidate_id)
+                            logger.info(f"Updated json_id '{candidate_id}' for candidate {db_candidate_id}")
+                        except Exception as e:
+                            logger.warning(f"Failed to update json_id: {e}")
+
+            # If we have a DB candidate ID, work with interviews
+            if db_candidate_id:
+                # Check if interview already exists for this candidate
+                existing_interviews = interview_repo.get_candidate_interviews(db_candidate_id)
+                active_interview = next(
+                    (i for i in existing_interviews if i.get("status") in ["active", "in_progress"]),
+                    None
+                )
+
+                if active_interview:
+                    # Complete existing interview and use its ID
+                    interview_repo.complete_interview(active_interview["id"])
+                    interview_id = active_interview["id"]
+                    logger.info(f"Completed existing interview: {interview_id}")
+                else:
+                    # Create a new interview record
+                    new_interview = interview_repo.create({
+                        "candidate_id": db_candidate_id,
+                        "stage": "round_1",
+                        "status": "completed",
+                    })
+                    if new_interview:
+                        interview_id = new_interview["id"]
+                        logger.info(f"Created new interview: {interview_id}")
+            else:
+                candidate_name = candidate.name if hasattr(candidate, 'name') else candidate.get('name', 'Unknown')
+                logger.warning(f"Could not find DB candidate for JSON ID '{candidate_id}' (name: '{candidate_name}') - analytics will only be saved locally")
         except Exception as e:
             logger.warning(f"Failed to create/update interview record: {e}")
         
@@ -909,20 +941,35 @@ async def save_interview_analytics(candidate_id: str, request: SaveAnalyticsRequ
             interview_id = f"{fallback_id[:8]}-{fallback_id[8:12]}-{fallback_id[12:16]}-{fallback_id[16:20]}-{fallback_id[20:32]}"
             logger.info(f"Using fallback interview_id: {interview_id}")
         
+        # Save analytics to database for persistence
+        if analytics_data and "error" not in analytics_data and interview_id:
+            try:
+                from repositories.analytics_repository import AnalyticsRepository
+                analytics_repo = AnalyticsRepository()
+
+                # Save the full analytics data to the database
+                saved = analytics_repo.save_analytics(interview_id, analytics_data)
+                if saved:
+                    logger.info(f"Analytics persisted to database for interview {interview_id[:8]}...")
+                else:
+                    logger.warning(f"Failed to persist analytics to database for interview {interview_id[:8]}")
+            except Exception as e:
+                logger.warning(f"Failed to save analytics to database: {e}")
+
         # Generate interviewer analytics if we have analytics data
         interviewer_analytics = None
         if analytics_data and "error" not in analytics_data:
             try:
                 from services.interviewer_analyzer import get_interviewer_analyzer
                 from repositories.interviewer_analytics_repository import get_interviewer_analytics_repository
-                
+
                 analyzer = get_interviewer_analyzer()
                 questions_list = []
-                
+
                 # Extract questions from analytics
                 if "question_analytics" in analytics_data:
                     questions_list = [qa.get("question", "") for qa in analytics_data.get("question_analytics", [])]
-                
+
                 if questions_list or request.transcript:
                     logger.info(f"Generating interviewer analytics for interview {interview_id[:8]}...")
                     interviewer_result = await analyzer.analyze_interview(
@@ -931,9 +978,28 @@ async def save_interview_analytics(candidate_id: str, request: SaveAnalyticsRequ
                     )
                     interviewer_analytics = interviewer_result.model_dump()
                     logger.info(f"Interviewer analytics generated. Score: {interviewer_result.overall_score}")
+
+                    # Save interviewer analytics to database (only if we have a valid DB interview_id)
+                    # The save_analytics method requires interview_id, interviewer_id, and the analytics result
+                    # Check if interview_id looks like a valid UUID (not a fallback hash)
+                    is_valid_uuid = interview_id and len(interview_id) == 36 and interview_id.count('-') == 4
+                    if is_valid_uuid:
+                        try:
+                            interviewer_analytics_repo = get_interviewer_analytics_repository()
+                            # Use a placeholder interviewer_id if not specified
+                            # In a real scenario, this would come from the request
+                            placeholder_interviewer_id = "00000000-0000-0000-0000-000000000000"
+                            interviewer_analytics_repo.save_analytics(
+                                interview_id=interview_id,
+                                interviewer_id=placeholder_interviewer_id,
+                                analytics=interviewer_result
+                            )
+                            logger.info(f"Interviewer analytics persisted for interview {interview_id[:8]}")
+                        except Exception as e:
+                            logger.warning(f"Failed to persist interviewer analytics: {e}")
             except Exception as e:
                 logger.warning(f"Failed to generate interviewer analytics: {e}")
-        
+
         return {"status": "saved", "analytics": analytics_data, "interview_id": interview_id, "interviewer_analytics": interviewer_analytics}
 
     except Exception as e:

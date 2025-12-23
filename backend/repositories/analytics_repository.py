@@ -65,34 +65,62 @@ class AnalyticsRepository:
             return None
 
     def save_analytics(self, interview_id: str, analytics_data: dict) -> Optional[dict]:
-        """Save or update analytics for an interview (upsert)."""
+        """Save or update analytics for an interview (upsert).
+
+        Supports both old format (nested with 'overall' key) and new format (flat DeepAnalytics).
+        """
         try:
             # Check if analytics already exist for this interview
             existing = self.get_analytics_by_interview(interview_id)
 
-            # Extract overall data
-            overall = analytics_data.get("overall", {})
+            # Detect format: new DeepAnalytics format has 'overall_score' at top level
+            is_new_format = "overall_score" in analytics_data and "overall" not in analytics_data
 
-            # Build data to save - match schema columns + store full data
-            data = {
-                "interview_id": interview_id,
-                "overall_score": overall.get("overall_score"),
-                "recommendation": overall.get("recommendation"),
-                "synthesis": overall.get("recommendation_reasoning", ""),
-                "question_analytics": analytics_data.get("qa_pairs", []),
-                "skill_evidence": analytics_data.get("highlights", {}).get("areas_to_probe", []),
-                "behavioral_profile": {
-                    "communication_score": overall.get("communication_score"),
-                    "technical_score": overall.get("technical_score"),
-                    "cultural_fit_score": overall.get("cultural_fit_score"),
-                    "confidence": overall.get("confidence"),
-                    "red_flags": overall.get("red_flags", []),
-                    "highlights": overall.get("highlights", []),
-                },
-                "communication_metrics": analytics_data.get("highlights", {}),
-                # Store complete analytics_data for flexible retrieval
-                "topics_to_probe": analytics_data  # Store full data here as backup
-            }
+            if is_new_format:
+                # New DeepAnalytics format - store complete data
+                data = {
+                    "interview_id": interview_id,
+                    "overall_score": analytics_data.get("overall_score"),
+                    "recommendation": analytics_data.get("recommendation"),
+                    "synthesis": analytics_data.get("overall_synthesis", ""),
+                    "question_analytics": analytics_data.get("question_analytics", []),
+                    "skill_evidence": analytics_data.get("skill_evidence", []),
+                    "behavioral_profile": analytics_data.get("behavioral_profile", {}),
+                    "communication_metrics": analytics_data.get("communication_metrics", {}),
+                    # Store full analytics in topics_to_probe for complete retrieval
+                    # This includes: red_flags, highlights, role_competencies, cultural_fit, enthusiasm
+                    "topics_to_probe": {
+                        "topics": analytics_data.get("topics_to_probe", []),
+                        "red_flags": analytics_data.get("red_flags", []),
+                        "highlights": analytics_data.get("highlights", []),
+                        "role_competencies": analytics_data.get("role_competencies", []),
+                        "cultural_fit": analytics_data.get("cultural_fit", {}),
+                        "enthusiasm": analytics_data.get("enthusiasm", {}),
+                        # Store full data as backup
+                        "_full_analytics": analytics_data
+                    }
+                }
+            else:
+                # Legacy format with 'overall' nested key
+                overall = analytics_data.get("overall", {})
+                data = {
+                    "interview_id": interview_id,
+                    "overall_score": overall.get("overall_score"),
+                    "recommendation": overall.get("recommendation"),
+                    "synthesis": overall.get("recommendation_reasoning", ""),
+                    "question_analytics": analytics_data.get("qa_pairs", []),
+                    "skill_evidence": analytics_data.get("highlights", {}).get("areas_to_probe", []),
+                    "behavioral_profile": {
+                        "communication_score": overall.get("communication_score"),
+                        "technical_score": overall.get("technical_score"),
+                        "cultural_fit_score": overall.get("cultural_fit_score"),
+                        "confidence": overall.get("confidence"),
+                        "red_flags": overall.get("red_flags", []),
+                        "highlights": overall.get("highlights", []),
+                    },
+                    "communication_metrics": analytics_data.get("highlights", {}),
+                    "topics_to_probe": analytics_data  # Store full data as backup
+                }
 
             if existing:
                 # Update existing analytics
@@ -107,9 +135,45 @@ class AnalyticsRepository:
                     .insert(data)\
                     .execute()
 
+            logger.info(f"Analytics saved for interview {interview_id}")
             return result.data[0] if result.data else None
         except Exception as e:
             logger.error(f"Error saving analytics: {e}")
+            return None
+
+    def get_full_analytics(self, interview_id: str) -> Optional[dict]:
+        """Get full analytics including all new fields (red_flags, highlights, etc.)."""
+        try:
+            analytics = self.get_analytics_by_interview(interview_id)
+            if not analytics:
+                return None
+
+            # Reconstruct full analytics from stored data
+            topics_data = analytics.get("topics_to_probe", {})
+
+            # Check if we have full analytics stored
+            if isinstance(topics_data, dict) and "_full_analytics" in topics_data:
+                return topics_data["_full_analytics"]
+
+            # Otherwise reconstruct from individual fields
+            result = {
+                "overall_score": analytics.get("overall_score"),
+                "recommendation": analytics.get("recommendation"),
+                "overall_synthesis": analytics.get("synthesis"),
+                "question_analytics": analytics.get("question_analytics", []),
+                "skill_evidence": analytics.get("skill_evidence", []),
+                "behavioral_profile": analytics.get("behavioral_profile", {}),
+                "communication_metrics": analytics.get("communication_metrics", {}),
+                "topics_to_probe": topics_data.get("topics", []) if isinstance(topics_data, dict) else topics_data,
+                "red_flags": topics_data.get("red_flags", []) if isinstance(topics_data, dict) else [],
+                "highlights": topics_data.get("highlights", []) if isinstance(topics_data, dict) else [],
+                "role_competencies": topics_data.get("role_competencies", []) if isinstance(topics_data, dict) else [],
+                "cultural_fit": topics_data.get("cultural_fit", {}) if isinstance(topics_data, dict) else {},
+                "enthusiasm": topics_data.get("enthusiasm", {}) if isinstance(topics_data, dict) else {},
+            }
+            return result
+        except Exception as e:
+            logger.error(f"Error getting full analytics: {e}")
             return None
     
     # --- Transcripts ---

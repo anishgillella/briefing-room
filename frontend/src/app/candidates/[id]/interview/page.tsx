@@ -30,6 +30,14 @@ import {
     Lightbulb,
     ChevronRight,
     Sparkles,
+    Flag,
+    Star,
+    Target,
+    Heart,
+    Zap,
+    Users,
+    ThumbsUp,
+    HelpCircle,
 } from "lucide-react";
 import CandidateProfile from "@/components/CandidateProfile";
 import InterviewerSelector from "@/components/InterviewerSelector";
@@ -76,7 +84,7 @@ interface CoachSuggestion {
 interface SkillEvidence {
     skill: string;
     quote: string;
-    confidence: string;
+    confidence: "High" | "Medium" | "Low" | string;
 }
 
 interface BehavioralProfile {
@@ -89,8 +97,42 @@ interface BehavioralProfile {
 
 interface CommunicationMetrics {
     speaking_pace_wpm: number;
-    filler_word_frequency: string;
+    filler_word_frequency: "Low" | "Medium" | "High" | string;
     listen_to_talk_ratio: number;
+}
+
+interface RedFlag {
+    concern: string;
+    severity: "High" | "Medium" | "Low";
+    evidence: string;
+}
+
+interface Highlight {
+    moment: string;
+    quote: string;
+    why_notable: string;
+}
+
+interface RoleCompetency {
+    competency: string;
+    score: number;
+    evidence_quote: string;
+    assessment: string;
+}
+
+interface CulturalFitIndicators {
+    values_alignment: number;
+    work_style: string;
+    motivation_drivers: string[];
+    team_fit_notes: string;
+}
+
+interface EnthusiasmIndicators {
+    overall_enthusiasm: number;
+    role_interest: number;
+    company_interest: number;
+    questions_asked: string[];
+    engagement_notes: string;
 }
 
 interface Analytics {
@@ -114,6 +156,13 @@ interface Analytics {
     behavioral_profile?: BehavioralProfile;
     communication_metrics?: CommunicationMetrics;
     topics_to_probe?: string[];
+
+    // New Job-Agnostic Metrics
+    red_flags?: RedFlag[];
+    highlights?: Highlight[];
+    role_competencies?: RoleCompetency[];
+    cultural_fit?: CulturalFitIndicators;
+    enthusiasm?: EnthusiasmIndicators;
 
     // Legacy / Backward Compat
     summary?: string;
@@ -1200,6 +1249,193 @@ export default function InterviewPage() {
                                                 </h3>
                                                 <div className="flex justify-center">
                                                     <RadarChart data={analytics.behavioral_profile} />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Red Flags & Highlights */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {/* Red Flags */}
+                                        {analytics.red_flags && analytics.red_flags.length > 0 && (
+                                            <div className="glass-panel rounded-3xl p-6">
+                                                <h3 className="text-gray-400 text-sm font-medium tracking-wider uppercase mb-4 flex items-center gap-2">
+                                                    <Flag className="w-4 h-4 text-red-400" /> Concerns & Red Flags
+                                                </h3>
+                                                <div className="space-y-3">
+                                                    {analytics.red_flags.map((flag, i) => (
+                                                        <div key={i} className={`p-3 rounded-xl border ${
+                                                            flag.severity === 'High' ? 'bg-red-500/10 border-red-500/20' :
+                                                            flag.severity === 'Medium' ? 'bg-yellow-500/10 border-yellow-500/20' :
+                                                            'bg-orange-500/10 border-orange-500/20'
+                                                        }`}>
+                                                            <div className="flex items-center justify-between mb-2">
+                                                                <span className={`text-sm font-medium ${
+                                                                    flag.severity === 'High' ? 'text-red-300' :
+                                                                    flag.severity === 'Medium' ? 'text-yellow-300' :
+                                                                    'text-orange-300'
+                                                                }`}>{flag.concern}</span>
+                                                                <span className={`text-xs px-2 py-0.5 rounded ${
+                                                                    flag.severity === 'High' ? 'bg-red-500/20 text-red-300' :
+                                                                    flag.severity === 'Medium' ? 'bg-yellow-500/20 text-yellow-300' :
+                                                                    'bg-orange-500/20 text-orange-300'
+                                                                }`}>{flag.severity}</span>
+                                                            </div>
+                                                            <p className="text-xs text-gray-400 italic">&ldquo;{flag.evidence}&rdquo;</p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Highlights */}
+                                        {analytics.highlights && analytics.highlights.length > 0 && (
+                                            <div className="glass-panel rounded-3xl p-6">
+                                                <h3 className="text-gray-400 text-sm font-medium tracking-wider uppercase mb-4 flex items-center gap-2">
+                                                    <Star className="w-4 h-4 text-yellow-400" /> Standout Moments
+                                                </h3>
+                                                <div className="space-y-3">
+                                                    {analytics.highlights.map((highlight, i) => (
+                                                        <div key={i} className="p-3 rounded-xl bg-yellow-500/5 border border-yellow-500/10">
+                                                            <div className="flex items-start gap-2 mb-2">
+                                                                <Sparkles className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" />
+                                                                <span className="text-sm font-medium text-yellow-300">{highlight.moment}</span>
+                                                            </div>
+                                                            <p className="text-xs text-gray-300 italic mb-2">&ldquo;{highlight.quote}&rdquo;</p>
+                                                            <p className="text-xs text-gray-500">{highlight.why_notable}</p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Role Competencies */}
+                                    {analytics.role_competencies && analytics.role_competencies.length > 0 && (
+                                        <div className="glass-panel rounded-3xl p-6">
+                                            <h3 className="text-gray-400 text-sm font-medium tracking-wider uppercase mb-4 flex items-center gap-2">
+                                                <Target className="w-4 h-4 text-cyan-400" /> Role-Specific Competencies
+                                            </h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                {analytics.role_competencies.map((comp, i) => (
+                                                    <div key={i} className="p-4 rounded-xl bg-cyan-500/5 border border-cyan-500/10">
+                                                        <div className="flex items-center justify-between mb-3">
+                                                            <span className="text-sm font-medium text-cyan-300">{comp.competency}</span>
+                                                            <div className={`text-2xl font-light ${
+                                                                comp.score >= 8 ? 'text-green-400' :
+                                                                comp.score >= 6 ? 'text-yellow-400' :
+                                                                'text-red-400'
+                                                            }`}>
+                                                                {comp.score}<span className="text-xs text-gray-500">/10</span>
+                                                            </div>
+                                                        </div>
+                                                        <p className="text-xs text-gray-400 italic mb-2">&ldquo;{comp.evidence_quote}&rdquo;</p>
+                                                        <p className="text-xs text-gray-500">{comp.assessment}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Cultural Fit & Enthusiasm */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {/* Cultural Fit */}
+                                        {analytics.cultural_fit && (
+                                            <div className="glass-panel rounded-3xl p-6">
+                                                <h3 className="text-gray-400 text-sm font-medium tracking-wider uppercase mb-4 flex items-center gap-2">
+                                                    <Users className="w-4 h-4 text-pink-400" /> Cultural Fit
+                                                </h3>
+                                                <div className="space-y-4">
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-sm text-gray-400">Values Alignment</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-24 h-2 bg-gray-800 rounded-full overflow-hidden">
+                                                                <div
+                                                                    className={`h-full rounded-full ${
+                                                                        analytics.cultural_fit.values_alignment >= 8 ? 'bg-green-500' :
+                                                                        analytics.cultural_fit.values_alignment >= 6 ? 'bg-yellow-500' :
+                                                                        'bg-red-500'
+                                                                    }`}
+                                                                    style={{ width: `${analytics.cultural_fit.values_alignment * 10}%` }}
+                                                                />
+                                                            </div>
+                                                            <span className="text-white font-medium text-sm">{analytics.cultural_fit.values_alignment}/10</span>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-xs text-gray-500 uppercase tracking-wider">Work Style</span>
+                                                        <p className="text-sm text-gray-300 mt-1">{analytics.cultural_fit.work_style}</p>
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-xs text-gray-500 uppercase tracking-wider">What Motivates Them</span>
+                                                        <div className="flex flex-wrap gap-2 mt-2">
+                                                            {analytics.cultural_fit.motivation_drivers.map((driver, i) => (
+                                                                <span key={i} className="px-2 py-1 text-xs rounded-full bg-pink-500/10 text-pink-300 border border-pink-500/20">
+                                                                    {driver}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-xs text-gray-500 uppercase tracking-wider">Team Fit Notes</span>
+                                                        <p className="text-xs text-gray-400 mt-1">{analytics.cultural_fit.team_fit_notes}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Enthusiasm */}
+                                        {analytics.enthusiasm && (
+                                            <div className="glass-panel rounded-3xl p-6">
+                                                <h3 className="text-gray-400 text-sm font-medium tracking-wider uppercase mb-4 flex items-center gap-2">
+                                                    <Zap className="w-4 h-4 text-amber-400" /> Enthusiasm & Engagement
+                                                </h3>
+                                                <div className="space-y-4">
+                                                    <div className="grid grid-cols-3 gap-3">
+                                                        <div className="text-center p-3 rounded-xl bg-amber-500/5 border border-amber-500/10">
+                                                            <div className={`text-2xl font-light ${
+                                                                analytics.enthusiasm.overall_enthusiasm >= 8 ? 'text-green-400' :
+                                                                analytics.enthusiasm.overall_enthusiasm >= 6 ? 'text-yellow-400' :
+                                                                'text-red-400'
+                                                            }`}>{analytics.enthusiasm.overall_enthusiasm}</div>
+                                                            <div className="text-[10px] text-gray-500 uppercase mt-1">Overall</div>
+                                                        </div>
+                                                        <div className="text-center p-3 rounded-xl bg-amber-500/5 border border-amber-500/10">
+                                                            <div className={`text-2xl font-light ${
+                                                                analytics.enthusiasm.role_interest >= 8 ? 'text-green-400' :
+                                                                analytics.enthusiasm.role_interest >= 6 ? 'text-yellow-400' :
+                                                                'text-red-400'
+                                                            }`}>{analytics.enthusiasm.role_interest}</div>
+                                                            <div className="text-[10px] text-gray-500 uppercase mt-1">Role Interest</div>
+                                                        </div>
+                                                        <div className="text-center p-3 rounded-xl bg-amber-500/5 border border-amber-500/10">
+                                                            <div className={`text-2xl font-light ${
+                                                                analytics.enthusiasm.company_interest >= 8 ? 'text-green-400' :
+                                                                analytics.enthusiasm.company_interest >= 6 ? 'text-yellow-400' :
+                                                                'text-red-400'
+                                                            }`}>{analytics.enthusiasm.company_interest}</div>
+                                                            <div className="text-[10px] text-gray-500 uppercase mt-1">Company</div>
+                                                        </div>
+                                                    </div>
+                                                    {analytics.enthusiasm.questions_asked && analytics.enthusiasm.questions_asked.length > 0 && (
+                                                        <div>
+                                                            <span className="text-xs text-gray-500 uppercase tracking-wider flex items-center gap-1">
+                                                                <HelpCircle className="w-3 h-3" /> Questions They Asked
+                                                            </span>
+                                                            <ul className="mt-2 space-y-1">
+                                                                {analytics.enthusiasm.questions_asked.map((q, i) => (
+                                                                    <li key={i} className="text-xs text-gray-400 flex items-start gap-2">
+                                                                        <span className="text-amber-400 mt-0.5">•</span>
+                                                                        {q}
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                        </div>
+                                                    )}
+                                                    <div>
+                                                        <span className="text-xs text-gray-500 uppercase tracking-wider">Engagement Notes</span>
+                                                        <p className="text-xs text-gray-400 mt-1">{analytics.enthusiasm.engagement_notes}</p>
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}
