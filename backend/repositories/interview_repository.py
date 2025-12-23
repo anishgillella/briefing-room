@@ -129,31 +129,69 @@ class InterviewRepository:
                 .execute()
             return result.data[0] if result.data else None
         except Exception as e:
+            error_str = str(e)
+            # Handle unique constraint violation - return existing interview
+            if "interviews_candidate_job_stage_key" in error_str or "duplicate key" in error_str.lower():
+                candidate_id = data.get("candidate_id")
+                stage = data.get("stage")
+                job_posting_id = data.get("job_posting_id")
+                if candidate_id and stage:
+                    logger.info(f"Interview already exists for candidate {candidate_id}, stage {stage}, returning existing")
+                    return self.get_existing_interview(candidate_id, stage, job_posting_id)
             logger.error(f"Error creating interview: {e}")
             return None
-    
+
+    def get_existing_interview(
+        self,
+        candidate_id: str,
+        stage: str,
+        job_posting_id: Optional[str] = None
+    ) -> Optional[dict]:
+        """Get an existing interview for a candidate+stage+job combo."""
+        try:
+            query = self._get_db().table(self.table_name)\
+                .select("*")\
+                .eq("candidate_id", candidate_id)\
+                .eq("stage", stage)
+
+            if job_posting_id:
+                query = query.eq("job_posting_id", job_posting_id)
+
+            result = query.execute()
+            return result.data[0] if result.data else None
+        except Exception as e:
+            logger.error(f"Error getting existing interview: {e}")
+            return None
+
     def start_next_interview(
-        self, 
-        candidate_id: str, 
+        self,
+        candidate_id: str,
         job_posting_id: Optional[str] = None,
         interviewer_name: Optional[str] = None
     ) -> Optional[dict]:
-        """Auto-create interview for the next stage of a job application."""
+        """Auto-create or resume interview for the next stage of a job application."""
         next_stage = self.get_next_stage(candidate_id, job_posting_id)
         if not next_stage:
             logger.info(f"All stages complete for candidate {candidate_id}")
             return None
-        
+
+        # Check if an interview already exists for this stage (scheduled/active)
+        existing = self.get_existing_interview(candidate_id, next_stage, job_posting_id)
+        if existing:
+            logger.info(f"Resuming existing {next_stage} interview for candidate {candidate_id}")
+            return existing
+
+        # Create new interview
         data = {
             "candidate_id": candidate_id,
             "stage": next_stage,
             "status": "scheduled",
             "interviewer_name": interviewer_name
         }
-        
+
         if job_posting_id:
             data["job_posting_id"] = job_posting_id
-        
+
         return self.create(data)
     
     def update(self, interview_id: str, data: dict) -> Optional[dict]:

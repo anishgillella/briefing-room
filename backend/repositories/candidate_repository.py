@@ -93,18 +93,75 @@ class CandidateRepository:
             return []
     
     def create(self, data: dict) -> Optional[dict]:
-        """Create a new candidate."""
+        """Create a new candidate. Falls back to upsert if name already exists."""
         try:
             # Remove None values and empty lists for cleaner insert
             clean_data = {k: v for k, v in data.items() if v is not None}
-            
+
             result = self._get_db().table(self.table_name)\
                 .insert(clean_data)\
                 .execute()
             return result.data[0] if result.data else None
         except Exception as e:
+            error_str = str(e)
+            # Handle unique constraint violation - fall back to upsert
+            if "candidates_name_unique" in error_str or "duplicate key" in error_str.lower():
+                name = data.get('name')
+                if name:
+                    logger.info(f"Candidate '{name}' already exists, updating instead")
+                    existing = self.get_by_name(name)
+                    if existing:
+                        update_data = {k: v for k, v in data.items() if v is not None and k != 'name'}
+                        if update_data:
+                            return self.update(existing['id'], update_data)
+                        return existing
             logger.error(f"Error creating candidate: {e}")
             return None
+
+    def get_or_create_by_name(self, name: str, data: dict) -> Optional[dict]:
+        """
+        Get existing candidate by name, or create if not exists.
+        This prevents duplicate candidates from being created.
+        """
+        # First, try to find existing candidate
+        existing = self.get_by_name(name)
+        if existing:
+            logger.info(f"Found existing candidate '{name}' with ID {existing['id']}")
+            # Optionally update with new data (merge)
+            if data:
+                update_data = {k: v for k, v in data.items() if v is not None and k != 'name'}
+                if update_data:
+                    self.update(existing['id'], update_data)
+            return existing
+
+        # Create new candidate
+        data['name'] = name
+        return self.create(data)
+
+    def upsert_by_json_id(self, json_id: str, data: dict) -> Optional[dict]:
+        """
+        Upsert candidate by json_id - update if exists, create if not.
+        This prevents duplicate candidates when syncing from Pluto/JSON system.
+        """
+        existing = self.get_by_json_id(json_id)
+        if existing:
+            logger.info(f"Updating existing candidate with json_id={json_id}")
+            clean_data = {k: v for k, v in data.items() if v is not None}
+            return self.update(existing['id'], clean_data)
+
+        # Try by name as fallback
+        name = data.get('name')
+        if name:
+            existing = self.get_by_name(name)
+            if existing:
+                logger.info(f"Found candidate by name '{name}', setting json_id={json_id}")
+                data['json_id'] = json_id
+                clean_data = {k: v for k, v in data.items() if v is not None}
+                return self.update(existing['id'], clean_data)
+
+        # Create new
+        data['json_id'] = json_id
+        return self.create(data)
     
     def update(self, candidate_id: str, data: dict) -> Optional[dict]:
         """Update a candidate."""
@@ -157,19 +214,29 @@ class CandidateRepository:
         return self.update(candidate_id, data)
     
     def bulk_create(self, candidates: List[dict]) -> List[dict]:
-        """Bulk create candidates."""
+        """Bulk create candidates. Falls back to individual creates on constraint violations."""
         try:
             # Clean data
             clean_candidates = []
             for c in candidates:
                 clean_data = {k: v for k, v in c.items() if v is not None}
                 clean_candidates.append(clean_data)
-            
+
             result = self._get_db().table(self.table_name)\
                 .insert(clean_candidates)\
                 .execute()
             return result.data or []
         except Exception as e:
+            error_str = str(e)
+            # On duplicate key error, fall back to individual creates (which handle upserts)
+            if "candidates_name_unique" in error_str or "duplicate key" in error_str.lower():
+                logger.info("Bulk insert failed due to duplicates, falling back to individual upserts")
+                results = []
+                for c in candidates:
+                    result = self.create(c)
+                    if result:
+                        results.append(result)
+                return results
             logger.error(f"Error bulk creating candidates: {e}")
             return []
     
