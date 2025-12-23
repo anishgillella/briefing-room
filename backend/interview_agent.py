@@ -365,17 +365,21 @@ Say: "Hi, thank you for having me! I'm {candidate_name.split()[0]}, excited to b
     from typing import Literal, Optional
 
     class CopilotInsight(BaseModel):
-        verdict: Literal["ADEQUATE", "INADEQUATE"] = Field(description="Is the answer satisfactory?")
+        verdict: Literal["STRONG", "ADEQUATE", "WEAK", "NEEDS_PROBING"] = Field(description="Is the answer satisfactory?")
+        question_type: Optional[str] = Field(default="general", description="Type of question being asked")
         issue_type: Literal[
             "none",
             "resume_contradiction",
             "prior_interview_contradiction",
             "missing_star",
             "rambling",
-            "vague"
+            "vague",
+            "off_topic"
         ] = Field(description="The specific type of issue found, if any.")
         reasoning: str = Field(description="Brief explanation of the verdict and any issues.")
         suggestion: str = Field(description="The probing question or next topic question.")
+        probe_recommendation: Literal["stay_on_topic", "probe_deeper", "change_topic"] = Field(default="stay_on_topic")
+        topic_to_explore: Optional[str] = Field(default=None)
         prior_round: Optional[str] = Field(default=None, description="Prior interview stage if contradiction found")
         prior_quote: Optional[str] = Field(default=None, description="Verbatim prior quote if contradiction found")
         current_quote: Optional[str] = Field(default=None, description="Verbatim current quote if contradiction found")
@@ -436,6 +440,20 @@ Say: "Hi, thank you for having me! I'm {candidate_name.split()[0]}, excited to b
         tools=[record_transcript, send_ai_suggestion],
     )
 
+    def clean_json_text(text: str) -> str:
+        """Clean markdown formatting from JSON string."""
+        text = text.strip()
+        # Remove markdown code blocks
+        if text.startswith("```"):
+            lines = text.split("\n")
+            # Remove first line (```json or ```)
+            lines = lines[1:]
+            # Remove last line if it is ```
+            if lines and lines[-1].strip() == "```":
+                lines = lines[:-1]
+            text = "\n".join(lines)
+        return text.strip()
+
     async def analyze_interaction(history):
         """Analyze the conversation history and generate suggestions."""
         global consistency_flags_sent
@@ -484,44 +502,65 @@ OUTPUT JSON SCHEMA:
     "prior_quote": "If contradiction, verbatim prior quote else null",
     "current_quote": "If contradiction, verbatim current quote else null"
 }}
-"""
-        try:
-            response = await copilot_client.chat.completions.create(
-                model=GEMINI_ANALYTICS_MODEL,
-                messages=[
-                    {"role": "system", "content": "You are a helpful interview copilot. Output valid JSON matching the schema."},
-                    {"role": "user", "content": prompt}
-                ],
-                max_tokens=250,
-                response_format={"type": "json_object"}
-            )
-            
-            # Parse JSON
-            json_str = response.choices[0].message.content.strip()
-            insight = json.loads(json_str)
 
-            issue_type = insight.get("issue_type", "none")
-            if issue_type == "prior_interview_contradiction":
-                if consistency_flags_sent >= 2:
-                    return
-                consistency_flags_sent += 1
-            
-            # Send structured data with full details
-            await send_ai_suggestion(
-                suggestion=insight.get("suggestion", "Continue with follow-up question."), 
-                category=insight.get("verdict", "ADEQUATE"),
-                issue_type=issue_type,
-                reasoning=insight.get("reasoning", ""),
-                question_type=insight.get("question_type", "general"),
-                probe_recommendation=insight.get("probe_recommendation", "stay_on_topic"),
-                topic_to_explore=insight.get("topic_to_explore"),
-                prior_round=insight.get("prior_round"),
-                prior_quote=insight.get("prior_quote"),
-                current_quote=insight.get("current_quote")
-            )
+IMPORTANT: Return ONLY valid JSON. Do not wrap in markdown code blocks.
+"""
+        # Retry logic
+        max_retries = 2
+        for attempt in range(max_retries):
+            try:
+                response = await copilot_client.chat.completions.create(
+                    model=GEMINI_ANALYTICS_MODEL,
+                    messages=[
+                        {"role": "system", "content": "You are a helpful interview copilot. Output raw JSON only. No markdown formatting."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    max_tokens=350,
+                    response_format={"type": "json_object"}
+                )
                 
-        except Exception as e:
-            logger.error(f"Failed to generate copilot suggestion: {e}")
+                # Parse JSON with robust cleaning and Pydantic validation
+                raw_content = response.choices[0].message.content
+                json_str = clean_json_text(raw_content)
+                
+                # Use Pydantic to validate
+                insight = CopilotInsight.model_validate_json(json_str)
+
+                # Access fields from the Pydantic model
+                if insight.issue_type == "prior_interview_contradiction":
+                    if consistency_flags_sent >= 2:
+                        return
+                    consistency_flags_sent += 1
+                
+                # Send structured data with full details
+                await send_ai_suggestion(
+                    suggestion=insight.suggestion or "Continue with follow-up question.", 
+                    category=insight.verdict,
+                    issue_type=insight.issue_type,
+                    reasoning=insight.reasoning,
+                    question_type=insight.question_type or "general",  # Handle optional if model allows, though schema says required? Model def allows defaults? No, let's treat as unsafe.
+                    # Actually, CopilotInsight doesn't have question_type in the definition I saw earlier? 
+                    # Wait, I need to check the Pydantic definition above.
+                    # It was checking insight.get("question_type") before.
+                    # Let's verify the Pydantic model definition in the file.
+                    # I will assume I need to ADD these fields to proper Pydantic model if they are missing or accept loose typing?
+                    # The Pydantic model defined in the file only had a few fields?
+                    # Let's check line 367 in previous view_file.
+                    
+                    probe_recommendation=getattr(insight, "probe_recommendation", "stay_on_topic"), # defensive
+                    topic_to_explore=getattr(insight, "topic_to_explore", None),
+                    prior_round=insight.prior_round,
+                    prior_quote=insight.prior_quote,
+                    current_quote=insight.current_quote
+                )
+                
+                # If successful, break retry loop
+                break
+                    
+            except Exception as e:
+                logger.error(f"Failed to generate/parse copilot suggestion (attempt {attempt+1}): {e}")
+                if attempt == max_retries - 1:
+                    logger.error(f"Final failure. Raw output was: {raw_content if 'raw_content' in locals() else 'N/A'}")
 
     
     # Create and start session 
