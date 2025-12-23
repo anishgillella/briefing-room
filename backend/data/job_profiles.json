@@ -7320,5 +7320,299 @@
     ],
     "parallel_research_status": "complete",
     "skipped_fields": []
+  },
+  "bd174dd6-f185-4ee8-81d2-b4bec8f3484e": {
+    "id": "bd174dd6-f185-4ee8-81d2-b4bec8f3484e",
+    "created_at": "2025-12-23T05:47:42.610598",
+    "updated_at": "2025-12-23T05:47:47.214490",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": "The finance automation platform designed to save you time and money.",
+      "funding_stage": "series_d_plus",
+      "total_raised": "$1.5B",
+      "last_round_date": "October 2023",
+      "investors": [
+        "Founders Fund",
+        "Thrive Capital",
+        "General Catalyst",
+        "Coatue",
+        "D1 Capital Partners",
+        "Redpoint Ventures",
+        "Keith Rabois"
+      ],
+      "product_description": "Ramp offers a corporate card, expense management, bill payments, and accounting automation software, all integrated into a single platform.",
+      "problem_solved": "It helps businesses automate their financial operations, control spending, and save money by identifying wasteful expenses and streamlining workflows.",
+      "target_customers": "Mid-market and enterprise businesses looking to modernize their finance stack and replace legacy expense management systems.",
+      "industry": "Fintech",
+      "founders": [
+        "Eric Glyman",
+        "Karim Atiyeh",
+        "Gene Lee"
+      ],
+      "founder_backgrounds": "The founders previously co-founded Paribus (acquired by Capital One). Eric Glyman was an early employee at Capital One.",
+      "team_size": "1000-5000",
+      "headquarters": "New York, New York",
+      "office_locations": [
+        "New York",
+        "Miami"
+      ],
+      "competitors": [
+        "Brex",
+        "Divvy (Bill.com)",
+        "Expensify",
+        "SAP Concur"
+      ],
+      "differentiators": "Ramp focuses heavily on savings and automation, claiming to be the first corporate card built to help companies spend less. They offer high-yield savings accounts for corporate cash and advanced procurement tools.",
+      "recent_news": [
+        "Ramp announced a valuation of $7.65 billion following a secondary sale in October 2023.",
+        "Ramp launched its procurement tool, Ramp Procurement, to help companies manage vendor onboarding and purchasing requests.",
+        "Ramp expanded its platform to include Ramp Travel, integrating booking and expense management for business trips."
+      ],
+      "hiring_signals": "Hiring aggressively across engineering, product, and sales; consistently expanding product offerings into new areas of finance automation.",
+      "tech_stack_hints": [
+        "Python",
+        "React",
+        "TypeScript",
+        "PostgreSQL",
+        "AWS",
+        "Kubernetes"
+      ],
+      "culture_keywords": [
+        "Fast-paced",
+        "High-growth",
+        "Mission-driven",
+        "Execution-focused",
+        "Data-informed"
+      ],
+      "glassdoor_sentiment": null,
+      "eng_team_size": null,
+      "work_style": null,
+      "decision_making": null,
+      "code_review_culture": null,
+      "deployment_frequency": null,
+      "tech_debt_attitude": null,
+      "documentation_culture": null,
+      "on_call_expectations": null,
+      "growth_trajectory": null,
+      "interesting_facts": [
+        "Ramp achieved unicorn status (over $1B valuation) just two years after its founding, making it one of the fastest-growing fintech companies ever.",
+        "The company was founded by the same team that built Paribus, a price-tracking service acquired by Capital One, demonstrating a strong track record of successful exits.",
+        "Ramp's core value proposition is saving money, and they claim their customers save an average of 5% in their first year of using the platform."
+      ],
+      "potential_selling_points": [
+        "Opportunity to work at a hyper-growth, multi-billion dollar valuation company that is rapidly disrupting the traditional corporate finance industry.",
+        "The company is focused on building a full-stack finance automation platform, offering complex technical challenges in payments, accounting, and AI/ML.",
+        "Strong leadership team with a proven track record of building and scaling successful consumer and enterprise technology products."
+      ]
+    },
+    "requirements": {
+      "job_title": "",
+      "location_type": null,
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": null,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": null,
+      "equity_range": null,
+      "bonus_structure": null,
+      "team_size": null,
+      "team_composition": null,
+      "team_seniority": null,
+      "reporting_to": null,
+      "direct_reports": null,
+      "hiring_urgency": null,
+      "backfill_reason": null,
+      "success_metrics_30_day": null,
+      "success_metrics_90_day": null,
+      "growth_path": null,
+      "deal_breakers": [],
+      "ideal_background": null,
+      "interview_turnaround": null
+    },
+    "traits": [],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": null,
+      "selling_points": [],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "conversation",
+    "field_confidence": [],
+    "is_complete": false,
+    "missing_required_fields": [
+      "job_title",
+      "location_type",
+      "experience_min_years",
+      "compensation",
+      "visa_sponsorship",
+      "equity",
+      "team_context",
+      "traits",
+      "interview_stages",
+      "role_context"
+    ],
+    "parallel_research_status": "complete",
+    "skipped_fields": []
+  },
+  "f81fa249-8ad4-46d7-974b-fb21740cca76": {
+    "id": "f81fa249-8ad4-46d7-974b-fb21740cca76",
+    "created_at": "2025-12-23T06:00:10.689399",
+    "updated_at": "2025-12-23T06:00:15.472993",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Ramp",
+      "website": "https://ramp.com/",
+      "tagline": "The finance automation platform designed to save businesses time and money.",
+      "funding_stage": "series_d_plus",
+      "total_raised": "$1.5B",
+      "last_round_date": "October 2023",
+      "investors": [
+        "Founders Fund",
+        "Thrive Capital",
+        "General Catalyst",
+        "D1 Capital Partners",
+        "Coatue",
+        "Redpoint Ventures",
+        "Keith Rabois"
+      ],
+      "product_description": "Ramp offers a corporate card, expense management, bill payments, and accounting automation software, all integrated into a single platform.",
+      "problem_solved": "It helps businesses automate their financial operations, control spending in real-time, and save money through automated savings identification.",
+      "target_customers": "Mid-market and enterprise businesses, as well as high-growth startups looking for better financial control and automation.",
+      "industry": "Fintech",
+      "founders": [
+        "Eric Glyman",
+        "Karim Atiyeh",
+        "Gene Lee"
+      ],
+      "founder_backgrounds": "The founders previously co-founded Paribus (acquired by Capital One). Eric Glyman was also an early employee at Capital One.",
+      "team_size": "1000-5000",
+      "headquarters": "New York, New York",
+      "office_locations": [
+        "New York",
+        "Miami"
+      ],
+      "competitors": [
+        "Brex",
+        "Divvy (Bill.com)",
+        "Stripe Corporate Card",
+        "Expensify"
+      ],
+      "differentiators": "Ramp focuses heavily on savings and efficiency, often marketing itself as a cost-saving tool rather than just a spending tool. It offers higher credit limits and robust expense policy enforcement.",
+      "recent_news": [
+        "Ramp launched Ramp Intelligence, leveraging AI for deeper financial insights and automation.",
+        "Ramp announced a strategic partnership with Amazon Business to streamline purchasing and expense management.",
+        "Ramp reached a valuation of $5.8 billion in its latest funding round."
+      ],
+      "hiring_signals": "Hiring aggressively across engineering, product, and sales, indicating rapid expansion and product development.",
+      "tech_stack_hints": [
+        "Python",
+        "React",
+        "TypeScript",
+        "PostgreSQL",
+        "AWS/GCP",
+        "Kubernetes"
+      ],
+      "culture_keywords": [
+        "High-growth",
+        "Mission-driven",
+        "Efficiency-focused",
+        "Fast-paced",
+        "Transparent"
+      ],
+      "glassdoor_sentiment": null,
+      "eng_team_size": null,
+      "work_style": null,
+      "decision_making": null,
+      "code_review_culture": null,
+      "deployment_frequency": null,
+      "tech_debt_attitude": null,
+      "documentation_culture": null,
+      "on_call_expectations": null,
+      "growth_trajectory": null,
+      "interesting_facts": [
+        "Ramp achieved unicorn status (over $1 billion valuation) faster than almost any other fintech company, reaching it in just over two years.",
+        "Unlike many corporate card companies that rely on interchange fees, Ramp's core value proposition is built around helping companies save money, claiming to save customers an average of 5% in their first year.",
+        "The founders previously built Paribus, a price-tracking service that was acquired by Capital One, demonstrating strong prior success in consumer finance technology."
+      ],
+      "potential_selling_points": [
+        "Opportunity to work at one of the fastest-growing and most highly valued private fintech companies in the world.",
+        "The company is focused on a massive, tangible problem (corporate spending and financial automation) with clear ROI for customers.",
+        "Strong leadership team with a proven track record of successful exits and scaling technology products."
+      ]
+    },
+    "requirements": {
+      "job_title": "",
+      "location_type": null,
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": null,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": null,
+      "equity_range": null,
+      "bonus_structure": null,
+      "team_size": null,
+      "team_composition": null,
+      "team_seniority": null,
+      "reporting_to": null,
+      "direct_reports": null,
+      "hiring_urgency": null,
+      "backfill_reason": null,
+      "success_metrics_30_day": null,
+      "success_metrics_90_day": null,
+      "growth_path": null,
+      "deal_breakers": [],
+      "ideal_background": null,
+      "interview_turnaround": null
+    },
+    "traits": [],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": null,
+      "selling_points": [],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "conversation",
+    "field_confidence": [],
+    "is_complete": false,
+    "missing_required_fields": [
+      "job_title",
+      "location_type",
+      "experience_min_years",
+      "compensation",
+      "visa_sponsorship",
+      "equity",
+      "team_context",
+      "traits",
+      "interview_stages",
+      "role_context"
+    ],
+    "parallel_research_status": "complete",
+    "skipped_fields": []
   }
 }
