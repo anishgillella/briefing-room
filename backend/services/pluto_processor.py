@@ -87,37 +87,91 @@ class QuestionAnalytics(BaseModel):
     topic: str = Field(description="Primary skill or competency area demonstrated (e.g. Leadership, Problem Solving, Technical Skills, Communication, Strategic Thinking, Domain Expertise)")
     relevance_score: int = Field(ge=0, le=10, description="How relevant the answer was to the question (0-10)")
     clarity_score: int = Field(ge=0, le=10, description="How clear/concise the answer was (0-10)")
-    depth_score: int = Field(ge=0, le=10, description="Depth of technical/functional knowledge shown (0-10)")
+    depth_score: int = Field(ge=0, le=10, description="Depth of knowledge shown (0-10)")
 
 class SkillEvidence(BaseModel):
     """Quote validation for a skill."""
     skill: str
     quote: str = Field(description="Exact quote from transcript proving the skill")
-    confidence: str = Field(description="High/Medium/Low")
+    confidence: Literal["High", "Medium", "Low"]
 
 class BehavioralProfile(BaseModel):
-    """Soft skills radar chart scores (0-10)."""
-    leadership: int = Field(ge=0, le=10)
-    resilience: int = Field(ge=0, le=10)
-    communication: int = Field(ge=0, le=10)
-    problem_solving: int = Field(ge=0, le=10)
-    coachability: int = Field(ge=0, le=10)
+    """Soft skills radar chart scores (0-10). Universal across all roles."""
+    leadership: int = Field(ge=0, le=10, description="Initiative, ownership, influence")
+    resilience: int = Field(ge=0, le=10, description="Handling setbacks, pressure, ambiguity")
+    communication: int = Field(ge=0, le=10, description="Clarity, articulation, listening")
+    problem_solving: int = Field(ge=0, le=10, description="Analytical thinking, structured approach")
+    coachability: int = Field(ge=0, le=10, description="Openness to feedback, learning agility")
 
 class CommunicationMetrics(BaseModel):
-    """Communication telemetry."""
+    """Communication telemetry - calculated from transcript."""
     speaking_pace_wpm: int = Field(description="Words per minute")
-    filler_word_frequency: str = Field(description="Low/Medium/High")
+    filler_word_frequency: Literal["Low", "Medium", "High"]
     listen_to_talk_ratio: float = Field(description="Ratio of listening time to speaking time")
 
+class RedFlag(BaseModel):
+    """A concern or red flag identified during the interview."""
+    concern: str = Field(description="Brief description of the concern")
+    severity: Literal["High", "Medium", "Low"]
+    evidence: str = Field(description="Quote or observation supporting this concern")
+
+class Highlight(BaseModel):
+    """A standout positive moment from the interview."""
+    moment: str = Field(description="Brief description of the highlight")
+    quote: str = Field(description="The exact quote or key phrase")
+    why_notable: str = Field(description="Why this stands out")
+
+class RoleCompetency(BaseModel):
+    """A competency derived from the job description and scored based on interview performance."""
+    competency: str = Field(description="Name of the competency (extracted from JD)")
+    score: int = Field(ge=0, le=10, description="Performance score 0-10")
+    evidence_quote: str = Field(description="Direct quote demonstrating this competency")
+    assessment: str = Field(description="Brief explanation of the score")
+
+class CulturalFitIndicators(BaseModel):
+    """Cultural and motivational signals observed during the interview."""
+    values_alignment: int = Field(ge=0, le=10, description="Alignment with company/team values based on expressed priorities")
+    work_style: str = Field(description="Observed work style preference (e.g., 'Collaborative and structured', 'Independent and flexible')")
+    motivation_drivers: List[str] = Field(description="What excites them about the role/company (2-3 items)")
+    team_fit_notes: str = Field(description="Observations about how they might fit with the team")
+
+class EnthusiasmIndicators(BaseModel):
+    """Signals of candidate's interest and engagement."""
+    overall_enthusiasm: int = Field(ge=0, le=10, description="Overall enthusiasm/energy level")
+    role_interest: int = Field(ge=0, le=10, description="Genuine interest in the specific role")
+    company_interest: int = Field(ge=0, le=10, description="Interest in the company/mission")
+    questions_asked: List[str] = Field(default_factory=list, description="Notable questions the candidate asked (if any)")
+    engagement_notes: str = Field(description="Observations about engagement throughout the interview")
+
 class DeepAnalytics(BaseModel):
-    """Comprehensive post-interview analysis."""
+    """Comprehensive post-interview analysis - job description agnostic."""
+    # Core Assessment
     overall_score: int = Field(ge=0, le=100)
     recommendation: Literal["Strong Hire", "Hire", "No Hire"]
     overall_synthesis: str = Field(description="Executive summary combining Resume, JD, and Performance.")
+
+    # Question-by-Question Analysis
     question_analytics: List[QuestionAnalytics]
+
+    # Evidence-Based Signals
     skill_evidence: List[SkillEvidence]
+    red_flags: List[RedFlag] = Field(default_factory=list, description="Concerns or inconsistencies identified")
+    highlights: List[Highlight] = Field(default_factory=list, description="Standout positive moments")
+
+    # Role-Adaptive Competencies (derived from JD)
+    role_competencies: List[RoleCompetency] = Field(default_factory=list, description="Key competencies from JD, scored with evidence")
+
+    # Universal Behavioral Assessment
     behavioral_profile: BehavioralProfile
+
+    # Cultural & Motivation Signals
+    cultural_fit: CulturalFitIndicators
+    enthusiasm: EnthusiasmIndicators
+
+    # Communication Telemetry (calculated)
     communication_metrics: CommunicationMetrics
+
+    # Follow-up Guidance
     topics_to_probe: List[str] = Field(description="Specific topics for next interviewer")
 
 # ... (Legacy Evaluation model omitted for brevity as it was not targeted by this edit)
@@ -685,27 +739,93 @@ def calculate_telemetry(transcript_text: str) -> CommunicationMetrics:
     )
 
 async def generate_deep_analytics(transcript: str, candidate_data: dict, job_description: str = "") -> Optional[DeepAnalytics]:
-    """Generate comprehensive post-interview analytics."""
-    
+    """Generate comprehensive post-interview analytics - job description agnostic."""
+
     telemetry = calculate_telemetry(transcript)
-    
+
+    # Build role competencies instruction based on whether JD is provided
+    if job_description and job_description.strip():
+        role_competencies_instruction = f"""
+6. Role Competencies (IMPORTANT - extract from the Job Description):
+   - Identify 4-6 KEY competencies required for this specific role from the JD
+   - For each competency, score the candidate (0-10) based on interview evidence
+   - Provide a direct quote demonstrating each competency
+   - These should be role-specific (e.g., for Sales: "Negotiation", "Pipeline Management", "Closing";
+     for Engineering: "System Design", "Code Quality"; for PM: "Stakeholder Management", "Prioritization")
+   - DO NOT use generic competencies - extract what THIS role specifically requires"""
+    else:
+        role_competencies_instruction = """
+6. Role Competencies:
+   - Since no job description was provided, identify 4-6 competencies the candidate demonstrated strongly
+   - Base these on what was discussed in the interview
+   - Score each (0-10) with supporting quotes"""
+
     prompt = f"""You are an expert Interview Analyst evaluating candidate performance.
 
 CONTEXT:
 - Candidate: {candidate_data.get('name', 'Unknown')}
-- Role: {candidate_data.get('job_title', 'Not specified')}
-- Job Description: {job_description[:2000] if job_description else 'Not provided'}
+- Current/Target Role: {candidate_data.get('job_title', 'Not specified')}
+- Job Description: {job_description[:3000] if job_description else 'Not provided - use generic competencies based on interview content'}
 - Resume Summary: {candidate_data.get('bio_summary', 'Not provided')}
 
 TRANSCRIPT:
 {transcript[:15000]}
 
-TASK:
-Analyze the interview transcript and populate the response fields comprehensively.
-1. Question Analytics: Evaluate every Question-Answer exchange.
-2. Skill Evidence: Extract specific quotes for claimed skills.
-3. Behavioral Profile: Rate soft skills (0-10).
-4. Topics to Probe: Suggest specific areas for follow-up.
+ANALYSIS INSTRUCTIONS:
+Provide a comprehensive, evidence-based evaluation. Be specific and quote directly from the transcript.
+
+1. Overall Assessment:
+   - Score (0-100): Holistic fit score considering role requirements and interview performance
+   - Recommendation: "Strong Hire" (80+), "Hire" (60-79), or "No Hire" (<60)
+   - Synthesis: Executive summary (2-3 sentences) covering key strengths, concerns, and fit
+
+2. Question-by-Question Analysis:
+   - Evaluate EVERY question-answer exchange in the transcript
+   - For each: summarize the answer, score quality (0-100), identify the topic/competency area
+   - Rate relevance, clarity, and depth (0-10 each)
+   - Extract a key insight from each answer
+
+3. Skill Evidence:
+   - Identify skills the candidate demonstrated with HIGH confidence
+   - Provide EXACT quotes from the transcript as evidence
+   - Only include skills with clear, verifiable evidence
+
+4. Red Flags & Concerns:
+   - Identify any inconsistencies, evasive answers, or concerns
+   - Rate severity (High/Medium/Low)
+   - Provide evidence (quote or specific observation)
+   - Be objective - only flag genuine concerns, not minor issues
+
+5. Highlights & Standout Moments:
+   - Identify 2-4 standout positive moments
+   - Include the exact quote and explain why it's notable
+   - These should be genuinely impressive, not just "good answers"
+
+{role_competencies_instruction}
+
+7. Behavioral Profile (Universal - rate 0-10):
+   - Leadership: Initiative, ownership, influence demonstrated
+   - Resilience: How they handled challenges, setbacks, pressure in examples
+   - Communication: Clarity, articulation, listening skills shown
+   - Problem Solving: Analytical approach, structured thinking
+   - Coachability: Openness to feedback, learning agility, self-awareness
+
+8. Cultural Fit Indicators:
+   - Values Alignment (0-10): Based on expressed priorities and decision-making
+   - Work Style: Describe their apparent preference (collaborative/independent, structured/flexible)
+   - Motivation Drivers: 2-3 things that excite them about work/this role
+   - Team Fit Notes: How they might fit with a typical team
+
+9. Enthusiasm & Engagement:
+   - Overall Enthusiasm (0-10): Energy and excitement level
+   - Role Interest (0-10): Genuine interest in this specific role
+   - Company Interest (0-10): Interest in the company/mission (if discussed)
+   - Questions Asked: Notable questions the candidate asked (shows engagement)
+   - Engagement Notes: Observations about their engagement throughout
+
+10. Topics to Probe (for next round):
+    - 3-5 specific areas that need deeper exploration
+    - Base these on gaps, concerns, or areas that weren't fully explored
 """
 
     try:
@@ -713,34 +833,55 @@ Analyze the interview transcript and populate the response fields comprehensivel
         completion = await client.beta.chat.completions.parse(
             model=SCORING_MODEL,
             messages=[
-                {"role": "system", "content": "You are a precise analytics engine."},
+                {"role": "system", "content": "You are a precise, objective interview analytics engine. Provide evidence-based assessments with direct quotes. Be thorough but fair."},
                 {"role": "user", "content": prompt}
             ],
             response_format=DeepAnalytics,
             temperature=0.2
         )
-        
+
         # Get parsed Pydantic object
         analytics = completion.choices[0].message.parsed
-        
+
         # Inject calculated metrics (not generated by LLM)
         analytics.communication_metrics = telemetry
-        
+
         return analytics
-            
+
     except Exception as e:
         logger.error(f"Deep analytics generation failed: {e}")
-        # Fallback will be handled by the caller or retry logic if we wanted, 
-        # but here we return safe fallback immediately to avoid crashing.
+        # Return a safe fallback with all required fields
         return DeepAnalytics(
-             overall_score=0,
-             recommendation="No Hire",
-             overall_synthesis=f"Analysis Failed: {str(e)}",
-             question_analytics=[],
-             skill_evidence=[],
-             behavioral_profile=BehavioralProfile(leadership=0, resilience=0, communication=0, problem_solving=0, coachability=0),
-             communication_metrics=telemetry,
-             topics_to_probe=[]
+            overall_score=0,
+            recommendation="No Hire",
+            overall_synthesis=f"Analysis Failed: {str(e)}",
+            question_analytics=[],
+            skill_evidence=[],
+            red_flags=[],
+            highlights=[],
+            role_competencies=[],
+            behavioral_profile=BehavioralProfile(
+                leadership=0,
+                resilience=0,
+                communication=0,
+                problem_solving=0,
+                coachability=0
+            ),
+            cultural_fit=CulturalFitIndicators(
+                values_alignment=0,
+                work_style="Unable to assess",
+                motivation_drivers=[],
+                team_fit_notes="Analysis failed"
+            ),
+            enthusiasm=EnthusiasmIndicators(
+                overall_enthusiasm=0,
+                role_interest=0,
+                company_interest=0,
+                questions_asked=[],
+                engagement_notes="Analysis failed"
+            ),
+            communication_metrics=telemetry,
+            topics_to_probe=[]
         )
             
 

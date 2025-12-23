@@ -351,13 +351,63 @@ async def get_interview_context(interview_id: str):
     interview = interview_repo.get_by_id(interview_id)
     if not interview:
         raise HTTPException(status_code=404, detail="Interview not found")
-    
+
     context = interview_repo.get_interview_context(
         interview["candidate_id"],
         interview["stage"]
     )
-    
+
     return context
+
+
+@router.get("/{interview_id}/full-analytics")
+async def get_full_interview_analytics(interview_id: str):
+    """
+    Get full analytics for a specific interview.
+    Returns the complete analytics data including all new fields:
+    - red_flags, highlights, role_competencies, cultural_fit, enthusiasm
+    This is used to display the same post-interview UI in Interview History.
+    """
+    interview = interview_repo.get_by_id(interview_id)
+    if not interview:
+        raise HTTPException(status_code=404, detail="Interview not found")
+
+    # Get full analytics using the new method
+    full_analytics = analytics_repo.get_full_analytics(interview_id)
+
+    if not full_analytics:
+        # Try to get basic analytics as fallback
+        basic_analytics = analytics_repo.get_analytics_by_interview(interview_id)
+        if basic_analytics:
+            # Return whatever we have
+            return {
+                "interview_id": interview_id,
+                "stage": interview.get("stage"),
+                "status": interview.get("status"),
+                "candidate_id": interview.get("candidate_id"),
+                "analytics": basic_analytics,
+                "has_full_analytics": False
+            }
+        raise HTTPException(status_code=404, detail="No analytics found for this interview")
+
+    # Get interviewer analytics if available
+    interviewer_analytics = None
+    try:
+        interviewer_analytics = interviewer_analytics_repo.get_by_interview(interview_id)
+    except Exception as e:
+        logger.warning(f"Failed to get interviewer analytics: {e}")
+
+    return {
+        "interview_id": interview_id,
+        "stage": interview.get("stage"),
+        "status": interview.get("status"),
+        "candidate_id": interview.get("candidate_id"),
+        "started_at": interview.get("started_at"),
+        "ended_at": interview.get("ended_at"),
+        "analytics": full_analytics,
+        "interviewer_analytics": interviewer_analytics,
+        "has_full_analytics": True
+    }
 
 
 # ============================================================================

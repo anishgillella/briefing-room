@@ -32,7 +32,10 @@ CREATE INDEX IF NOT EXISTS idx_job_postings_created ON job_postings(created_at D
 CREATE TABLE IF NOT EXISTS candidates (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     job_posting_id UUID REFERENCES job_postings(id) ON DELETE SET NULL,
-    
+
+    -- JSON ID (for bridging Pluto JSON storage to database)
+    json_id TEXT UNIQUE,
+
     -- Basic Info
     name TEXT NOT NULL,
     email TEXT,
