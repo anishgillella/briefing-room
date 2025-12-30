@@ -3,7 +3,7 @@
 ## Overview
 Technical documentation for the Briefing Room interview training platform.
 
-## Documents
+## Core Documents
 
 | File | Description |
 |------|-------------|
@@ -11,6 +11,21 @@ Technical documentation for the Briefing Room interview training platform.
 | `ai-candidate-agent.md` | AI candidate feature design (updated for OpenAI Realtime) |
 | `transcription.md` | Real-time transcription implementation |
 | `interview-analytics.md` | Post-interview analytics with Gemini 2.5 Flash |
+
+## Streamlined Interview Flow (NEW)
+
+The streamlined flow unifies job descriptions, candidates, interviews, and analytics into a cohesive system. Jobs are the central organizing entity, with all other data flowing through it.
+
+| Phase | Document | Description |
+|-------|----------|-------------|
+| Overview | `streamlined-flow/README.md` | Architecture and flow diagram |
+| Phase 1 | `streamlined-flow/phase1-data-models.md` | Person, Job, Candidate, Interview, Analytics models |
+| Phase 2 | `streamlined-flow/phase2-job-management.md` | Job CRUD API and UI |
+| Phase 3 | `streamlined-flow/phase3-jd-voice-agent.md` | Voice agent for JD extraction (talks to recruiter) |
+| Phase 4 | `streamlined-flow/phase4-candidate-upload.md` | CSV upload linked to jobs |
+| Phase 5 | `streamlined-flow/phase5-interview-flow.md` | Interview with full job context |
+| Phase 6 | `streamlined-flow/phase6-analytics.md` | Job-specific scoring and evaluation |
+| Phase 7 | `streamlined-flow/phase7-recruiter-dashboard.md` | Multi-job dashboard |
 
 ## Quick Links
 

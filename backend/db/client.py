@@ -24,13 +24,16 @@ SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
 # Use service role key for server-side operations (full access)
-SUPABASE_KEY = SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY
+# Also check for generic SUPABASE_KEY which some .env files use
+SUPABASE_KEY = SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY or os.getenv("SUPABASE_KEY")
 
 # Debug: Print which key type is being used (don't print actual key)
 if SUPABASE_SERVICE_ROLE_KEY:
     print("[Supabase] Using SERVICE_ROLE_KEY (full access)")
 elif SUPABASE_ANON_KEY:
     print("[Supabase] WARNING: Using ANON_KEY (limited access - may cause RLS issues)")
+elif os.getenv("SUPABASE_KEY"):
+    print("[Supabase] Using SUPABASE_KEY")
 else:
     print("[Supabase] ERROR: No API key found!")
 

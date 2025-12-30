@@ -378,3 +378,143 @@ IMPORTANT RULES:
 
 # Global instance
 jd_extractor = JDExtractor()
+
+
+# ============================================================================
+# Streamlined Flow Extraction Functions
+# ============================================================================
+
+STREAMLINED_EXTRACTION_PROMPT = """You are an expert HR analyst. Extract structured information from the following job description.
+
+Job Description:
+{job_description}
+
+Extract the following information in JSON format:
+{{
+    "years_experience": "e.g., '3-5 years' or '5+ years' or null if not specified",
+    "education": "e.g., 'Bachelor's in Computer Science' or null",
+    "required_skills": ["list", "of", "required", "skills"],
+    "preferred_skills": ["list", "of", "nice-to-have", "skills"],
+    "certifications": ["any", "required", "certifications"],
+    "location": "e.g., 'San Francisco, CA' or 'Remote' or null",
+    "work_type": "one of: 'remote', 'hybrid', 'onsite', or null",
+    "salary_range": "e.g., '$120k-$150k' or null"
+}}
+
+Be precise and only include information explicitly stated or strongly implied in the JD.
+Return ONLY valid JSON, no other text.
+"""
+
+
+async def extract_requirements_for_streamlined(
+    raw_description: str
+) -> Dict[str, Any]:
+    """
+    Extract structured requirements from job description for streamlined flow.
+
+    Args:
+        raw_description: The raw job description text
+
+    Returns:
+        Dict with extracted requirements
+    """
+    from models.streamlined.job import ExtractedRequirements
+
+    if not raw_description or len(raw_description.strip()) < 50:
+        logger.warning("Job description too short for extraction")
+        return {}
+
+    if not OPENROUTER_API_KEY:
+        logger.warning("OpenRouter API key not configured")
+        return {}
+
+    prompt = STREAMLINED_EXTRACTION_PROMPT.format(
+        job_description=raw_description[:5000]
+    )
+
+    try:
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.post(
+                OPENROUTER_URL,
+                headers={
+                    "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": LLM_MODEL,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "response_format": {"type": "json_object"},
+                    "temperature": 0.1,
+                    "max_tokens": 1000,
+                }
+            )
+            response.raise_for_status()
+            result = response.json()
+
+        content = result["choices"][0]["message"]["content"]
+
+        # Clean the response
+        content = content.strip()
+        if content.startswith("```json"):
+            content = content[7:]
+        if content.startswith("```"):
+            content = content[3:]
+        if content.endswith("```"):
+            content = content[:-3]
+        content = content.strip()
+
+        data = json.loads(content)
+        return data
+
+    except Exception as e:
+        logger.error(f"Error extracting requirements: {e}")
+        return {}
+
+
+def extract_requirements_for_streamlined_sync(
+    raw_description: str
+) -> Dict[str, Any]:
+    """
+    Synchronous version of extract_requirements_for_streamlined.
+    """
+    import asyncio
+
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+    return loop.run_until_complete(
+        extract_requirements_for_streamlined(raw_description)
+    )
+
+
+async def trigger_jd_extraction_for_job(job_id: str, raw_description: str):
+    """
+    Trigger async JD extraction and update job.
+    This runs in the background after job creation.
+    """
+    from repositories.streamlined.job_repo import JobRepository
+    from models.streamlined.job import JobUpdate, ExtractedRequirements
+
+    repo = JobRepository()
+
+    try:
+        # Extract requirements
+        data = await extract_requirements_for_streamlined(raw_description)
+
+        if data:
+            requirements = ExtractedRequirements(**data)
+
+            # Update job with extracted data
+            await repo.update(job_id, JobUpdate(
+                extracted_requirements=requirements
+            ))
+
+            logger.info(f"Successfully extracted requirements for job {job_id}")
+        else:
+            logger.warning(f"No requirements extracted for job {job_id}")
+
+    except Exception as e:
+        logger.error(f"Failed to extract requirements for job {job_id}: {e}")

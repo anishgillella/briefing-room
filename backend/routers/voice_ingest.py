@@ -11,7 +11,7 @@ import time
 import logging
 import jwt
 
-from config import LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET, VAPI_API_KEY, VAPI_PUBLIC_KEY, VAPI_ASSISTANT_ID
+from config import LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET, VAPI_API_KEY, VAPI_PUBLIC_KEY, VAPI_ASSISTANT_ID, LLM_MODEL
 from services.websocket_hub import ws_hub
 from services.vapi_service import vapi_service
 from models.voice_ingest import (
@@ -838,9 +838,10 @@ async def create_vapi_call(session_id: str):
         },
         # Override model settings for better conversation quality
         # Note: This replaces the system prompt from Vapi console
+        # Using Gemini 2.5 Flash via OpenRouter for cost efficiency
         "model": {
-            "provider": "openai",
-            "model": "gpt-4o",
+            "provider": "openrouter",
+            "model": LLM_MODEL,  # google/gemini-2.5-flash from config
             "temperature": 0.7,
             "systemPrompt": system_prompt
         },

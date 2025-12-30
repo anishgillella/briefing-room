@@ -38,7 +38,7 @@ from livekit.agents import (
     AgentSession,
 )
 from livekit.plugins import deepgram, openai, silero, elevenlabs
-from config import GEMINI_ANALYTICS_MODEL
+from config import GEMINI_ANALYTICS_MODEL, LLM_MODEL
 
 # Environment variables (now loaded from .env)
 LIVEKIT_URL = os.getenv("LIVEKIT_URL")
@@ -318,9 +318,9 @@ Say: "Hi, thank you for having me! I'm {candidate_name.split()[0]}, excited to b
 
     prior_interview_context = await fetch_prior_interview_context()
 
-    # Initialize LLM with OpenRouter
+    # Initialize LLM with OpenRouter (using Gemini 2.5 Flash)
     llm_instance = openai.LLM(
-        model="openai/gpt-4o-mini",
+        model=LLM_MODEL,  # google/gemini-2.5-flash from config
         base_url=OPENROUTER_BASE_URL,
         api_key=OPENROUTER_API_KEY,
     )
