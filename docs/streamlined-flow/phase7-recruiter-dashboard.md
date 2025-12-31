@@ -1,5 +1,7 @@
 # Phase 7: Recruiter Dashboard
 
+## Status: COMPLETE
+
 ## Overview
 
 This phase implements the recruiter dashboard - the main landing page that provides a high-level view across all jobs and candidates. This is where recruiters spend most of their time managing the hiring pipeline.
@@ -53,7 +55,162 @@ This phase implements the recruiter dashboard - the main landing page that provi
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-## Dashboard API Endpoints
+## API Endpoints
+
+All dashboard endpoints are in `backend/routers/dashboard.py` with prefix `/api/dashboard`.
+
+### Dashboard Stats
+
+```
+GET /api/dashboard/stats
+```
+
+**Response:**
+```json
+{
+  "active_jobs": 5,
+  "total_jobs": 8,
+  "total_candidates": 47,
+  "interviewed_candidates": 23,
+  "pending_candidates": 24,
+  "completed_interviews": 23,
+  "strong_hires": 8,
+  "avg_score": 72.5
+}
+```
+
+### Jobs Summary
+
+```
+GET /api/dashboard/jobs/summary?limit=5&status=active
+```
+
+**Response:**
+```json
+{
+  "jobs": [
+    {
+      "id": "uuid",
+      "title": "Senior Backend Engineer",
+      "status": "active",
+      "candidate_count": 12,
+      "interviewed_count": 8,
+      "pending_count": 4,
+      "avg_score": 75.2,
+      "created_at": "2024-01-15T10:30:00Z"
+    }
+  ],
+  "total_active": 5,
+  "total_all": 8
+}
+```
+
+### Pipeline Stats
+
+```
+GET /api/dashboard/pipeline
+```
+
+**Response:**
+```json
+{
+  "applied": 47,
+  "in_progress": 5,
+  "completed": 23,
+  "strong_hire": 8,
+  "hire": 10,
+  "maybe": 3,
+  "no_hire": 2
+}
+```
+
+### Recent Activity
+
+```
+GET /api/dashboard/activity?limit=10&days=7
+```
+
+**Response:**
+```json
+{
+  "activities": [
+    {
+      "type": "interview_completed",
+      "candidate_name": "John Doe",
+      "job_title": "Senior Engineer",
+      "job_id": "uuid",
+      "score": 85,
+      "recommendation": "hire",
+      "timestamp": "2024-01-15T14:30:00Z",
+      "interview_id": "uuid"
+    }
+  ],
+  "total": 10
+}
+```
+
+### Top Candidates
+
+```
+GET /api/dashboard/top-candidates?limit=10&min_score=70
+```
+
+**Response:**
+```json
+{
+  "candidates": [
+    {
+      "candidate_id": "uuid",
+      "candidate_name": "Jane Smith",
+      "job_id": "uuid",
+      "job_title": "Senior Engineer",
+      "score": 92,
+      "recommendation": "strong_hire",
+      "interview_date": "2024-01-15T14:30:00Z"
+    }
+  ],
+  "total": 10
+}
+```
+
+### Job Dashboard Summary
+
+```
+GET /api/dashboard/job/{job_id}/summary
+```
+
+**Response:**
+```json
+{
+  "job_id": "uuid",
+  "job_title": "Senior Engineer",
+  "job_status": "active",
+  "candidate_stats": {
+    "total": 12,
+    "pending": 4,
+    "in_progress": 2,
+    "completed": 6
+  },
+  "interview_stats": {
+    "total": 8,
+    "completed": 6,
+    "avg_duration_seconds": 1800,
+    "avg_duration_minutes": 30.0
+  },
+  "analytics_stats": {
+    "total_evaluated": 6,
+    "avg_score": 75.5,
+    "recommendations": {
+      "strong_hire": 2,
+      "hire": 3,
+      "maybe": 1,
+      "no_hire": 0
+    }
+  }
+}
+```
+
+## Implementation Details
 
 ```python
 # backend/routers/dashboard.py
@@ -677,26 +834,24 @@ export function MainNav() {
 
 ---
 
-## Implementation Steps
+## Test Coverage
 
-1. **Create dashboard router:**
-   - `backend/routers/dashboard.py`
+Tests are in `backend/tests/test_phase7_dashboard.py`:
 
-2. **Register router:**
-   ```python
-   from routers.dashboard import router as dashboard_router
-   app.include_router(dashboard_router)
-   ```
+- **TestDashboardStats**: High-level statistics endpoint
+- **TestJobsSummary**: Jobs summary with filtering
+- **TestPipelineStats**: Pipeline funnel statistics
+- **TestRecentActivity**: Recent interview activity
+- **TestTopCandidates**: Top-scoring candidates
+- **TestJobDashboardSummary**: Job-specific summary
+- **TestDashboardIntegration**: End-to-end integration tests
 
-3. **Create frontend pages:**
-   - `frontend/src/app/dashboard/page.tsx`
-   - `frontend/src/components/layout/main-nav.tsx`
-
-4. **Update root redirect:**
-   - Redirect `/` to `/dashboard`
-
-5. **Add layout with navigation:**
-   - Update `frontend/src/app/layout.tsx` to include navigation
+Run tests:
+```bash
+cd backend
+source ../.env  # Load environment variables
+python -m pytest tests/test_phase7_dashboard.py -v
+```
 
 ## Dashboard Metrics
 

@@ -23,7 +23,7 @@ class AnalyticsRepository:
         """Create a new analytics record."""
         data = {
             "interview_id": str(analytics_data.interview_id),
-            "overall_score": analytics_data.overall_score,
+            "overall_score": int(analytics_data.overall_score),  # DB expects integer
             "competency_scores": [cs.model_dump() for cs in analytics_data.competency_scores],
             "strengths": analytics_data.strengths,
             "concerns": analytics_data.concerns,
@@ -47,7 +47,7 @@ class AnalyticsRepository:
         """Synchronous version of create."""
         data = {
             "interview_id": str(analytics_data.interview_id),
-            "overall_score": analytics_data.overall_score,
+            "overall_score": int(analytics_data.overall_score),  # DB expects integer
             "competency_scores": [cs.model_dump() for cs in analytics_data.competency_scores],
             "strengths": analytics_data.strengths,
             "concerns": analytics_data.concerns,
@@ -165,6 +165,26 @@ class AnalyticsRepository:
             analytics_list.append(analytics)
 
         return analytics_list
+
+    async def list_all(self, limit: int = 100) -> List[Analytics]:
+        """Get all analytics records."""
+        result = self.client.table(self.table)\
+            .select("*")\
+            .order("created_at", desc=True)\
+            .limit(limit)\
+            .execute()
+
+        return [self._parse_analytics(data) for data in result.data]
+
+    def list_all_sync(self, limit: int = 100) -> List[Analytics]:
+        """Synchronous version of list_all."""
+        result = self.client.table(self.table)\
+            .select("*")\
+            .order("created_at", desc=True)\
+            .limit(limit)\
+            .execute()
+
+        return [self._parse_analytics(data) for data in result.data]
 
     async def update(
         self,

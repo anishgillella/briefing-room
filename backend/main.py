@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import rooms, realtime, analytics, coach, prebrief, pluto, livekit_router, db_interviews, db_managers, db_interviewers, voice_ingest, offer_prep
 from routers import jobs as jobs_router  # Streamlined flow
+from routers import dashboard as dashboard_router  # Phase 7 - Dashboard
 from typing import Annotated, Optional
 
 app = FastAPI(
@@ -38,6 +39,7 @@ app.include_router(db_interviewers.router)  # Interviewer analytics routes
 app.include_router(voice_ingest.router)   # Voice ingest onboarding routes
 app.include_router(offer_prep.router)     # Offer preparation and coaching routes
 app.include_router(jobs_router.router)    # Streamlined flow - job management
+app.include_router(dashboard_router.router)  # Phase 7 - Recruiter dashboard
 
 
 @app.get("/health")
