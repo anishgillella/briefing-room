@@ -1,0 +1,612 @@
+"""
+Phase 7: Recruiter Dashboard API
+
+Provides high-level statistics and summaries for the recruiter dashboard,
+including job summaries, pipeline funnel, recent activity, and top candidates.
+"""
+
+from fastapi import APIRouter, HTTPException
+from typing import List, Optional, Dict, Any
+from datetime import datetime, timedelta
+from uuid import UUID
+from pydantic import BaseModel
+
+from repositories.streamlined.job_repo import JobRepository
+from repositories.streamlined.candidate_repo import CandidateRepository
+from repositories.streamlined.interview_repo import InterviewRepository
+from repositories.streamlined.analytics_repo import AnalyticsRepository
+
+router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
+
+
+# =============================================================================
+# Response Models
+# =============================================================================
+
+class DashboardStats(BaseModel):
+    """High-level dashboard statistics."""
+    active_jobs: int
+    total_jobs: int
+    total_candidates: int
+    interviewed_candidates: int
+    pending_candidates: int
+    completed_interviews: int
+    strong_hires: int
+    avg_score: float
+
+
+class JobSummary(BaseModel):
+    """Summary of a single job for dashboard display."""
+    id: str
+    title: str
+    status: str
+    candidate_count: int
+    interviewed_count: int
+    pending_count: int
+    avg_score: Optional[float] = None
+    created_at: Optional[str] = None
+
+
+class JobsSummaryResponse(BaseModel):
+    """Response containing job summaries."""
+    jobs: List[JobSummary]
+    total_active: int
+    total_all: int
+
+
+class PipelineStats(BaseModel):
+    """Pipeline funnel statistics."""
+    applied: int  # pending candidates
+    in_progress: int  # currently interviewing
+    completed: int  # interview completed
+    strong_hire: int  # recommended for hire
+    hire: int
+    maybe: int
+    no_hire: int
+
+
+class ActivityItem(BaseModel):
+    """A single activity item."""
+    type: str
+    candidate_name: Optional[str]
+    job_title: Optional[str]
+    job_id: Optional[str]
+    score: Optional[float] = None
+    recommendation: Optional[str] = None
+    timestamp: str
+    interview_id: Optional[str] = None
+
+
+class RecentActivityResponse(BaseModel):
+    """Response containing recent activity."""
+    activities: List[ActivityItem]
+    total: int
+
+
+class TopCandidate(BaseModel):
+    """A top-scoring candidate."""
+    candidate_id: str
+    candidate_name: Optional[str]
+    job_id: str
+    job_title: Optional[str]
+    score: float
+    recommendation: str
+    interview_date: Optional[str] = None
+
+
+class TopCandidatesResponse(BaseModel):
+    """Response containing top candidates."""
+    candidates: List[TopCandidate]
+    total: int
+
+
+# =============================================================================
+# Helper Functions
+# =============================================================================
+
+def get_job_repo() -> JobRepository:
+    return JobRepository()
+
+def get_candidate_repo() -> CandidateRepository:
+    return CandidateRepository()
+
+def get_interview_repo() -> InterviewRepository:
+    return InterviewRepository()
+
+def get_analytics_repo() -> AnalyticsRepository:
+    return AnalyticsRepository()
+
+
+# =============================================================================
+# Dashboard Endpoints
+# =============================================================================
+
+@router.get("/stats", response_model=DashboardStats)
+async def get_dashboard_stats() -> DashboardStats:
+    """
+    Get high-level dashboard statistics.
+
+    Returns counts of jobs, candidates, interviews, and analytics summaries.
+    """
+    job_repo = get_job_repo()
+    candidate_repo = get_candidate_repo()
+    interview_repo = get_interview_repo()
+    analytics_repo = get_analytics_repo()
+
+    # Get all jobs
+    all_jobs = job_repo.list_all_sync()
+    active_jobs = [j for j in all_jobs if j.status == "active"]
+
+    # Count candidates and interviews across all jobs
+    total_candidates = 0
+    interviewed_candidates = 0
+    completed_interviews = 0
+
+    for job in all_jobs:
+        try:
+            candidates = candidate_repo.list_by_job_sync(job.id)
+            total_candidates += len(candidates)
+
+            for candidate in candidates:
+                if candidate.interview_status in ["completed", "in_progress"]:
+                    interviewed_candidates += 1
+
+                # Count completed interviews for this candidate
+                try:
+                    interviews = interview_repo.list_by_candidate_sync(candidate.id)
+                    completed_interviews += len([i for i in interviews if i.status.value == "completed"])
+                except Exception:
+                    pass
+        except Exception:
+            # Skip jobs with data issues
+            pass
+
+    # Get analytics summaries
+    strong_hires = 0
+    total_score = 0.0
+    score_count = 0
+
+    try:
+        all_analytics = analytics_repo.list_all_sync()
+        for a in all_analytics:
+            score_count += 1
+            total_score += a.overall_score
+            if hasattr(a.recommendation, 'value'):
+                if a.recommendation.value == "strong_hire":
+                    strong_hires += 1
+            elif a.recommendation == "strong_hire":
+                strong_hires += 1
+    except Exception:
+        all_analytics = []
+
+    avg_score = round(total_score / score_count, 1) if score_count > 0 else 0.0
+
+    return DashboardStats(
+        active_jobs=len(active_jobs),
+        total_jobs=len(all_jobs),
+        total_candidates=total_candidates,
+        interviewed_candidates=interviewed_candidates,
+        pending_candidates=total_candidates - interviewed_candidates,
+        completed_interviews=completed_interviews,
+        strong_hires=strong_hires,
+        avg_score=avg_score,
+    )
+
+
+@router.get("/jobs/summary", response_model=JobsSummaryResponse)
+async def get_jobs_summary(
+    limit: int = 5,
+    status: Optional[str] = None,
+) -> JobsSummaryResponse:
+    """
+    Get summary of jobs for dashboard display.
+
+    Args:
+        limit: Maximum number of jobs to return (default 5)
+        status: Filter by job status (active, paused, closed)
+    """
+    job_repo = get_job_repo()
+    candidate_repo = get_candidate_repo()
+    analytics_repo = get_analytics_repo()
+
+    # Get jobs
+    all_jobs = job_repo.list_all_sync()
+
+    # Filter by status if provided
+    if status:
+        filtered_jobs = [j for j in all_jobs if j.status == status]
+    else:
+        # Default to showing active jobs first
+        active = [j for j in all_jobs if j.status == "active"]
+        other = [j for j in all_jobs if j.status != "active"]
+        filtered_jobs = active + other
+
+    summaries = []
+    for job in filtered_jobs[:limit]:
+        # Get candidate stats
+        candidate_count = 0
+        interviewed_count = 0
+        try:
+            candidates = candidate_repo.list_by_job_sync(job.id)
+            candidate_count = len(candidates)
+            interviewed_count = len([c for c in candidates if c.interview_status in ["completed", "in_progress"]])
+        except Exception:
+            pass
+
+        # Get average score from analytics
+        avg_score = None
+        try:
+            job_analytics = analytics_repo.list_by_job_sync(job.id)
+            if job_analytics:
+                scores = [a.overall_score for a in job_analytics]
+                avg_score = round(sum(scores) / len(scores), 1)
+        except Exception:
+            pass
+
+        summaries.append(JobSummary(
+            id=str(job.id),
+            title=job.title,
+            status=job.status,
+            candidate_count=candidate_count,
+            interviewed_count=interviewed_count,
+            pending_count=candidate_count - interviewed_count,
+            avg_score=avg_score,
+            created_at=job.created_at.isoformat() if job.created_at else None,
+        ))
+
+    active_count = len([j for j in all_jobs if j.status == "active"])
+
+    return JobsSummaryResponse(
+        jobs=summaries,
+        total_active=active_count,
+        total_all=len(all_jobs),
+    )
+
+
+@router.get("/pipeline", response_model=PipelineStats)
+async def get_pipeline_stats() -> PipelineStats:
+    """
+    Get pipeline funnel statistics across all jobs.
+
+    Shows candidate distribution across interview stages and recommendations.
+    """
+    job_repo = get_job_repo()
+    candidate_repo = get_candidate_repo()
+    analytics_repo = get_analytics_repo()
+
+    # Initialize counters
+    pipeline = {
+        "applied": 0,      # pending
+        "in_progress": 0,  # interview in progress
+        "completed": 0,    # interview completed
+        "strong_hire": 0,
+        "hire": 0,
+        "maybe": 0,
+        "no_hire": 0,
+    }
+
+    # Get all jobs and their candidates
+    all_jobs = job_repo.list_all_sync()
+
+    for job in all_jobs:
+        try:
+            candidates = candidate_repo.list_by_job_sync(job.id)
+        except Exception:
+            continue
+
+        for candidate in candidates:
+            status = candidate.interview_status
+
+            if status == "pending":
+                pipeline["applied"] += 1
+            elif status == "in_progress":
+                pipeline["in_progress"] += 1
+            elif status == "completed":
+                pipeline["completed"] += 1
+
+                # Get analytics recommendation for completed candidates
+                try:
+                    # Get latest analytics for this candidate's interviews
+                    from repositories.streamlined.interview_repo import InterviewRepository
+                    interview_repo = InterviewRepository()
+                    interviews = interview_repo.list_by_candidate_sync(candidate.id)
+
+                    for interview in interviews:
+                        analytics = analytics_repo.get_by_interview_sync(interview.id)
+                        if analytics:
+                            rec = analytics.recommendation
+                            if hasattr(rec, 'value'):
+                                rec = rec.value
+
+                            if rec == "strong_hire":
+                                pipeline["strong_hire"] += 1
+                            elif rec == "hire":
+                                pipeline["hire"] += 1
+                            elif rec == "maybe":
+                                pipeline["maybe"] += 1
+                            elif rec == "no_hire":
+                                pipeline["no_hire"] += 1
+                            break  # Only count latest interview
+                except Exception:
+                    pass
+
+    return PipelineStats(**pipeline)
+
+
+@router.get("/activity", response_model=RecentActivityResponse)
+async def get_recent_activity(
+    limit: int = 10,
+    days: int = 7,
+) -> RecentActivityResponse:
+    """
+    Get recent activity (completed interviews with analytics).
+
+    Args:
+        limit: Maximum number of activities to return
+        days: Look back period in days
+    """
+    job_repo = get_job_repo()
+    interview_repo = get_interview_repo()
+    analytics_repo = get_analytics_repo()
+    candidate_repo = get_candidate_repo()
+
+    activities: List[ActivityItem] = []
+    cutoff_date = datetime.utcnow() - timedelta(days=days)
+
+    # Get all jobs and find recent interviews
+    all_jobs = job_repo.list_all_sync()
+
+    all_interviews = []
+    for job in all_jobs:
+        try:
+            job_interviews = interview_repo.list_by_job_sync(job.id)
+            for interview in job_interviews:
+                # Filter by date if available
+                if interview.ended_at:
+                    ended_at = interview.ended_at
+                    if hasattr(ended_at, 'replace'):
+                        # Remove timezone info for comparison
+                        if ended_at.tzinfo:
+                            ended_at = ended_at.replace(tzinfo=None)
+                    if ended_at >= cutoff_date:
+                        all_interviews.append((interview, job))
+                elif interview.created_at:
+                    created_at = interview.created_at
+                    if hasattr(created_at, 'replace'):
+                        if created_at.tzinfo:
+                            created_at = created_at.replace(tzinfo=None)
+                    if created_at >= cutoff_date:
+                        all_interviews.append((interview, job))
+        except Exception:
+            continue
+
+    # Sort by date (most recent first)
+    all_interviews.sort(
+        key=lambda x: x[0].ended_at or x[0].created_at or datetime.min,
+        reverse=True
+    )
+
+    # Build activity items
+    for interview, job in all_interviews[:limit]:
+        # Get candidate name
+        candidate_name = interview.candidate_name
+        if not candidate_name:
+            try:
+                candidate = candidate_repo.get_by_id_sync(interview.candidate_id)
+                candidate_name = candidate.person_name if candidate else None
+            except Exception:
+                pass
+
+        # Get analytics if available
+        score = None
+        recommendation = None
+        try:
+            analytics = analytics_repo.get_by_interview_sync(interview.id)
+            if analytics:
+                score = analytics.overall_score
+                rec = analytics.recommendation
+                recommendation = rec.value if hasattr(rec, 'value') else str(rec)
+        except Exception:
+            pass
+
+        # Determine activity type
+        if interview.status.value == "completed":
+            activity_type = "interview_completed"
+        elif interview.status.value == "in_progress":
+            activity_type = "interview_started"
+        else:
+            activity_type = "interview_scheduled"
+
+        timestamp = interview.ended_at or interview.started_at or interview.created_at
+
+        activities.append(ActivityItem(
+            type=activity_type,
+            candidate_name=candidate_name,
+            job_title=job.title,
+            job_id=str(job.id),
+            score=score,
+            recommendation=recommendation,
+            timestamp=timestamp.isoformat() if timestamp else datetime.utcnow().isoformat(),
+            interview_id=str(interview.id),
+        ))
+
+    return RecentActivityResponse(
+        activities=activities,
+        total=len(activities),
+    )
+
+
+@router.get("/top-candidates", response_model=TopCandidatesResponse)
+async def get_top_candidates(
+    limit: int = 10,
+    min_score: float = 0,
+) -> TopCandidatesResponse:
+    """
+    Get top-scoring candidates across all jobs.
+
+    Args:
+        limit: Maximum number of candidates to return
+        min_score: Minimum score threshold
+    """
+    job_repo = get_job_repo()
+    analytics_repo = get_analytics_repo()
+    candidate_repo = get_candidate_repo()
+    interview_repo = get_interview_repo()
+
+    top_candidates: List[TopCandidate] = []
+
+    # Get all analytics
+    try:
+        all_analytics = analytics_repo.list_all_sync()
+    except Exception:
+        all_analytics = []
+
+    # Filter and sort by score
+    filtered = [a for a in all_analytics if a.overall_score >= min_score]
+    sorted_analytics = sorted(filtered, key=lambda a: a.overall_score, reverse=True)
+
+    # Build top candidates list
+    seen_candidates = set()  # Avoid duplicates
+
+    for analytics in sorted_analytics:
+        if len(top_candidates) >= limit:
+            break
+
+        try:
+            # Get interview to find candidate
+            interview = interview_repo.get_by_id_sync(analytics.interview_id)
+            if not interview:
+                continue
+
+            candidate_id = str(interview.candidate_id)
+            if candidate_id in seen_candidates:
+                continue
+            seen_candidates.add(candidate_id)
+
+            # Get candidate details
+            candidate = candidate_repo.get_by_id_sync(interview.candidate_id)
+            if not candidate:
+                continue
+
+            # Get job details
+            job = job_repo.get_by_id_sync(candidate.job_id)
+
+            rec = analytics.recommendation
+            recommendation = rec.value if hasattr(rec, 'value') else str(rec)
+
+            top_candidates.append(TopCandidate(
+                candidate_id=candidate_id,
+                candidate_name=candidate.person_name,
+                job_id=str(candidate.job_id),
+                job_title=job.title if job else None,
+                score=analytics.overall_score,
+                recommendation=recommendation,
+                interview_date=interview.ended_at.isoformat() if interview.ended_at else None,
+            ))
+        except Exception:
+            continue
+
+    return TopCandidatesResponse(
+        candidates=top_candidates,
+        total=len(top_candidates),
+    )
+
+
+@router.get("/job/{job_id}/summary")
+async def get_job_dashboard_summary(job_id: UUID):
+    """
+    Get detailed dashboard summary for a specific job.
+
+    Includes candidate breakdown, interview stats, and analytics summary.
+    """
+    job_repo = get_job_repo()
+    candidate_repo = get_candidate_repo()
+    interview_repo = get_interview_repo()
+    analytics_repo = get_analytics_repo()
+
+    # Verify job exists
+    job = job_repo.get_by_id_sync(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    # Get candidates
+    try:
+        candidates = candidate_repo.list_by_job_sync(job_id)
+    except Exception:
+        candidates = []
+
+    # Calculate candidate stats
+    status_counts = {
+        "pending": 0,
+        "in_progress": 0,
+        "completed": 0,
+    }
+
+    for candidate in candidates:
+        status = candidate.interview_status
+        if status in status_counts:
+            status_counts[status] += 1
+
+    # Get interview stats
+    total_interviews = 0
+    completed_interviews = 0
+    total_duration = 0
+
+    for candidate in candidates:
+        interviews = interview_repo.list_by_candidate_sync(candidate.id)
+        total_interviews += len(interviews)
+        for interview in interviews:
+            if interview.status.value == "completed":
+                completed_interviews += 1
+                if interview.duration_seconds:
+                    total_duration += interview.duration_seconds
+
+    avg_duration = total_duration // completed_interviews if completed_interviews > 0 else 0
+
+    # Get analytics stats
+    recommendation_counts = {
+        "strong_hire": 0,
+        "hire": 0,
+        "maybe": 0,
+        "no_hire": 0,
+    }
+    total_score = 0.0
+    score_count = 0
+
+    try:
+        job_analytics = analytics_repo.list_by_job_sync(job_id)
+        for analytics in job_analytics:
+            score_count += 1
+            total_score += analytics.overall_score
+
+            rec = analytics.recommendation
+            rec_value = rec.value if hasattr(rec, 'value') else str(rec)
+            if rec_value in recommendation_counts:
+                recommendation_counts[rec_value] += 1
+    except Exception:
+        job_analytics = []
+
+    avg_score = round(total_score / score_count, 1) if score_count > 0 else 0.0
+
+    return {
+        "job_id": str(job_id),
+        "job_title": job.title,
+        "job_status": job.status,
+        "candidate_stats": {
+            "total": len(candidates),
+            "pending": status_counts["pending"],
+            "in_progress": status_counts["in_progress"],
+            "completed": status_counts["completed"],
+        },
+        "interview_stats": {
+            "total": total_interviews,
+            "completed": completed_interviews,
+            "avg_duration_seconds": avg_duration,
+            "avg_duration_minutes": round(avg_duration / 60, 1) if avg_duration > 0 else 0,
+        },
+        "analytics_stats": {
+            "total_evaluated": score_count,
+            "avg_score": avg_score,
+            "recommendations": recommendation_counts,
+        },
+    }

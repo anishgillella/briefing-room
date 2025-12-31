@@ -161,15 +161,15 @@ Previously, the system had a **decoupled flow**:
 
 ## Implementation Phases
 
-| Phase | Document | Scope |
-|-------|----------|-------|
-| 1 | [phase1-data-models.md](./phase1-data-models.md) | Define Person, Job, Candidate, Interview, Analytics models |
-| 2 | [phase2-job-management.md](./phase2-job-management.md) | Job CRUD API and job selection UI |
-| 3 | [phase3-jd-voice-agent.md](./phase3-jd-voice-agent.md) | Voice agent for JD extraction and enrichment |
-| 4 | [phase4-candidate-upload.md](./phase4-candidate-upload.md) | CSV upload linked to selected job |
-| 5 | [phase5-interview-flow.md](./phase5-interview-flow.md) | Interview agent with full job context |
-| 6 | [phase6-analytics.md](./phase6-analytics.md) | Analytics with job-specific scoring |
-| 7 | [phase7-recruiter-dashboard.md](./phase7-recruiter-dashboard.md) | Multi-job dashboard and reporting |
+| Phase | Document | Status | Scope |
+|-------|----------|--------|-------|
+| 1 | [phase1-data-models.md](./phase1-data-models.md) | **COMPLETE** | Define Person, Job, Candidate, Interview, Analytics models |
+| 2 | [phase2-job-management.md](./phase2-job-management.md) | **COMPLETE** | Job CRUD API and job selection UI |
+| 3 | [phase3-jd-voice-agent.md](./phase3-jd-voice-agent.md) | **COMPLETE** | Voice agent for JD extraction and enrichment (Vapi) |
+| 4 | [phase4-candidate-upload.md](./phase4-candidate-upload.md) | **COMPLETE** | CSV upload linked to selected job |
+| 5 | [phase5-interview-flow.md](./phase5-interview-flow.md) | **COMPLETE** | Interview agent with full job context (Vapi) |
+| 6 | [phase6-analytics.md](./phase6-analytics.md) | **COMPLETE** | Analytics with job-specific scoring |
+| 7 | [phase7-recruiter-dashboard.md](./phase7-recruiter-dashboard.md) | **COMPLETE** | Multi-job dashboard and reporting |
 
 ## Migration Strategy
 
@@ -185,5 +185,5 @@ Existing candidates and data will need to be migrated:
 | Database | Supabase PostgreSQL (existing) |
 | Backend | FastAPI (existing) |
 | Frontend | Next.js + Tailwind (existing) |
-| Voice Agent | LiveKit Agents SDK (existing) |
-| LLM | OpenRouter / Gemini (existing) |
+| Voice Agent | Vapi (existing) |
+| LLM | OpenRouter / Gemini 2.5 Flash (existing) |

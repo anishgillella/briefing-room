@@ -77,8 +77,9 @@ class InterviewRepository:
 
     async def get_by_id(self, interview_id: UUID) -> Optional[Interview]:
         """Get an interview by ID with joined data."""
+        # Use explicit relationship name to avoid ambiguity
         result = self.client.table(self.table)\
-            .select("*, candidates(name, job_posting_id, job_postings(title))")\
+            .select("*, candidates!fk_interviews_candidate(name, job_posting_id, job_postings(title))")\
             .eq("id", str(interview_id))\
             .execute()
 
@@ -89,8 +90,9 @@ class InterviewRepository:
 
     def get_by_id_sync(self, interview_id: UUID) -> Optional[Interview]:
         """Synchronous version of get_by_id."""
+        # Use explicit relationship name to avoid ambiguity
         result = self.client.table(self.table)\
-            .select("*, candidates(name, job_posting_id, job_postings(title))")\
+            .select("*, candidates!fk_interviews_candidate(name, job_posting_id, job_postings(title))")\
             .eq("id", str(interview_id))\
             .execute()
 
@@ -121,8 +123,9 @@ class InterviewRepository:
 
     async def list_by_job(self, job_id: UUID) -> List[Interview]:
         """List all interviews for a job."""
+        # Use explicit relationship name to avoid ambiguity
         result = self.client.table(self.table)\
-            .select("*, candidates(name)")\
+            .select("*, candidates!fk_interviews_candidate(name)")\
             .eq("job_posting_id", str(job_id))\
             .order("created_at", desc=True)\
             .execute()
@@ -131,8 +134,9 @@ class InterviewRepository:
 
     def list_by_job_sync(self, job_id: UUID) -> List[Interview]:
         """Synchronous version of list_by_job."""
+        # Use explicit relationship name to avoid ambiguity
         result = self.client.table(self.table)\
-            .select("*, candidates(name)")\
+            .select("*, candidates!fk_interviews_candidate(name)")\
             .eq("job_posting_id", str(job_id))\
             .order("created_at", desc=True)\
             .execute()
@@ -163,6 +167,16 @@ class InterviewRepository:
                     InterviewSessionStatus.FAILED: "cancelled",
                 }
                 update_data["status"] = status_map.get(status, "scheduled")
+
+        # Serialize datetime objects to ISO format strings
+        if "started_at" in update_data and update_data["started_at"]:
+            update_data["started_at"] = update_data["started_at"].isoformat()
+        if "ended_at" in update_data and update_data["ended_at"]:
+            update_data["ended_at"] = update_data["ended_at"].isoformat()
+
+        # Map model field names to database column names
+        if "duration_seconds" in update_data:
+            update_data["duration_sec"] = update_data.pop("duration_seconds")
 
         result = self.client.table(self.table)\
             .update(update_data)\
@@ -196,6 +210,16 @@ class InterviewRepository:
                     InterviewSessionStatus.FAILED: "cancelled",
                 }
                 update_data["status"] = status_map.get(status, "scheduled")
+
+        # Serialize datetime objects to ISO format strings
+        if "started_at" in update_data and update_data["started_at"]:
+            update_data["started_at"] = update_data["started_at"].isoformat()
+        if "ended_at" in update_data and update_data["ended_at"]:
+            update_data["ended_at"] = update_data["ended_at"].isoformat()
+
+        # Map model field names to database column names
+        if "duration_seconds" in update_data:
+            update_data["duration_sec"] = update_data.pop("duration_seconds")
 
         result = self.client.table(self.table)\
             .update(update_data)\
