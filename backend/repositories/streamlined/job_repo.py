@@ -58,6 +58,10 @@ class JobRepository:
             "updated_at": datetime.utcnow().isoformat(),
         }
 
+        # Add recruiter_id if provided
+        if job_data.recruiter_id:
+            data["recruiter_id"] = str(job_data.recruiter_id)
+
         result = self.client.table(self.table).insert(data).execute()
 
         if not result.data:
@@ -136,12 +140,15 @@ class JobRepository:
 
         return jobs
 
-    def list_all_sync(self, status: Optional[str] = None) -> List[Job]:
+    def list_all_sync(self, status: Optional[str] = None, recruiter_id: Optional[UUID] = None) -> List[Job]:
         """Synchronous version of list_all."""
         query = self.client.table(self.table).select("*")
 
         if status:
             query = query.eq("status", status)
+
+        if recruiter_id:
+            query = query.eq("recruiter_id", str(recruiter_id))
 
         result = query.order("created_at", desc=True).execute()
 
@@ -283,6 +290,10 @@ class JobRepository:
         if "raw_description" in update_data:
             update_data["description"] = update_data.pop("raw_description")
 
+        # Convert recruiter_id UUID to string
+        if "recruiter_id" in update_data and update_data["recruiter_id"]:
+            update_data["recruiter_id"] = str(update_data["recruiter_id"])
+
         return update_data
 
     def _parse_job(self, data: dict) -> Job:
@@ -293,6 +304,7 @@ class JobRepository:
             "title": data.get("title", ""),
             "raw_description": data.get("description", ""),
             "status": data.get("status", "draft"),
+            "recruiter_id": data.get("recruiter_id"),
             "created_at": data.get("created_at"),
             "updated_at": data.get("updated_at"),
             "red_flags": data.get("red_flags", []) or [],

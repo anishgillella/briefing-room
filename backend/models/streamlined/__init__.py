@@ -76,6 +76,16 @@ from .analytics import (
     Recommendation,
 )
 
+# Recruiter models
+from .recruiter import (
+    Recruiter,
+    RecruiterBase,
+    RecruiterCreate,
+    RecruiterUpdate,
+    RecruiterSummary,
+    RecruiterStats,
+)
+
 __all__ = [
     # Person
     "Person",
@@ -121,4 +131,11 @@ __all__ = [
     "MustHaveAssessment",
     "RedFlagDetection",
     "Recommendation",
+    # Recruiter
+    "Recruiter",
+    "RecruiterBase",
+    "RecruiterCreate",
+    "RecruiterUpdate",
+    "RecruiterSummary",
+    "RecruiterStats",
 ]
