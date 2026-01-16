@@ -128,6 +128,7 @@ class JobBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=255, description="Job title")
     raw_description: str = Field(..., min_length=1, description="Full job description text")
     status: JobStatus = Field(default=JobStatus.DRAFT, description="Job status")
+    recruiter_id: Optional[UUID] = Field(None, description="ID of the recruiter who owns this job")
 
 
 class JobCreate(JobBase):
@@ -140,6 +141,7 @@ class JobUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=255)
     raw_description: Optional[str] = Field(None, min_length=1)
     status: Optional[JobStatus] = None
+    recruiter_id: Optional[UUID] = None
     extracted_requirements: Optional[ExtractedRequirements] = None
     company_context: Optional[CompanyContext] = None
     scoring_criteria: Optional[ScoringCriteria] = None
@@ -175,6 +177,7 @@ class Job(JobBase):
     # Computed fields (populated by queries)
     candidate_count: int = Field(default=0, description="Number of candidates")
     interviewed_count: int = Field(default=0, description="Number interviewed")
+    recruiter_name: Optional[str] = Field(None, description="Name of the recruiter who owns this job")
 
     class Config:
         from_attributes = True

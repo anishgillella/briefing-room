@@ -69,18 +69,21 @@ async def create_job(
 @router.get("/", response_model=List[Job])
 async def list_jobs(
     status: Optional[str] = None,
+    recruiter_id: Optional[str] = None,
 ) -> List[Job]:
     """
-    List all jobs, optionally filtered by status.
+    List all jobs, optionally filtered by status and/or recruiter.
 
     Args:
         status: Optional filter - one of 'draft', 'active', 'paused', 'closed'
+        recruiter_id: Optional filter - UUID of the recruiter
 
     Returns:
         List of jobs with candidate counts
     """
     repo = get_job_repo()
-    jobs = repo.list_all_sync(status=status)
+    recruiter_uuid = UUID(recruiter_id) if recruiter_id else None
+    jobs = repo.list_all_sync(status=status, recruiter_id=recruiter_uuid)
     return jobs
 
 
