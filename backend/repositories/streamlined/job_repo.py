@@ -3,6 +3,8 @@ Job Repository - Database operations for Job entities.
 
 Handles CRUD operations for jobs including their extracted requirements,
 company context, and scoring criteria.
+
+Phase 4: Organization scoping - All queries filtered by organization_id.
 """
 
 from typing import List, Optional
@@ -22,6 +24,180 @@ class JobRepository:
     def __init__(self):
         self.client = get_db()
         self.table = "job_postings"
+
+    # =========================================================================
+    # Organization-Scoped Methods (Phase 4)
+    # =========================================================================
+
+    def list_all_for_org_sync(
+        self,
+        organization_id: UUID,
+        status: Optional[str] = None,
+        recruiter_id: Optional[UUID] = None
+    ) -> List[Job]:
+        """
+        List all jobs for an organization.
+
+        Args:
+            organization_id: UUID of the organization
+            status: Optional status filter
+            recruiter_id: Optional recruiter filter
+
+        Returns:
+            List of jobs belonging to the organization
+        """
+        query = self.client.table(self.table)\
+            .select("*")\
+            .eq("organization_id", str(organization_id))
+
+        if status:
+            query = query.eq("status", status)
+
+        if recruiter_id:
+            query = query.eq("recruiter_id", str(recruiter_id))
+
+        result = query.order("created_at", desc=True).execute()
+
+        jobs = []
+        for job_data in result.data:
+            job = self._parse_job(job_data)
+            job.candidate_count = self._get_candidate_count_sync(job.id)
+            job.interviewed_count = self._get_interviewed_count_sync(job.id)
+            jobs.append(job)
+
+        return jobs
+
+    def get_by_id_for_org_sync(
+        self,
+        job_id: UUID,
+        organization_id: UUID
+    ) -> Optional[Job]:
+        """
+        Get a job by ID, verifying it belongs to the organization.
+
+        Args:
+            job_id: UUID of the job
+            organization_id: UUID of the organization
+
+        Returns:
+            Job if found and belongs to org, None otherwise
+        """
+        result = self.client.table(self.table)\
+            .select("*")\
+            .eq("id", str(job_id))\
+            .eq("organization_id", str(organization_id))\
+            .execute()
+
+        if not result.data:
+            return None
+
+        job = self._parse_job(result.data[0])
+        job.candidate_count = self._get_candidate_count_sync(job_id)
+        job.interviewed_count = self._get_interviewed_count_sync(job_id)
+
+        return job
+
+    def create_for_org_sync(
+        self,
+        job_data: JobCreate,
+        organization_id: UUID,
+        created_by_recruiter_id: UUID
+    ) -> Job:
+        """
+        Create a job within an organization.
+
+        Args:
+            job_data: JobCreate model with title, description, status
+            organization_id: UUID of the organization
+            created_by_recruiter_id: UUID of the creating recruiter
+
+        Returns:
+            Created Job with generated ID and timestamps
+        """
+        data = {
+            "title": job_data.title,
+            "description": job_data.raw_description,
+            "status": job_data.status.value if isinstance(job_data.status, JobStatus) else job_data.status,
+            "organization_id": str(organization_id),
+            "recruiter_id": str(created_by_recruiter_id),
+            "created_at": datetime.utcnow().isoformat(),
+            "updated_at": datetime.utcnow().isoformat(),
+        }
+
+        result = self.client.table(self.table).insert(data).execute()
+
+        if not result.data:
+            raise Exception("Failed to create job")
+
+        return self._parse_job(result.data[0])
+
+    def update_for_org_sync(
+        self,
+        job_id: UUID,
+        organization_id: UUID,
+        job_update: JobUpdate
+    ) -> Optional[Job]:
+        """
+        Update a job, verifying it belongs to the organization.
+
+        Args:
+            job_id: UUID of the job
+            organization_id: UUID of the organization
+            job_update: JobUpdate model with fields to update
+
+        Returns:
+            Updated Job if found and belongs to org, None otherwise
+        """
+        # First verify access
+        existing = self.get_by_id_for_org_sync(job_id, organization_id)
+        if not existing:
+            return None
+
+        update_data = self._prepare_update_data(job_update)
+
+        if not update_data:
+            return existing
+
+        update_data["updated_at"] = datetime.utcnow().isoformat()
+
+        result = self.client.table(self.table)\
+            .update(update_data)\
+            .eq("id", str(job_id))\
+            .eq("organization_id", str(organization_id))\
+            .execute()
+
+        if not result.data:
+            return None
+
+        return self._parse_job(result.data[0])
+
+    def delete_for_org_sync(self, job_id: UUID, organization_id: UUID) -> bool:
+        """
+        Delete a job, verifying it belongs to the organization.
+
+        Args:
+            job_id: UUID of the job
+            organization_id: UUID of the organization
+
+        Returns:
+            True if deleted, False if not found or doesn't belong to org
+        """
+        # First verify access
+        existing = self.get_by_id_for_org_sync(job_id, organization_id)
+        if not existing:
+            return False
+
+        result = self.client.table(self.table)\
+            .delete()\
+            .eq("id", str(job_id))\
+            .eq("organization_id", str(organization_id))\
+            .execute()
+
+        return len(result.data) > 0
+
+    # =========================================================================
+    # Original Methods (kept for backward compatibility / internal use)
+    # =========================================================================
 
     async def create(self, job_data: JobCreate) -> Job:
         """

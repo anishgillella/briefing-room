@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { RecruiterProvider } from "@/contexts/RecruiterContext";
 
 const inter = Inter({
@@ -21,9 +22,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} antialiased`}>
-        <RecruiterProvider>
-          {children}
-        </RecruiterProvider>
+        <AuthProvider>
+          <RecruiterProvider>
+            {children}
+          </RecruiterProvider>
+        </AuthProvider>
       </body>
     </html>
   );

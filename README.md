@@ -41,7 +41,8 @@ Let's make those minutes collaborative, calm, and effective.
 | **UI Components** | shadcn/ui + Tailwind CSS | Premium component library |
 | **Video** | Daily.co | WebRTC video conferencing |
 | **Voice (Briefing)** | Vapi | Pre-interview voice AI assistant |
-| **Voice (Candidate)** | OpenAI Realtime API | Real-time AI candidate simulation |
+| **Voice (Candidate)** | LiveKit + Deepgram + OpenRouter | Real-time AI candidate simulation |
+| **Database** | Supabase (PostgreSQL) | Persistent storage |
 | **Backend** | FastAPI (Python) | REST API server |
 | **AI Models** | OpenRouter (Gemini 2.5 Flash) | Text generation and analysis |
 | **Charts** | Recharts | Data visualization |
@@ -57,6 +58,7 @@ Let's make those minutes collaborative, calm, and effective.
 # Required
 Node.js 18+ and npm
 Python 3.12+
+Supabase account (for database)
 ```
 
 ### Installation
@@ -64,7 +66,7 @@ Python 3.12+
 ```bash
 # 1. Clone the repository
 git clone <repo-url>
-cd Superposition
+cd nuuk-v1
 
 # 2. Backend setup
 cd backend
@@ -77,36 +79,78 @@ cd ../frontend
 npm install
 ```
 
+### Database Setup (Supabase)
+
+1. Create a new project at [supabase.com](https://supabase.com)
+2. Go to **SQL Editor** in your Supabase dashboard
+3. Run the consolidated migration script:
+
+```bash
+# Copy and paste the contents of this file into Supabase SQL Editor:
+backend/db/migrations/000_full_schema.sql
+```
+
+This creates all required tables:
+- `recruiters` - Recruiter/hiring manager info
+- `job_postings` - Job listings with scoring config
+- `persons` - Individual people (for deduplication)
+- `candidates` - Job applicants linked to jobs
+- `hiring_managers` - Interviewers and managers
+- `interviews` - Interview sessions
+- `analytics` - Interview analysis/scoring
+- `transcripts` - Interview transcripts
+- `rooms` - LiveKit interview rooms
+- `job_profiles` - Voice ingest job profiles
+
+The migration also:
+- Disables Row Level Security (RLS) for development
+- Grants permissions to all Supabase roles
+- Seeds sample hiring managers and benchmarks
+
 ### Environment Variables
+
+Create `.env` in the **project root** directory:
+
+```bash
+# Supabase Configuration (Required)
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+SUPABASE_ANON_KEY=your_anon_key
+
+# OpenRouter Configuration (Required)
+OPENROUTER_API_KEY=your_openrouter_api_key
+
+# LiveKit Configuration (Required for voice interviews)
+LIVEKIT_URL=wss://your-livekit-server.livekit.cloud
+LIVEKIT_API_KEY=your_livekit_api_key
+LIVEKIT_API_SECRET=your_livekit_api_secret
+
+# Deepgram Configuration (Required for voice interviews)
+DEEPGRAM_API_KEY=your_deepgram_api_key
+
+# Vapi Configuration (Optional - for voice briefing)
+VAPI_API_KEY=your_vapi_api_key
+VAPI_PUBLIC_KEY=your_vapi_public_key
+
+# ElevenLabs Configuration (Optional - fallback TTS)
+ELEVENLABS_API_KEY=your_elevenlabs_api_key
+
+# CORS (Optional - defaults to localhost:3000)
+CORS_ORIGINS=http://localhost:3000
+
+# Authentication (Required for auth features)
+JWT_SECRET=your-super-secret-jwt-key-change-this
+```
 
 Create `.env.local` in the `frontend` directory:
 
 ```bash
-# Daily.co Configuration (Required)
-NEXT_PUBLIC_DAILY_API_KEY=your_daily_api_key
-
 # Backend API (Required)
 NEXT_PUBLIC_API_URL=http://localhost:8000
 
 # Vapi Configuration (Optional - for voice briefing)
 NEXT_PUBLIC_VAPI_WEB_KEY=your_vapi_public_key
-NEXT_PUBLIC_VAPI_BRIEFING_ASSISTANT_ID=your_assistant_id  # Optional
-
-# OpenAI Configuration (Optional - for AI candidate)
-NEXT_PUBLIC_OPENAI_API_KEY=your_openai_api_key
-```
-
-Create `.env` in the `backend` directory:
-
-```bash
-# Daily.co Configuration (Required)
-DAILY_API_KEY=your_daily_api_key
-
-# OpenRouter Configuration (Required)
-OPENROUTER_API_KEY=your_openrouter_api_key
-
-# CORS (Optional - defaults to localhost:3000)
-CORS_ORIGINS=http://localhost:3000
+NEXT_PUBLIC_VAPI_BRIEFING_ASSISTANT_ID=your_assistant_id
 ```
 
 ### Running Locally
@@ -123,6 +167,30 @@ cd frontend
 npm run dev
 # Frontend runs on http://localhost:3000
 ```
+
+### Start Voice Interview (AI as Candidate)
+
+To practice interviewing with the AI playing the role of a candidate:
+
+```bash
+# Terminal 1: Start backend (if not already running)
+cd backend
+source venv/bin/activate
+uvicorn main:app --reload
+
+# Terminal 2: Start the LiveKit Interview Agent
+cd backend
+source venv/bin/activate
+python interview_agent.py dev
+
+# Terminal 3: Start frontend (if not already running)
+cd frontend
+npm run dev
+```
+
+Then open your browser to `http://localhost:3000/candidates/{candidate_id}/interview`.
+
+The AI candidate will respond in real-time using voice, simulating a realistic interview experience. The system uses LiveKit for real-time audio and captures full transcripts for post-interview analytics.
 
 ---
 
@@ -211,10 +279,10 @@ Simpler but less secure (query params can be guessed).
 **Reason**: 128K token context window handles even long interviews (30-90 min). Most interviews stay well under this limit  
 **Tradeoff**: Perfect balance of cost, latency, context size, and intelligence for interview analysis
 
-### 5. In-Memory Single-Session Storage
-**Decision**: Use in-memory dict for briefing/debrief data (single interview instance)  
-**Reason**: Time constraint - focused on core experience over persistence  
-**Tradeoff**: Data lost on server restart; interviews are independent of each other. Production would use Supabase for cross-interview analytics
+### 5. Supabase for Persistence
+**Decision**: Use Supabase (PostgreSQL) for all persistent data
+**Reason**: Full-featured database with real-time capabilities, authentication-ready, and excellent developer experience
+**Benefit**: Interview history, candidate tracking, and analytics persist across sessions
 
 ---
 
@@ -251,13 +319,13 @@ This project is a **foundation for something much bigger**. Here's how a single 
 
 ## Future Improvements
 
-### With 2 More Days
+### Planned Features
 
-1. **Persistent Storage**: Migrate to Supabase for interview history
-2. **"Copy as Markdown" Debrief**: One-click copy debrief for Slack/email sharing, Browse past interviews, compare candidates
-3. **Team Collaboration**: Share debriefs with hiring team on different channels, add comments
-4. **Structured Scorecards**: Force ratings on specific competencies (creates training data)
-5. **Evidence Linking**: Every rating must link to a transcript moment
+1. **"Copy as Markdown" Debrief**: One-click copy debrief for Slack/email sharing
+2. **Team Collaboration**: Share debriefs with hiring team on different channels, add comments
+3. **Structured Scorecards**: Force ratings on specific competencies (creates training data)
+4. **Evidence Linking**: Every rating must link to a transcript moment
+5. **Candidate Warm-Up Mode**: AI-guided candidate preparation before interviews
 
 
 ### Technical Debt

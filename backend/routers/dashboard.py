@@ -3,9 +3,11 @@ Phase 7: Recruiter Dashboard API
 
 Provides high-level statistics and summaries for the recruiter dashboard,
 including job summaries, pipeline funnel, recent activity, and top candidates.
+
+Phase 4 Multi-tenancy: Organization-scoped queries with authentication.
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 from uuid import UUID
@@ -15,6 +17,8 @@ from repositories.streamlined.job_repo import JobRepository
 from repositories.streamlined.candidate_repo import CandidateRepository
 from repositories.streamlined.interview_repo import InterviewRepository
 from repositories.streamlined.analytics_repo import AnalyticsRepository
+from middleware.auth_middleware import get_current_user
+from models.auth import CurrentUser
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 
@@ -122,9 +126,11 @@ def get_analytics_repo() -> AnalyticsRepository:
 # =============================================================================
 
 @router.get("/stats", response_model=DashboardStats)
-async def get_dashboard_stats() -> DashboardStats:
+async def get_dashboard_stats(
+    current_user: CurrentUser = Depends(get_current_user),
+) -> DashboardStats:
     """
-    Get high-level dashboard statistics.
+    Get high-level dashboard statistics for the authenticated user's organization.
 
     Returns counts of jobs, candidates, interviews, and analytics summaries.
     """
@@ -133,8 +139,8 @@ async def get_dashboard_stats() -> DashboardStats:
     interview_repo = get_interview_repo()
     analytics_repo = get_analytics_repo()
 
-    # Get all jobs
-    all_jobs = job_repo.list_all_sync()
+    # Get all jobs for the user's organization
+    all_jobs = job_repo.list_all_for_org_sync(current_user.organization_id)
     active_jobs = [j for j in all_jobs if j.status == "active"]
 
     # Count candidates and interviews across all jobs
@@ -197,9 +203,10 @@ async def get_dashboard_stats() -> DashboardStats:
 async def get_jobs_summary(
     limit: int = 5,
     status: Optional[str] = None,
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> JobsSummaryResponse:
     """
-    Get summary of jobs for dashboard display.
+    Get summary of jobs for dashboard display (organization-scoped).
 
     Args:
         limit: Maximum number of jobs to return (default 5)
@@ -209,8 +216,8 @@ async def get_jobs_summary(
     candidate_repo = get_candidate_repo()
     analytics_repo = get_analytics_repo()
 
-    # Get jobs
-    all_jobs = job_repo.list_all_sync()
+    # Get jobs for the user's organization
+    all_jobs = job_repo.list_all_for_org_sync(current_user.organization_id)
 
     # Filter by status if provided
     if status:
@@ -264,9 +271,11 @@ async def get_jobs_summary(
 
 
 @router.get("/pipeline", response_model=PipelineStats)
-async def get_pipeline_stats() -> PipelineStats:
+async def get_pipeline_stats(
+    current_user: CurrentUser = Depends(get_current_user),
+) -> PipelineStats:
     """
-    Get pipeline funnel statistics across all jobs.
+    Get pipeline funnel statistics for the user's organization.
 
     Shows candidate distribution across interview stages and recommendations.
     """
@@ -285,8 +294,8 @@ async def get_pipeline_stats() -> PipelineStats:
         "no_hire": 0,
     }
 
-    # Get all jobs and their candidates
-    all_jobs = job_repo.list_all_sync()
+    # Get all jobs for the user's organization
+    all_jobs = job_repo.list_all_for_org_sync(current_user.organization_id)
 
     for job in all_jobs:
         try:
@@ -337,9 +346,10 @@ async def get_pipeline_stats() -> PipelineStats:
 async def get_recent_activity(
     limit: int = 10,
     days: int = 7,
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> RecentActivityResponse:
     """
-    Get recent activity (completed interviews with analytics).
+    Get recent activity for the user's organization (completed interviews with analytics).
 
     Args:
         limit: Maximum number of activities to return
@@ -353,8 +363,8 @@ async def get_recent_activity(
     activities: List[ActivityItem] = []
     cutoff_date = datetime.utcnow() - timedelta(days=days)
 
-    # Get all jobs and find recent interviews
-    all_jobs = job_repo.list_all_sync()
+    # Get all jobs for the user's organization
+    all_jobs = job_repo.list_all_for_org_sync(current_user.organization_id)
 
     all_interviews = []
     for job in all_jobs:
@@ -440,9 +450,10 @@ async def get_recent_activity(
 async def get_top_candidates(
     limit: int = 10,
     min_score: float = 0,
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> TopCandidatesResponse:
     """
-    Get top-scoring candidates across all jobs.
+    Get top-scoring candidates for the user's organization.
 
     Args:
         limit: Maximum number of candidates to return
@@ -455,7 +466,11 @@ async def get_top_candidates(
 
     top_candidates: List[TopCandidate] = []
 
-    # Get all analytics
+    # Get organization's job IDs for filtering
+    org_jobs = job_repo.list_all_for_org_sync(current_user.organization_id)
+    org_job_ids = {str(j.id) for j in org_jobs}
+
+    # Get all analytics (we'll filter by org below)
     try:
         all_analytics = analytics_repo.list_all_sync()
     except Exception:
@@ -481,14 +496,19 @@ async def get_top_candidates(
             candidate_id = str(interview.candidate_id)
             if candidate_id in seen_candidates:
                 continue
-            seen_candidates.add(candidate_id)
 
             # Get candidate details
             candidate = candidate_repo.get_by_id_sync(interview.candidate_id)
             if not candidate:
                 continue
 
-            # Get job details
+            # Filter by organization - only include candidates from org's jobs
+            if str(candidate.job_id) not in org_job_ids:
+                continue
+
+            seen_candidates.add(candidate_id)
+
+            # Get job details (already verified it's in org)
             job = job_repo.get_by_id_sync(candidate.job_id)
 
             rec = analytics.recommendation
@@ -513,9 +533,12 @@ async def get_top_candidates(
 
 
 @router.get("/job/{job_id}/summary")
-async def get_job_dashboard_summary(job_id: UUID):
+async def get_job_dashboard_summary(
+    job_id: UUID,
+    current_user: CurrentUser = Depends(get_current_user),
+):
     """
-    Get detailed dashboard summary for a specific job.
+    Get detailed dashboard summary for a specific job (must belong to user's org).
 
     Includes candidate breakdown, interview stats, and analytics summary.
     """
@@ -524,8 +547,8 @@ async def get_job_dashboard_summary(job_id: UUID):
     interview_repo = get_interview_repo()
     analytics_repo = get_analytics_repo()
 
-    # Verify job exists
-    job = job_repo.get_by_id_sync(job_id)
+    # Verify job exists and belongs to user's organization
+    job = job_repo.get_by_id_for_org_sync(job_id, current_user.organization_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
 
