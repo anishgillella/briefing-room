@@ -43,6 +43,10 @@ class InterviewCreate(InterviewBase):
         None,
         description="When the interview is scheduled"
     )
+    conducted_by_recruiter_id: Optional[UUID] = Field(
+        None,
+        description="Recruiter who conducted/is conducting this interview"
+    )
 
 
 class InterviewUpdate(BaseModel):
@@ -55,6 +59,7 @@ class InterviewUpdate(BaseModel):
     room_name: Optional[str] = None
     room_url: Optional[str] = None
     notes: Optional[str] = None
+    conducted_by_recruiter_id: Optional[UUID] = None
 
 
 class Interview(InterviewBase):
@@ -98,6 +103,12 @@ class Interview(InterviewBase):
     notes: Optional[str] = Field(
         None,
         description="Interviewer notes"
+    )
+
+    # Recruiter tracking (Phase 5)
+    conducted_by_recruiter_id: Optional[UUID] = Field(
+        None,
+        description="Recruiter who conducted this interview"
     )
 
     # Metadata

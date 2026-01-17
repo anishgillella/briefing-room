@@ -2,10 +2,10 @@
 Recruiters Router - API endpoints for recruiter management.
 
 Handles CRUD operations for recruiters and their performance metrics.
-Simple mode: No real authentication, just a selector dropdown.
+Phase 5 Multi-tenancy: Organization-scoped queries with authentication.
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from typing import List, Optional
 from uuid import UUID
 
@@ -13,7 +13,9 @@ from models.streamlined.recruiter import (
     Recruiter, RecruiterCreate, RecruiterUpdate,
     RecruiterSummary, RecruiterStats
 )
+from models.auth import CurrentUser
 from repositories.streamlined.recruiter_repo import RecruiterRepository
+from middleware.auth_middleware import get_current_user
 
 router = APIRouter(prefix="/api/recruiters", tags=["recruiters"])
 
@@ -21,6 +23,36 @@ router = APIRouter(prefix="/api/recruiters", tags=["recruiters"])
 def get_recruiter_repo() -> RecruiterRepository:
     """Dependency for getting RecruiterRepository instance."""
     return RecruiterRepository()
+
+
+# =============================================================================
+# Phase 5: Authenticated Recruiter Endpoints
+# =============================================================================
+
+@router.get("/me/stats", response_model=RecruiterStats)
+async def get_my_stats(
+    current_user: CurrentUser = Depends(get_current_user),
+) -> RecruiterStats:
+    """
+    Get the current authenticated recruiter's performance statistics.
+
+    Returns comprehensive stats including:
+    - Jobs created
+    - Interviews conducted
+    - Hiring outcomes (strong_hire, hire, maybe, no_hire)
+    - Performance metrics (avg score, hire rate)
+    """
+    repo = get_recruiter_repo()
+    stats = repo.get_stats_sync(current_user.recruiter_id)
+
+    if not stats:
+        # Return empty stats for new recruiter
+        return RecruiterStats(
+            recruiter_id=current_user.recruiter_id,
+            recruiter_name=current_user.name,
+        )
+
+    return stats
 
 
 @router.post("/", response_model=Recruiter)

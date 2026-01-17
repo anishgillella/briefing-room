@@ -6,9 +6,10 @@ updating, and deletion with JD extraction.
 
 Phase 3: Job enrichment via Vapi voice agent
 Phase 4: Candidate CSV upload with resume processing
+Phase 4 Multi-tenancy: Organization-scoped queries with authentication
 """
 
-from fastapi import APIRouter, HTTPException, BackgroundTasks, UploadFile, File
+from fastapi import APIRouter, HTTPException, BackgroundTasks, UploadFile, File, Depends
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from uuid import UUID
@@ -22,10 +23,12 @@ from models.streamlined.job import (
 )
 from models.streamlined.person import PersonCreate
 from models.streamlined.candidate import CandidateCreate
+from models.auth import CurrentUser
 from repositories.streamlined.job_repo import JobRepository
 from repositories.streamlined.person_repo import PersonRepository
 from repositories.streamlined.candidate_repo import CandidateRepository
 from services.jd_extractor import trigger_jd_extraction_for_job
+from middleware.auth_middleware import get_current_user, get_optional_user
 from config import VAPI_PUBLIC_KEY, VAPI_ASSISTANT_ID, LLM_MODEL
 
 logger = logging.getLogger(__name__)
@@ -42,18 +45,23 @@ def get_job_repo() -> JobRepository:
 async def create_job(
     job_data: JobCreate,
     background_tasks: BackgroundTasks,
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> Job:
     """
-    Create a new job.
+    Create a new job in the authenticated user's organization.
 
-    1. Saves the raw job description
+    1. Saves the raw job description with organization_id
     2. Triggers AI extraction of requirements (async)
     3. Returns the job with status 'draft'
     """
     repo = get_job_repo()
 
-    # Create the job record
-    job = repo.create_sync(job_data)
+    # Create the job record with organization scoping
+    job = repo.create_for_org_sync(
+        job_data=job_data,
+        organization_id=current_user.organization_id,
+        created_by_recruiter_id=current_user.recruiter_id
+    )
 
     # Trigger async extraction (non-blocking)
     if job_data.raw_description and len(job_data.raw_description) > 50:
@@ -70,36 +78,50 @@ async def create_job(
 async def list_jobs(
     status: Optional[str] = None,
     recruiter_id: Optional[str] = None,
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> List[Job]:
     """
-    List all jobs, optionally filtered by status and/or recruiter.
+    List all jobs for the authenticated user's organization.
 
     Args:
         status: Optional filter - one of 'draft', 'active', 'paused', 'closed'
         recruiter_id: Optional filter - UUID of the recruiter
 
     Returns:
-        List of jobs with candidate counts
+        List of jobs with candidate counts (scoped to organization)
     """
     repo = get_job_repo()
     recruiter_uuid = UUID(recruiter_id) if recruiter_id else None
-    jobs = repo.list_all_sync(status=status, recruiter_id=recruiter_uuid)
+
+    jobs = repo.list_all_for_org_sync(
+        organization_id=current_user.organization_id,
+        status=status,
+        recruiter_id=recruiter_uuid
+    )
     return jobs
 
 
 @router.get("/active", response_model=List[Job])
-async def list_active_jobs() -> List[Job]:
-    """List all active jobs only."""
+async def list_active_jobs(
+    current_user: CurrentUser = Depends(get_current_user),
+) -> List[Job]:
+    """List all active jobs only for the authenticated user's organization."""
     repo = get_job_repo()
-    jobs = repo.list_all_sync(status="active")
+    jobs = repo.list_all_for_org_sync(
+        organization_id=current_user.organization_id,
+        status="active"
+    )
     return jobs
 
 
 @router.get("/{job_id}", response_model=Job)
-async def get_job(job_id: UUID) -> Job:
-    """Get a single job by ID with all details."""
+async def get_job(
+    job_id: UUID,
+    current_user: CurrentUser = Depends(get_current_user),
+) -> Job:
+    """Get a single job by ID (must belong to user's organization)."""
     repo = get_job_repo()
-    job = repo.get_by_id_sync(job_id)
+    job = repo.get_by_id_for_org_sync(job_id, current_user.organization_id)
 
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -111,9 +133,10 @@ async def get_job(job_id: UUID) -> Job:
 async def update_job(
     job_id: UUID,
     job_update: JobUpdate,
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> Job:
     """
-    Update a job's details.
+    Update a job's details (must belong to user's organization).
 
     Can update:
     - title, raw_description, status
@@ -122,7 +145,7 @@ async def update_job(
     - scoring_criteria, red_flags
     """
     repo = get_job_repo()
-    job = repo.update_sync(job_id, job_update)
+    job = repo.update_for_org_sync(job_id, current_user.organization_id, job_update)
 
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -131,15 +154,18 @@ async def update_job(
 
 
 @router.delete("/{job_id}")
-async def delete_job(job_id: UUID):
+async def delete_job(
+    job_id: UUID,
+    current_user: CurrentUser = Depends(get_current_user),
+):
     """
-    Delete a job.
+    Delete a job (must belong to user's organization).
 
     Warning: This will also delete all associated candidates,
     interviews, and analytics (cascade delete).
     """
     repo = get_job_repo()
-    success = repo.delete_sync(job_id)
+    success = repo.delete_for_org_sync(job_id, current_user.organization_id)
 
     if not success:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -148,7 +174,10 @@ async def delete_job(job_id: UUID):
 
 
 @router.post("/{job_id}/activate", response_model=Job)
-async def activate_job(job_id: UUID) -> Job:
+async def activate_job(
+    job_id: UUID,
+    current_user: CurrentUser = Depends(get_current_user),
+) -> Job:
     """
     Activate a job (move from draft to active).
 
@@ -157,7 +186,7 @@ async def activate_job(job_id: UUID) -> Job:
     - Job should ideally have scoring_criteria (from voice agent)
     """
     repo = get_job_repo()
-    job = repo.get_by_id_sync(job_id)
+    job = repo.get_by_id_for_org_sync(job_id, current_user.organization_id)
 
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -170,15 +199,18 @@ async def activate_job(job_id: UUID) -> Job:
         )
 
     # Update status
-    updated = repo.update_sync(job_id, JobUpdate(status=JobStatus.ACTIVE))
+    updated = repo.update_for_org_sync(job_id, current_user.organization_id, JobUpdate(status=JobStatus.ACTIVE))
     return updated
 
 
 @router.post("/{job_id}/pause", response_model=Job)
-async def pause_job(job_id: UUID) -> Job:
+async def pause_job(
+    job_id: UUID,
+    current_user: CurrentUser = Depends(get_current_user),
+) -> Job:
     """Pause a job (temporarily stop reviewing candidates)."""
     repo = get_job_repo()
-    updated = repo.update_sync(job_id, JobUpdate(status=JobStatus.PAUSED))
+    updated = repo.update_for_org_sync(job_id, current_user.organization_id, JobUpdate(status=JobStatus.PAUSED))
 
     if not updated:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -187,10 +219,13 @@ async def pause_job(job_id: UUID) -> Job:
 
 
 @router.post("/{job_id}/close", response_model=Job)
-async def close_job(job_id: UUID) -> Job:
+async def close_job(
+    job_id: UUID,
+    current_user: CurrentUser = Depends(get_current_user),
+) -> Job:
     """Close a job (position filled or cancelled)."""
     repo = get_job_repo()
-    updated = repo.update_sync(job_id, JobUpdate(status=JobStatus.CLOSED))
+    updated = repo.update_for_org_sync(job_id, current_user.organization_id, JobUpdate(status=JobStatus.CLOSED))
 
     if not updated:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -199,10 +234,13 @@ async def close_job(job_id: UUID) -> Job:
 
 
 @router.post("/{job_id}/reopen", response_model=Job)
-async def reopen_job(job_id: UUID) -> Job:
+async def reopen_job(
+    job_id: UUID,
+    current_user: CurrentUser = Depends(get_current_user),
+) -> Job:
     """Reopen a closed or paused job."""
     repo = get_job_repo()
-    updated = repo.update_sync(job_id, JobUpdate(status=JobStatus.ACTIVE))
+    updated = repo.update_for_org_sync(job_id, current_user.organization_id, JobUpdate(status=JobStatus.ACTIVE))
 
     if not updated:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -214,6 +252,7 @@ async def reopen_job(job_id: UUID) -> Job:
 async def trigger_extraction(
     job_id: UUID,
     background_tasks: BackgroundTasks,
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> Job:
     """
     Manually trigger JD extraction for a job.
@@ -221,7 +260,7 @@ async def trigger_extraction(
     Useful if automatic extraction failed or you updated the description.
     """
     repo = get_job_repo()
-    job = repo.get_by_id_sync(job_id)
+    job = repo.get_by_id_for_org_sync(job_id, current_user.organization_id)
 
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -246,16 +285,15 @@ async def trigger_extraction(
 async def get_job_candidates(
     job_id: UUID,
     status: Optional[str] = None,
+    current_user: CurrentUser = Depends(get_current_user),
 ):
     """
-    Get all candidates for a specific job.
-
-    This endpoint will be fully implemented in Phase 4.
+    Get all candidates for a specific job (must belong to user's organization).
     """
     from repositories.streamlined.candidate_repo import CandidateRepository
 
     repo = get_job_repo()
-    job = repo.get_by_id_sync(job_id)
+    job = repo.get_by_id_for_org_sync(job_id, current_user.organization_id)
 
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -272,16 +310,17 @@ async def get_job_candidates(
 
 
 @router.get("/{job_id}/analytics/summary")
-async def get_job_analytics_summary(job_id: UUID):
+async def get_job_analytics_summary(
+    job_id: UUID,
+    current_user: CurrentUser = Depends(get_current_user),
+):
     """
     Get aggregated analytics for all candidates in a job.
-
-    This endpoint will be fully implemented in Phase 6.
     """
     from repositories.streamlined.analytics_repo import AnalyticsRepository
 
     repo = get_job_repo()
-    job = repo.get_by_id_sync(job_id)
+    job = repo.get_by_id_for_org_sync(job_id, current_user.organization_id)
 
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -351,7 +390,10 @@ class VapiEnrichResponse(BaseModel):
 
 
 @router.post("/{job_id}/enrich", response_model=VapiEnrichResponse)
-async def get_job_enrich_config(job_id: UUID) -> VapiEnrichResponse:
+async def get_job_enrich_config(
+    job_id: UUID,
+    current_user: CurrentUser = Depends(get_current_user),
+) -> VapiEnrichResponse:
     """
     Get Vapi configuration for job enrichment voice session.
 
@@ -365,7 +407,7 @@ async def get_job_enrich_config(job_id: UUID) -> VapiEnrichResponse:
     will hit the /jobs/enrich-webhook endpoint to update the job.
     """
     repo = get_job_repo()
-    job = repo.get_by_id_sync(job_id)
+    job = repo.get_by_id_for_org_sync(job_id, current_user.organization_id)
 
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -642,16 +684,17 @@ async def upload_candidates(
     job_id: UUID,
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> UploadResult:
     """
-    Upload a CSV of candidates for a specific job.
+    Upload a CSV of candidates for a specific job (must belong to user's organization).
 
     CSV Format:
     - Required columns: name, email
     - Optional columns: phone, resume, linkedin_url, current_company, current_title, years_experience
 
     Process:
-    1. Validates the job exists
+    1. Validates the job exists and belongs to user's org
     2. Parses CSV
     3. For each row:
        - Find or create Person (by email)
@@ -663,8 +706,8 @@ async def upload_candidates(
     person_repo = PersonRepository()
     candidate_repo = CandidateRepository()
 
-    # Validate job exists
-    job = job_repo.get_by_id_sync(job_id)
+    # Validate job exists and belongs to user's organization
+    job = job_repo.get_by_id_for_org_sync(job_id, current_user.organization_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
 
@@ -837,12 +880,13 @@ async def start_candidate_interview(
     job_id: UUID,
     candidate_id: UUID,
     interview_type: InterviewType = InterviewType.AI_CANDIDATE,
+    current_user: CurrentUser = Depends(get_current_user),
 ) -> VapiInterviewResponse:
     """
     Start an interview session for a candidate with full job context.
 
     This is the Phase 5 streamlined interview flow:
-    1. Loads candidate and job data
+    1. Loads candidate and job data (verifies org access)
     2. Creates Interview record
     3. Returns Vapi configuration with job-enriched prompts
     4. Updates candidate status to in_progress
@@ -854,8 +898,8 @@ async def start_candidate_interview(
     candidate_repo = CandidateRepository()
     interview_repo = InterviewRepository()
 
-    # Load job
-    job = job_repo.get_by_id_sync(job_id)
+    # Load job (with org verification)
+    job = job_repo.get_by_id_for_org_sync(job_id, current_user.organization_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
 
@@ -1211,14 +1255,15 @@ async def get_interview(interview_id: UUID):
 async def get_candidate_interviews(
     job_id: UUID,
     candidate_id: UUID,
+    current_user: CurrentUser = Depends(get_current_user),
 ):
     """Get all interviews for a candidate on a specific job."""
     job_repo = get_job_repo()
     candidate_repo = CandidateRepository()
     interview_repo = InterviewRepository()
 
-    # Validate job
-    job = job_repo.get_by_id_sync(job_id)
+    # Validate job (with org verification)
+    job = job_repo.get_by_id_for_org_sync(job_id, current_user.organization_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
 
@@ -1356,6 +1401,7 @@ async def get_interview_analytics(interview_id: UUID) -> AnalyticsResponse:
 async def get_candidate_analytics(
     job_id: UUID,
     candidate_id: UUID,
+    current_user: CurrentUser = Depends(get_current_user),
 ):
     """
     Get all analytics for a candidate on a specific job.
@@ -1367,8 +1413,8 @@ async def get_candidate_analytics(
     interview_repo = InterviewRepository()
     analytics_repo = AnalyticsRepository()
 
-    # Validate job
-    job = job_repo.get_by_id_sync(job_id)
+    # Validate job (with org verification)
+    job = job_repo.get_by_id_for_org_sync(job_id, current_user.organization_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
 
@@ -1484,7 +1530,10 @@ async def regenerate_interview_analytics(
 
 
 @router.get("/{job_id}/analytics")
-async def get_all_job_analytics(job_id: UUID):
+async def get_all_job_analytics(
+    job_id: UUID,
+    current_user: CurrentUser = Depends(get_current_user),
+):
     """
     Get analytics for all candidates in a job.
 
@@ -1493,8 +1542,8 @@ async def get_all_job_analytics(job_id: UUID):
     job_repo = get_job_repo()
     analytics_repo = AnalyticsRepository()
 
-    # Validate job
-    job = job_repo.get_by_id_sync(job_id)
+    # Validate job (with org verification)
+    job = job_repo.get_by_id_for_org_sync(job_id, current_user.organization_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
 
