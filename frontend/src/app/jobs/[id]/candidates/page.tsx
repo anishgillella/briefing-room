@@ -3,8 +3,7 @@
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useRecruiter } from "@/contexts/RecruiterContext";
-import RecruiterSelector from "@/components/RecruiterSelector";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   ArrowLeft,
   Users,
@@ -46,6 +45,7 @@ interface Analytics {
 export default function JobCandidatesPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
+  const { isAuthenticated, isLoading: authLoading, token } = useAuth();
 
   const [job, setJob] = useState<Job | null>(null);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
@@ -54,23 +54,44 @@ export default function JobCandidatesPage({ params }: { params: Promise<{ id: st
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"score" | "name" | "date">("score");
 
+  // Redirect to login if not authenticated
   useEffect(() => {
-    fetchData();
-  }, [resolvedParams.id]);
+    if (!authLoading && !isAuthenticated) {
+      router.push("/login");
+    }
+  }, [isAuthenticated, authLoading, router]);
+
+  useEffect(() => {
+    if (isAuthenticated && token) {
+      fetchData();
+    }
+  }, [resolvedParams.id, isAuthenticated, token]);
+
+  const getAuthHeaders = (): Record<string, string> => {
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    return headers;
+  };
 
   const fetchData = async () => {
     try {
       setLoading(true);
+      const headers = getAuthHeaders();
 
       // Fetch job
-      const jobResponse = await fetch(`${API_URL}/api/jobs/${resolvedParams.id}`);
+      const jobResponse = await fetch(`${API_URL}/api/jobs/${resolvedParams.id}`, { headers });
       if (jobResponse.ok) {
         const jobData = await jobResponse.json();
         setJob(jobData);
+      } else if (jobResponse.status === 401) {
+        router.push("/login");
+        return;
       }
 
       // Fetch candidates
-      const candidatesResponse = await fetch(`${API_URL}/api/jobs/${resolvedParams.id}/candidates`);
+      const candidatesResponse = await fetch(`${API_URL}/api/jobs/${resolvedParams.id}/candidates`, { headers });
       if (candidatesResponse.ok) {
         const candidatesData = await candidatesResponse.json();
         setCandidates(candidatesData.candidates || []);
@@ -130,6 +151,24 @@ export default function JobCandidatesPage({ params }: { params: Promise<{ id: st
     candidates.filter((c) => c.ranking_score).reduce((acc, c) => acc + (c.ranking_score || 0), 0) /
       (candidates.filter((c) => c.ranking_score).length || 1);
 
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <main className="min-h-screen gradient-bg flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+      </main>
+    );
+  }
+
+  // Don't render for unauthenticated users
+  if (!isAuthenticated) {
+    return (
+      <main className="min-h-screen gradient-bg flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+      </main>
+    );
+  }
+
   if (loading) {
     return (
       <main className="min-h-screen gradient-bg text-white flex items-center justify-center">
@@ -169,8 +208,6 @@ export default function JobCandidatesPage({ params }: { params: Promise<{ id: st
               <p className="text-xs text-white/50">{job.title}</p>
             </div>
           </div>
-
-          <RecruiterSelector />
         </div>
       </header>
 
@@ -325,7 +362,7 @@ export default function JobCandidatesPage({ params }: { params: Promise<{ id: st
                         candidate.interview_status
                       )}`}
                     >
-                      {candidate.interview_status.replace("_", " ")}
+                      {(candidate.interview_status || "pending").replace("_", " ")}
                     </span>
                   </div>
 
@@ -350,7 +387,7 @@ export default function JobCandidatesPage({ params }: { params: Promise<{ id: st
                   {/* Pipeline Status */}
                   <div className="col-span-2">
                     <span className="text-sm text-white/60 capitalize">
-                      {candidate.pipeline_status.replace("_", " ")}
+                      {(candidate.pipeline_status || "new").replace("_", " ")}
                     </span>
                   </div>
 

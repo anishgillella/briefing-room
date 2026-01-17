@@ -5,6 +5,7 @@ from routers import jobs as jobs_router  # Streamlined flow
 from routers import dashboard as dashboard_router  # Phase 7 - Dashboard
 from routers import recruiters as recruiters_router  # Recruiter management
 from routers import auth as auth_router  # Authentication
+from routers import persons as persons_router  # Talent Pool
 from typing import Annotated, Optional
 
 app = FastAPI(
@@ -44,6 +45,7 @@ app.include_router(jobs_router.router)    # Streamlined flow - job management
 app.include_router(dashboard_router.router)  # Phase 7 - Recruiter dashboard
 app.include_router(recruiters_router.router)  # Recruiter management
 app.include_router(auth_router.router)  # Authentication routes
+app.include_router(persons_router.router)  # Talent Pool
 
 
 @app.get("/health")

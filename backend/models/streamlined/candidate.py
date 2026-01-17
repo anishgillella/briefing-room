@@ -41,6 +41,16 @@ class CandidateBase(BaseModel):
     )
     current_company: Optional[str] = Field(None, max_length=255)
     current_title: Optional[str] = Field(None, max_length=255)
+    combined_score: Optional[int] = Field(
+        None,
+        ge=0,
+        le=100,
+        description="AI screening score (0-100)"
+    )
+    screening_notes: Optional[str] = Field(
+        None,
+        description="JSON with screening details (red flags, green flags, etc.)"
+    )
 
 
 class CandidateCreate(CandidateBase):
@@ -57,6 +67,8 @@ class CandidateUpdate(BaseModel):
     current_title: Optional[str] = Field(None, max_length=255)
     interview_status: Optional[InterviewStatus] = None
     notes: Optional[str] = None
+    combined_score: Optional[int] = Field(None, ge=0, le=100)
+    screening_notes: Optional[str] = None
 
 
 class Candidate(CandidateBase):
@@ -65,6 +77,10 @@ class Candidate(CandidateBase):
     interview_status: InterviewStatus = Field(
         default=InterviewStatus.PENDING,
         description="Interview progress status"
+    )
+    pipeline_status: Optional[str] = Field(
+        None,
+        description="Pipeline stage (new, round_1, round_2, etc.)"
     )
     notes: Optional[str] = Field(
         None,

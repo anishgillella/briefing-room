@@ -33,6 +33,7 @@ from services.jd_extractor import (
 )
 from middleware.auth_middleware import get_current_user, get_optional_user
 from config import VAPI_PUBLIC_KEY, VAPI_ASSISTANT_ID, LLM_MODEL
+from services.candidate_screening import process_candidate_screening
 
 logger = logging.getLogger(__name__)
 
@@ -793,6 +794,128 @@ class UploadResult(BaseModel):
     total_processed: int
 
 
+def _parse_enrichment_data(raw_json: str) -> Optional[Dict[str, Any]]:
+    """Parse crustdata_enrichment_data JSON column safely."""
+    import json as json_lib
+    if not raw_json or raw_json.strip() == "":
+        return None
+    try:
+        data = json_lib.loads(raw_json)
+        # Handle both list and dict formats
+        if isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
+            return data[0]
+        if isinstance(data, dict):
+            return data
+        return None
+    except (json_lib.JSONDecodeError, TypeError):
+        return None
+
+
+def _extract_name_from_enrichment(enrichment: Dict[str, Any]) -> Optional[str]:
+    """Extract name from enrichment data, checking multiple possible field names."""
+    # Try different field names for name
+    name = enrichment.get("full_name") or enrichment.get("name") or enrichment.get("Name")
+
+    # If no direct name field, try combining first + last name
+    if not name:
+        first_name = enrichment.get("first_name") or enrichment.get("firstName") or ""
+        last_name = enrichment.get("last_name") or enrichment.get("lastName") or ""
+        if first_name or last_name:
+            name = f"{first_name} {last_name}".strip()
+
+    return name if name else None
+
+
+def _extract_profile_from_enrichment(enrichment: Dict[str, Any]) -> Dict[str, Any]:
+    """Extract profile fields from crustdata enrichment data."""
+    profile = {}
+
+    # Name - check multiple field names
+    name = _extract_name_from_enrichment(enrichment)
+    if name:
+        profile["name"] = name
+
+    # Headline
+    if enrichment.get("headline"):
+        profile["headline"] = str(enrichment["headline"])[:500]
+
+    # Summary
+    if enrichment.get("summary"):
+        profile["summary"] = str(enrichment["summary"])
+
+    # Location
+    if enrichment.get("location"):
+        profile["location"] = str(enrichment["location"])[:255]
+
+    # Current job from current_employers
+    current_employers = enrichment.get("current_employers", [])
+    if current_employers and isinstance(current_employers, list) and len(current_employers) > 0:
+        current_job = current_employers[0]
+        if isinstance(current_job, dict):
+            if current_job.get("employee_title"):
+                profile["current_title"] = str(current_job["employee_title"])[:255]
+            if current_job.get("employer_name") or current_job.get("company_name"):
+                profile["current_company"] = str(
+                    current_job.get("employer_name") or current_job.get("company_name")
+                )[:255]
+
+    # Fallback to title field if no current_employers
+    if not profile.get("current_title") and enrichment.get("title"):
+        profile["current_title"] = str(enrichment["title"])[:255]
+
+    # Skills - extract names from skill objects
+    skills_data = enrichment.get("skills", [])
+    if skills_data and isinstance(skills_data, list):
+        skills = []
+        for s in skills_data[:30]:  # Limit to 30 skills
+            if isinstance(s, dict):
+                skill_name = s.get("name") or s.get("skill")
+                if skill_name:
+                    skills.append(str(skill_name))
+            elif isinstance(s, str):
+                skills.append(s)
+        profile["skills"] = skills
+
+    # Work history from past_employers + current_employers
+    work_history = []
+    for employer_list in [current_employers, enrichment.get("past_employers", [])]:
+        if employer_list and isinstance(employer_list, list):
+            for emp in employer_list[:10]:  # Limit to 10 positions
+                if isinstance(emp, dict):
+                    work_entry = {
+                        "company": emp.get("employer_name") or emp.get("company_name"),
+                        "title": emp.get("employee_title") or emp.get("title"),
+                        "start_date": emp.get("start_date"),
+                        "end_date": emp.get("end_date"),
+                        "is_current": emp in current_employers,
+                    }
+                    work_history.append(work_entry)
+    if work_history:
+        profile["work_history"] = work_history
+
+    # Education
+    education_data = enrichment.get("education", [])
+    if education_data and isinstance(education_data, list):
+        education = []
+        for edu in education_data[:5]:  # Limit to 5 education entries
+            if isinstance(edu, dict):
+                edu_entry = {
+                    "school": edu.get("school_name") or edu.get("school"),
+                    "degree": edu.get("degree"),
+                    "field_of_study": edu.get("field_of_study") or edu.get("major"),
+                    "start_date": edu.get("start_date"),
+                    "end_date": edu.get("end_date") or edu.get("graduation_year"),
+                }
+                education.append(edu_entry)
+        if education:
+            profile["education"] = education
+
+    # Store raw enrichment data for reference
+    profile["enrichment_data"] = enrichment
+
+    return profile
+
+
 @router.post("/{job_id}/candidates/upload", response_model=UploadResult)
 async def upload_candidates(
     job_id: UUID,
@@ -804,14 +927,16 @@ async def upload_candidates(
     Upload a CSV of candidates for a specific job (must belong to user's organization).
 
     CSV Format:
-    - Required columns: name, email
-    - Optional columns: phone, resume, linkedin_url, current_company, current_title, years_experience
+    - Required columns: name
+    - Optional columns: email, phone, resume, linkedin_url, current_company, current_title, years_experience
+    - Enrichment column: crustdata_enrichment_data (JSON with profile data from LinkedIn/Crustdata)
 
     Process:
     1. Validates the job exists and belongs to user's org
     2. Parses CSV
     3. For each row:
-       - Find or create Person (by email)
+       - Parse crustdata_enrichment_data if present to extract profile (headline, summary, skills, etc.)
+       - Find or create Person (by email or linkedin_url if available) with enriched profile
        - Find or create Candidate (person + job)
     4. Triggers async resume processing if resume text provided
     5. Returns upload summary
@@ -843,7 +968,7 @@ async def upload_candidates(
         columns = set(rows[0].keys())
         # Normalize column names (lowercase, strip)
         columns_lower = {c.lower().strip() for c in columns}
-        required = {"name", "email"}
+        required = {"name"}
         missing = required - columns_lower
         if missing:
             raise HTTPException(
@@ -860,25 +985,79 @@ async def upload_candidates(
             # Normalize column names
             row_normalized = {k.lower().strip(): v for k, v in row.items()}
 
-            name = row_normalized.get("name", "").strip()
-            email = row_normalized.get("email", "").strip().lower()
+            # Parse enrichment data if present
+            enrichment_raw = row_normalized.get("crustdata_enrichment_data", "")
+            enrichment = _parse_enrichment_data(enrichment_raw)
+            profile_data = _extract_profile_from_enrichment(enrichment) if enrichment else {}
 
-            if not name or not email:
-                errors.append(f"Row {row_num}: Missing name or email")
+            # Get name from row, profile_data (from enrichment), or enrichment directly
+            name = row_normalized.get("name", "").strip()
+            if not name and profile_data.get("name"):
+                # profile_data uses _extract_name_from_enrichment which checks full_name, first+last, etc.
+                name = profile_data.get("name")
+            if not name and enrichment:
+                # Final fallback: try extracting directly
+                name = _extract_name_from_enrichment(enrichment)
+
+            if not name:
+                errors.append(f"Row {row_num}: Missing name")
                 continue
 
-            # Find or create Person
-            person, person_created = person_repo.get_or_create_sync(PersonCreate(
+            # Get email from row or enrichment
+            email = row_normalized.get("email", "").strip().lower() or None
+            if not email and enrichment:
+                enrichment_email = enrichment.get("email") or enrichment.get("work_email") or enrichment.get("personal_email")
+                if isinstance(enrichment_email, list):
+                    email = enrichment_email[0] if enrichment_email else None
+                else:
+                    email = enrichment_email
+                if email:
+                    email = str(email).strip().lower()
+
+            # Get linkedin_url from row or enrichment
+            linkedin_url = row_normalized.get("linkedin_url", "").strip() or None
+            if not linkedin_url and enrichment:
+                linkedin_url = enrichment.get("linkedin_url") or enrichment.get("linkedin_profile_url")
+
+            # Build PersonCreate with profile data
+            person_data = PersonCreate(
                 name=name,
                 email=email,
                 phone=row_normalized.get("phone", "").strip() or None,
-                linkedin_url=row_normalized.get("linkedin_url", "").strip() or None,
-            ))
+                linkedin_url=linkedin_url,
+                headline=profile_data.get("headline"),
+                summary=profile_data.get("summary"),
+                current_title=profile_data.get("current_title") or row_normalized.get("current_title", "").strip() or None,
+                current_company=profile_data.get("current_company") or row_normalized.get("current_company", "").strip() or None,
+                location=profile_data.get("location"),
+                skills=profile_data.get("skills", []),
+                work_history=profile_data.get("work_history", []),
+                education=profile_data.get("education", []),
+                enrichment_data=profile_data.get("enrichment_data"),
+            )
+
+            # Find or create Person (by email or linkedin_url if available)
+            person, person_created = person_repo.get_or_create_sync(person_data)
+
+            # If person already existed but we have new enrichment data, update them
+            if not person_created and enrichment and not person.enrichment_data:
+                from models.streamlined.person import PersonUpdate
+                person_repo.update_sync(person.id, PersonUpdate(
+                    headline=profile_data.get("headline"),
+                    summary=profile_data.get("summary"),
+                    current_title=profile_data.get("current_title"),
+                    current_company=profile_data.get("current_company"),
+                    location=profile_data.get("location"),
+                    skills=profile_data.get("skills", []),
+                    work_history=profile_data.get("work_history", []),
+                    education=profile_data.get("education", []),
+                    enrichment_data=profile_data.get("enrichment_data"),
+                ))
 
             # Check if Candidate already exists for this job
             existing = candidate_repo.get_by_person_and_job_sync(person.id, job_id)
 
-            # Parse years_experience
+            # Parse years_experience from row or estimate from work history
             years_exp = None
             if row_normalized.get("years_experience"):
                 try:
@@ -890,18 +1069,30 @@ async def upload_candidates(
                 # Update existing candidate
                 from models.streamlined.candidate import CandidateUpdate
                 candidate_repo.update_sync(existing.id, CandidateUpdate(
-                    current_company=row_normalized.get("current_company", "").strip() or None,
-                    current_title=row_normalized.get("current_title", "").strip() or None,
+                    current_company=profile_data.get("current_company") or row_normalized.get("current_company", "").strip() or None,
+                    current_title=profile_data.get("current_title") or row_normalized.get("current_title", "").strip() or None,
                     years_experience=years_exp,
                 ))
                 updated += 1
+
+                # Re-run LLM screening if we have enrichment data and no score yet
+                if enrichment and not existing.combined_score:
+                    background_tasks.add_task(
+                        process_candidate_screening,
+                        existing.id,
+                        person.id,
+                        enrichment,
+                        job.title,
+                        job.raw_jd or "",
+                        job.extracted_requirements.must_haves if job.extracted_requirements else None,
+                    )
             else:
                 # Create new candidate
                 candidate = candidate_repo.create_sync(CandidateCreate(
                     person_id=person.id,
                     job_id=job_id,
-                    current_company=row_normalized.get("current_company", "").strip() or None,
-                    current_title=row_normalized.get("current_title", "").strip() or None,
+                    current_company=profile_data.get("current_company") or row_normalized.get("current_company", "").strip() or None,
+                    current_title=profile_data.get("current_title") or row_normalized.get("current_title", "").strip() or None,
                     years_experience=years_exp,
                 ))
                 created += 1
@@ -914,6 +1105,18 @@ async def upload_candidates(
                         str(candidate.id),
                         resume_text,
                         job.extracted_requirements
+                    )
+
+                # Trigger LLM screening if we have enrichment data
+                if enrichment:
+                    background_tasks.add_task(
+                        process_candidate_screening,
+                        candidate.id,
+                        person.id,
+                        enrichment,
+                        job.title,
+                        job.raw_jd or "",
+                        job.extracted_requirements.must_haves if job.extracted_requirements else None,
                     )
 
         except Exception as e:

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useRecruiter } from "@/contexts/RecruiterContext";
-import RecruiterSelector from "@/components/RecruiterSelector";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   ArrowLeft,
   Mic,
@@ -41,21 +41,45 @@ interface Job {
 
 export default function JobEnrichPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
+  const router = useRouter();
+  const { isAuthenticated, isLoading: authLoading, token } = useAuth();
 
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Redirect to login if not authenticated
   useEffect(() => {
-    fetchJob();
-  }, [resolvedParams.id]);
+    if (!authLoading && !isAuthenticated) {
+      router.push("/login");
+    }
+  }, [isAuthenticated, authLoading, router]);
+
+  useEffect(() => {
+    if (isAuthenticated && token) {
+      fetchJob();
+    }
+  }, [resolvedParams.id, isAuthenticated, token]);
+
+  const getAuthHeaders = (): Record<string, string> => {
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    return headers;
+  };
 
   const fetchJob = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/api/jobs/${resolvedParams.id}`);
+      const response = await fetch(`${API_URL}/api/jobs/${resolvedParams.id}`, {
+        headers: getAuthHeaders(),
+      });
       if (response.ok) {
         const data = await response.json();
         setJob(data);
+      } else if (response.status === 401) {
+        router.push("/login");
+        return;
       }
     } catch (error) {
       console.error("Failed to fetch job:", error);
@@ -68,6 +92,24 @@ export default function JobEnrichPage({ params }: { params: Promise<{ id: string
     job?.scoring_criteria?.must_haves?.length ||
     job?.red_flags?.length ||
     job?.company_context?.company_name;
+
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <main className="min-h-screen gradient-bg flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+      </main>
+    );
+  }
+
+  // Don't render for unauthenticated users
+  if (!isAuthenticated) {
+    return (
+      <main className="min-h-screen gradient-bg flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+      </main>
+    );
+  }
 
   if (loading) {
     return (
@@ -108,8 +150,6 @@ export default function JobEnrichPage({ params }: { params: Promise<{ id: string
               <p className="text-xs text-white/50">{job.title}</p>
             </div>
           </div>
-
-          <RecruiterSelector />
         </div>
       </header>
 

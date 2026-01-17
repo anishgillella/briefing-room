@@ -3,8 +3,7 @@
 import { useState, useEffect, useCallback, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useRecruiter } from "@/contexts/RecruiterContext";
-import RecruiterSelector from "@/components/RecruiterSelector";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   ArrowLeft,
   Upload,
@@ -27,6 +26,7 @@ interface Job {
 export default function JobUploadPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
+  const { isAuthenticated, isLoading: authLoading, token } = useAuth();
 
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
@@ -38,17 +38,39 @@ export default function JobUploadPage({ params }: { params: Promise<{ id: string
   const [processedCount, setProcessedCount] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
 
+  // Redirect to login if not authenticated
   useEffect(() => {
-    fetchJob();
-  }, [resolvedParams.id]);
+    if (!authLoading && !isAuthenticated) {
+      router.push("/login");
+    }
+  }, [isAuthenticated, authLoading, router]);
+
+  useEffect(() => {
+    if (isAuthenticated && token) {
+      fetchJob();
+    }
+  }, [resolvedParams.id, isAuthenticated, token]);
+
+  const getAuthHeaders = (): Record<string, string> => {
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    return headers;
+  };
 
   const fetchJob = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/api/jobs/${resolvedParams.id}`);
+      const response = await fetch(`${API_URL}/api/jobs/${resolvedParams.id}`, {
+        headers: getAuthHeaders(),
+      });
       if (response.ok) {
         const data = await response.json();
         setJob(data);
+      } else if (response.status === 401) {
+        router.push("/login");
+        return;
       }
     } catch (error) {
       console.error("Failed to fetch job:", error);
@@ -103,14 +125,15 @@ export default function JobUploadPage({ params }: { params: Promise<{ id: string
       formData.append("file", file);
       formData.append("job_id", job.id);
 
-      const response = await fetch(`${API_URL}/api/jobs/${job.id}/upload-candidates`, {
+      const response = await fetch(`${API_URL}/api/jobs/${job.id}/candidates/upload`, {
         method: "POST",
+        headers: getAuthHeaders(),
         body: formData,
       });
 
       if (response.ok) {
         const result = await response.json();
-        setProcessedCount(result.candidates_created || result.count || 0);
+        setProcessedCount(result.created || result.total_processed || 0);
         setSuccess(true);
         setUploadProgress("Processing complete!");
       } else {
@@ -123,6 +146,24 @@ export default function JobUploadPage({ params }: { params: Promise<{ id: string
       setUploading(false);
     }
   };
+
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <main className="min-h-screen gradient-bg flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+      </main>
+    );
+  }
+
+  // Don't render for unauthenticated users
+  if (!isAuthenticated) {
+    return (
+      <main className="min-h-screen gradient-bg flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+      </main>
+    );
+  }
 
   if (loading) {
     return (
@@ -163,8 +204,6 @@ export default function JobUploadPage({ params }: { params: Promise<{ id: string
               <p className="text-xs text-white/50">{job.title}</p>
             </div>
           </div>
-
-          <RecruiterSelector />
         </div>
       </header>
 
