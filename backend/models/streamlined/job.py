@@ -20,8 +20,31 @@ class JobStatus(str, Enum):
     CLOSED = "closed"         # Position filled or cancelled
 
 
+class WeightedAttribute(BaseModel):
+    """An attribute with an associated weight for candidate scoring."""
+    value: str = Field(..., description="The attribute text/description")
+    weight: float = Field(
+        default=1.0,
+        ge=0.0,
+        le=1.0,
+        description="Weight for scoring (0.0-1.0). Higher = more important."
+    )
+
+
+class BasicRequirement(BaseModel):
+    """A basic requirement extracted from the JD with weight."""
+    value: str = Field(..., description="The requirement value")
+    weight: float = Field(
+        default=1.0,
+        ge=0.0,
+        le=1.0,
+        description="Weight for scoring (0.0-1.0)"
+    )
+
+
 class ExtractedRequirements(BaseModel):
     """Structured requirements extracted from job description via AI."""
+    # Basic info
     years_experience: Optional[str] = Field(
         None,
         description="e.g., '3-5 years' or '5+ years'"
@@ -29,18 +52,6 @@ class ExtractedRequirements(BaseModel):
     education: Optional[str] = Field(
         None,
         description="e.g., 'Bachelor's in Computer Science'"
-    )
-    required_skills: List[str] = Field(
-        default_factory=list,
-        description="List of required/must-have skills"
-    )
-    preferred_skills: List[str] = Field(
-        default_factory=list,
-        description="List of nice-to-have skills"
-    )
-    certifications: List[str] = Field(
-        default_factory=list,
-        description="Any required certifications"
     )
     location: Optional[str] = Field(
         None,
@@ -53,6 +64,72 @@ class ExtractedRequirements(BaseModel):
     salary_range: Optional[str] = Field(
         None,
         description="e.g., '$120k-$150k'"
+    )
+
+    # Technical skills with weights for scoring
+    required_skills: List[WeightedAttribute] = Field(
+        default_factory=list,
+        description="List of required/must-have skills with weights"
+    )
+    preferred_skills: List[WeightedAttribute] = Field(
+        default_factory=list,
+        description="List of nice-to-have skills with weights"
+    )
+    certifications: List[str] = Field(
+        default_factory=list,
+        description="Any required certifications"
+    )
+
+    # Semantic profile attributes for candidate screening - ALL with weights
+    success_signals: List[WeightedAttribute] = Field(
+        default_factory=list,
+        description="Green flags - indicators of a strong candidate with importance weights"
+    )
+    red_flags: List[WeightedAttribute] = Field(
+        default_factory=list,
+        description="Red flags - warning signs with severity weights (higher = more disqualifying)"
+    )
+    behavioral_traits: List[WeightedAttribute] = Field(
+        default_factory=list,
+        description="Key behavioral traits with importance weights"
+    )
+    cultural_indicators: List[WeightedAttribute] = Field(
+        default_factory=list,
+        description="Cultural fit indicators with importance weights"
+    )
+    deal_breakers: List[WeightedAttribute] = Field(
+        default_factory=list,
+        description="Non-negotiable requirements with weights (typically high)"
+    )
+    ideal_background: Optional[str] = Field(
+        None,
+        description="Description of the ideal candidate's background and experience"
+    )
+
+    # Category-level weights for overall scoring
+    category_weights: dict = Field(
+        default_factory=lambda: {
+            "required_skills": 0.25,
+            "preferred_skills": 0.10,
+            "success_signals": 0.20,
+            "red_flags": 0.15,
+            "behavioral_traits": 0.15,
+            "cultural_indicators": 0.10,
+            "deal_breakers": 0.05,
+        },
+        description="Weights for each category in overall candidate scoring"
+    )
+
+    # Missing fields indicator
+    missing_fields: List[str] = Field(
+        default_factory=list,
+        description="Fields that could not be extracted from the JD and need recruiter input"
+    )
+    extraction_confidence: float = Field(
+        default=0.0,
+        ge=0,
+        le=1,
+        description="Overall confidence score for the extraction (0-1)"
     )
 
 
@@ -173,11 +250,16 @@ class Job(JobBase):
     # Metadata
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+    deleted_at: Optional[datetime] = Field(
+        None,
+        description="Soft delete timestamp. If set, job is archived."
+    )
 
     # Computed fields (populated by queries)
     candidate_count: int = Field(default=0, description="Number of candidates")
     interviewed_count: int = Field(default=0, description="Number interviewed")
     recruiter_name: Optional[str] = Field(None, description="Name of the recruiter who owns this job")
+    is_archived: bool = Field(default=False, description="True if job is archived (deleted_at is set)")
 
     class Config:
         from_attributes = True
@@ -195,6 +277,8 @@ class JobSummary(BaseModel):
     candidate_count: int = 0
     interviewed_count: int = 0
     created_at: datetime
+    deleted_at: Optional[datetime] = None
+    is_archived: bool = False
 
     class Config:
         from_attributes = True

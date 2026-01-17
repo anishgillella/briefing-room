@@ -19,7 +19,7 @@ import logging
 
 from models.streamlined.job import (
     Job, JobCreate, JobUpdate, JobStatus, JobSummary,
-    CompanyContext, ScoringCriteria
+    CompanyContext, ScoringCriteria, ExtractedRequirements
 )
 from models.streamlined.person import PersonCreate
 from models.streamlined.candidate import CandidateCreate
@@ -27,7 +27,10 @@ from models.auth import CurrentUser
 from repositories.streamlined.job_repo import JobRepository
 from repositories.streamlined.person_repo import PersonRepository
 from repositories.streamlined.candidate_repo import CandidateRepository
-from services.jd_extractor import trigger_jd_extraction_for_job
+from services.jd_extractor import (
+    trigger_jd_extraction_for_job,
+    extract_requirements_for_streamlined,
+)
 from middleware.auth_middleware import get_current_user, get_optional_user
 from config import VAPI_PUBLIC_KEY, VAPI_ASSISTANT_ID, LLM_MODEL
 
@@ -72,6 +75,44 @@ async def create_job(
         )
 
     return job
+
+
+class ExtractRequirementsRequest(BaseModel):
+    """Request body for extract-requirements endpoint."""
+    description: str
+
+
+@router.post("/extract-requirements", response_model=ExtractedRequirements)
+async def extract_requirements(
+    request: ExtractRequirementsRequest,
+    current_user: CurrentUser = Depends(get_current_user),
+) -> ExtractedRequirements:
+    """
+    Extract structured requirements from a job description text.
+
+    Uses Gemini 2.5 Flash via OpenRouter with Pydantic structured outputs.
+    Returns the validated ExtractedRequirements model with:
+    - Basic info (experience, location, salary, etc.)
+    - Skills (required, preferred, certifications)
+    - Semantic profile attributes (success_signals, red_flags, behavioral_traits, etc.)
+    - Missing fields that need recruiter input
+    - Extraction confidence score
+    """
+    if not request.description or len(request.description.strip()) < 50:
+        raise HTTPException(
+            status_code=400,
+            detail="Job description must be at least 50 characters"
+        )
+
+    requirements = await extract_requirements_for_streamlined(request.description)
+
+    if not requirements:
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to extract requirements. Please try again."
+        )
+
+    return requirements
 
 
 @router.get("/", response_model=List[Job])
@@ -159,10 +200,12 @@ async def delete_job(
     current_user: CurrentUser = Depends(get_current_user),
 ):
     """
-    Delete a job (must belong to user's organization).
+    Archive (soft delete) a job.
 
-    Warning: This will also delete all associated candidates,
-    interviews, and analytics (cascade delete).
+    The job is moved to archived state and can be restored later.
+    All related candidates, interviews, and analytics are preserved.
+
+    Use POST /{job_id}/permanent-delete to permanently delete an archived job.
     """
     repo = get_job_repo()
     success = repo.delete_for_org_sync(job_id, current_user.organization_id)
@@ -170,7 +213,78 @@ async def delete_job(
     if not success:
         raise HTTPException(status_code=404, detail="Job not found")
 
-    return {"message": "Job deleted successfully", "job_id": str(job_id)}
+    return {"message": "Job archived successfully", "job_id": str(job_id)}
+
+
+@router.post("/{job_id}/archive", response_model=Job)
+async def archive_job(
+    job_id: UUID,
+    current_user: CurrentUser = Depends(get_current_user),
+) -> Job:
+    """
+    Archive (soft delete) a job.
+
+    The job is moved to archived state and can be restored later.
+    All related candidates, interviews, and analytics are preserved.
+    """
+    repo = get_job_repo()
+    job = repo.archive_for_org_sync(job_id, current_user.organization_id)
+
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    return job
+
+
+@router.post("/{job_id}/restore", response_model=Job)
+async def restore_job(
+    job_id: UUID,
+    current_user: CurrentUser = Depends(get_current_user),
+) -> Job:
+    """
+    Restore an archived job.
+
+    The job is moved back to its previous status and becomes visible again.
+    """
+    repo = get_job_repo()
+    job = repo.restore_for_org_sync(job_id, current_user.organization_id)
+
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found or not archived")
+
+    return job
+
+
+@router.post("/{job_id}/permanent-delete")
+async def permanent_delete_job(
+    job_id: UUID,
+    current_user: CurrentUser = Depends(get_current_user),
+):
+    """
+    Permanently delete an archived job.
+
+    WARNING: This action is irreversible!
+
+    The job record will be permanently deleted.
+    Related candidates, interviews, and analytics will have their
+    job reference set to NULL but will be preserved.
+    """
+    repo = get_job_repo()
+
+    # Verify the job exists and is archived
+    job = repo.get_archived_by_id_for_org_sync(job_id, current_user.organization_id)
+    if not job:
+        raise HTTPException(
+            status_code=404,
+            detail="Job not found or not archived. Only archived jobs can be permanently deleted."
+        )
+
+    success = repo.permanent_delete_for_org_sync(job_id, current_user.organization_id)
+
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to permanently delete job")
+
+    return {"message": "Job permanently deleted", "job_id": str(job_id)}
 
 
 @router.post("/{job_id}/activate", response_model=Job)
