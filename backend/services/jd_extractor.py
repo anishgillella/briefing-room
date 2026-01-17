@@ -384,53 +384,146 @@ jd_extractor = JDExtractor()
 # Streamlined Flow Extraction Functions
 # ============================================================================
 
-STREAMLINED_EXTRACTION_PROMPT = """You are an expert HR analyst. Extract structured information from the following job description.
+from models.streamlined.job import ExtractedRequirements
+
+
+def _build_streamlined_extraction_prompt(job_description: str) -> str:
+    """
+    Build extraction prompt using the Pydantic model's JSON schema.
+    This ensures the prompt schema always matches the model definition.
+    """
+    # Get the JSON schema from the Pydantic model
+    schema = ExtractedRequirements.model_json_schema()
+
+    # Format schema for readability in the prompt
+    schema_str = json.dumps(schema, indent=2)
+
+    return f"""You are an expert HR analyst and talent acquisition specialist. Extract a COMPLETE SCREENING PROFILE from this job description.
 
 Job Description:
+---
 {job_description}
+---
 
-Extract the following information in JSON format:
+IMPORTANT: You MUST extract ALL categories below. Do NOT leave any category empty - extract as many relevant items as the JD supports.
+
+## OUTPUT FORMAT
+
+Return a JSON object:
+
+```json
 {{
-    "years_experience": "e.g., '3-5 years' or '5+ years' or null if not specified",
-    "education": "e.g., 'Bachelor's in Computer Science' or null",
-    "required_skills": ["list", "of", "required", "skills"],
-    "preferred_skills": ["list", "of", "nice-to-have", "skills"],
-    "certifications": ["any", "required", "certifications"],
-    "location": "e.g., 'San Francisco, CA' or 'Remote' or null",
-    "work_type": "one of: 'remote', 'hybrid', 'onsite', or null",
-    "salary_range": "e.g., '$120k-$150k' or null"
-}}
+  "years_experience": "e.g., '1+ years'",
+  "location": "e.g., 'Remote'",
+  "work_type": "remote/hybrid/onsite",
+  "salary_range": "e.g., '$180K-$200K OTE'",
 
-Be precise and only include information explicitly stated or strongly implied in the JD.
-Return ONLY valid JSON, no other text.
-"""
+  "required_skills": [
+    {{"value": "skill name", "weight": 0.8}}
+  ],
+
+  "success_signals": [
+    {{"value": "pattern indicating strong candidate", "weight": 0.9}}
+  ],
+
+  "red_flags": [
+    {{"value": "warning sign to watch for", "weight": 0.7}}
+  ],
+
+  "behavioral_traits": [
+    {{"value": "observable behavior", "weight": 0.8}}
+  ],
+
+  "cultural_indicators": [
+    {{"value": "cultural fit indicator", "weight": 0.7}}
+  ],
+
+  "deal_breakers": [
+    {{"value": "non-negotiable requirement", "weight": 1.0}}
+  ],
+
+  "ideal_background": "2-3 sentence description of ideal candidate",
+
+  "category_weights": {{
+    "required_skills": 0.20,
+    "preferred_skills": 0.05,
+    "success_signals": 0.25,
+    "red_flags": 0.15,
+    "behavioral_traits": 0.15,
+    "cultural_indicators": 0.10,
+    "deal_breakers": 0.10
+  }},
+
+  "extraction_confidence": 0.85
+}}
+```
+
+## EXTRACTION GUIDELINES
+
+### SUCCESS SIGNALS (MANDATORY - extract all relevant from JD)
+GREEN FLAGS - patterns that indicate a strong candidate:
+- Track records: "exceeding quota", "promoted quickly", "built from 0 to 1"
+- Achievements: "closed deals", "grew revenue", "led teams"
+- Experience patterns: "sold to [target persona]", "enterprise experience"
+
+### RED FLAGS (MANDATORY - infer from requirements)
+WARNING SIGNS to watch for - infer the opposite of what's required:
+- If JD requires "experience with finance stakeholders" → red flag: "No experience with target customer segment"
+- If JD requires "startup experience" → red flag: "Only worked in large corporate environments"
+
+### BEHAVIORAL TRAITS (MANDATORY - extract from JD)
+Observable behaviors the ideal candidate demonstrates:
+- Look for phrases like "self-starter", "proactive", "data-driven", "consultative"
+
+### CULTURAL INDICATORS (MANDATORY - extract from JD)
+Values and work styles that align with the team:
+- Look for company culture hints: "fast-paced", "collaborative", "ambitious"
+
+### DEAL BREAKERS (MANDATORY - extract hard requirements)
+Non-negotiable requirements explicitly stated in JD:
+- Usually preceded by "must have", "required", "minimum X years"
+
+### IDEAL BACKGROUND
+Write 2-3 sentences describing the perfect candidate based on the JD.
+
+### CATEGORY WEIGHTS
+Dynamically adjust based on JD emphasis (should sum to ~1.0):
+- Heavy emphasis on results/track record → higher success_signals weight
+- Heavy emphasis on skills → higher required_skills weight
+- Heavy emphasis on culture → higher cultural_indicators weight
+
+## WEIGHT ASSIGNMENT FOR ITEMS
+- 0.9-1.0: Explicitly critical/must-have
+- 0.7-0.8: Strongly emphasized
+- 0.5-0.6: Mentioned but not emphasized
+- 0.3-0.4: Nice-to-have or implied
+
+Return ONLY valid JSON. No markdown code blocks, no explanation."""
 
 
 async def extract_requirements_for_streamlined(
     raw_description: str
-) -> Dict[str, Any]:
+) -> ExtractedRequirements | None:
     """
     Extract structured requirements from job description for streamlined flow.
+    Uses Pydantic model for structured output validation.
 
     Args:
         raw_description: The raw job description text
 
     Returns:
-        Dict with extracted requirements
+        ExtractedRequirements Pydantic model or None if extraction fails
     """
-    from models.streamlined.job import ExtractedRequirements
-
     if not raw_description or len(raw_description.strip()) < 50:
         logger.warning("Job description too short for extraction")
-        return {}
+        return None
 
     if not OPENROUTER_API_KEY:
         logger.warning("OpenRouter API key not configured")
-        return {}
+        return None
 
-    prompt = STREAMLINED_EXTRACTION_PROMPT.format(
-        job_description=raw_description[:5000]
-    )
+    # Build prompt using the Pydantic model's schema
+    prompt = _build_streamlined_extraction_prompt(raw_description[:5000])
 
     try:
         async with httpx.AsyncClient(timeout=60.0) as client:
@@ -444,8 +537,8 @@ async def extract_requirements_for_streamlined(
                     "model": LLM_MODEL,
                     "messages": [{"role": "user", "content": prompt}],
                     "response_format": {"type": "json_object"},
-                    "temperature": 0.1,
-                    "max_tokens": 1000,
+                    "temperature": 0.2,
+                    "max_tokens": 2500,
                 }
             )
             response.raise_for_status()
@@ -453,7 +546,7 @@ async def extract_requirements_for_streamlined(
 
         content = result["choices"][0]["message"]["content"]
 
-        # Clean the response
+        # Clean the response (remove markdown code blocks if present)
         content = content.strip()
         if content.startswith("```json"):
             content = content[7:]
@@ -463,19 +556,52 @@ async def extract_requirements_for_streamlined(
             content = content[:-3]
         content = content.strip()
 
+        # Parse JSON
         data = json.loads(content)
-        return data
 
+        # Validate against Pydantic model - this ensures type safety
+        # and applies default values for missing fields
+        validated = ExtractedRequirements.model_validate(data)
+
+        # Auto-detect missing fields if not already set
+        if not validated.missing_fields:
+            missing = []
+            if not validated.success_signals:
+                missing.append("success_signals")
+            if not validated.red_flags:
+                missing.append("red_flags")
+            if not validated.behavioral_traits:
+                missing.append("behavioral_traits")
+            if not validated.cultural_indicators:
+                missing.append("cultural_indicators")
+            if not validated.deal_breakers:
+                missing.append("deal_breakers")
+            if not validated.ideal_background:
+                missing.append("ideal_background")
+            if not validated.salary_range:
+                missing.append("salary_range")
+            validated.missing_fields = missing
+
+        logger.info(
+            f"Extracted requirements with confidence {validated.extraction_confidence:.2f}, "
+            f"missing fields: {validated.missing_fields}"
+        )
+        return validated
+
+    except json.JSONDecodeError as e:
+        logger.error(f"JSON decode error in extraction: {e}")
+        return None
     except Exception as e:
         logger.error(f"Error extracting requirements: {e}")
-        return {}
+        return None
 
 
 def extract_requirements_for_streamlined_sync(
     raw_description: str
-) -> Dict[str, Any]:
+) -> ExtractedRequirements | None:
     """
     Synchronous version of extract_requirements_for_streamlined.
+    Returns validated Pydantic model or None.
     """
     import asyncio
 
@@ -496,23 +622,24 @@ async def trigger_jd_extraction_for_job(job_id: str, raw_description: str):
     This runs in the background after job creation.
     """
     from repositories.streamlined.job_repo import JobRepository
-    from models.streamlined.job import JobUpdate, ExtractedRequirements
+    from models.streamlined.job import JobUpdate
 
     repo = JobRepository()
 
     try:
-        # Extract requirements
-        data = await extract_requirements_for_streamlined(raw_description)
+        # Extract requirements - returns validated Pydantic model
+        requirements = await extract_requirements_for_streamlined(raw_description)
 
-        if data:
-            requirements = ExtractedRequirements(**data)
-
+        if requirements:
             # Update job with extracted data
             await repo.update(job_id, JobUpdate(
                 extracted_requirements=requirements
             ))
 
-            logger.info(f"Successfully extracted requirements for job {job_id}")
+            logger.info(
+                f"Successfully extracted requirements for job {job_id} "
+                f"(confidence: {requirements.extraction_confidence:.2f})"
+            )
         else:
             logger.warning(f"No requirements extracted for job {job_id}")
 

@@ -4,13 +4,15 @@
 
 This documentation describes the multi-tenancy architecture that enables organizations to manage their recruiters, jobs, and candidates in isolation. The core innovation is adding an **Organization** layer as the top-level tenant, with simple email/password authentication for recruiters.
 
-## The Problem We're Solving
+## The Problem We Solved
 
-Currently, the system has:
-1. **No organization boundary** - All jobs and candidates are visible to everyone
-2. **No authentication** - RecruiterContext is purely UI-based selection
-3. **No recruiter accounts** - Recruiters are just records, not authenticated users
+Previously, the system had:
+1. **No organization boundary** - All jobs and candidates were visible to everyone
+2. **No authentication** - RecruiterContext was purely UI-based selection
+3. **No recruiter accounts** - Recruiters were just records, not authenticated users
 4. **Flat data structure** - No hierarchy for enterprise use
+
+**All of these issues have been addressed with the implementation below.**
 
 ## The New Multi-Tenant Architecture
 
@@ -189,19 +191,19 @@ Currently, the system has:
 
 | Phase | Document | Status | Scope |
 |-------|----------|--------|-------|
-| 1 | [phase1-schema.md](./phase1-schema.md) | PENDING | Database schema changes (organizations, auth fields) |
-| 2 | [phase2-auth-backend.md](./phase2-auth-backend.md) | PENDING | Backend auth endpoints (signup, login, middleware) |
-| 3 | [phase3-auth-frontend.md](./phase3-auth-frontend.md) | PENDING | Frontend auth (login/signup pages, AuthContext, protected routes) |
-| 4 | [phase4-org-scoping.md](./phase4-org-scoping.md) | PENDING | Update all queries to scope by organization |
-| 5 | [phase5-recruiter-tracking.md](./phase5-recruiter-tracking.md) | PENDING | Track which recruiter created jobs, conducted interviews |
+| 1 | [phase1-schema.md](./phase1-schema.md) | **COMPLETE** | Database schema changes (organizations, auth fields) |
+| 2 | [phase2-auth-backend.md](./phase2-auth-backend.md) | **COMPLETE** | Backend auth endpoints (signup, login, middleware) |
+| 3 | [phase3-auth-frontend.md](./phase3-auth-frontend.md) | **COMPLETE** | Frontend auth (login/signup pages, AuthContext, protected routes) |
+| 4 | [phase4-org-scoping.md](./phase4-org-scoping.md) | **COMPLETE** | Update all queries to scope by organization |
+| 5 | [phase5-recruiter-tracking.md](./phase5-recruiter-tracking.md) | **COMPLETE** | Track which recruiter created jobs, conducted interviews |
 
-## Migration Strategy
+## Migration Strategy (Completed)
 
-1. **Create organizations table** with a default "Demo Organization"
-2. **Add organization_id to recruiters** - backfill with default org
-3. **Add auth fields to recruiters** - password_hash initially null (legacy)
-4. **Add organization_id to jobs** - backfill with default org
-5. **Existing recruiters** become legacy users (can set password on first login)
+1. **Created organizations table** with a default "Demo Organization"
+2. **Added organization_id to recruiters** - backfilled with default org
+3. **Added auth fields to recruiters** - password_hash for authentication
+4. **Added organization_id to jobs** - backfilled with default org
+5. **Existing recruiters** can set password on first login
 
 ## Security Considerations
 

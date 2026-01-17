@@ -3,8 +3,7 @@
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useRecruiter } from "@/contexts/RecruiterContext";
-import RecruiterSelector from "@/components/RecruiterSelector";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   ArrowLeft,
   Briefcase,
@@ -24,9 +23,26 @@ import {
   AlertCircle,
   FileText,
   Target,
+  LogOut,
+  LayoutDashboard,
+  ThumbsUp,
+  ThumbsDown,
+  Brain,
+  Heart,
+  Ban,
+  Plus,
+  X,
+  Save,
+  Loader2,
 } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+// Weighted attribute for screening criteria
+interface WeightedAttribute {
+  value: string;
+  weight: number;  // 0.0 to 1.0
+}
 
 interface Job {
   id: string;
@@ -39,13 +55,35 @@ interface Job {
   created_at: string;
   updated_at: string;
   extracted_requirements?: {
-    required_skills?: string[];
-    preferred_skills?: string[];
+    // Basic info
+    required_skills?: WeightedAttribute[];
+    preferred_skills?: WeightedAttribute[];
     years_experience?: string;
     education?: string;
     location?: string;
     work_type?: string;
     salary_range?: string;
+    certifications?: string[];
+    // Semantic profile attributes - all weighted
+    success_signals?: WeightedAttribute[];
+    red_flags?: WeightedAttribute[];
+    behavioral_traits?: WeightedAttribute[];
+    cultural_indicators?: WeightedAttribute[];
+    deal_breakers?: WeightedAttribute[];
+    ideal_background?: string;
+    // Category weights for overall scoring
+    category_weights?: {
+      required_skills: number;
+      preferred_skills: number;
+      success_signals: number;
+      red_flags: number;
+      behavioral_traits: number;
+      cultural_indicators: number;
+      deal_breakers: number;
+    };
+    // Missing fields tracking
+    missing_fields?: string[];
+    extraction_confidence?: number;
   };
   company_context?: {
     company_name?: string;
@@ -92,7 +130,7 @@ interface JobStats {
 export default function JobDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
-  const { currentRecruiter } = useRecruiter();
+  const { isAuthenticated, isLoading: authLoading, recruiter, logout, token } = useAuth();
 
   const [job, setJob] = useState<Job | null>(null);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
@@ -100,30 +138,91 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"overview" | "candidates" | "analytics">("overview");
 
+  // Missing fields form state
+  const [showMissingFieldsForm, setShowMissingFieldsForm] = useState(false);
+  const [savingFields, setSavingFields] = useState(false);
+  const [editedFields, setEditedFields] = useState<{
+    success_signals: WeightedAttribute[];
+    red_flags: WeightedAttribute[];
+    behavioral_traits: WeightedAttribute[];
+    cultural_indicators: WeightedAttribute[];
+    deal_breakers: WeightedAttribute[];
+    required_skills: WeightedAttribute[];
+    ideal_background: string;
+    category_weights: {
+      required_skills: number;
+      preferred_skills: number;
+      success_signals: number;
+      red_flags: number;
+      behavioral_traits: number;
+      cultural_indicators: number;
+      deal_breakers: number;
+    };
+  }>({
+    success_signals: [],
+    red_flags: [],
+    behavioral_traits: [],
+    cultural_indicators: [],
+    deal_breakers: [],
+    required_skills: [],
+    ideal_background: "",
+    category_weights: {
+      required_skills: 0.25,
+      preferred_skills: 0.10,
+      success_signals: 0.20,
+      red_flags: 0.15,
+      behavioral_traits: 0.15,
+      cultural_indicators: 0.10,
+      deal_breakers: 0.05,
+    },
+  });
+  const [newItemInputs, setNewItemInputs] = useState<Record<string, string>>({});
+
+  // Redirect to login if not authenticated
   useEffect(() => {
-    fetchJobData();
-  }, [resolvedParams.id]);
+    if (!authLoading && !isAuthenticated) {
+      router.push("/login");
+    }
+  }, [isAuthenticated, authLoading, router]);
+
+  useEffect(() => {
+    if (isAuthenticated && token) {
+      fetchJobData();
+    }
+  }, [resolvedParams.id, isAuthenticated, token]);
+
+  const getAuthHeaders = (): Record<string, string> => {
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    return headers;
+  };
 
   const fetchJobData = async () => {
     try {
       setLoading(true);
+      const headers = getAuthHeaders();
 
       // Fetch job details
-      const jobResponse = await fetch(`${API_URL}/api/jobs/${resolvedParams.id}`);
+      const jobResponse = await fetch(`${API_URL}/api/jobs/${resolvedParams.id}`, { headers });
       if (jobResponse.ok) {
         const jobData = await jobResponse.json();
         setJob(jobData);
+      } else if (jobResponse.status === 401) {
+        router.push("/login");
+        return;
       }
 
       // Fetch candidates for this job
-      const candidatesResponse = await fetch(`${API_URL}/api/jobs/${resolvedParams.id}/candidates`);
+      const candidatesResponse = await fetch(`${API_URL}/api/jobs/${resolvedParams.id}/candidates`, { headers });
       if (candidatesResponse.ok) {
         const candidatesData = await candidatesResponse.json();
         setCandidates(candidatesData.candidates || []);
       }
 
       // Fetch job dashboard stats
-      const statsResponse = await fetch(`${API_URL}/api/dashboard/job/${resolvedParams.id}/summary`);
+      const statsResponse = await fetch(`${API_URL}/api/dashboard/job/${resolvedParams.id}/summary`, { headers });
       if (statsResponse.ok) {
         const statsData = await statsResponse.json();
         setStats(statsData);
@@ -139,6 +238,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
     try {
       const response = await fetch(`${API_URL}/api/jobs/${resolvedParams.id}/${action}`, {
         method: "POST",
+        headers: getAuthHeaders(),
       });
       if (response.ok) {
         fetchJobData();
@@ -146,6 +246,123 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
     } catch (error) {
       console.error(`Failed to ${action} job:`, error);
     }
+  };
+
+  // Initialize edited fields when job loads
+  useEffect(() => {
+    if (job?.extracted_requirements) {
+      setEditedFields({
+        success_signals: job.extracted_requirements.success_signals || [],
+        red_flags: job.extracted_requirements.red_flags || [],
+        behavioral_traits: job.extracted_requirements.behavioral_traits || [],
+        cultural_indicators: job.extracted_requirements.cultural_indicators || [],
+        deal_breakers: job.extracted_requirements.deal_breakers || [],
+        required_skills: job.extracted_requirements.required_skills || [],
+        ideal_background: job.extracted_requirements.ideal_background || "",
+        category_weights: job.extracted_requirements.category_weights || {
+          required_skills: 0.25,
+          preferred_skills: 0.10,
+          success_signals: 0.20,
+          red_flags: 0.15,
+          behavioral_traits: 0.15,
+          cultural_indicators: 0.10,
+          deal_breakers: 0.05,
+        },
+      });
+    }
+  }, [job]);
+
+  // Save missing fields
+  const saveSemanticAttributes = async () => {
+    if (!job) return;
+
+    try {
+      setSavingFields(true);
+      const headers = {
+        ...getAuthHeaders(),
+        "Content-Type": "application/json",
+      };
+
+      // Merge edited fields with existing extracted_requirements
+      const updatedRequirements = {
+        ...job.extracted_requirements,
+        ...editedFields,
+        // Clear missing_fields for the ones we've filled
+        missing_fields: (job.extracted_requirements?.missing_fields || []).filter(
+          (field) => {
+            const fieldKey = field.toLowerCase().replace(/\s+/g, '_');
+            const editedValue = editedFields[fieldKey as keyof typeof editedFields];
+            if (Array.isArray(editedValue)) {
+              return editedValue.length === 0;
+            }
+            return !editedValue;
+          }
+        ),
+      };
+
+      const response = await fetch(`${API_URL}/api/jobs/${resolvedParams.id}`, {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify({
+          extracted_requirements: updatedRequirements,
+        }),
+      });
+
+      if (response.ok) {
+        fetchJobData();
+        setShowMissingFieldsForm(false);
+      }
+    } catch (error) {
+      console.error("Failed to save semantic attributes:", error);
+    } finally {
+      setSavingFields(false);
+    }
+  };
+
+  // Add weighted item to array field
+  const addItemToField = (field: keyof typeof editedFields, value: string, weight: number = 0.7) => {
+    if (!value.trim()) return;
+    if (Array.isArray(editedFields[field]) && field !== 'category_weights') {
+      const newItem: WeightedAttribute = { value: value.trim(), weight };
+      setEditedFields({
+        ...editedFields,
+        [field]: [...(editedFields[field] as WeightedAttribute[]), newItem],
+      });
+      setNewItemInputs({ ...newItemInputs, [field]: "" });
+    }
+  };
+
+  // Remove item from array field
+  const removeItemFromField = (field: keyof typeof editedFields, index: number) => {
+    if (Array.isArray(editedFields[field]) && field !== 'category_weights') {
+      setEditedFields({
+        ...editedFields,
+        [field]: (editedFields[field] as WeightedAttribute[]).filter((_, i) => i !== index),
+      });
+    }
+  };
+
+  // Update weight for an item
+  const updateItemWeight = (field: keyof typeof editedFields, index: number, weight: number) => {
+    if (Array.isArray(editedFields[field]) && field !== 'category_weights') {
+      const items = [...(editedFields[field] as WeightedAttribute[])];
+      items[index] = { ...items[index], weight };
+      setEditedFields({
+        ...editedFields,
+        [field]: items,
+      });
+    }
+  };
+
+  // Update category weight
+  const updateCategoryWeight = (category: keyof typeof editedFields.category_weights, weight: number) => {
+    setEditedFields({
+      ...editedFields,
+      category_weights: {
+        ...editedFields.category_weights,
+        [category]: weight,
+      },
+    });
   };
 
   const getStatusColor = (status: string) => {
@@ -162,6 +379,24 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
         return "bg-gray-500/10 border-gray-500/30 text-gray-400";
     }
   };
+
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <main className="min-h-screen gradient-bg flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+      </main>
+    );
+  }
+
+  // Don't render for unauthenticated users
+  if (!isAuthenticated) {
+    return (
+      <main className="min-h-screen gradient-bg flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+      </main>
+    );
+  }
 
   if (loading) {
     return (
@@ -232,7 +467,30 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                 Pause
               </button>
             )}
-            <RecruiterSelector />
+
+            {/* Dashboard Link */}
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2 px-3 py-2 text-sm text-white/60 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+            >
+              <LayoutDashboard className="w-4 h-4" />
+              Dashboard
+            </Link>
+
+            {/* User Info & Logout */}
+            <div className="flex items-center gap-3 pl-4 border-l border-white/10">
+              <div className="text-right">
+                <p className="text-sm font-medium text-white">{recruiter?.name}</p>
+                <p className="text-xs text-white/50">{recruiter?.email}</p>
+              </div>
+              <button
+                onClick={logout}
+                className="p-2 text-white/50 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                title="Sign out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -371,135 +629,621 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
 
         {/* Tab Content */}
         {activeTab === "overview" && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Job Description */}
-            <div className="glass-panel rounded-2xl p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-white flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-white/60" />
-                  Job Description
-                </h3>
-              </div>
-              <div className="text-sm text-white/70 leading-relaxed whitespace-pre-wrap max-h-96 overflow-y-auto">
-                {job.raw_description}
-              </div>
-            </div>
-
-            {/* Extracted Requirements */}
-            <div className="space-y-6">
-              {job.extracted_requirements && (
-                <div className="glass-panel rounded-2xl p-6">
-                  <h3 className="text-lg font-medium text-white flex items-center gap-2 mb-4">
-                    <Sparkles className="w-5 h-5 text-indigo-400" />
-                    Extracted Requirements
-                  </h3>
-                  <div className="space-y-4">
-                    {job.extracted_requirements.years_experience && (
-                      <div>
-                        <label className="text-xs text-white/50 uppercase tracking-wider">
-                          Experience
-                        </label>
-                        <p className="text-white">{job.extracted_requirements.years_experience}</p>
-                      </div>
-                    )}
-                    {job.extracted_requirements.required_skills?.length && job.extracted_requirements.required_skills.length > 0 && (
-                      <div>
-                        <label className="text-xs text-white/50 uppercase tracking-wider mb-2 block">
-                          Required Skills
-                        </label>
-                        <div className="flex flex-wrap gap-2">
-                          {job.extracted_requirements.required_skills.map((skill) => (
-                            <span
-                              key={skill}
-                              className="px-3 py-1 bg-indigo-500/20 text-indigo-300 rounded-lg text-sm"
-                            >
-                              {skill}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {job.extracted_requirements.location && (
-                      <div>
-                        <label className="text-xs text-white/50 uppercase tracking-wider">
-                          Location
-                        </label>
-                        <p className="text-white">{job.extracted_requirements.location}</p>
-                      </div>
-                    )}
+          <div className="space-y-6">
+            {/* Missing Fields Alert */}
+            {job.extracted_requirements?.missing_fields && job.extracted_requirements.missing_fields.length > 0 && (
+              <div className="glass-panel rounded-2xl p-6 border border-yellow-500/30 bg-yellow-500/5">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-yellow-500/20 flex items-center justify-center flex-shrink-0">
+                    <AlertCircle className="w-5 h-5 text-yellow-400" />
                   </div>
-                </div>
-              )}
-
-              {/* Scoring Criteria */}
-              {job.scoring_criteria && (
-                <div className="glass-panel rounded-2xl p-6">
-                  <h3 className="text-lg font-medium text-white flex items-center gap-2 mb-4">
-                    <Target className="w-5 h-5 text-green-400" />
-                    Scoring Criteria
-                  </h3>
-                  <div className="space-y-4">
-                    {job.scoring_criteria.must_haves?.length && job.scoring_criteria.must_haves.length > 0 && (
-                      <div>
-                        <label className="text-xs text-white/50 uppercase tracking-wider mb-2 block">
-                          Must-Haves
-                        </label>
-                        <ul className="space-y-1">
-                          {job.scoring_criteria.must_haves.map((item, i) => (
-                            <li key={i} className="text-sm text-white/80 flex items-center gap-2">
-                              <CheckCircle className="w-3 h-3 text-green-400" />
-                              {item}
-                            </li>
-                          ))}
-                        </ul>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-medium text-white mb-2">Complete Job Profile</h3>
+                    <p className="text-sm text-white/60 mb-4">
+                      The following attributes weren't found in the job description. Add them to improve candidate screening accuracy.
+                    </p>
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {job.extracted_requirements.missing_fields.map((field) => (
+                        <span key={field} className="px-3 py-1 bg-yellow-500/20 text-yellow-300 rounded-lg text-sm">
+                          {field.replace(/_/g, ' ')}
+                        </span>
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => setShowMissingFieldsForm(true)}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500 text-black rounded-lg font-medium hover:bg-yellow-400 transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Missing Attributes
+                    </button>
+                  </div>
+                  {job.extracted_requirements.extraction_confidence !== undefined && (
+                    <div className="text-right">
+                      <div className="text-2xl font-light text-white">
+                        {(job.extracted_requirements.extraction_confidence * 100).toFixed(0)}%
                       </div>
-                    )}
-                    <div className="pt-4 border-t border-white/10">
-                      <label className="text-xs text-white/50 uppercase tracking-wider mb-2 block">
-                        Weights
-                      </label>
-                      <div className="grid grid-cols-3 gap-4 text-center">
-                        <div>
-                          <div className="text-lg font-light text-white">
-                            {((job.scoring_criteria.weight_technical || 0.5) * 100).toFixed(0)}%
-                          </div>
-                          <div className="text-xs text-white/40">Technical</div>
+                      <div className="text-xs text-white/40">Extraction Confidence</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Missing Fields Form Modal */}
+            {showMissingFieldsForm && (
+              <div className="glass-panel rounded-2xl p-6 border border-indigo-500/30">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-medium text-white flex items-center gap-2">
+                    <Edit className="w-5 h-5 text-indigo-400" />
+                    Complete Screening Profile
+                  </h3>
+                  <button
+                    onClick={() => setShowMissingFieldsForm(false)}
+                    className="p-2 hover:bg-white/5 rounded-lg transition-colors"
+                  >
+                    <X className="w-5 h-5 text-white/60" />
+                  </button>
+                </div>
+
+                <div className="space-y-6">
+                  {/* Category Weights Section */}
+                  <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+                    <h4 className="text-sm font-medium text-white mb-3 flex items-center gap-2">
+                      <BarChart3 className="w-4 h-4 text-indigo-400" />
+                      Category Weights
+                    </h4>
+                    <p className="text-xs text-white/40 mb-4">Adjust how much each category matters in overall candidate scoring.</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      {Object.entries(editedFields.category_weights).map(([key, value]) => (
+                        <div key={key} className="flex items-center gap-2">
+                          <span className="text-xs text-white/60 w-28 truncate">{key.replace(/_/g, ' ')}</span>
+                          <input
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.05"
+                            value={value}
+                            onChange={(e) => updateCategoryWeight(key as keyof typeof editedFields.category_weights, parseFloat(e.target.value))}
+                            className="flex-1 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                          />
+                          <span className="text-xs text-white/60 w-10 text-right">{(value * 100).toFixed(0)}%</span>
                         </div>
-                        <div>
-                          <div className="text-lg font-light text-white">
-                            {((job.scoring_criteria.weight_experience || 0.3) * 100).toFixed(0)}%
-                          </div>
-                          <div className="text-xs text-white/40">Experience</div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Required Skills */}
+                  <div>
+                    <label className="flex items-center gap-2 text-sm font-medium text-indigo-400 mb-2">
+                      <Sparkles className="w-4 h-4" />
+                      Required Skills
+                    </label>
+                    <p className="text-xs text-white/40 mb-3">Key skills with importance weights for scoring.</p>
+                    <div className="space-y-2">
+                      {editedFields.required_skills.map((item, i) => (
+                        <div key={i} className="flex items-center gap-2 p-2 bg-indigo-500/10 rounded-lg">
+                          <span className="flex-1 text-sm text-white/80">{item.value}</span>
+                          <input
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.1"
+                            value={item.weight}
+                            onChange={(e) => updateItemWeight('required_skills', i, parseFloat(e.target.value))}
+                            className="w-20 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                            title={`Weight: ${(item.weight * 100).toFixed(0)}%`}
+                          />
+                          <span className="text-xs text-white/50 w-8">{(item.weight * 100).toFixed(0)}%</span>
+                          <button onClick={() => removeItemFromField('required_skills', i)} className="p-1 hover:bg-white/10 rounded">
+                            <X className="w-3 h-3 text-white/40" />
+                          </button>
                         </div>
-                        <div>
-                          <div className="text-lg font-light text-white">
-                            {((job.scoring_criteria.weight_cultural || 0.2) * 100).toFixed(0)}%
-                          </div>
-                          <div className="text-xs text-white/40">Cultural</div>
-                        </div>
+                      ))}
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="e.g., closing deals, prospecting..."
+                          value={newItemInputs.required_skills || ""}
+                          onChange={(e) => setNewItemInputs({ ...newItemInputs, required_skills: e.target.value })}
+                          onKeyDown={(e) => e.key === "Enter" && addItemToField('required_skills', newItemInputs.required_skills || "")}
+                          className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-indigo-500/50"
+                        />
+                        <button
+                          onClick={() => addItemToField('required_skills', newItemInputs.required_skills || "")}
+                          className="px-3 py-2 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 rounded-lg"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
 
-              {/* Red Flags */}
-              {job.red_flags && job.red_flags.length > 0 && (
-                <div className="glass-panel rounded-2xl p-6">
-                  <h3 className="text-lg font-medium text-white flex items-center gap-2 mb-4">
-                    <AlertCircle className="w-5 h-5 text-red-400" />
-                    Red Flags
-                  </h3>
-                  <ul className="space-y-2">
-                    {job.red_flags.map((flag, i) => (
-                      <li key={i} className="text-sm text-red-300/80 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
-                        {flag}
-                      </li>
-                    ))}
-                  </ul>
+                  {/* Success Signals */}
+                  <div>
+                    <label className="flex items-center gap-2 text-sm font-medium text-green-400 mb-2">
+                      <ThumbsUp className="w-4 h-4" />
+                      Success Signals (Green Flags)
+                    </label>
+                    <p className="text-xs text-white/40 mb-3">What patterns indicate a strong candidate? Higher weight = more important.</p>
+                    <div className="space-y-2">
+                      {editedFields.success_signals.map((item, i) => (
+                        <div key={i} className="flex items-center gap-2 p-2 bg-green-500/10 rounded-lg">
+                          <span className="flex-1 text-sm text-white/80">{item.value}</span>
+                          <input
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.1"
+                            value={item.weight}
+                            onChange={(e) => updateItemWeight('success_signals', i, parseFloat(e.target.value))}
+                            className="w-20 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-green-500"
+                            title={`Weight: ${(item.weight * 100).toFixed(0)}%`}
+                          />
+                          <span className="text-xs text-white/50 w-8">{(item.weight * 100).toFixed(0)}%</span>
+                          <button onClick={() => removeItemFromField('success_signals', i)} className="p-1 hover:bg-white/10 rounded">
+                            <X className="w-3 h-3 text-white/40" />
+                          </button>
+                        </div>
+                      ))}
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="e.g., Track record of exceeding quota..."
+                          value={newItemInputs.success_signals || ""}
+                          onChange={(e) => setNewItemInputs({ ...newItemInputs, success_signals: e.target.value })}
+                          onKeyDown={(e) => e.key === "Enter" && addItemToField('success_signals', newItemInputs.success_signals || "")}
+                          className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-green-500/50"
+                        />
+                        <button
+                          onClick={() => addItemToField('success_signals', newItemInputs.success_signals || "")}
+                          className="px-3 py-2 bg-green-600/20 hover:bg-green-600/30 text-green-400 rounded-lg"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Red Flags */}
+                  <div>
+                    <label className="flex items-center gap-2 text-sm font-medium text-red-400 mb-2">
+                      <ThumbsDown className="w-4 h-4" />
+                      Red Flags (Warning Signs)
+                    </label>
+                    <p className="text-xs text-white/40 mb-3">What patterns should disqualify a candidate? Higher weight = more severe.</p>
+                    <div className="space-y-2">
+                      {editedFields.red_flags.map((item, i) => (
+                        <div key={i} className="flex items-center gap-2 p-2 bg-red-500/10 rounded-lg">
+                          <span className="flex-1 text-sm text-white/80">{item.value}</span>
+                          <input
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.1"
+                            value={item.weight}
+                            onChange={(e) => updateItemWeight('red_flags', i, parseFloat(e.target.value))}
+                            className="w-20 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-red-500"
+                            title={`Weight: ${(item.weight * 100).toFixed(0)}%`}
+                          />
+                          <span className="text-xs text-white/50 w-8">{(item.weight * 100).toFixed(0)}%</span>
+                          <button onClick={() => removeItemFromField('red_flags', i)} className="p-1 hover:bg-white/10 rounded">
+                            <X className="w-3 h-3 text-white/40" />
+                          </button>
+                        </div>
+                      ))}
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="e.g., No experience with target customer segment..."
+                          value={newItemInputs.red_flags || ""}
+                          onChange={(e) => setNewItemInputs({ ...newItemInputs, red_flags: e.target.value })}
+                          onKeyDown={(e) => e.key === "Enter" && addItemToField('red_flags', newItemInputs.red_flags || "")}
+                          className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-red-500/50"
+                        />
+                        <button
+                          onClick={() => addItemToField('red_flags', newItemInputs.red_flags || "")}
+                          className="px-3 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Behavioral Traits */}
+                  <div>
+                    <label className="flex items-center gap-2 text-sm font-medium text-purple-400 mb-2">
+                      <Brain className="w-4 h-4" />
+                      Behavioral Traits
+                    </label>
+                    <p className="text-xs text-white/40 mb-3">What behaviors should the ideal candidate demonstrate?</p>
+                    <div className="space-y-2">
+                      {editedFields.behavioral_traits.map((item, i) => (
+                        <div key={i} className="flex items-center gap-2 p-2 bg-purple-500/10 rounded-lg">
+                          <span className="flex-1 text-sm text-white/80">{item.value}</span>
+                          <input
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.1"
+                            value={item.weight}
+                            onChange={(e) => updateItemWeight('behavioral_traits', i, parseFloat(e.target.value))}
+                            className="w-20 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                            title={`Weight: ${(item.weight * 100).toFixed(0)}%`}
+                          />
+                          <span className="text-xs text-white/50 w-8">{(item.weight * 100).toFixed(0)}%</span>
+                          <button onClick={() => removeItemFromField('behavioral_traits', i)} className="p-1 hover:bg-white/10 rounded">
+                            <X className="w-3 h-3 text-white/40" />
+                          </button>
+                        </div>
+                      ))}
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="e.g., Self-starter mentality, Data-driven decision making..."
+                          value={newItemInputs.behavioral_traits || ""}
+                          onChange={(e) => setNewItemInputs({ ...newItemInputs, behavioral_traits: e.target.value })}
+                          onKeyDown={(e) => e.key === "Enter" && addItemToField('behavioral_traits', newItemInputs.behavioral_traits || "")}
+                          className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-purple-500/50"
+                        />
+                        <button
+                          onClick={() => addItemToField('behavioral_traits', newItemInputs.behavioral_traits || "")}
+                          className="px-3 py-2 bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 rounded-lg"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Cultural Indicators */}
+                  <div>
+                    <label className="flex items-center gap-2 text-sm font-medium text-cyan-400 mb-2">
+                      <Heart className="w-4 h-4" />
+                      Cultural Fit Indicators
+                    </label>
+                    <p className="text-xs text-white/40 mb-3">What values and working styles align with your team?</p>
+                    <div className="space-y-2">
+                      {editedFields.cultural_indicators.map((item, i) => (
+                        <div key={i} className="flex items-center gap-2 p-2 bg-cyan-500/10 rounded-lg">
+                          <span className="flex-1 text-sm text-white/80">{item.value}</span>
+                          <input
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.1"
+                            value={item.weight}
+                            onChange={(e) => updateItemWeight('cultural_indicators', i, parseFloat(e.target.value))}
+                            className="w-20 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                            title={`Weight: ${(item.weight * 100).toFixed(0)}%`}
+                          />
+                          <span className="text-xs text-white/50 w-8">{(item.weight * 100).toFixed(0)}%</span>
+                          <button onClick={() => removeItemFromField('cultural_indicators', i)} className="p-1 hover:bg-white/10 rounded">
+                            <X className="w-3 h-3 text-white/40" />
+                          </button>
+                        </div>
+                      ))}
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="e.g., Thrives in fast-paced startup environment..."
+                          value={newItemInputs.cultural_indicators || ""}
+                          onChange={(e) => setNewItemInputs({ ...newItemInputs, cultural_indicators: e.target.value })}
+                          onKeyDown={(e) => e.key === "Enter" && addItemToField('cultural_indicators', newItemInputs.cultural_indicators || "")}
+                          className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-cyan-500/50"
+                        />
+                        <button
+                          onClick={() => addItemToField('cultural_indicators', newItemInputs.cultural_indicators || "")}
+                          className="px-3 py-2 bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-400 rounded-lg"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Deal Breakers */}
+                  <div>
+                    <label className="flex items-center gap-2 text-sm font-medium text-orange-400 mb-2">
+                      <Ban className="w-4 h-4" />
+                      Deal Breakers
+                    </label>
+                    <p className="text-xs text-white/40 mb-3">What are non-negotiable requirements?</p>
+                    <div className="space-y-2">
+                      {editedFields.deal_breakers.map((item, i) => (
+                        <div key={i} className="flex items-center gap-2 p-2 bg-orange-500/10 rounded-lg">
+                          <span className="flex-1 text-sm text-white/80">{item.value}</span>
+                          <input
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.1"
+                            value={item.weight}
+                            onChange={(e) => updateItemWeight('deal_breakers', i, parseFloat(e.target.value))}
+                            className="w-20 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-orange-500"
+                            title={`Weight: ${(item.weight * 100).toFixed(0)}%`}
+                          />
+                          <span className="text-xs text-white/50 w-8">{(item.weight * 100).toFixed(0)}%</span>
+                          <button onClick={() => removeItemFromField('deal_breakers', i)} className="p-1 hover:bg-white/10 rounded">
+                            <X className="w-3 h-3 text-white/40" />
+                          </button>
+                        </div>
+                      ))}
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="e.g., Must have sold to enterprise customers..."
+                          value={newItemInputs.deal_breakers || ""}
+                          onChange={(e) => setNewItemInputs({ ...newItemInputs, deal_breakers: e.target.value })}
+                          onKeyDown={(e) => e.key === "Enter" && addItemToField('deal_breakers', newItemInputs.deal_breakers || "")}
+                          className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-orange-500/50"
+                        />
+                        <button
+                          onClick={() => addItemToField('deal_breakers', newItemInputs.deal_breakers || "")}
+                          className="px-3 py-2 bg-orange-600/20 hover:bg-orange-600/30 text-orange-400 rounded-lg"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Ideal Background */}
+                  <div>
+                    <label className="flex items-center gap-2 text-sm font-medium text-indigo-400 mb-2">
+                      <Target className="w-4 h-4" />
+                      Ideal Background
+                    </label>
+                    <p className="text-xs text-white/40 mb-3">Describe the ideal candidate's background in 2-3 sentences.</p>
+                    <textarea
+                      value={editedFields.ideal_background}
+                      onChange={(e) => setEditedFields({ ...editedFields, ideal_background: e.target.value })}
+                      placeholder="e.g., The ideal candidate has 2+ years of SaaS sales experience, with a track record of selling to mid-market finance teams..."
+                      rows={3}
+                      className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-indigo-500/50 resize-none"
+                    />
+                  </div>
+
+                  {/* Save Button */}
+                  <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
+                    <button
+                      onClick={() => setShowMissingFieldsForm(false)}
+                      className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-white/60 font-medium transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={saveSemanticAttributes}
+                      disabled={savingFields}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg font-medium transition-colors disabled:opacity-50"
+                    >
+                      {savingFields ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4" />
+                          Save Attributes
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
-              )}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left Column: Job Description + Basic Info */}
+              <div className="space-y-6">
+                {/* Job Description */}
+                <div className="glass-panel rounded-2xl p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-medium text-white flex items-center gap-2">
+                      <FileText className="w-5 h-5 text-white/60" />
+                      Job Description
+                    </h3>
+                  </div>
+                  <div className="text-sm text-white/70 leading-relaxed whitespace-pre-wrap max-h-96 overflow-y-auto">
+                    {job.raw_description}
+                  </div>
+                </div>
+
+                {/* Basic Requirements */}
+                {job.extracted_requirements && (
+                  <div className="glass-panel rounded-2xl p-6">
+                    <h3 className="text-lg font-medium text-white flex items-center gap-2 mb-4">
+                      <Sparkles className="w-5 h-5 text-indigo-400" />
+                      Basic Requirements
+                    </h3>
+                    <div className="space-y-4">
+                      {job.extracted_requirements.years_experience && (
+                        <div>
+                          <label className="text-xs text-white/50 uppercase tracking-wider">Experience</label>
+                          <p className="text-white">{job.extracted_requirements.years_experience}</p>
+                        </div>
+                      )}
+                      {job.extracted_requirements.location && (
+                        <div>
+                          <label className="text-xs text-white/50 uppercase tracking-wider">Location</label>
+                          <p className="text-white">{job.extracted_requirements.location}</p>
+                        </div>
+                      )}
+                      {job.extracted_requirements.required_skills && job.extracted_requirements.required_skills.length > 0 && (
+                        <div>
+                          <label className="text-xs text-white/50 uppercase tracking-wider mb-2 block">Skills (with weights)</label>
+                          <div className="flex flex-wrap gap-2">
+                            {job.extracted_requirements.required_skills.map((skill, i) => (
+                              <span key={i} className="px-3 py-1 bg-indigo-500/20 text-indigo-300 rounded-lg text-sm flex items-center gap-2">
+                                {skill.value}
+                                <span className="text-xs opacity-60 bg-indigo-500/30 px-1.5 rounded">
+                                  {(skill.weight * 100).toFixed(0)}%
+                                </span>
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Right Column: Semantic Profile */}
+              <div className="space-y-6">
+                {/* Success Signals */}
+                {job.extracted_requirements?.success_signals && job.extracted_requirements.success_signals.length > 0 && (
+                  <div className="glass-panel rounded-2xl p-6 border border-green-500/20">
+                    <h3 className="text-lg font-medium text-white flex items-center gap-2 mb-4">
+                      <ThumbsUp className="w-5 h-5 text-green-400" />
+                      Success Signals
+                      {job.extracted_requirements.category_weights && (
+                        <span className="text-xs text-white/40 ml-auto">
+                          Category: {(job.extracted_requirements.category_weights.success_signals * 100).toFixed(0)}%
+                        </span>
+                      )}
+                    </h3>
+                    <ul className="space-y-2">
+                      {job.extracted_requirements.success_signals.map((signal, i) => (
+                        <li key={i} className="text-sm text-white/80 flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
+                          <span className="flex-1">{signal.value}</span>
+                          <span className="text-xs text-green-400/60 bg-green-500/20 px-2 py-0.5 rounded">
+                            {(signal.weight * 100).toFixed(0)}%
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Red Flags */}
+                {job.extracted_requirements?.red_flags && job.extracted_requirements.red_flags.length > 0 && (
+                  <div className="glass-panel rounded-2xl p-6 border border-red-500/20">
+                    <h3 className="text-lg font-medium text-white flex items-center gap-2 mb-4">
+                      <ThumbsDown className="w-5 h-5 text-red-400" />
+                      Red Flags
+                      {job.extracted_requirements.category_weights && (
+                        <span className="text-xs text-white/40 ml-auto">
+                          Category: {(job.extracted_requirements.category_weights.red_flags * 100).toFixed(0)}%
+                        </span>
+                      )}
+                    </h3>
+                    <ul className="space-y-2">
+                      {job.extracted_requirements.red_flags.map((flag, i) => (
+                        <li key={i} className="text-sm text-white/80 flex items-center gap-2">
+                          <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                          <span className="flex-1">{flag.value}</span>
+                          <span className="text-xs text-red-400/60 bg-red-500/20 px-2 py-0.5 rounded">
+                            {(flag.weight * 100).toFixed(0)}%
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Behavioral Traits */}
+                {job.extracted_requirements?.behavioral_traits && job.extracted_requirements.behavioral_traits.length > 0 && (
+                  <div className="glass-panel rounded-2xl p-6 border border-purple-500/20">
+                    <h3 className="text-lg font-medium text-white flex items-center gap-2 mb-4">
+                      <Brain className="w-5 h-5 text-purple-400" />
+                      Behavioral Traits
+                      {job.extracted_requirements.category_weights && (
+                        <span className="text-xs text-white/40 ml-auto">
+                          Category: {(job.extracted_requirements.category_weights.behavioral_traits * 100).toFixed(0)}%
+                        </span>
+                      )}
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {job.extracted_requirements.behavioral_traits.map((trait, i) => (
+                        <span key={i} className="px-3 py-1.5 bg-purple-500/20 text-purple-300 rounded-lg text-sm flex items-center gap-2">
+                          {trait.value}
+                          <span className="text-xs opacity-60 bg-purple-500/30 px-1.5 rounded">
+                            {(trait.weight * 100).toFixed(0)}%
+                          </span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Cultural Fit */}
+                {job.extracted_requirements?.cultural_indicators && job.extracted_requirements.cultural_indicators.length > 0 && (
+                  <div className="glass-panel rounded-2xl p-6 border border-cyan-500/20">
+                    <h3 className="text-lg font-medium text-white flex items-center gap-2 mb-4">
+                      <Heart className="w-5 h-5 text-cyan-400" />
+                      Cultural Fit
+                      {job.extracted_requirements.category_weights && (
+                        <span className="text-xs text-white/40 ml-auto">
+                          Category: {(job.extracted_requirements.category_weights.cultural_indicators * 100).toFixed(0)}%
+                        </span>
+                      )}
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {job.extracted_requirements.cultural_indicators.map((indicator, i) => (
+                        <span key={i} className="px-3 py-1.5 bg-cyan-500/20 text-cyan-300 rounded-lg text-sm flex items-center gap-2">
+                          {indicator.value}
+                          <span className="text-xs opacity-60 bg-cyan-500/30 px-1.5 rounded">
+                            {(indicator.weight * 100).toFixed(0)}%
+                          </span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Deal Breakers */}
+                {job.extracted_requirements?.deal_breakers && job.extracted_requirements.deal_breakers.length > 0 && (
+                  <div className="glass-panel rounded-2xl p-6 border border-orange-500/20">
+                    <h3 className="text-lg font-medium text-white flex items-center gap-2 mb-4">
+                      <Ban className="w-5 h-5 text-orange-400" />
+                      Deal Breakers
+                      {job.extracted_requirements.category_weights && (
+                        <span className="text-xs text-white/40 ml-auto">
+                          Category: {(job.extracted_requirements.category_weights.deal_breakers * 100).toFixed(0)}%
+                        </span>
+                      )}
+                    </h3>
+                    <ul className="space-y-2">
+                      {job.extracted_requirements.deal_breakers.map((breaker, i) => (
+                        <li key={i} className="text-sm text-white/80 flex items-center gap-2">
+                          <Ban className="w-4 h-4 text-orange-400 flex-shrink-0" />
+                          <span className="flex-1">{breaker.value}</span>
+                          <span className="text-xs text-orange-400/60 bg-orange-500/20 px-2 py-0.5 rounded">
+                            {(breaker.weight * 100).toFixed(0)}%
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Ideal Background */}
+                {job.extracted_requirements?.ideal_background && (
+                  <div className="glass-panel rounded-2xl p-6">
+                    <h3 className="text-lg font-medium text-white flex items-center gap-2 mb-4">
+                      <Target className="w-5 h-5 text-indigo-400" />
+                      Ideal Background
+                    </h3>
+                    <p className="text-sm text-white/70 leading-relaxed">
+                      {job.extracted_requirements.ideal_background}
+                    </p>
+                  </div>
+                )}
+
+                {/* Edit Button if no missing fields form is showing */}
+                {!showMissingFieldsForm && (
+                  <button
+                    onClick={() => setShowMissingFieldsForm(true)}
+                    className="w-full py-3 glass-panel rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Edit className="w-4 h-4" />
+                    Edit Screening Profile
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         )}
