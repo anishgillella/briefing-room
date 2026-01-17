@@ -42,9 +42,14 @@ CREATE TRIGGER update_recruiters_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
--- Grant permissions (adjust as needed for your setup)
--- GRANT ALL ON recruiters TO authenticated;
--- GRANT ALL ON recruiters TO anon;
+-- Disable RLS for development
+ALTER TABLE recruiters DISABLE ROW LEVEL SECURITY;
+
+-- Grant permissions to all roles
+GRANT ALL ON recruiters TO postgres;
+GRANT ALL ON recruiters TO anon;
+GRANT ALL ON recruiters TO authenticated;
+GRANT ALL ON recruiters TO service_role;
 
 COMMENT ON TABLE recruiters IS 'Stores recruiter/hiring manager information for job ownership tracking';
 COMMENT ON COLUMN recruiters.id IS 'Unique identifier for the recruiter';
