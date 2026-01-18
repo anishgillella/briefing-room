@@ -4,6 +4,7 @@ import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import AppLayout from "@/components/AppLayout";
 import {
   ArrowLeft,
   Mic,
@@ -94,66 +95,48 @@ export default function JobEnrichPage({ params }: { params: Promise<{ id: string
     job?.company_context?.company_name;
 
   // Show loading while checking auth
-  if (authLoading) {
+  if (authLoading || loading) {
     return (
-      <main className="min-h-screen gradient-bg flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
-      </main>
-    );
-  }
-
-  // Don't render for unauthenticated users
-  if (!isAuthenticated) {
-    return (
-      <main className="min-h-screen gradient-bg flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
-      </main>
-    );
-  }
-
-  if (loading) {
-    return (
-      <main className="min-h-screen gradient-bg text-white flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
-      </main>
+      <AppLayout>
+        <div className="flex items-center justify-center py-20">
+          <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+        </div>
+      </AppLayout>
     );
   }
 
   if (!job) {
     return (
-      <main className="min-h-screen gradient-bg text-white flex items-center justify-center">
-        <div className="text-center">
-          <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-          <h2 className="text-xl font-medium text-white mb-2">Job Not Found</h2>
-          <Link href="/jobs" className="text-indigo-400 hover:text-indigo-300">
-            Back to Jobs
-          </Link>
+      <AppLayout>
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+            <h2 className="text-xl font-medium text-white mb-2">Job Not Found</h2>
+            <Link href="/jobs" className="text-indigo-400 hover:text-indigo-300">
+              Back to Jobs
+            </Link>
+          </div>
         </div>
-      </main>
+      </AppLayout>
     );
   }
 
   return (
-    <main className="min-h-screen gradient-bg text-white">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#000000]/80 backdrop-blur-md border-b border-white/5 py-4">
-        <div className="flex items-center justify-between max-w-7xl mx-auto px-6">
-          <div className="flex items-center gap-4">
-            <Link
-              href={`/jobs/${resolvedParams.id}`}
-              className="p-2 hover:bg-white/5 rounded-lg transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5 text-white/60" />
-            </Link>
-            <div>
-              <h1 className="text-lg font-light tracking-wide text-white">Voice Enrichment</h1>
-              <p className="text-xs text-white/50">{job.title}</p>
-            </div>
+    <AppLayout>
+      <div className="px-6 py-8 max-w-4xl mx-auto">
+        {/* Page Header */}
+        <div className="flex items-center gap-4 mb-8">
+          <Link
+            href={`/jobs/${resolvedParams.id}`}
+            className="p-2 hover:bg-white/5 rounded-lg transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5 text-white/60" />
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold text-white">Voice Enrichment</h1>
+            <p className="text-sm text-white/50">{job.title}</p>
           </div>
         </div>
-      </header>
-
-      <div className="pt-28 px-6 pb-12 max-w-4xl mx-auto">
         {isEnriched ? (
           <div className="space-y-6">
             {/* Status Banner */}
@@ -327,6 +310,6 @@ export default function JobEnrichPage({ params }: { params: Promise<{ id: string
           </div>
         )}
       </div>
-    </main>
+    </AppLayout>
   );
 }

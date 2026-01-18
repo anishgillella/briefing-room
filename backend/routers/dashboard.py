@@ -570,19 +570,21 @@ async def get_job_dashboard_summary(
         if status in status_counts:
             status_counts[status] += 1
 
-    # Get interview stats
+    # Get interview stats - fetch all interviews for job in one query instead of N+1
     total_interviews = 0
     completed_interviews = 0
     total_duration = 0
 
-    for candidate in candidates:
-        interviews = interview_repo.list_by_candidate_sync(candidate.id)
-        total_interviews += len(interviews)
-        for interview in interviews:
+    try:
+        all_interviews = interview_repo.list_by_job_sync(job_id)
+        total_interviews = len(all_interviews)
+        for interview in all_interviews:
             if interview.status.value == "completed":
                 completed_interviews += 1
                 if interview.duration_seconds:
                     total_duration += interview.duration_seconds
+    except Exception:
+        all_interviews = []
 
     avg_duration = total_duration // completed_interviews if completed_interviews > 0 else 0
 

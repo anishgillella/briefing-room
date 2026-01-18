@@ -4,6 +4,7 @@ import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import AppLayout from "@/components/AppLayout";
 import {
   ArrowLeft,
   Star,
@@ -253,26 +254,30 @@ export default function CandidateDetailPage({
 
   if (authLoading || loading) {
     return (
-      <main className="min-h-screen gradient-bg flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
-      </main>
+      <AppLayout>
+        <div className="flex items-center justify-center py-20">
+          <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+        </div>
+      </AppLayout>
     );
   }
 
   if (!candidate) {
     return (
-      <main className="min-h-screen gradient-bg text-white flex items-center justify-center">
-        <div className="text-center">
-          <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-          <h2 className="text-xl font-medium text-white mb-2">Candidate Not Found</h2>
-          <Link
-            href={`/jobs/${resolvedParams.id}/candidates`}
-            className="text-indigo-400 hover:text-indigo-300"
-          >
-            Back to Candidates
-          </Link>
+      <AppLayout>
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+            <h2 className="text-xl font-medium text-white mb-2">Candidate Not Found</h2>
+            <Link
+              href={`/jobs/${resolvedParams.id}/candidates`}
+              className="text-indigo-400 hover:text-indigo-300"
+            >
+              Back to Candidates
+            </Link>
+          </div>
         </div>
-      </main>
+      </AppLayout>
     );
   }
 
@@ -287,10 +292,10 @@ export default function CandidateDetailPage({
   const noMatches = screeningNotes?.skill_matches?.filter(s => s.match_level === "No Match").length || 0;
 
   return (
-    <main className="min-h-screen gradient-bg text-white">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#000000]/80 backdrop-blur-md border-b border-white/5 py-4">
-        <div className="flex items-center justify-between max-w-7xl mx-auto px-6">
+    <AppLayout>
+      <div className="px-6 py-8 max-w-7xl mx-auto">
+        {/* Page Header */}
+        <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <Link
               href={`/jobs/${resolvedParams.id}/candidates`}
@@ -299,10 +304,10 @@ export default function CandidateDetailPage({
               <ArrowLeft className="w-5 h-5 text-white/60" />
             </Link>
             <div>
-              <h1 className="text-lg font-light tracking-wide text-white">
+              <h1 className="text-2xl font-bold text-white">
                 {candidate.person_name}
               </h1>
-              <p className="text-xs text-white/50">{job?.title}</p>
+              <p className="text-sm text-white/50">{job?.title}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -330,9 +335,8 @@ export default function CandidateDetailPage({
             )}
           </div>
         </div>
-      </header>
 
-      <div className="pt-28 px-6 pb-12 max-w-7xl mx-auto">
+        <div className="space-y-6">
         {/* Top Section: Profile + Quick Stats */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
           {/* Profile Card */}
@@ -661,6 +665,7 @@ export default function CandidateDetailPage({
             </div>
           </div>
         )}
+        </div>
       </div>
 
       {/* Schedule Interview Modal */}
@@ -679,6 +684,6 @@ export default function CandidateDetailPage({
                candidate.pipeline_status === "round_1" ? "round_2" :
                candidate.pipeline_status === "round_2" ? "round_3" : "round_1"}
       />
-    </main>
+    </AppLayout>
   );
 }

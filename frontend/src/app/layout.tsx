@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { RecruiterProvider } from "@/contexts/RecruiterContext";
+import QueryProvider from "@/providers/QueryProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -22,11 +23,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} antialiased`}>
-        <AuthProvider>
-          <RecruiterProvider>
-            {children}
-          </RecruiterProvider>
-        </AuthProvider>
+        <QueryProvider>
+          <AuthProvider>
+            <RecruiterProvider>
+              {children}
+            </RecruiterProvider>
+          </AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );

@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import AppLayout from "@/components/AppLayout";
+import { useJobs, useDeleteJob } from "@/hooks/useApi";
 import {
   Plus,
   Briefcase,
@@ -14,139 +14,36 @@ import {
   ChevronRight,
   Search,
   Play,
-  Pause,
-  Archive,
   Trash2,
   Mic,
-  LogOut,
-  LayoutDashboard,
   Sparkles,
 } from "lucide-react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
-// Weighted attribute for screening criteria
-interface WeightedAttribute {
-  value: string;
-  weight: number;
-}
-
-interface Job {
-  id: string;
-  title: string;
-  status: "draft" | "active" | "paused" | "closed";
-  recruiter_id?: string;
-  candidate_count: number;
-  interviewed_count: number;
-  created_at: string;
-  extracted_requirements?: {
-    required_skills?: WeightedAttribute[];
-    years_experience?: string;
-  };
-}
-
 export default function JobsPage() {
   const router = useRouter();
-  const { isAuthenticated, isLoading: authLoading, recruiter, logout, token } = useAuth();
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { recruiter } = useAuth();
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Auth redirect is handled by AppLayout
+  // Use React Query for data fetching - automatic deduplication & caching
+  const {
+    data: jobs = [],
+    isLoading,
+    error,
+  } = useJobs(recruiter?.id, statusFilter !== "all" ? statusFilter : undefined);
 
-  useEffect(() => {
-    if (isAuthenticated && recruiter) {
-      fetchJobs();
-    }
-  }, [isAuthenticated, recruiter, statusFilter]);
+  // Use React Query mutation for deleting
+  const deleteJobMutation = useDeleteJob();
 
-  const fetchJobs = async () => {
-    try {
-      setLoading(true);
-      let url = `${API_URL}/api/jobs`;
-      const params = new URLSearchParams();
-      if (recruiter?.id) {
-        params.append("recruiter_id", recruiter.id);
-      }
-      if (statusFilter !== "all") {
-        params.append("status", statusFilter);
-      }
-      if (params.toString()) {
-        url += `?${params.toString()}`;
-      }
-
-      const headers: Record<string, string> = {};
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-
-      const response = await fetch(url, { headers });
-      if (response.ok) {
-        const data = await response.json();
-        setJobs(data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch jobs:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateJobStatus = async (jobId: string, action: "activate" | "pause" | "close" | "reopen") => {
-    try {
-      const headers: Record<string, string> = {};
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-
-      const response = await fetch(`${API_URL}/api/jobs/${jobId}/${action}`, {
-        method: "POST",
-        headers,
-      });
-      if (response.ok) {
-        fetchJobs();
-      }
-    } catch (error) {
-      console.error(`Failed to ${action} job:`, error);
-    }
-  };
-
-  const deleteJob = async (jobId: string) => {
-    if (!confirm("Are you sure you want to delete this job? This will also delete all candidates and analytics.")) {
+  const handleDeleteJob = async (jobId: string) => {
+    if (
+      !confirm(
+        "Are you sure you want to delete this job? This will also delete all candidates and analytics."
+      )
+    ) {
       return;
     }
-    try {
-      const headers: Record<string, string> = {};
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-
-      const response = await fetch(`${API_URL}/api/jobs/${jobId}`, {
-        method: "DELETE",
-        headers,
-      });
-      if (response.ok) {
-        fetchJobs();
-      }
-    } catch (error) {
-      console.error("Failed to delete job:", error);
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "bg-green-500/10 border-green-500/30 text-green-400";
-      case "draft":
-        return "bg-yellow-500/10 border-yellow-500/30 text-yellow-400";
-      case "paused":
-        return "bg-orange-500/10 border-orange-500/30 text-orange-400";
-      case "closed":
-        return "bg-gray-500/10 border-gray-500/30 text-gray-400";
-      default:
-        return "bg-gray-500/10 border-gray-500/30 text-gray-400";
-    }
+    deleteJobMutation.mutate(jobId);
   };
 
   const filteredJobs = jobs.filter((job) =>
@@ -156,9 +53,10 @@ export default function JobsPage() {
   // Stats
   const activeJobs = jobs.filter((j) => j.status === "active").length;
   const totalCandidates = jobs.reduce((acc, j) => acc + j.candidate_count, 0);
-  const totalInterviewed = jobs.reduce((acc, j) => acc + j.interviewed_count, 0);
-
-  // Auth loading is handled by AppLayout
+  const totalInterviewed = jobs.reduce(
+    (acc, j) => acc + j.interviewed_count,
+    0
+  );
 
   return (
     <AppLayout>
@@ -188,8 +86,12 @@ export default function JobsPage() {
                 <Briefcase className="w-5 h-5 text-indigo-400" />
               </div>
               <div>
-                <div className="text-2xl font-light text-white">{jobs.length}</div>
-                <div className="text-xs text-white/50 uppercase tracking-wider">Total Jobs</div>
+                <div className="text-2xl font-light text-white">
+                  {jobs.length}
+                </div>
+                <div className="text-xs text-white/50 uppercase tracking-wider">
+                  Total Jobs
+                </div>
               </div>
             </div>
           </div>
@@ -199,8 +101,12 @@ export default function JobsPage() {
                 <Play className="w-5 h-5 text-green-400" />
               </div>
               <div>
-                <div className="text-2xl font-light text-white">{activeJobs}</div>
-                <div className="text-xs text-white/50 uppercase tracking-wider">Active</div>
+                <div className="text-2xl font-light text-white">
+                  {activeJobs}
+                </div>
+                <div className="text-xs text-white/50 uppercase tracking-wider">
+                  Active
+                </div>
               </div>
             </div>
           </div>
@@ -210,8 +116,12 @@ export default function JobsPage() {
                 <Users className="w-5 h-5 text-purple-400" />
               </div>
               <div>
-                <div className="text-2xl font-light text-white">{totalCandidates}</div>
-                <div className="text-xs text-white/50 uppercase tracking-wider">Candidates</div>
+                <div className="text-2xl font-light text-white">
+                  {totalCandidates}
+                </div>
+                <div className="text-xs text-white/50 uppercase tracking-wider">
+                  Candidates
+                </div>
               </div>
             </div>
           </div>
@@ -221,8 +131,12 @@ export default function JobsPage() {
                 <CheckCircle className="w-5 h-5 text-cyan-400" />
               </div>
               <div>
-                <div className="text-2xl font-light text-white">{totalInterviewed}</div>
-                <div className="text-xs text-white/50 uppercase tracking-wider">Interviewed</div>
+                <div className="text-2xl font-light text-white">
+                  {totalInterviewed}
+                </div>
+                <div className="text-xs text-white/50 uppercase tracking-wider">
+                  Interviewed
+                </div>
               </div>
             </div>
           </div>
@@ -258,9 +172,13 @@ export default function JobsPage() {
         </div>
 
         {/* Jobs List */}
-        {loading ? (
+        {isLoading ? (
           <div className="flex items-center justify-center py-20">
             <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+          </div>
+        ) : error ? (
+          <div className="glass-panel rounded-3xl p-12 text-center">
+            <p className="text-red-400">Failed to load jobs. Please try again.</p>
           </div>
         ) : filteredJobs.length === 0 ? (
           /* Empty State for New Users */
@@ -300,20 +218,28 @@ export default function JobsPage() {
 
             {!searchQuery && (
               <div className="mt-10 pt-8 border-t border-white/10">
-                <p className="text-xs text-white/30 uppercase tracking-wider mb-4">How it works</p>
+                <p className="text-xs text-white/30 uppercase tracking-wider mb-4">
+                  How it works
+                </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-sm text-white/50">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center text-xs text-indigo-400 font-bold">1</div>
+                    <div className="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center text-xs text-indigo-400 font-bold">
+                      1
+                    </div>
                     Paste job description
                   </div>
                   <ChevronRight className="w-4 h-4 text-white/20 hidden sm:block" />
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center text-xs text-purple-400 font-bold">2</div>
+                    <div className="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center text-xs text-purple-400 font-bold">
+                      2
+                    </div>
                     Upload candidates
                   </div>
                   <ChevronRight className="w-4 h-4 text-white/20 hidden sm:block" />
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-cyan-500/20 flex items-center justify-center text-xs text-cyan-400 font-bold">3</div>
+                    <div className="w-6 h-6 rounded-full bg-cyan-500/20 flex items-center justify-center text-xs text-cyan-400 font-bold">
+                      3
+                    </div>
                     Run AI interviews
                   </div>
                 </div>
@@ -329,20 +255,11 @@ export default function JobsPage() {
                 onClick={() => router.push(`/jobs/${job.id}`)}
               >
                 <div className="flex items-center p-5">
-                  {/* Left: Title and Status */}
+                  {/* Left: Title and Info */}
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-medium text-white group-hover:text-indigo-300 transition-colors">
-                        {job.title}
-                      </h3>
-                      <span
-                        className={`text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider border ${getStatusColor(
-                          job.status
-                        )}`}
-                      >
-                        {job.status}
-                      </span>
-                    </div>
+                    <h3 className="text-lg font-medium text-white group-hover:text-indigo-300 transition-colors mb-2">
+                      {job.title}
+                    </h3>
                     <div className="flex items-center gap-4 text-sm text-white/50">
                       <span className="flex items-center gap-1">
                         <Users className="w-3.5 h-3.5" />
@@ -359,66 +276,15 @@ export default function JobsPage() {
                     </div>
                   </div>
 
-                  {/* Right: Skills Preview */}
-                  {job.extracted_requirements?.required_skills && job.extracted_requirements.required_skills.length > 0 && (
-                    <div className="hidden md:flex items-center gap-2 mr-6">
-                      {job.extracted_requirements.required_skills.slice(0, 3).map((skill, index) => (
-                        <span
-                          key={`${skill.value}-${index}`}
-                          className="px-2 py-1 bg-white/5 rounded-lg text-xs text-white/60"
-                        >
-                          {skill.value}
-                        </span>
-                      ))}
-                      {job.extracted_requirements.required_skills.length > 3 && (
-                        <span className="text-xs text-white/40">
-                          +{job.extracted_requirements.required_skills.length - 3}
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                    {job.status === "draft" && (
-                      <button
-                        onClick={() => updateJobStatus(job.id, "activate")}
-                        className="p-2 rounded-lg bg-green-500/10 hover:bg-green-500/20 text-green-400 transition-colors"
-                        title="Activate"
-                      >
-                        <Play className="w-4 h-4" />
-                      </button>
-                    )}
-                    {job.status === "active" && (
-                      <button
-                        onClick={() => updateJobStatus(job.id, "pause")}
-                        className="p-2 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 transition-colors"
-                        title="Pause"
-                      >
-                        <Pause className="w-4 h-4" />
-                      </button>
-                    )}
-                    {job.status === "paused" && (
-                      <button
-                        onClick={() => updateJobStatus(job.id, "reopen")}
-                        className="p-2 rounded-lg bg-green-500/10 hover:bg-green-500/20 text-green-400 transition-colors"
-                        title="Reopen"
-                      >
-                        <Play className="w-4 h-4" />
-                      </button>
-                    )}
-                    {(job.status === "active" || job.status === "paused") && (
-                      <button
-                        onClick={() => updateJobStatus(job.id, "close")}
-                        className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 transition-colors"
-                        title="Close"
-                      >
-                        <Archive className="w-4 h-4" />
-                      </button>
-                    )}
+                  {/* Actions - Delete only */}
+                  <div
+                    className="flex items-center gap-2"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <button
-                      onClick={() => deleteJob(job.id)}
-                      className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors"
+                      onClick={() => handleDeleteJob(job.id)}
+                      disabled={deleteJobMutation.isPending}
+                      className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors disabled:opacity-50"
                       title="Delete"
                     >
                       <Trash2 className="w-4 h-4" />

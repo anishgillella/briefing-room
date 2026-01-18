@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import AppLayout from "@/components/AppLayout";
 import {
   ArrowLeft,
   Briefcase,
@@ -13,8 +14,6 @@ import {
   Sparkles,
   AlertCircle,
   Mic,
-  LogOut,
-  LayoutDashboard,
 } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -101,7 +100,7 @@ function NewJobPageContent() {
         headers["Authorization"] = `Bearer ${token}`;
       }
 
-      const response = await fetch(`${API_URL}/api/jobs`, {
+      const response = await fetch(`${API_URL}/api/jobs/`, {
         method: "POST",
         headers,
         body: JSON.stringify({
@@ -134,67 +133,40 @@ function NewJobPageContent() {
   // Show loading while checking auth
   if (authLoading) {
     return (
-      <main className="min-h-screen gradient-bg flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
-      </main>
+      <AppLayout>
+        <div className="flex items-center justify-center py-20">
+          <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+        </div>
+      </AppLayout>
     );
   }
 
   // Don't render for unauthenticated users (they'll be redirected)
   if (!isAuthenticated) {
     return (
-      <main className="min-h-screen gradient-bg flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
-      </main>
+      <AppLayout>
+        <div className="flex items-center justify-center py-20">
+          <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+        </div>
+      </AppLayout>
     );
   }
 
   return (
-    <main className="min-h-screen gradient-bg text-white">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#000000]/80 backdrop-blur-md border-b border-white/5 py-4">
-        <div className="flex items-center justify-between max-w-7xl mx-auto px-6">
-          <div className="flex items-center gap-4">
-            <Link href="/jobs" className="p-2 hover:bg-white/5 rounded-lg transition-colors">
-              <ArrowLeft className="w-5 h-5 text-white/60" />
-            </Link>
-            <div>
-              <h1 className="text-lg font-light tracking-wide text-white">
-                {voiceMode ? "Create Job with Voice Setup" : "Create New Job"}
-              </h1>
-              <p className="text-xs text-white/50">Add a new job posting</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            {/* Dashboard Link */}
-            <Link
-              href="/dashboard"
-              className="flex items-center gap-2 px-3 py-2 text-sm text-white/60 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-            >
-              <LayoutDashboard className="w-4 h-4" />
-              Dashboard
-            </Link>
-
-            {/* User Info & Logout */}
-            <div className="flex items-center gap-3 pl-4 border-l border-white/10">
-              <div className="text-right">
-                <p className="text-sm font-medium text-white">{recruiter?.name}</p>
-                <p className="text-xs text-white/50">{recruiter?.email}</p>
-              </div>
-              <button
-                onClick={logout}
-                className="p-2 text-white/50 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                title="Sign out"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </div>
+    <AppLayout>
+      <div className="px-6 py-8 max-w-4xl mx-auto">
+        {/* Page Header */}
+        <div className="flex items-center gap-4 mb-8">
+          <Link href="/jobs" className="p-2 hover:bg-white/5 rounded-lg transition-colors">
+            <ArrowLeft className="w-5 h-5 text-white/60" />
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold text-white">
+              {voiceMode ? "Create Job with Voice Setup" : "Create New Job"}
+            </h1>
+            <p className="text-sm text-white/50">Add a new job posting</p>
           </div>
         </div>
-      </header>
-
-      <div className="pt-28 px-6 pb-12 max-w-4xl mx-auto">
         <div className="space-y-6">
           {/* Voice Mode Banner */}
           {voiceMode && (
@@ -364,16 +336,18 @@ function NewJobPageContent() {
           </div>
         </div>
       </div>
-    </main>
+    </AppLayout>
   );
 }
 
 export default function NewJobPage() {
   return (
     <Suspense fallback={
-      <main className="min-h-screen gradient-bg flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
-      </main>
+      <AppLayout>
+        <div className="flex items-center justify-center py-20">
+          <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+        </div>
+      </AppLayout>
     }>
       <NewJobPageContent />
     </Suspense>
