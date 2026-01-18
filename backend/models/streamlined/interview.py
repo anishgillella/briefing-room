@@ -19,6 +19,16 @@ class InterviewType(str, Enum):
     PHONE_SCREEN = "phone_screen"    # Initial phone screening
 
 
+class InterviewRole(str, Enum):
+    """Role the human user plays in the interview.
+
+    - INTERVIEWER: Human asks questions, AI plays candidate (default, current behavior)
+    - CANDIDATE: Human answers questions, AI plays interviewer (for UX testing)
+    """
+    INTERVIEWER = "interviewer"  # Human is interviewer, AI is candidate
+    CANDIDATE = "candidate"      # Human is candidate, AI is interviewer
+
+
 class InterviewSessionStatus(str, Enum):
     """Status of an interview session."""
     SCHEDULED = "scheduled"       # Interview scheduled but not started
@@ -34,6 +44,10 @@ class InterviewBase(BaseModel):
     interview_type: InterviewType = Field(
         default=InterviewType.AI_CANDIDATE,
         description="Type of interview"
+    )
+    role: InterviewRole = Field(
+        default=InterviewRole.INTERVIEWER,
+        description="Role the human plays: interviewer (AI is candidate) or candidate (AI is interviewer)"
     )
 
 
@@ -60,6 +74,7 @@ class InterviewUpdate(BaseModel):
     room_url: Optional[str] = None
     notes: Optional[str] = None
     conducted_by_recruiter_id: Optional[UUID] = None
+    role: Optional[InterviewRole] = None
 
 
 class Interview(InterviewBase):
@@ -135,6 +150,7 @@ class InterviewSummary(BaseModel):
     candidate_name: Optional[str] = None
     job_title: Optional[str] = None
     interview_type: InterviewType
+    role: InterviewRole = InterviewRole.INTERVIEWER
     status: InterviewSessionStatus
     started_at: Optional[datetime] = None
     duration_seconds: Optional[int] = None
@@ -156,6 +172,8 @@ class InterviewStartResponse(BaseModel):
     livekit_url: str
     candidate_name: str
     job_title: str
+    role: InterviewRole = InterviewRole.INTERVIEWER
+    agent_type: str = "interview-agent"  # interview-agent or interviewer-agent
 
     class Config:
         json_encoders = {

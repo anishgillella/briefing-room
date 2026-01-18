@@ -9,10 +9,22 @@ Technical documentation for the Briefing Room interview training platform.
 |------|-------------|
 | `architecture.md` | System architecture, data flow, tech stack |
 | `ai-candidate-agent.md` | AI candidate feature design (updated for OpenAI Realtime) |
+| `dual-agent-architecture.md` | Two-agent design: AI Interviewer + AI Candidate roles |
 | `transcription.md` | Real-time transcription implementation |
 | `interview-analytics.md` | Post-interview analytics with Gemini 2.5 Flash |
 
-## Streamlined Interview Flow (NEW)
+## Dual Agent Implementation
+
+Enables users to join interviews as either Interviewer (current) or Candidate (new). The AI plays the opposite role.
+
+| Phase | Document | Description |
+|-------|----------|-------------|
+| Overview | `dual-agent-implementation/README.md` | Architecture and quick start |
+| Phase 1 | `dual-agent-implementation/phase1-interviewer-agent.md` | Create `interviewer_agent.py` |
+| Phase 2 | `dual-agent-implementation/phase2-backend-integration.md` | API role parameter and agent dispatch |
+| Phase 3 | `dual-agent-implementation/phase3-frontend-integration.md` | Role selection UI |
+
+## Streamlined Interview Flow
 
 The streamlined flow unifies job descriptions, candidates, interviews, and analytics into a cohesive system. Jobs are the central organizing entity, with all other data flowing through it.
 
@@ -314,10 +326,25 @@ See `.env.example` in project root for all required variables.
 ## Running Locally
 
 ```bash
-# Terminal 1: Backend
+# Terminal 1: Backend API
 cd backend && source venv/bin/activate && uvicorn main:app --reload
 
-# Terminal 2: Frontend  
+# Terminal 2: AI Candidate Agent (for interviewer mode)
+cd backend && source venv/bin/activate && python interview_agent.py dev
+
+# Terminal 3: AI Interviewer Agent (for candidate mode)
+cd backend && source venv/bin/activate && python interviewer_agent.py dev
+
+# Terminal 4: Frontend
 cd frontend && npm run dev
 ```
+
+### Agent Roles
+
+| Agent | Command | AI Role | Human Role |
+|-------|---------|---------|------------|
+| `interview_agent.py` | `python interview_agent.py dev` | Candidate | Interviewer |
+| `interviewer_agent.py` | `python interviewer_agent.py dev` | Interviewer | Candidate |
+
+Both agents should be running to support both interview modes. The frontend role selector determines which agent joins the room.
 

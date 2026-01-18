@@ -43,6 +43,7 @@ import CandidateProfile from "@/components/CandidateProfile";
 import InterviewerSelector from "@/components/InterviewerSelector";
 import InterviewerAnalyticsTab from "@/components/InterviewerAnalyticsTab";
 import TranscriptTab from "@/components/TranscriptTab";
+import RoleSelector, { InterviewRole } from "@/components/RoleSelector";
 import { Candidate, PreBrief } from "@/types";
 import { getSelectedInterviewerId, triggerInterviewAnalysis } from "@/lib/interviewerApi";
 
@@ -313,6 +314,7 @@ function InterviewPageContent() {
 
     const candidateId = params.id as string;
     const roomName = searchParams.get("room");
+    const roleFromUrl = searchParams.get("role") as InterviewRole | null;
 
     // Core state
     const [candidate, setCandidate] = useState<Candidate | null>(null);
@@ -338,6 +340,16 @@ function InterviewPageContent() {
     const [interviewStartTime] = useState<number>(Date.now());
     const [livekitUrl, setLivekitUrl] = useState<string>("");
     const [usingLiveKit, setUsingLiveKit] = useState(false);
+
+    // Interview phase: controls the UI flow
+    // - "role-select": Show role selection screen
+    // - "connecting": Connecting to LiveKit room
+    // - "interview": Active interview
+    // - "ended": Interview ended, showing analytics
+    const [interviewPhase, setInterviewPhase] = useState<'role-select' | 'connecting' | 'interview' | 'ended'>('role-select');
+
+    // Selected role determines which AI agent joins and UI presentation
+    const [selectedRole, setSelectedRole] = useState<InterviewRole>('interviewer');
 
     // View mode: "interviewer" (recruiter conducting interview) vs "candidate" (candidate being interviewed)
     const [viewMode, setViewMode] = useState<'interviewer' | 'candidate'>('interviewer');
@@ -659,12 +671,9 @@ function InterviewPageContent() {
         }
     }, []);
 
-    // Initialize interview with LiveKit
-    const initializeLiveKitInterview = async () => {
+    // Fetch candidate data (called on mount for role selection screen)
+    const fetchCandidateData = async () => {
         try {
-            setConnecting(true);
-
-            // 1. Get candidate data
             const candidateRes = await fetch(`${API_URL}/api/pluto/candidates/${candidateId}`);
             if (!candidateRes.ok) throw new Error("Failed to fetch candidate");
             const candidateData = await candidateRes.json();
@@ -682,8 +691,24 @@ function InterviewPageContent() {
                 console.warn("Failed to fetch prebrief:", pErr);
             }
 
-            // 2. Start interview (creates LiveKit room) 
-            const startRes = await fetch(`${API_URL}/api/pluto/candidates/${candidateId}/interview/start`, {
+            setLoading(false);
+        } catch (err: any) {
+            console.error("Failed to fetch candidate:", err);
+            setError(err.message || "Failed to load candidate");
+            setLoading(false);
+        }
+    };
+
+    // Initialize interview with LiveKit (called after role selection)
+    const initializeLiveKitInterview = async (role: InterviewRole) => {
+        try {
+            setConnecting(true);
+            setInterviewPhase('connecting');
+            setSelectedRole(role);
+            setViewMode(role); // Sync viewMode with selected role
+
+            // Start interview (creates LiveKit room) with role parameter
+            const startRes = await fetch(`${API_URL}/api/pluto/candidates/${candidateId}/interview/start?role=${role}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
             });
@@ -721,6 +746,7 @@ function InterviewPageContent() {
                 console.log("[LiveKit] Connected to room");
                 setConnected(true);
                 setConnecting(false);
+                setInterviewPhase('interview'); // Transition to interview phase
             });
 
             room.on(RoomEvent.Disconnected, () => {
@@ -768,6 +794,7 @@ function InterviewPageContent() {
             console.error("[LiveKit] Failed to initialize:", err);
             setError(err.message || "Failed to start interview");
             setConnecting(false);
+            setInterviewPhase('role-select'); // Go back to role selection on error
         }
     };
 
@@ -835,18 +862,32 @@ function InterviewPageContent() {
         }
     }, []);
 
-    // Initialize on mount
+    // Fetch candidate data on mount (for role selection screen)
+    // If role is provided in URL, auto-start with that role
     useEffect(() => {
-        if (candidateId && !hasStartedRef.current) {
-            hasStartedRef.current = true;
-            setLoading(false);
-            initializeLiveKitInterview();
-        }
+        const init = async () => {
+            if (candidateId && !hasStartedRef.current) {
+                hasStartedRef.current = true;
+                await fetchCandidateData();
+
+                // If role is provided in URL, auto-start the interview with that role
+                if (roleFromUrl && (roleFromUrl === 'interviewer' || roleFromUrl === 'candidate')) {
+                    initializeLiveKitInterview(roleFromUrl);
+                }
+            }
+        };
+
+        init();
 
         return () => {
             cleanup();
         };
-    }, [candidateId, cleanup]);
+    }, [candidateId, cleanup, roleFromUrl]);
+
+    // Handle role selection - starts the interview with the selected role
+    const handleRoleSelect = (role: InterviewRole) => {
+        initializeLiveKitInterview(role);
+    };
 
     // Toggle microphone
     const toggleMic = async () => {
@@ -860,6 +901,7 @@ function InterviewPageContent() {
     // End interview
     const endInterview = async () => {
         setInterviewEnded(true);
+        setInterviewPhase('ended');
         cleanup();
 
         // Save analytics
@@ -991,14 +1033,61 @@ function InterviewPageContent() {
                         <button
                             onClick={() => {
                                 setError(null);
-                                hasStartedRef.current = false;
-                                initializeLiveKitInterview();
+                                setInterviewPhase('role-select');
                             }}
                             className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
                         >
-                            Retry
+                            Try Again
                         </button>
                     </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Role selection state - show before starting interview
+    if (interviewPhase === 'role-select') {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col">
+                {/* Header */}
+                <div className="flex items-center justify-between p-4 border-b border-gray-800">
+                    <button
+                        onClick={() => router.back()}
+                        className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+                    >
+                        <ArrowLeft className="w-5 h-5" />
+                        <span>Back</span>
+                    </button>
+                </div>
+
+                {/* Role Selector */}
+                <div className="flex-1 flex items-center justify-center">
+                    <RoleSelector
+                        candidateName={candidateName}
+                        jobTitle={candidate?.job_title || "this position"}
+                        onSelectRole={handleRoleSelect}
+                        isLoading={connecting}
+                    />
+                </div>
+            </div>
+        );
+    }
+
+    // Connecting state
+    if (interviewPhase === 'connecting') {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="w-12 h-12 animate-spin text-blue-500 mx-auto mb-4" />
+                    <h2 className="text-xl font-semibold text-white mb-2">
+                        {selectedRole === 'candidate' ? 'Connecting to AI Interviewer...' : 'Connecting to AI Candidate...'}
+                    </h2>
+                    <p className="text-gray-400">
+                        {selectedRole === 'candidate'
+                            ? 'The AI interviewer will ask you questions'
+                            : 'The AI candidate will answer your questions'
+                        }
+                    </p>
                 </div>
             </div>
         );
