@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo, useRef } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -122,7 +122,7 @@ const RECRUITMENT_TIPS = [
   { icon: "✨", tip: "Cultural fit is just as important as skills and experience" },
 ];
 
-export default function CandidatesPage() {
+function CandidatesPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const profileFromUrl = searchParams.get("profile");
@@ -1303,5 +1303,17 @@ export default function CandidatesPage() {
       )}
 
     </main>
+  );
+}
+
+export default function CandidatesPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen gradient-bg flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+      </main>
+    }>
+      <CandidatesPageContent />
+    </Suspense>
   );
 }

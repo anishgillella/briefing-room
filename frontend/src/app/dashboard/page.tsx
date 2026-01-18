@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRecruiter } from "@/contexts/RecruiterContext";
 import { useAuth } from "@/contexts/AuthContext";
 import RecruiterSelector from "@/components/RecruiterSelector";
+import AppLayout from "@/components/AppLayout";
 import {
   Briefcase,
   Users,
@@ -90,12 +91,7 @@ export default function DashboardPage() {
     return headers;
   };
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push("/login");
-    }
-  }, [isAuthenticated, authLoading, router]);
+  // Auth redirect is handled by AppLayout
 
   useEffect(() => {
     if (isAuthenticated && currentRecruiter) {
@@ -189,44 +185,12 @@ export default function DashboardPage() {
   };
 
   return (
-    <main className="min-h-screen gradient-bg text-white">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#000000]/80 backdrop-blur-md border-b border-white/5 py-4">
-        <div className="flex items-center justify-between max-w-7xl mx-auto px-6">
-          <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center border border-white/10">
-              <span className="text-sm">⚛️</span>
-            </div>
-            <h1 className="text-lg font-light tracking-wide text-white">Briefing Room</h1>
-          </Link>
-
-          <div className="flex items-center gap-4">
-            <nav className="hidden md:flex items-center gap-6">
-              <Link
-                href="/dashboard"
-                className="text-sm font-medium text-white hover:text-indigo-300 transition-colors"
-              >
-                Dashboard
-              </Link>
-              <Link
-                href="/jobs"
-                className="text-sm font-medium text-white/60 hover:text-white transition-colors"
-              >
-                Jobs
-              </Link>
-              <Link
-                href="/candidates"
-                className="text-sm font-medium text-white/60 hover:text-white transition-colors"
-              >
-                Candidates
-              </Link>
-            </nav>
-            <RecruiterSelector />
-          </div>
+    <AppLayout>
+      <div className="px-6 py-8 max-w-7xl mx-auto">
+        {/* Page Header with Recruiter Selector */}
+        <div className="flex items-center justify-end mb-6">
+          <RecruiterSelector />
         </div>
-      </header>
-
-      <div className="pt-28 px-6 pb-12 max-w-7xl mx-auto">
         {!currentRecruiter ? (
           <div className="glass-panel rounded-3xl p-12 text-center">
             <div className="w-16 h-16 rounded-2xl bg-indigo-500/20 flex items-center justify-center mx-auto mb-6">
@@ -535,6 +499,6 @@ export default function DashboardPage() {
           </>
         )}
       </div>
-    </main>
+    </AppLayout>
   );
 }

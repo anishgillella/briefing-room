@@ -363,3 +363,50 @@ class CandidateRepository:
             "rejected": InterviewStatus.REJECTED,
         }
         return status_map.get(status, InterviewStatus.PENDING)
+
+    def get_person_ids_by_filters_sync(
+        self,
+        job_id: Optional[str] = None,
+        tier: Optional[str] = None,
+        pipeline_status: Optional[str] = None,
+    ) -> List[str]:
+        """
+        Get unique person IDs that match the given candidate filters.
+
+        Args:
+            job_id: Filter by job ID
+            tier: Filter by tier (TOP TIER, STRONG, GOOD, EVALUATE, POOR)
+            pipeline_status: Filter by pipeline status
+
+        Returns:
+            List of person IDs as strings
+        """
+        query = self.client.table(self.table).select("person_id")
+
+        if job_id:
+            query = query.eq("job_posting_id", job_id)
+
+        if tier:
+            query = query.eq("tier", tier)
+
+        if pipeline_status:
+            query = query.eq("pipeline_status", pipeline_status)
+
+        result = query.execute()
+
+        # Extract unique person IDs
+        person_ids = set()
+        for row in result.data:
+            if row.get("person_id"):
+                person_ids.add(row["person_id"])
+
+        return list(person_ids)
+
+    def count_by_job_sync(self, job_id: UUID) -> int:
+        """Count candidates for a specific job."""
+        result = self.client.table(self.table)\
+            .select("id", count="exact")\
+            .eq("job_posting_id", str(job_id))\
+            .execute()
+
+        return result.count if result.count else 0

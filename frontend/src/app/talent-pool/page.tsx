@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import AppLayout from "@/components/AppLayout";
 import {
   Users,
   Search,
@@ -16,6 +17,8 @@ import {
   LayoutDashboard,
   X,
   User,
+  Star,
+  GitBranch,
 } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -33,10 +36,19 @@ interface PersonSummary {
   application_count: number;
 }
 
+interface JobOption {
+  id: string;
+  title: string;
+  candidate_count: number;
+}
+
 interface FilterOptions {
   skills: string[];
   locations: string[];
   companies: string[];
+  jobs: JobOption[];
+  tiers: string[];
+  pipeline_statuses: string[];
   total_persons: number;
 }
 
@@ -50,18 +62,16 @@ export default function TalentPoolPage() {
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<string>("");
   const [selectedCompany, setSelectedCompany] = useState<string>("");
+  const [selectedJob, setSelectedJob] = useState<string>("");
+  const [selectedTier, setSelectedTier] = useState<string>("");
+  const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [filterOptions, setFilterOptions] = useState<FilterOptions | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push("/login");
-    }
-  }, [isAuthenticated, authLoading, router]);
+  // Auth redirect is handled by AppLayout
 
   useEffect(() => {
     if (isAuthenticated && token) {
@@ -73,7 +83,7 @@ export default function TalentPoolPage() {
     if (isAuthenticated && token) {
       fetchPersons();
     }
-  }, [isAuthenticated, token, page, searchQuery, selectedSkills, selectedLocation, selectedCompany]);
+  }, [isAuthenticated, token, page, searchQuery, selectedSkills, selectedLocation, selectedCompany, selectedJob, selectedTier, selectedStatus]);
 
   const getAuthHeaders = (): Record<string, string> => {
     const headers: Record<string, string> = {};
@@ -116,6 +126,15 @@ export default function TalentPoolPage() {
       if (selectedCompany) {
         params.append("company", selectedCompany);
       }
+      if (selectedJob) {
+        params.append("job_id", selectedJob);
+      }
+      if (selectedTier) {
+        params.append("tier", selectedTier);
+      }
+      if (selectedStatus) {
+        params.append("pipeline_status", selectedStatus);
+      }
 
       const response = await fetch(`${API_URL}/api/talent-pool?${params.toString()}`, {
         headers: getAuthHeaders(),
@@ -147,80 +166,27 @@ export default function TalentPoolPage() {
     setSelectedSkills([]);
     setSelectedLocation("");
     setSelectedCompany("");
+    setSelectedJob("");
+    setSelectedTier("");
+    setSelectedStatus("");
     setSearchQuery("");
     setPage(1);
   };
 
-  const hasActiveFilters = selectedSkills.length > 0 || selectedLocation || selectedCompany || searchQuery;
+  const hasActiveFilters = selectedSkills.length > 0 || selectedLocation || selectedCompany || selectedJob || selectedTier || selectedStatus || searchQuery;
 
-  // Show loading while checking auth
-  if (authLoading) {
-    return (
-      <main className="min-h-screen gradient-bg flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
-      </main>
-    );
-  }
+  const activeFilterCount = selectedSkills.length +
+    (selectedLocation ? 1 : 0) +
+    (selectedCompany ? 1 : 0) +
+    (selectedJob ? 1 : 0) +
+    (selectedTier ? 1 : 0) +
+    (selectedStatus ? 1 : 0);
 
-  // Don't render for unauthenticated users
-  if (!isAuthenticated) {
-    return (
-      <main className="min-h-screen gradient-bg flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
-      </main>
-    );
-  }
+  // Auth loading is handled by AppLayout
 
   return (
-    <main className="min-h-screen gradient-bg text-white">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#000000]/80 backdrop-blur-md border-b border-white/5 py-4">
-        <div className="flex items-center justify-between max-w-7xl mx-auto px-6">
-          <Link href="/jobs" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center border border-white/10">
-              <span className="text-sm">&#9883;</span>
-            </div>
-            <h1 className="text-lg font-light tracking-wide text-white">Briefing Room</h1>
-          </Link>
-
-          <div className="flex items-center gap-4">
-            <Link
-              href="/dashboard"
-              className="flex items-center gap-2 px-3 py-2 text-sm text-white/60 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-            >
-              <LayoutDashboard className="w-4 h-4" />
-              Dashboard
-            </Link>
-            <Link
-              href="/jobs"
-              className="flex items-center gap-2 px-3 py-2 text-sm text-white/60 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-            >
-              <Briefcase className="w-4 h-4" />
-              Jobs
-            </Link>
-            <Link
-              href="/talent-pool"
-              className="flex items-center gap-2 px-3 py-2 text-sm text-white bg-white/10 rounded-lg"
-            >
-              <Users className="w-4 h-4" />
-              Talent Pool
-            </Link>
-            {recruiter && (
-              <span className="text-sm text-white/40 px-3 py-2 border-l border-white/10">
-                {recruiter.name}
-              </span>
-            )}
-            <button
-              onClick={logout}
-              className="flex items-center gap-2 px-3 py-2 text-sm text-white/60 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <div className="pt-28 px-6 pb-12 max-w-7xl mx-auto">
+    <AppLayout>
+      <div className="px-6 py-8 max-w-7xl mx-auto">
         {/* Page Title */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -260,7 +226,7 @@ export default function TalentPoolPage() {
               Filters
               {hasActiveFilters && (
                 <span className="bg-white/20 text-white text-xs px-2 py-0.5 rounded-full">
-                  {selectedSkills.length + (selectedLocation ? 1 : 0) + (selectedCompany ? 1 : 0)}
+                  {activeFilterCount}
                 </span>
               )}
             </button>
@@ -300,6 +266,36 @@ export default function TalentPoolPage() {
                     >
                       <Building2 className="w-3 h-3" />
                       {selectedCompany}
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                  {selectedJob && (
+                    <button
+                      onClick={() => setSelectedJob("")}
+                      className="flex items-center gap-1 px-2 py-1 bg-orange-500/20 border border-orange-500/30 rounded-lg text-xs text-orange-400"
+                    >
+                      <Briefcase className="w-3 h-3" />
+                      {filterOptions.jobs.find(j => j.id === selectedJob)?.title || "Job"}
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                  {selectedTier && (
+                    <button
+                      onClick={() => setSelectedTier("")}
+                      className="flex items-center gap-1 px-2 py-1 bg-yellow-500/20 border border-yellow-500/30 rounded-lg text-xs text-yellow-400"
+                    >
+                      <Star className="w-3 h-3" />
+                      {selectedTier}
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                  {selectedStatus && (
+                    <button
+                      onClick={() => setSelectedStatus("")}
+                      className="flex items-center gap-1 px-2 py-1 bg-cyan-500/20 border border-cyan-500/30 rounded-lg text-xs text-cyan-400"
+                    >
+                      <GitBranch className="w-3 h-3" />
+                      {selectedStatus.replace(/_/g, " ")}
                       <X className="w-3 h-3" />
                     </button>
                   )}
@@ -347,6 +343,68 @@ export default function TalentPoolPage() {
                   {filterOptions.companies.map((company) => (
                     <option key={company} value={company}>
                       {company}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Job Filter */}
+              {filterOptions.jobs && filterOptions.jobs.length > 0 && (
+                <div>
+                  <label className="text-sm text-white/60 mb-2 block">Job Position</label>
+                  <select
+                    value={selectedJob}
+                    onChange={(e) => {
+                      setSelectedJob(e.target.value);
+                      setPage(1);
+                    }}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-white/30"
+                  >
+                    <option value="">All Jobs</option>
+                    {filterOptions.jobs.map((job) => (
+                      <option key={job.id} value={job.id}>
+                        {job.title} ({job.candidate_count})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Tier Filter */}
+              <div>
+                <label className="text-sm text-white/60 mb-2 block">Candidate Tier</label>
+                <select
+                  value={selectedTier}
+                  onChange={(e) => {
+                    setSelectedTier(e.target.value);
+                    setPage(1);
+                  }}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-white/30"
+                >
+                  <option value="">All Tiers</option>
+                  {filterOptions.tiers.map((tier) => (
+                    <option key={tier} value={tier}>
+                      {tier}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Pipeline Status Filter */}
+              <div>
+                <label className="text-sm text-white/60 mb-2 block">Pipeline Status</label>
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => {
+                    setSelectedStatus(e.target.value);
+                    setPage(1);
+                  }}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-white/30"
+                >
+                  <option value="">All Statuses</option>
+                  {filterOptions.pipeline_statuses.map((status) => (
+                    <option key={status} value={status}>
+                      {status.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
                     </option>
                   ))}
                 </select>
@@ -487,6 +545,6 @@ export default function TalentPoolPage() {
           </>
         )}
       </div>
-    </main>
+    </AppLayout>
   );
 }

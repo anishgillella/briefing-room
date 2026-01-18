@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import AppLayout from "@/components/AppLayout";
 import {
   Plus,
   Briefcase,
@@ -52,12 +53,7 @@ export default function JobsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push("/login");
-    }
-  }, [isAuthenticated, authLoading, router]);
+  // Auth redirect is handled by AppLayout
 
   useEffect(() => {
     if (isAuthenticated && recruiter) {
@@ -162,65 +158,11 @@ export default function JobsPage() {
   const totalCandidates = jobs.reduce((acc, j) => acc + j.candidate_count, 0);
   const totalInterviewed = jobs.reduce((acc, j) => acc + j.interviewed_count, 0);
 
-  // Show loading while checking auth
-  if (authLoading) {
-    return (
-      <main className="min-h-screen gradient-bg flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
-      </main>
-    );
-  }
-
-  // Don't render for unauthenticated users (they'll be redirected)
-  if (!isAuthenticated) {
-    return (
-      <main className="min-h-screen gradient-bg flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
-      </main>
-    );
-  }
+  // Auth loading is handled by AppLayout
 
   return (
-    <main className="min-h-screen gradient-bg text-white">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#000000]/80 backdrop-blur-md border-b border-white/5 py-4">
-        <div className="flex items-center justify-between max-w-7xl mx-auto px-6">
-          <Link href="/jobs" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center border border-white/10">
-              <span className="text-sm">⚛️</span>
-            </div>
-            <h1 className="text-lg font-light tracking-wide text-white">Briefing Room</h1>
-          </Link>
-
-          <div className="flex items-center gap-4">
-            {/* Dashboard Link */}
-            <Link
-              href="/dashboard"
-              className="flex items-center gap-2 px-3 py-2 text-sm text-white/60 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-            >
-              <LayoutDashboard className="w-4 h-4" />
-              Dashboard
-            </Link>
-
-            {/* User Info & Logout */}
-            <div className="flex items-center gap-3 pl-4 border-l border-white/10">
-              <div className="text-right">
-                <p className="text-sm font-medium text-white">{recruiter?.name}</p>
-                <p className="text-xs text-white/50">{recruiter?.email}</p>
-              </div>
-              <button
-                onClick={logout}
-                className="p-2 text-white/50 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                title="Sign out"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div className="pt-28 px-6 pb-12 max-w-7xl mx-auto">
+    <AppLayout>
+      <div className="px-6 py-8 max-w-7xl mx-auto">
         {/* Page Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -489,6 +431,6 @@ export default function JobsPage() {
           </div>
         )}
       </div>
-    </main>
+    </AppLayout>
   );
 }
