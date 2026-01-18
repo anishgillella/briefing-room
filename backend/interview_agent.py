@@ -58,6 +58,7 @@ logger.setLevel(logging.INFO)
 
 current_room: Optional[rtc.Room] = None
 transcript_history: list = []
+transcript_hashes: set = set()  # For deduplication
 consistency_flags_sent: int = 0
 
 
@@ -106,19 +107,31 @@ async def send_ai_suggestion(
 
 async def broadcast_transcript(speaker: str, text: str, room):
     """Broadcast transcript to all participants via data channel."""
+    global transcript_hashes
+
     if not room or not room.local_participant:
         return
+
+    # Robust deduplication using hash of speaker + normalized text
+    text_normalized = text.strip().lower()
+    entry_hash = hash(f"{speaker}:{text_normalized}")
+
+    if entry_hash in transcript_hashes:
+        logger.debug(f"⏭️ Skipping duplicate transcript: {speaker}: {text[:30]}...")
+        return
+
+    transcript_hashes.add(entry_hash)
+
+    # Keep hash set from growing unbounded (only keep last 100)
+    if len(transcript_hashes) > 100:
+        # Convert to list, keep last 50, convert back
+        transcript_hashes = set(list(transcript_hashes)[-50:])
 
     entry = {
         "speaker": speaker,
         "text": text,
         "timestamp": datetime.now().isoformat()
     }
-    
-    # Avoid duplicates if already in history (simple check)
-    # This is basic; in prod we might want IDs
-    if transcript_history and transcript_history[-1]["text"] == text and transcript_history[-1]["speaker"] == speaker:
-        return
 
     transcript_history.append(entry)
     logger.info(f"📝 Broadcasting Transcript - {speaker}: {text[:50]}...")
@@ -164,12 +177,13 @@ def prewarm(proc: JobProcess):
 
 async def entrypoint(ctx: JobContext):
     """Main entry point for the interview agent."""
-    global current_room, transcript_history, consistency_flags_sent
-    
+    global current_room, transcript_history, transcript_hashes, consistency_flags_sent
+
     logger.info(f"Interview Agent starting for room: {ctx.room.name}")
-    
+
     current_room = ctx.room
     transcript_history = []
+    transcript_hashes = set()  # Reset deduplication set
     consistency_flags_sent = 0
     
     # Connect to room
@@ -444,11 +458,17 @@ Say: "Hi, thank you for having me! I'm {candidate_name.split()[0]}, excited to b
                 }
                 
                 message = json.dumps(payload)
-                await current_room.local_participant.publish_data(
-                    message,
-                    reliable=True,
-                    topic="chat"
-                )
+
+                # Get all remote participants to send to
+                participants = current_room.remote_participants
+                destination_identities = [p.identity for p in participants.values()]
+
+                if destination_identities:
+                    await current_room.local_participant.publish_data(
+                        message.encode(),
+                        reliable=True,
+                        destination_identities=destination_identities
+                    )
                 return "Suggestion sent to interviewer."
             except Exception as e:
                 logger.error(f"Failed to send suggestion: {e}")
@@ -653,12 +673,13 @@ Return ONLY valid JSON. No markdown code blocks."""
     # Greet the interviewer
     first_name = candidate_name.split()[0] if candidate_name else "there"
     greeting = f"Hi, thank you for having me! I'm {first_name}, excited to be here for this interview."
-    
+
     await session.say(greeting)
-    
-    # Record greeting in transcript
-    await record_transcript(speaker="candidate", text=greeting)
-    
+
+    # NOTE: Do NOT manually call record_transcript here!
+    # The on_item_added event listener already handles this automatically.
+    # Calling it manually causes duplicate transcript entries.
+
     # Initial analysis for greeting (optional, but good test)
     # await analyze_interaction(transcript_history)
 

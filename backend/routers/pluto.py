@@ -522,11 +522,20 @@ async def list_candidates(
 
 @router.get("/candidates/{candidate_id}")
 async def get_candidate_detail(candidate_id: str) -> dict:
-    """Get a specific candidate by ID."""
+    """Get a specific candidate by ID. Falls back to database if not in JSON store."""
+    # First try JSON store (Pluto CSV upload flow)
     candidate = get_candidate(candidate_id)
-    if not candidate:
-        raise HTTPException(status_code=404, detail="Candidate not found")
-    return candidate.model_dump()
+    if candidate:
+        return candidate.model_dump()
+
+    # Fallback to database (interview scheduling flow)
+    from repositories.candidate_repository import CandidateRepository
+    candidate_repo = CandidateRepository()
+    db_candidate = candidate_repo.get_by_id(candidate_id)
+    if db_candidate:
+        return db_candidate
+
+    raise HTTPException(status_code=404, detail="Candidate not found")
 
 
 @router.patch("/candidates/{candidate_id}")
@@ -625,20 +634,33 @@ async def get_candidate_prebrief(candidate_id: str):
     """
     Get or generate a pre-interview briefing for a candidate.
     Uses cached brief if available, otherwise generates new one.
+    Falls back to database if candidate not in JSON store.
     """
     import json
     import os
     from pathlib import Path
-    
+    from repositories.candidate_repository import CandidateRepository
+
+    # Try JSON store first, fallback to database
     candidate = get_candidate(candidate_id)
-    if not candidate:
-        raise HTTPException(status_code=404, detail="Candidate not found")
-    
+    candidate_dict = None
+
+    if candidate:
+        candidate_dict = candidate.model_dump()
+    else:
+        # Fallback to database
+        candidate_repo = CandidateRepository()
+        db_candidate = candidate_repo.get_by_id(candidate_id)
+        if db_candidate:
+            candidate_dict = db_candidate
+        else:
+            raise HTTPException(status_code=404, detail="Candidate not found")
+
     # Check for cached pre-brief
     prebrief_dir = Path("data/prebriefs")
     prebrief_dir.mkdir(parents=True, exist_ok=True)
     prebrief_file = prebrief_dir / f"{candidate_id}.json"
-    
+
     if prebrief_file.exists():
         try:
             with open(prebrief_file, "r") as f:
@@ -646,41 +668,53 @@ async def get_candidate_prebrief(candidate_id: str):
                 return {"prebrief": cached, "cached": True}
         except:
             pass
-    
+
     # No cache - need JD to generate
     if not state.job_description:
-        raise HTTPException(
-            status_code=400, 
-            detail="No job description available. Upload candidates with a JD first."
-        )
-    
+        # For DB candidates, return a basic prebrief without JD
+        basic_prebrief = {
+            "candidate_name": candidate_dict.get("name", "Unknown"),
+            "role": candidate_dict.get("job_title", ""),
+            "summary": candidate_dict.get("bio_summary", ""),
+            "focus_areas": [],
+            "suggested_questions": [
+                "Tell me about your background and experience.",
+                "What interests you about this role?",
+                "Describe a challenging project you've worked on."
+            ]
+        }
+        return {"prebrief": basic_prebrief, "cached": False, "basic": True}
+
     # Generate pre-brief using existing prebrief service
     from routers.prebrief import generate_pre_brief, PreBriefRequest as PBRequest
-    
-    # Build resume text from candidate data
+
+    # Build resume text from candidate data (use dict access for compatibility)
+    skills = candidate_dict.get("skills") or []
+    industries = candidate_dict.get("industries") or []
+
     resume_text = f"""
-Name: {candidate.name}
-Current Role: {candidate.job_title or 'N/A'} at {candidate.current_company or 'N/A'}
-Location: {candidate.location_city or ''}, {candidate.location_state or ''}
-Years of Experience: {candidate.years_experience or 'Unknown'}
+Name: {candidate_dict.get('name', 'Unknown')}
+Current Role: {candidate_dict.get('job_title') or 'N/A'} at {candidate_dict.get('current_company') or 'N/A'}
+Location: {candidate_dict.get('location_city') or ''}, {candidate_dict.get('location_state') or ''}
+Years of Experience: {candidate_dict.get('years_experience') or 'Unknown'}
 
 Summary:
-{candidate.bio_summary or 'No summary available'}
+{candidate_dict.get('bio_summary') or 'No summary available'}
 
-Skills: {', '.join(candidate.skills) if candidate.skills else 'N/A'}
-Industries: {', '.join(candidate.industries) if candidate.industries else 'N/A'}
+Skills: {', '.join(skills) if skills else 'N/A'}
+Industries: {', '.join(industries) if industries else 'N/A'}
 """
-    
+
     try:
         temp_room = f"prebrief-{candidate_id}"
         request = PBRequest(job_description=state.job_description, resume=resume_text)
         prebrief = await generate_pre_brief(temp_room, request)
         prebrief_data = prebrief.model_dump()
-        
+
         # Cache the result
         with open(prebrief_file, "w") as f:
             json.dump(prebrief_data, f, indent=2, default=str)
-        
+
         return {"prebrief": prebrief_data, "cached": False}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate pre-brief: {str(e)}")
@@ -704,7 +738,7 @@ async def start_full_interview(candidate_id: str) -> FullInterviewResponse:
     """
     Create an interview room using LiveKit.
     LiveKit Agent handles voice AI (avoids OpenAI rate limits).
-    
+
     The agent will:
     - Use OpenRouter LLM (Gemini/GPT-4o-mini)
     - Deepgram STT for speech recognition
@@ -714,10 +748,24 @@ async def start_full_interview(candidate_id: str) -> FullInterviewResponse:
     import os
     import uuid
     import json
-    
+    from repositories.candidate_repository import CandidateRepository
+
+    # Try JSON store first, fallback to database
     candidate = get_candidate(candidate_id)
-    if not candidate:
-        raise HTTPException(status_code=404, detail="Candidate not found")
+    candidate_dict = None
+    is_db_candidate = False
+
+    if candidate:
+        candidate_dict = candidate.model_dump()
+    else:
+        # Fallback to database (interview scheduling flow)
+        candidate_repo = CandidateRepository()
+        db_candidate = candidate_repo.get_by_id(candidate_id)
+        if db_candidate:
+            candidate_dict = db_candidate
+            is_db_candidate = True
+        else:
+            raise HTTPException(status_code=404, detail="Candidate not found")
     
     # Check if LiveKit is configured
     livekit_url = os.getenv("LIVEKIT_URL", "")
@@ -731,40 +779,42 @@ async def start_full_interview(candidate_id: str) -> FullInterviewResponse:
         room_data = await daily_service.create_room(expires_in_hours=1)
         room_name = room_data["name"]
         room_url = room_data["url"]
-        
+
         token = await daily_service.create_meeting_token(
             room_name=room_name,
             participant_name="Interviewer",
             participant_type="interviewer",
             expires_in_hours=1
         )
-        
-        update_candidate(candidate_id, {"interview_status": "in_progress", "room_name": room_name})
-        
+
+        if not is_db_candidate:
+            update_candidate(candidate_id, {"interview_status": "in_progress", "room_name": room_name})
+
         return FullInterviewResponse(
             room_name=room_name,
             room_url=room_url,
             token=token,
-            candidate=candidate.model_dump(),
+            candidate=candidate_dict,
             livekit_url=None
         )
-    
+
     # Use LiveKit for voice session
     import jwt
     import time
-    
+
     room_name = f"interview-{candidate_id[:8]}-{uuid.uuid4().hex[:8]}"
-    
-    # Build room metadata for the agent
+
+    # Build room metadata for the agent (use dict access since candidate_dict is always a dict)
+    candidate_name = candidate_dict.get("name", "Unknown")
     room_metadata = {
         "candidate_id": candidate_id,
-        "candidate_name": candidate.name,
+        "candidate_name": candidate_name,
         "mode": "interview",
-        "resume_context": candidate.bio_summary or "",
-        "job_title": candidate.job_title or "",
-        "skills": candidate.skills[:10] if candidate.skills else [],
+        "resume_context": candidate_dict.get("bio_summary") or "",
+        "job_title": candidate_dict.get("job_title") or "",
+        "skills": (candidate_dict.get("skills") or [])[:10],
     }
-    
+
     # Generate LiveKit token for interviewer
     now = int(time.time())
     claims = {
@@ -782,36 +832,40 @@ async def start_full_interview(candidate_id: str) -> FullInterviewResponse:
         },
         "metadata": json.dumps(room_metadata),
     }
-    
+
     token = jwt.encode(claims, livekit_api_secret, algorithm="HS256")
 
-    print(f"[Interview] Created LiveKit room '{room_name}' for candidate '{candidate.name}'")
+    print(f"[Interview] Created LiveKit room '{room_name}' for candidate '{candidate_name}'")
 
-    # Update candidate status in JSON
-    update_candidate(candidate_id, {"interview_status": "in_progress", "room_name": room_name})
+    # Update candidate status in JSON (only for JSON store candidates)
+    if not is_db_candidate:
+        update_candidate(candidate_id, {"interview_status": "in_progress", "room_name": room_name})
 
     # Create database interview record for tracking
     db_interview_id = None
     try:
         from repositories.interview_repository import InterviewRepository
-        from repositories.candidate_repository import CandidateRepository
 
         interview_repo = InterviewRepository()
-        candidate_repo = CandidateRepository()
 
-        # Look up DB candidate by json_id first, then by name
-        db_candidate = candidate_repo.get_by_json_id(candidate_id)
-        if not db_candidate:
-            db_candidate = candidate_repo.get_by_name(candidate.name)
-            if db_candidate:
-                # Update json_id for future lookups
-                try:
-                    candidate_repo.set_json_id(db_candidate["id"], candidate_id)
-                except Exception:
-                    pass
+        if is_db_candidate:
+            # Already have the DB candidate ID
+            db_candidate_id = candidate_id
+        else:
+            # Look up DB candidate by json_id first, then by name
+            candidate_repo_local = CandidateRepository()
+            db_candidate = candidate_repo_local.get_by_json_id(candidate_id)
+            if not db_candidate:
+                db_candidate = candidate_repo_local.get_by_name(candidate_name)
+                if db_candidate:
+                    # Update json_id for future lookups
+                    try:
+                        candidate_repo_local.set_json_id(db_candidate["id"], candidate_id)
+                    except Exception:
+                        pass
+            db_candidate_id = db_candidate["id"] if db_candidate else None
 
-        if db_candidate:
-            db_candidate_id = db_candidate["id"]
+        if db_candidate_id:
             # Use start_next_interview which handles existing interviews
             interview = interview_repo.start_next_interview(
                 candidate_id=db_candidate_id,
@@ -831,7 +885,7 @@ async def start_full_interview(candidate_id: str) -> FullInterviewResponse:
         room_name=room_name,
         room_url=livekit_url,  # Use LiveKit URL instead of Daily URL
         token=token,
-        candidate=candidate.model_dump(),
+        candidate=candidate_dict,
         livekit_url=livekit_url
     )
 
@@ -851,25 +905,40 @@ async def save_interview_analytics(candidate_id: str, request: SaveAnalyticsRequ
     """
     Save interview transcript and generate analytics.
     Updates candidate with interview score and recommendation.
+    Falls back to database if candidate not in JSON store.
     """
     import json
     import traceback
     from pathlib import Path
     from datetime import datetime
-    
+    from repositories.candidate_repository import CandidateRepository
+
     try:
+        # Try JSON store first, fallback to database
         candidate = get_candidate(candidate_id)
-        if not candidate:
-            raise HTTPException(status_code=404, detail="Candidate not found")
-        
+        candidate_dict = None
+        is_db_candidate = False
+
+        if candidate:
+            candidate_dict = candidate.model_dump()
+        else:
+            # Fallback to database
+            candidate_repo = CandidateRepository()
+            db_candidate = candidate_repo.get_by_id(candidate_id)
+            if db_candidate:
+                candidate_dict = db_candidate
+                is_db_candidate = True
+            else:
+                raise HTTPException(status_code=404, detail="Candidate not found")
+
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        
+
         # Save transcript
         transcript_dir = Path("data/transcripts")
         transcript_dir.mkdir(parents=True, exist_ok=True)
         with open(transcript_dir / f"{candidate_id}_{timestamp}.txt", "w") as f:
             f.write(request.transcript)
-        
+
         # Generate deep analytics
         analytics_data = request.analytics
         if not analytics_data:
@@ -877,19 +946,19 @@ async def save_interview_analytics(candidate_id: str, request: SaveAnalyticsRequ
             try:
                 # Get JD context if available (from global state or candidate)
                 jd_text = state.job_description if hasattr(state, 'job_description') else ""
-                
+
                 logger.info(f"Generating deep analytics for candidate {candidate_id}...")
                 deep_analytics = await generate_deep_analytics(
                     transcript=request.transcript,
-                    candidate_data=candidate.model_dump(),
+                    candidate_data=candidate_dict,
                     job_description=jd_text
                 )
-                
+
                 if deep_analytics:
                     analytics_data = deep_analytics.model_dump()
                 else:
                     analytics_data = {"error": "Failed to generate analytics"}
-                    
+
             except Exception as e:
                 logger.error(f"Analytics generation error: {e}")
                 traceback.print_exc()
@@ -907,39 +976,43 @@ async def save_interview_analytics(candidate_id: str, request: SaveAnalyticsRequ
             "interview_score": analytics_data.get("overall_score"),
             "recommendation": analytics_data.get("recommendation")
         }
-        update_candidate(candidate_id, update_data)
-        
+        if not is_db_candidate:
+            update_candidate(candidate_id, update_data)
+
         # Create or get interview record for analytics linking
-        # First, we need to get the database UUID for this candidate (JSON ID -> DB UUID)
         interview_id = None
         db_candidate_id = None
 
         try:
             from repositories.interview_repository import InterviewRepository
-            from repositories.candidate_repository import CandidateRepository
 
             interview_repo = InterviewRepository()
-            candidate_repo = CandidateRepository()
+            candidate_repo_local = CandidateRepository()
 
-            # First, try to look up the DB candidate by json_id (reliable)
-            db_candidate = candidate_repo.get_by_json_id(candidate_id)
-            if db_candidate:
-                db_candidate_id = db_candidate.get("id")
-                logger.info(f"Resolved candidate JSON ID '{candidate_id}' to DB UUID: {db_candidate_id}")
+            if is_db_candidate:
+                # Already have the DB candidate ID
+                db_candidate_id = candidate_id
+                logger.info(f"Using DB candidate ID directly: {db_candidate_id}")
             else:
-                # Fallback: Look up the DB candidate by name (less reliable)
-                candidate_name = candidate.name if hasattr(candidate, 'name') else candidate.get('name', '')
-                if candidate_name:
-                    db_candidate = candidate_repo.get_by_name(candidate_name)
-                    if db_candidate:
-                        db_candidate_id = db_candidate.get("id")
-                        logger.info(f"Resolved candidate '{candidate_name}' to DB UUID: {db_candidate_id} (via name fallback)")
-                        # Update the json_id for future lookups
-                        try:
-                            candidate_repo.set_json_id(db_candidate_id, candidate_id)
-                            logger.info(f"Updated json_id '{candidate_id}' for candidate {db_candidate_id}")
-                        except Exception as e:
-                            logger.warning(f"Failed to update json_id: {e}")
+                # First, try to look up the DB candidate by json_id (reliable)
+                db_candidate = candidate_repo_local.get_by_json_id(candidate_id)
+                if db_candidate:
+                    db_candidate_id = db_candidate.get("id")
+                    logger.info(f"Resolved candidate JSON ID '{candidate_id}' to DB UUID: {db_candidate_id}")
+                else:
+                    # Fallback: Look up the DB candidate by name (less reliable)
+                    candidate_name = candidate_dict.get('name', '')
+                    if candidate_name:
+                        db_candidate = candidate_repo_local.get_by_name(candidate_name)
+                        if db_candidate:
+                            db_candidate_id = db_candidate.get("id")
+                            logger.info(f"Resolved candidate '{candidate_name}' to DB UUID: {db_candidate_id} (via name fallback)")
+                            # Update the json_id for future lookups
+                            try:
+                                candidate_repo_local.set_json_id(db_candidate_id, candidate_id)
+                                logger.info(f"Updated json_id '{candidate_id}' for candidate {db_candidate_id}")
+                            except Exception as e:
+                                logger.warning(f"Failed to update json_id: {e}")
 
             # If we have a DB candidate ID, work with interviews
             if db_candidate_id:
@@ -980,8 +1053,8 @@ async def save_interview_analytics(candidate_id: str, request: SaveAnalyticsRequ
                             interview_id = new_interview["id"]
                             logger.info(f"Created new interview: {interview_id}")
             else:
-                candidate_name = candidate.name if hasattr(candidate, 'name') else candidate.get('name', 'Unknown')
-                logger.warning(f"Could not find DB candidate for JSON ID '{candidate_id}' (name: '{candidate_name}') - analytics will only be saved locally")
+                cand_name = candidate_dict.get('name', 'Unknown')
+                logger.warning(f"Could not find DB candidate for JSON ID '{candidate_id}' (name: '{cand_name}') - analytics will only be saved locally")
         except Exception as e:
             logger.warning(f"Failed to create/update interview record: {e}")
         
