@@ -1,16 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import AppLayout from "@/components/AppLayout";
 import {
+  useScheduledInterviews,
+  useInterviewers,
+  useJobs,
+  useCancelInterview,
+} from "@/hooks/useApi";
+import { formatDateTime } from "@/lib/schedulingApi";
+import {
   Calendar,
   Clock,
   Search,
   Filter,
-  User,
   Briefcase,
   ChevronRight,
   X,
@@ -22,16 +28,6 @@ import {
   UserCheck,
   Loader2,
 } from "lucide-react";
-import {
-  getScheduledInterviews,
-  cancelInterview,
-  ScheduledInterview,
-  formatDateTime,
-  getDateString,
-  addDays,
-} from "@/lib/schedulingApi";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 interface Interviewer {
   id: string;
@@ -52,11 +48,30 @@ const STATUS_OPTIONS = [
   { value: "cancelled", label: "Cancelled" },
 ];
 
-const STATUS_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  scheduled: { bg: "bg-blue-500/20", text: "text-blue-400", border: "border-blue-500/30" },
-  in_progress: { bg: "bg-yellow-500/20", text: "text-yellow-400", border: "border-yellow-500/30" },
-  completed: { bg: "bg-green-500/20", text: "text-green-400", border: "border-green-500/30" },
-  cancelled: { bg: "bg-red-500/20", text: "text-red-400", border: "border-red-500/30" },
+const STATUS_COLORS: Record<
+  string,
+  { bg: string; text: string; border: string }
+> = {
+  scheduled: {
+    bg: "bg-blue-500/20",
+    text: "text-blue-400",
+    border: "border-blue-500/30",
+  },
+  in_progress: {
+    bg: "bg-yellow-500/20",
+    text: "text-yellow-400",
+    border: "border-yellow-500/30",
+  },
+  completed: {
+    bg: "bg-green-500/20",
+    text: "text-green-400",
+    border: "border-green-500/30",
+  },
+  cancelled: {
+    bg: "bg-red-500/20",
+    text: "text-red-400",
+    border: "border-red-500/30",
+  },
 };
 
 const STATUS_ICONS: Record<string, React.ReactNode> = {
@@ -68,10 +83,8 @@ const STATUS_ICONS: Record<string, React.ReactNode> = {
 
 export default function InterviewsPage() {
   const router = useRouter();
-  const { isAuthenticated, token } = useAuth();
+  const { recruiter } = useAuth();
 
-  const [interviews, setInterviews] = useState<ScheduledInterview[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
 
   // Filters
@@ -82,86 +95,39 @@ export default function InterviewsPage() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
-  // Filter options
-  const [interviewers, setInterviewers] = useState<Interviewer[]>([]);
-  const [jobs, setJobs] = useState<Job[]>([]);
-
   // Modals
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState("");
 
-  useEffect(() => {
-    if (isAuthenticated && token) {
-      fetchFilterOptions();
-      fetchInterviews();
-    }
-  }, [isAuthenticated, token]);
+  // React Query hooks - automatic deduplication & caching
+  const {
+    data: interviews = [],
+    isLoading,
+    refetch,
+  } = useScheduledInterviews({
+    interviewerId: selectedInterviewer || undefined,
+    jobId: selectedJob || undefined,
+    dateFrom: dateFrom || undefined,
+    dateTo: dateTo || undefined,
+    status: selectedStatus || undefined,
+  });
 
-  useEffect(() => {
-    if (isAuthenticated && token) {
-      fetchInterviews();
-    }
-  }, [selectedStatus, selectedInterviewer, selectedJob, dateFrom, dateTo]);
+  const { data: interviewers = [] } = useInterviewers();
+  const { data: jobs = [] } = useJobs(recruiter?.id);
 
-  const getAuthHeaders = (): Record<string, string> => {
-    const headers: Record<string, string> = {};
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-    return headers;
-  };
-
-  const fetchFilterOptions = async () => {
-    try {
-      // Fetch interviewers
-      const interviewersRes = await fetch(`${API_URL}/api/interviewers`, {
-        headers: getAuthHeaders(),
-      });
-      if (interviewersRes.ok) {
-        const data = await interviewersRes.json();
-        setInterviewers(data);
-      }
-
-      // Fetch jobs
-      const jobsRes = await fetch(`${API_URL}/api/jobs`, {
-        headers: getAuthHeaders(),
-      });
-      if (jobsRes.ok) {
-        const data = await jobsRes.json();
-        setJobs(data.jobs || data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch filter options:", error);
-    }
-  };
-
-  const fetchInterviews = async () => {
-    try {
-      setLoading(true);
-      const data = await getScheduledInterviews({
-        interviewerId: selectedInterviewer || undefined,
-        jobId: selectedJob || undefined,
-        dateFrom: dateFrom || undefined,
-        dateTo: dateTo || undefined,
-        status: selectedStatus || undefined,
-      });
-      setInterviews(data);
-    } catch (error) {
-      console.error("Failed to fetch interviews:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const cancelInterviewMutation = useCancelInterview();
 
   const handleCancelInterview = async () => {
     if (!cancellingId) return;
     try {
-      await cancelInterview(cancellingId, cancelReason);
+      await cancelInterviewMutation.mutateAsync({
+        interviewId: cancellingId,
+        reason: cancelReason || undefined,
+      });
       setCancelModalOpen(false);
       setCancellingId(null);
       setCancelReason("");
-      fetchInterviews();
     } catch (error) {
       console.error("Failed to cancel interview:", error);
     }
@@ -176,7 +142,8 @@ export default function InterviewsPage() {
     setDateTo("");
   };
 
-  const hasActiveFilters = selectedStatus || selectedInterviewer || selectedJob || dateFrom || dateTo;
+  const hasActiveFilters =
+    selectedStatus || selectedInterviewer || selectedJob || dateFrom || dateTo;
 
   const activeFilterCount =
     (selectedStatus ? 1 : 0) +
@@ -186,7 +153,7 @@ export default function InterviewsPage() {
     (dateTo ? 1 : 0);
 
   // Filter interviews by search query (client-side)
-  const filteredInterviews = interviews.filter((interview) => {
+  const filteredInterviews = interviews.filter((interview: any) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     return (
@@ -209,7 +176,8 @@ export default function InterviewsPage() {
           <div>
             <h2 className="text-2xl font-light tracking-wide">Interviews</h2>
             <p className="text-white/50 text-sm mt-1">
-              {filteredInterviews.length} interview{filteredInterviews.length !== 1 ? "s" : ""}
+              {filteredInterviews.length} interview
+              {filteredInterviews.length !== 1 ? "s" : ""}
             </p>
           </div>
         </div>
@@ -245,7 +213,7 @@ export default function InterviewsPage() {
               )}
             </button>
             <button
-              onClick={fetchInterviews}
+              onClick={() => refetch()}
               className="flex items-center gap-2 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white/60 hover:border-white/20 hover:text-white transition-colors"
             >
               <RefreshCw className="w-4 h-4" />
@@ -265,7 +233,10 @@ export default function InterviewsPage() {
                       onClick={() => setSelectedStatus("")}
                       className="flex items-center gap-1 px-2 py-1 bg-blue-500/20 border border-blue-500/30 rounded-lg text-xs text-blue-400"
                     >
-                      {STATUS_OPTIONS.find((s) => s.value === selectedStatus)?.label}
+                      {
+                        STATUS_OPTIONS.find((s) => s.value === selectedStatus)
+                          ?.label
+                      }
                       <X className="w-3 h-3" />
                     </button>
                   )}
@@ -275,7 +246,9 @@ export default function InterviewsPage() {
                       className="flex items-center gap-1 px-2 py-1 bg-purple-500/20 border border-purple-500/30 rounded-lg text-xs text-purple-400"
                     >
                       <UserCheck className="w-3 h-3" />
-                      {interviewers.find((i) => i.id === selectedInterviewer)?.name || "Interviewer"}
+                      {(interviewers as Interviewer[]).find(
+                        (i) => i.id === selectedInterviewer
+                      )?.name || "Interviewer"}
                       <X className="w-3 h-3" />
                     </button>
                   )}
@@ -285,7 +258,8 @@ export default function InterviewsPage() {
                       className="flex items-center gap-1 px-2 py-1 bg-orange-500/20 border border-orange-500/30 rounded-lg text-xs text-orange-400"
                     >
                       <Briefcase className="w-3 h-3" />
-                      {jobs.find((j) => j.id === selectedJob)?.title || "Job"}
+                      {(jobs as Job[]).find((j) => j.id === selectedJob)
+                        ?.title || "Job"}
                       <X className="w-3 h-3" />
                     </button>
                   )}
@@ -321,7 +295,9 @@ export default function InterviewsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Status Filter */}
                 <div>
-                  <label className="text-sm text-white/60 mb-2 block">Status</label>
+                  <label className="text-sm text-white/60 mb-2 block">
+                    Status
+                  </label>
                   <select
                     value={selectedStatus}
                     onChange={(e) => setSelectedStatus(e.target.value)}
@@ -337,14 +313,16 @@ export default function InterviewsPage() {
 
                 {/* Interviewer Filter */}
                 <div>
-                  <label className="text-sm text-white/60 mb-2 block">Interviewer</label>
+                  <label className="text-sm text-white/60 mb-2 block">
+                    Interviewer
+                  </label>
                   <select
                     value={selectedInterviewer}
                     onChange={(e) => setSelectedInterviewer(e.target.value)}
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-white/30"
                   >
                     <option value="">All Interviewers</option>
-                    {interviewers.map((interviewer) => (
+                    {(interviewers as Interviewer[]).map((interviewer) => (
                       <option key={interviewer.id} value={interviewer.id}>
                         {interviewer.name}
                       </option>
@@ -354,14 +332,16 @@ export default function InterviewsPage() {
 
                 {/* Job Filter */}
                 <div>
-                  <label className="text-sm text-white/60 mb-2 block">Job Position</label>
+                  <label className="text-sm text-white/60 mb-2 block">
+                    Job Position
+                  </label>
                   <select
                     value={selectedJob}
                     onChange={(e) => setSelectedJob(e.target.value)}
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-white/30"
                   >
                     <option value="">All Jobs</option>
-                    {jobs.map((job) => (
+                    {(jobs as Job[]).map((job) => (
                       <option key={job.id} value={job.id}>
                         {job.title}
                       </option>
@@ -371,7 +351,9 @@ export default function InterviewsPage() {
 
                 {/* Date From */}
                 <div>
-                  <label className="text-sm text-white/60 mb-2 block">From Date</label>
+                  <label className="text-sm text-white/60 mb-2 block">
+                    From Date
+                  </label>
                   <input
                     type="date"
                     value={dateFrom}
@@ -382,7 +364,9 @@ export default function InterviewsPage() {
 
                 {/* Date To */}
                 <div>
-                  <label className="text-sm text-white/60 mb-2 block">To Date</label>
+                  <label className="text-sm text-white/60 mb-2 block">
+                    To Date
+                  </label>
                   <input
                     type="date"
                     value={dateTo}
@@ -396,7 +380,7 @@ export default function InterviewsPage() {
         </div>
 
         {/* Results */}
-        {loading ? (
+        {isLoading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
           </div>
@@ -414,9 +398,10 @@ export default function InterviewsPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {filteredInterviews.map((interview) => {
+            {filteredInterviews.map((interview: any) => {
               const statusStyle = getStatusStyle(interview.status);
-              const isUpcoming = interview.status === "scheduled" && interview.scheduled_at;
+              const isUpcoming =
+                interview.status === "scheduled" && interview.scheduled_at;
               const scheduledDate = interview.scheduled_at
                 ? new Date(interview.scheduled_at)
                 : null;
@@ -475,7 +460,10 @@ export default function InterviewsPage() {
                         <div className="flex items-center gap-2 mt-3 text-sm">
                           <Calendar className="w-4 h-4 text-white/40" />
                           <span className="text-white/70">
-                            {formatDateTime(interview.scheduled_at!, interview.timezone)}
+                            {formatDateTime(
+                              interview.scheduled_at!,
+                              interview.timezone
+                            )}
                           </span>
                         </div>
                       )}
@@ -540,12 +528,17 @@ export default function InterviewsPage() {
       {cancelModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="glass-panel rounded-2xl p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-medium text-white mb-4">Cancel Interview</h3>
+            <h3 className="text-lg font-medium text-white mb-4">
+              Cancel Interview
+            </h3>
             <p className="text-white/60 text-sm mb-4">
-              Are you sure you want to cancel this interview? This action cannot be undone.
+              Are you sure you want to cancel this interview? This action cannot
+              be undone.
             </p>
             <div className="mb-4">
-              <label className="text-sm text-white/60 mb-2 block">Reason (optional)</label>
+              <label className="text-sm text-white/60 mb-2 block">
+                Reason (optional)
+              </label>
               <textarea
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
@@ -567,9 +560,12 @@ export default function InterviewsPage() {
               </button>
               <button
                 onClick={handleCancelInterview}
-                className="flex-1 px-4 py-2 bg-red-500/20 border border-red-500/30 rounded-xl text-sm text-red-400 hover:bg-red-500/30 transition-colors"
+                disabled={cancelInterviewMutation.isPending}
+                className="flex-1 px-4 py-2 bg-red-500/20 border border-red-500/30 rounded-xl text-sm text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-50"
               >
-                Cancel Interview
+                {cancelInterviewMutation.isPending
+                  ? "Cancelling..."
+                  : "Cancel Interview"}
               </button>
             </div>
           </div>

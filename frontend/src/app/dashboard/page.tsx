@@ -118,7 +118,7 @@ export default function DashboardPage() {
 
       // Fetch recruiter's jobs (filtered by recruiter to avoid fetching all jobs)
       const jobsResponse = await fetch(
-        `${API_URL}/api/jobs?recruiter_id=${currentRecruiter?.id}`,
+        `${API_URL}/api/jobs/?recruiter_id=${currentRecruiter?.id}`,
         { headers }
       );
       if (jobsResponse.ok) {
