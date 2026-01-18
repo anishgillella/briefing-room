@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import AppLayout from "@/components/AppLayout";
 import {
   ArrowLeft,
   Calendar,
@@ -69,11 +70,7 @@ export default function AvailabilitySettingsPage() {
   const [editDuration, setEditDuration] = useState(45);
   const [editMaxPerDay, setEditMaxPerDay] = useState(5);
 
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push("/login");
-    }
-  }, [isAuthenticated, authLoading, router]);
+  // Auth redirect is handled by AppLayout
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -240,32 +237,21 @@ export default function AvailabilitySettingsPage() {
     return acc;
   }, {} as Record<number, AvailabilityWeekly[]>);
 
-  if (authLoading || loading) {
-    return (
-      <main className="min-h-screen gradient-bg flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
-      </main>
-    );
-  }
-
   return (
-    <main className="min-h-screen gradient-bg text-white">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#000000]/80 backdrop-blur-md border-b border-white/5 py-4">
-        <div className="flex items-center justify-between max-w-5xl mx-auto px-6">
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="p-2 hover:bg-white/5 rounded-lg transition-colors">
-              <ArrowLeft className="w-5 h-5 text-white/60" />
-            </Link>
-            <div>
-              <h1 className="text-lg font-light tracking-wide text-white">Availability Settings</h1>
-              <p className="text-xs text-white/50">Manage interviewer availability</p>
-            </div>
-          </div>
+    <AppLayout>
+      <div className="px-6 py-8 max-w-5xl mx-auto">
+        {/* Page Header */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-white mb-1">Availability Settings</h1>
+          <p className="text-white/50">Manage interviewer availability</p>
         </div>
-      </header>
 
-      <div className="pt-28 px-6 pb-12 max-w-5xl mx-auto">
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
+          </div>
+        ) : (
+        <>
         {/* Interviewer Selector */}
         <div className="mb-8">
           <label className="block text-sm text-white/60 mb-2">Select Interviewer</label>
@@ -550,7 +536,9 @@ export default function AvailabilitySettingsPage() {
             </div>
           </div>
         </div>
+        </>
+        )}
       </div>
-    </main>
+    </AppLayout>
   );
 }

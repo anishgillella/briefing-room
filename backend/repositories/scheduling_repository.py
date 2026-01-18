@@ -217,27 +217,37 @@ class SchedulingRepository:
     def get_scheduled_interviews(
         self,
         interviewer_id: Optional[str] = None,
+        candidate_id: Optional[str] = None,
+        job_id: Optional[str] = None,
         date_from: Optional[date] = None,
         date_to: Optional[date] = None,
-        status: str = "scheduled"
+        status: Optional[str] = None
     ) -> List[dict]:
         """Get scheduled interviews within a date range."""
         try:
             # Use explicit foreign key hint to disambiguate the relationship
             query = self._get_db().table(self.interviews_table)\
-                .select("*, candidates!interviews_candidate_id_fkey(person_id, persons(name, email)), job_postings(title), hiring_managers!interviews_interviewer_id_fkey(name, email)")\
-                .eq("status", status)\
-                .not_.is_("scheduled_at", "null")
+                .select("*, candidates!interviews_candidate_id_fkey(person_id, persons(name, email)), job_postings(title), hiring_managers!interviews_interviewer_id_fkey(name, email)")
+
+            # Only filter by status if provided
+            if status:
+                query = query.eq("status", status)
 
             if interviewer_id:
                 query = query.eq("interviewer_id", interviewer_id)
+
+            if candidate_id:
+                query = query.eq("candidate_id", candidate_id)
+
+            if job_id:
+                query = query.eq("job_posting_id", job_id)
 
             if date_from:
                 query = query.gte("scheduled_at", datetime.combine(date_from, time.min).isoformat())
             if date_to:
                 query = query.lte("scheduled_at", datetime.combine(date_to, time.max).isoformat())
 
-            result = query.order("scheduled_at").execute()
+            result = query.order("scheduled_at", desc=True).execute()
             return result.data or []
         except Exception as e:
             logger.error(f"Error getting scheduled interviews: {e}")

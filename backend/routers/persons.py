@@ -83,11 +83,21 @@ class TalentPoolResponse(BaseModel):
     total_pages: int
 
 
+class JobOption(BaseModel):
+    """Job option for filtering."""
+    id: str
+    title: str
+    candidate_count: int = 0
+
+
 class FilterOptions(BaseModel):
     """Available filter options for the talent pool."""
     skills: List[str]
     locations: List[str]
     companies: List[str]
+    jobs: List[JobOption] = []
+    tiers: List[str] = ["TOP TIER", "STRONG", "GOOD", "EVALUATE", "POOR"]
+    pipeline_statuses: List[str] = ["new", "round_1", "round_2", "round_3", "decision_pending", "accepted", "rejected"]
     total_persons: int
 
 
@@ -101,6 +111,9 @@ async def list_talent_pool(
     skills: Optional[str] = Query(None, description="Comma-separated list of skills to filter by"),
     location: Optional[str] = Query(None, description="Location filter"),
     company: Optional[str] = Query(None, description="Company filter"),
+    job_id: Optional[str] = Query(None, description="Filter by job ID"),
+    tier: Optional[str] = Query(None, description="Filter by tier (TOP TIER, STRONG, GOOD, EVALUATE, POOR)"),
+    pipeline_status: Optional[str] = Query(None, description="Filter by pipeline status"),
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(20, ge=1, le=100, description="Items per page"),
     current_user: CurrentUser = Depends(get_current_user),
@@ -109,7 +122,7 @@ async def list_talent_pool(
     List all persons in the talent pool with optional filters.
 
     Returns paginated list of persons with summary information.
-    Supports search by name and filters by skills, location, company.
+    Supports search by name and filters by skills, location, company, job, tier, pipeline status.
     """
     person_repo = get_person_repo()
     candidate_repo = CandidateRepository()
@@ -122,18 +135,61 @@ async def list_talent_pool(
     # Calculate offset
     offset = (page - 1) * page_size
 
-    # Search persons
-    persons = person_repo.search_sync(
-        query=query,
-        skills=skills_list,
-        location=location,
-        current_company=company,
-        limit=page_size,
-        offset=offset,
-    )
+    # If filtering by job, tier, or pipeline_status, we need to filter via candidates first
+    if job_id or tier or pipeline_status:
+        # Get person IDs that match the candidate filters
+        matching_person_ids = candidate_repo.get_person_ids_by_filters_sync(
+            job_id=job_id,
+            tier=tier,
+            pipeline_status=pipeline_status,
+        ) if hasattr(candidate_repo, 'get_person_ids_by_filters_sync') else None
 
-    # Get total count for pagination
-    total = person_repo.count_all_sync()
+        if matching_person_ids is not None:
+            if not matching_person_ids:
+                # No matching candidates
+                return TalentPoolResponse(
+                    persons=[],
+                    total=0,
+                    page=page,
+                    page_size=page_size,
+                    total_pages=0,
+                )
+
+            # Search within matching person IDs
+            persons = person_repo.search_by_ids_sync(
+                person_ids=matching_person_ids,
+                query=query,
+                skills=skills_list,
+                location=location,
+                current_company=company,
+                limit=page_size,
+                offset=offset,
+            ) if hasattr(person_repo, 'search_by_ids_sync') else []
+
+            total = len(matching_person_ids)
+        else:
+            # Fallback to regular search
+            persons = person_repo.search_sync(
+                query=query,
+                skills=skills_list,
+                location=location,
+                current_company=company,
+                limit=page_size,
+                offset=offset,
+            )
+            total = person_repo.count_all_sync()
+    else:
+        # Search persons without candidate filters
+        persons = person_repo.search_sync(
+            query=query,
+            skills=skills_list,
+            location=location,
+            current_company=company,
+            limit=page_size,
+            offset=offset,
+        )
+        total = person_repo.count_all_sync()
+
     total_pages = (total + page_size - 1) // page_size
 
     # Build response with application counts
@@ -171,20 +227,40 @@ async def get_filter_options(
     """
     Get available filter options for the talent pool.
 
-    Returns lists of unique skills, locations, and companies
+    Returns lists of unique skills, locations, companies, and jobs
     that can be used for filtering.
     """
+    from repositories.streamlined.job_repo import JobRepository
+
     person_repo = get_person_repo()
+    candidate_repo = CandidateRepository()
+    job_repo = JobRepository()
 
     skills = person_repo.get_all_skills_sync(limit=100)
     locations = person_repo.get_all_locations_sync(limit=50)
     companies = person_repo.get_all_companies_sync(limit=50)
     total = person_repo.count_all_sync()
 
+    # Get jobs that have candidates
+    jobs = []
+    try:
+        all_jobs = job_repo.list_all_sync(limit=100) if hasattr(job_repo, 'list_all_sync') else []
+        for job in all_jobs:
+            candidate_count = candidate_repo.count_by_job_sync(job.id) if hasattr(candidate_repo, 'count_by_job_sync') else 0
+            if candidate_count > 0:
+                jobs.append(JobOption(
+                    id=str(job.id),
+                    title=job.title,
+                    candidate_count=candidate_count,
+                ))
+    except Exception as e:
+        logger.warning(f"Failed to get jobs for filter: {e}")
+
     return FilterOptions(
         skills=skills,
         locations=locations,
         companies=companies,
+        jobs=jobs,
         total_persons=total,
     )
 

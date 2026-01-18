@@ -382,9 +382,11 @@ async def schedule_interview(
 @router.get("/interviews", response_model=List[ScheduledInterview])
 async def get_scheduled_interviews(
     interviewer_id: Optional[UUID] = Query(None, description="Filter by interviewer"),
+    candidate_id: Optional[UUID] = Query(None, description="Filter by candidate"),
+    job_id: Optional[UUID] = Query(None, description="Filter by job"),
     date_from: Optional[date] = Query(None, description="Start date"),
     date_to: Optional[date] = Query(None, description="End date"),
-    status: str = Query("scheduled", description="Interview status"),
+    status: Optional[str] = Query(None, description="Interview status (scheduled, in_progress, completed, cancelled). Leave empty for all"),
     current_user: CurrentUser = Depends(get_optional_user),
 ):
     """Get scheduled interviews with optional filters."""
@@ -392,6 +394,8 @@ async def get_scheduled_interviews(
 
     interviews = repo.get_scheduled_interviews(
         interviewer_id=str(interviewer_id) if interviewer_id else None,
+        candidate_id=str(candidate_id) if candidate_id else None,
+        job_id=str(job_id) if job_id else None,
         date_from=date_from,
         date_to=date_to,
         status=status,

@@ -410,3 +410,60 @@ class PersonRepository:
                 companies.add(company)
 
         return sorted(list(companies))[:limit]
+
+    def search_by_ids_sync(
+        self,
+        person_ids: List[str],
+        query: Optional[str] = None,
+        skills: Optional[List[str]] = None,
+        location: Optional[str] = None,
+        current_company: Optional[str] = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> List[Person]:
+        """
+        Search persons within a specific set of person IDs.
+
+        Args:
+            person_ids: List of person IDs to search within
+            query: Text search for name
+            skills: List of skills to filter by
+            location: Location filter
+            current_company: Company filter
+            limit: Max results
+            offset: Pagination offset
+
+        Returns:
+            List of matching persons
+        """
+        if not person_ids:
+            return []
+
+        builder = self.client.table(self.table).select("*")
+
+        # Filter by person IDs
+        builder = builder.in_("id", person_ids)
+
+        # Text search on name
+        if query:
+            builder = builder.ilike("name", f"%{query}%")
+
+        # Location filter
+        if location:
+            builder = builder.ilike("location", f"%{location}%")
+
+        # Company filter
+        if current_company:
+            builder = builder.ilike("current_company", f"%{current_company}%")
+
+        # Skills filter
+        if skills and len(skills) > 0:
+            builder = builder.contains("skills", skills)
+
+        # Pagination and ordering
+        result = builder\
+            .order("updated_at", desc=True)\
+            .range(offset, offset + limit - 1)\
+            .execute()
+
+        return [Person(**p) for p in result.data]

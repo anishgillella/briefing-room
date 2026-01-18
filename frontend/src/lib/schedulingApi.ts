@@ -309,16 +309,21 @@ export async function scheduleInterview(request: ScheduleInterviewRequest): Prom
   return response.json();
 }
 
-export async function getScheduledInterviews(
-  interviewerId?: string,
-  dateFrom?: string,
-  dateTo?: string,
-  status: string = 'scheduled'
-): Promise<ScheduledInterview[]> {
-  const params = new URLSearchParams({ status });
-  if (interviewerId) params.append('interviewer_id', interviewerId);
-  if (dateFrom) params.append('date_from', dateFrom);
-  if (dateTo) params.append('date_to', dateTo);
+export async function getScheduledInterviews(options?: {
+  interviewerId?: string;
+  candidateId?: string;
+  jobId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  status?: string;
+}): Promise<ScheduledInterview[]> {
+  const params = new URLSearchParams();
+  if (options?.interviewerId) params.append('interviewer_id', options.interviewerId);
+  if (options?.candidateId) params.append('candidate_id', options.candidateId);
+  if (options?.jobId) params.append('job_id', options.jobId);
+  if (options?.dateFrom) params.append('date_from', options.dateFrom);
+  if (options?.dateTo) params.append('date_to', options.dateTo);
+  if (options?.status) params.append('status', options.status);
 
   const response = await fetch(
     `${API_BASE}/api/scheduling/interviews?${params}`,

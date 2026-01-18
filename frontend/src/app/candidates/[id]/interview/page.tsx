@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
     Room,
@@ -306,7 +306,7 @@ const RadarChart = ({ data }: { data: BehavioralProfile }) => {
     );
 };
 
-export default function InterviewPage() {
+function InterviewPageContent() {
     const params = useParams();
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -1810,5 +1810,17 @@ export default function InterviewPage() {
                 </div>
             )}
         </div>
+    );
+}
+
+export default function InterviewPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-black flex items-center justify-center">
+                <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+            </div>
+        }>
+            <InterviewPageContent />
+        </Suspense>
     );
 }
