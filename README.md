@@ -168,29 +168,47 @@ npm run dev
 # Frontend runs on http://localhost:3000
 ```
 
-### Start Voice Interview (AI as Candidate)
+### Start Voice Interview (Full Setup)
 
-To practice interviewing with the AI playing the role of a candidate:
+The platform supports two interview modes:
+- **Interviewer Mode**: You ask questions, AI plays the candidate
+- **Candidate Mode**: AI asks questions, you answer (for UX testing)
+
+Both modes require running both AI agents:
 
 ```bash
-# Terminal 1: Start backend (if not already running)
+# Terminal 1: Start backend API
 cd backend
 source venv/bin/activate
 uvicorn main:app --reload
 
-# Terminal 2: Start the LiveKit Interview Agent
+# Terminal 2: Start AI Candidate Agent (for interviewer mode)
 cd backend
 source venv/bin/activate
 python interview_agent.py dev
 
-# Terminal 3: Start frontend (if not already running)
+# Terminal 3: Start AI Interviewer Agent (for candidate mode)
+cd backend
+source venv/bin/activate
+python interviewer_agent.py dev
+
+# Terminal 4: Start frontend
 cd frontend
 npm run dev
 ```
 
 Then open your browser to `http://localhost:3000/candidates/{candidate_id}/interview`.
 
-The AI candidate will respond in real-time using voice, simulating a realistic interview experience. The system uses LiveKit for real-time audio and captures full transcripts for post-interview analytics.
+You'll see a **role selection screen** where you can choose:
+- **Join as Interviewer**: You conduct the interview, AI plays the candidate
+- **Join as Candidate**: AI conducts the interview, you answer questions
+
+| Your Role | AI Agent | Experience |
+|-----------|----------|------------|
+| Interviewer | `interview_agent.py` | You ask questions, get real-time coaching |
+| Candidate | `interviewer_agent.py` | AI asks you questions based on JD |
+
+The system uses LiveKit for real-time audio and captures full transcripts for post-interview analytics.
 
 ---
 

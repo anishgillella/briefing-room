@@ -28,6 +28,7 @@ import {
   UserCheck,
   Loader2,
 } from "lucide-react";
+import StartInterviewModal from "@/components/StartInterviewModal";
 
 interface Interviewer {
   id: string;
@@ -99,6 +100,14 @@ export default function InterviewsPage() {
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState("");
+
+  // Start interview modal
+  const [startModalOpen, setStartModalOpen] = useState(false);
+  const [selectedInterviewForStart, setSelectedInterviewForStart] = useState<{
+    candidateId: string;
+    candidateName: string;
+    jobTitle: string;
+  } | null>(null);
 
   // React Query hooks - automatic deduplication & caching
   const {
@@ -400,6 +409,10 @@ export default function InterviewsPage() {
           <div className="space-y-4">
             {filteredInterviews.map((interview: any) => {
               const statusStyle = getStatusStyle(interview.status);
+              // Show Start button for scheduled or active/in_progress interviews
+              const canStart =
+                (interview.status === "scheduled" || interview.status === "active" || interview.status === "in_progress") &&
+                interview.candidate_id;
               const isUpcoming =
                 interview.status === "scheduled" && interview.scheduled_at;
               const scheduledDate = interview.scheduled_at
@@ -485,26 +498,35 @@ export default function InterviewsPage() {
 
                     {/* Right: Actions */}
                     <div className="flex items-center gap-2 shrink-0">
+                      {/* Start button for scheduled, active, or in_progress interviews */}
+                      {canStart && (
+                        <button
+                          onClick={() => {
+                            setSelectedInterviewForStart({
+                              candidateId: interview.candidate_id,
+                              candidateName: interview.candidate_name || "Unknown Candidate",
+                              jobTitle: interview.job_title || "",
+                            });
+                            setStartModalOpen(true);
+                          }}
+                          className="flex items-center gap-2 px-4 py-2 bg-indigo-500/20 border border-indigo-500/30 rounded-xl text-sm text-indigo-400 hover:bg-indigo-500/30 transition-colors"
+                        >
+                          <Video className="w-4 h-4" />
+                          {interview.status === "scheduled" ? "Start" : "Join"}
+                        </button>
+                      )}
+                      {/* Cancel button only for scheduled interviews */}
                       {isUpcoming && (
-                        <>
-                          <Link
-                            href={`/candidates/${interview.candidate_id}/interview?room=${interview.room_name}`}
-                            className="flex items-center gap-2 px-4 py-2 bg-indigo-500/20 border border-indigo-500/30 rounded-xl text-sm text-indigo-400 hover:bg-indigo-500/30 transition-colors"
-                          >
-                            <Video className="w-4 h-4" />
-                            Start
-                          </Link>
-                          <button
-                            onClick={() => {
-                              setCancellingId(interview.id);
-                              setCancelModalOpen(true);
-                            }}
-                            className="flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400 hover:bg-red-500/20 transition-colors"
-                          >
-                            <XCircle className="w-4 h-4" />
-                            Cancel
-                          </button>
-                        </>
+                        <button
+                          onClick={() => {
+                            setCancellingId(interview.id);
+                            setCancelModalOpen(true);
+                          }}
+                          className="flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400 hover:bg-red-500/20 transition-colors"
+                        >
+                          <XCircle className="w-4 h-4" />
+                          Cancel
+                        </button>
                       )}
                       {interview.status === "completed" && (
                         <Link
@@ -571,6 +593,18 @@ export default function InterviewsPage() {
           </div>
         </div>
       )}
+
+      {/* Start Interview Modal - Role Selection */}
+      <StartInterviewModal
+        isOpen={startModalOpen}
+        onClose={() => {
+          setStartModalOpen(false);
+          setSelectedInterviewForStart(null);
+        }}
+        candidateId={selectedInterviewForStart?.candidateId || ""}
+        candidateName={selectedInterviewForStart?.candidateName || ""}
+        jobTitle={selectedInterviewForStart?.jobTitle || ""}
+      />
     </AppLayout>
   );
 }

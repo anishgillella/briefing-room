@@ -688,10 +688,31 @@ Return ONLY valid JSON. No markdown code blocks."""
 # CLI Entry
 # ============================================================================
 
+async def request_fnc(ctx):
+    """
+    Filter which rooms this agent should join.
+
+    interview_agent.py handles rooms where the AI plays the CANDIDATE.
+    These rooms have the prefix "candidate-interview-" or legacy "interview-".
+    """
+    room_name = ctx.room.name
+    # Join rooms with "candidate-interview-" prefix (new convention)
+    # Also join legacy "interview-" rooms for backwards compatibility
+    if room_name.startswith("candidate-interview-"):
+        logger.info(f"[interview_agent] Accepting room: {room_name}")
+        await ctx.accept()
+    elif room_name.startswith("interview-") and not room_name.startswith("interviewer-interview-"):
+        logger.info(f"[interview_agent] Accepting legacy room: {room_name}")
+        await ctx.accept()
+    else:
+        logger.info(f"[interview_agent] Skipping room (not for AI candidate): {room_name}")
+
+
 if __name__ == "__main__":
     cli.run_app(
         WorkerOptions(
             entrypoint_fnc=entrypoint,
             prewarm_fnc=prewarm,
+            request_fnc=request_fnc,
         ),
     )

@@ -59,6 +59,7 @@ from .interview import (
     InterviewSummary,
     InterviewStartResponse,
     InterviewType,
+    InterviewRole,
     InterviewSessionStatus,
 )
 
@@ -119,6 +120,7 @@ __all__ = [
     "InterviewSummary",
     "InterviewStartResponse",
     "InterviewType",
+    "InterviewRole",
     "InterviewSessionStatus",
     # Analytics
     "Analytics",

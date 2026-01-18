@@ -731,18 +731,30 @@ class FullInterviewResponse(BaseModel):
     token: str
     candidate: dict
     livekit_url: Optional[str] = None
+    role: str = "interviewer"  # interviewer or candidate
+    agent_type: str = "interview-agent"  # interview-agent or interviewer-agent
 
 
 @router.post("/candidates/{candidate_id}/interview/start")
-async def start_full_interview(candidate_id: str) -> FullInterviewResponse:
+async def start_full_interview(
+    candidate_id: str,
+    role: str = "interviewer",  # "interviewer" (AI=candidate) or "candidate" (AI=interviewer)
+) -> FullInterviewResponse:
     """
-    Create an interview room using LiveKit.
-    LiveKit Agent handles voice AI (avoids OpenAI rate limits).
+    Create an interview room using LiveKit with role-based agent selection.
+
+    Args:
+        candidate_id: The candidate to interview
+        role: User's role - "interviewer" (AI=candidate) or "candidate" (AI=interviewer)
+
+    Role determines which AI agent joins:
+    - role="interviewer": interview_agent.py joins (AI plays candidate, you ask questions)
+    - role="candidate": interviewer_agent.py joins (AI plays interviewer, you answer questions)
 
     The agent will:
     - Use OpenRouter LLM (Gemini/GPT-4o-mini)
     - Deepgram STT for speech recognition
-    - ElevenLabs TTS for voice synthesis
+    - Deepgram Aura TTS for voice synthesis
     - Broadcast transcripts via data channel
     """
     import os
@@ -802,7 +814,21 @@ async def start_full_interview(candidate_id: str) -> FullInterviewResponse:
     import jwt
     import time
 
-    room_name = f"interview-{candidate_id[:8]}-{uuid.uuid4().hex[:8]}"
+    # Validate and normalize role first (needed for room name)
+    role = role.lower() if role else "interviewer"
+    if role not in ("interviewer", "candidate"):
+        role = "interviewer"
+
+    # Room name prefix determines which agent joins:
+    # - "candidate-interview-*" -> interview_agent.py (AI plays candidate)
+    # - "interviewer-interview-*" -> interviewer_agent.py (AI plays interviewer)
+    room_prefix = "candidate-interview" if role == "interviewer" else "interviewer-interview"
+    room_name = f"{room_prefix}-{candidate_id[:8]}-{uuid.uuid4().hex[:8]}"
+
+    # Determine which agent should join based on role
+    # - role="interviewer" -> User asks questions, AI is candidate -> interview_agent.py
+    # - role="candidate" -> User answers questions, AI is interviewer -> interviewer_agent.py
+    agent_type = "interview-agent" if role == "interviewer" else "interviewer-agent"
 
     # Build room metadata for the agent (use dict access since candidate_dict is always a dict)
     candidate_name = candidate_dict.get("name", "Unknown")
@@ -810,19 +836,24 @@ async def start_full_interview(candidate_id: str) -> FullInterviewResponse:
         "candidate_id": candidate_id,
         "candidate_name": candidate_name,
         "mode": "interview",
+        "role": role,  # Include role so agents can filter which rooms to join
         "resume_context": candidate_dict.get("bio_summary") or "",
         "job_title": candidate_dict.get("job_title") or "",
         "skills": (candidate_dict.get("skills") or [])[:10],
     }
 
-    # Generate LiveKit token for interviewer
+    # Generate LiveKit token for the human participant
+    # Identity and name depend on which role they're playing
+    participant_identity = "human-interviewer" if role == "interviewer" else "human-candidate"
+    participant_name = "Interviewer" if role == "interviewer" else candidate_name
+
     now = int(time.time())
     claims = {
         "iss": livekit_api_key,
         "exp": now + 3600,
         "nbf": now,
-        "sub": "interviewer",
-        "name": "Interviewer",
+        "sub": participant_identity,
+        "name": participant_name,
         "video": {
             "room": room_name,
             "roomJoin": True,
@@ -835,7 +866,7 @@ async def start_full_interview(candidate_id: str) -> FullInterviewResponse:
 
     token = jwt.encode(claims, livekit_api_secret, algorithm="HS256")
 
-    print(f"[Interview] Created LiveKit room '{room_name}' for candidate '{candidate_name}'")
+    print(f"[Interview] Created LiveKit room '{room_name}' for candidate '{candidate_name}' (role={role}, agent={agent_type})")
 
     # Update candidate status in JSON (only for JSON store candidates)
     if not is_db_candidate:
@@ -886,7 +917,9 @@ async def start_full_interview(candidate_id: str) -> FullInterviewResponse:
         room_url=livekit_url,  # Use LiveKit URL instead of Daily URL
         token=token,
         candidate=candidate_dict,
-        livekit_url=livekit_url
+        livekit_url=livekit_url,
+        role=role,
+        agent_type=agent_type,
     )
 
 
