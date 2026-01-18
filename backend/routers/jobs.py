@@ -424,6 +424,56 @@ async def get_job_candidates(
     }
 
 
+@router.get("/{job_id}/candidates/{candidate_id}")
+async def get_job_candidate(
+    job_id: UUID,
+    candidate_id: UUID,
+    current_user: CurrentUser = Depends(get_current_user),
+):
+    """
+    Get a single candidate for a specific job (must belong to user's organization).
+    """
+    from repositories.streamlined.candidate_repo import CandidateRepository
+    from repositories.streamlined.person_repo import PersonRepository
+
+    repo = get_job_repo()
+    job = repo.get_by_id_for_org_sync(job_id, current_user.organization_id)
+
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    candidate_repo = CandidateRepository()
+    candidate = candidate_repo.get_by_id_sync(candidate_id)
+
+    if not candidate or str(candidate.job_id) != str(job_id):
+        raise HTTPException(status_code=404, detail="Candidate not found")
+
+    # Get person details
+    person_repo = PersonRepository()
+    person = person_repo.get_by_id_sync(candidate.person_id)
+
+    # Build response with person details
+    response = {
+        "id": str(candidate.id),
+        "person_id": str(candidate.person_id),
+        "job_id": str(candidate.job_id),
+        "person_name": person.name if person else candidate.person_name,
+        "person_email": person.email if person else candidate.person_email,
+        "current_title": person.current_title if person else candidate.current_title,
+        "current_company": person.current_company if person else candidate.current_company,
+        "years_experience": candidate.years_experience,
+        "skills": person.skills if person else candidate.skills,
+        "bio_summary": candidate.bio_summary,
+        "combined_score": candidate.combined_score,
+        "screening_notes": candidate.screening_notes,
+        "interview_status": candidate.interview_status.value if hasattr(candidate.interview_status, 'value') else candidate.interview_status,
+        "pipeline_status": candidate.pipeline_status,
+        "created_at": candidate.created_at.isoformat() if candidate.created_at else None,
+    }
+
+    return response
+
+
 @router.get("/{job_id}/analytics/summary")
 async def get_job_analytics_summary(
     job_id: UUID,
@@ -938,9 +988,11 @@ async def upload_candidates(
        - Parse crustdata_enrichment_data if present to extract profile (headline, summary, skills, etc.)
        - Find or create Person (by email or linkedin_url if available) with enriched profile
        - Find or create Candidate (person + job)
-    4. Triggers async resume processing if resume text provided
+    4. Triggers LLM extraction and screening in PARALLEL BATCHES of 10 for speed
     5. Returns upload summary
     """
+    import asyncio
+
     job_repo = get_job_repo()
     person_repo = PersonRepository()
     candidate_repo = CandidateRepository()
@@ -979,6 +1031,9 @@ async def upload_candidates(
     created = 0
     updated = 0
     errors = []
+
+    # Collect candidates for batch LLM processing
+    candidates_to_screen = []
 
     for row_num, row in enumerate(rows, start=2):  # Row 1 is header
         try:
@@ -1075,17 +1130,14 @@ async def upload_candidates(
                 ))
                 updated += 1
 
-                # Re-run LLM screening if we have enrichment data and no score yet
-                if enrichment and not existing.combined_score:
-                    background_tasks.add_task(
-                        process_candidate_screening,
-                        existing.id,
-                        person.id,
-                        enrichment,
-                        job.title,
-                        job.raw_jd or "",
-                        job.extracted_requirements.must_haves if job.extracted_requirements else None,
-                    )
+                # Queue for LLM screening if no score yet
+                if not existing.combined_score:
+                    enrichment_for_screening = enrichment if enrichment else row_normalized
+                    candidates_to_screen.append({
+                        "candidate_id": existing.id,
+                        "person_id": person.id,
+                        "enrichment_data": enrichment_for_screening,
+                    })
             else:
                 # Create new candidate
                 candidate = candidate_repo.create_sync(CandidateCreate(
@@ -1107,20 +1159,27 @@ async def upload_candidates(
                         job.extracted_requirements
                     )
 
-                # Trigger LLM screening if we have enrichment data
-                if enrichment:
-                    background_tasks.add_task(
-                        process_candidate_screening,
-                        candidate.id,
-                        person.id,
-                        enrichment,
-                        job.title,
-                        job.raw_jd or "",
-                        job.extracted_requirements.must_haves if job.extracted_requirements else None,
-                    )
+                # Queue for LLM screening
+                enrichment_for_screening = enrichment if enrichment else row_normalized
+                candidates_to_screen.append({
+                    "candidate_id": candidate.id,
+                    "person_id": person.id,
+                    "enrichment_data": enrichment_for_screening,
+                })
 
         except Exception as e:
             errors.append(f"Row {row_num}: {str(e)}")
+
+    # Run LLM extraction and screening in parallel batches of 10
+    if candidates_to_screen:
+        logger.info(f"Starting parallel LLM screening for {len(candidates_to_screen)} candidates in batches of 10")
+        background_tasks.add_task(
+            _process_candidates_batch_parallel,
+            candidates_to_screen,
+            job.title,
+            job.raw_description or "",
+            job.extracted_requirements,
+        )
 
     return UploadResult(
         job_id=str(job_id),
@@ -1129,6 +1188,56 @@ async def upload_candidates(
         errors=errors,
         total_processed=created + updated,
     )
+
+
+async def _process_candidates_batch_parallel(
+    candidates: List[Dict[str, Any]],
+    job_title: str,
+    job_description: str,
+    extracted_requirements,
+    batch_size: int = 10,
+):
+    """
+    Process candidates in parallel batches for LLM extraction and screening.
+
+    Args:
+        candidates: List of dicts with candidate_id, person_id, enrichment_data
+        job_title: The job title
+        job_description: Full job description text
+        extracted_requirements: ExtractedRequirements with weighted attributes
+        batch_size: Number of concurrent LLM calls (default 10)
+    """
+    import asyncio
+
+    total = len(candidates)
+    logger.info(f"Processing {total} candidates in parallel batches of {batch_size}")
+
+    for i in range(0, total, batch_size):
+        batch = candidates[i:i + batch_size]
+        batch_num = (i // batch_size) + 1
+        total_batches = (total + batch_size - 1) // batch_size
+
+        logger.info(f"Processing batch {batch_num}/{total_batches} ({len(batch)} candidates)")
+
+        # Create tasks for this batch
+        tasks = [
+            process_candidate_screening(
+                candidate["candidate_id"],
+                candidate["person_id"],
+                candidate["enrichment_data"],
+                job_title,
+                job_description,
+                extracted_requirements,
+            )
+            for candidate in batch
+        ]
+
+        # Run batch concurrently
+        await asyncio.gather(*tasks, return_exceptions=True)
+
+        logger.info(f"Completed batch {batch_num}/{total_batches}")
+
+    logger.info(f"Finished processing all {total} candidates")
 
 
 async def _process_resume_async(

@@ -1,8 +1,9 @@
 """
-Candidate Screening Service - Combined LLM extraction and scoring.
+Candidate Screening Service - Combined LLM extraction and scoring with weighted attributes.
 
 This service performs profile extraction AND job-fit scoring in a single LLM call
-for maximum efficiency during candidate upload.
+using the full weighted attributes from ExtractedRequirements (skills, red_flags,
+success_signals, behavioral_traits, cultural_indicators, deal_breakers).
 """
 
 import json
@@ -15,6 +16,7 @@ from openai import AsyncOpenAI
 from pydantic import BaseModel, Field
 
 from config import OPENROUTER_API_KEY, LLM_MODEL
+from models.streamlined.job import ExtractedRequirements, WeightedAttribute
 
 # Configure logging
 logging.basicConfig(
@@ -55,23 +57,46 @@ class ExtractedProfile(BaseModel):
     education_summary: Optional[str] = Field(None, description="Highest degree and school")
 
 
+class WeightedAttributeMatch(BaseModel):
+    """Evaluation of how a candidate matches a weighted attribute."""
+    attribute: str = Field(description="The attribute being evaluated")
+    weight: float = Field(description="The attribute's weight from job requirements")
+    match_score: float = Field(ge=0, le=1, description="Match score 0-1 (1 = fully matches)")
+    evidence: str = Field(description="Evidence from candidate profile supporting this score")
+
+
+class CategoryScore(BaseModel):
+    """Score for a category of weighted attributes."""
+    category: str = Field(description="Category name (required_skills, red_flags, etc.)")
+    category_weight: float = Field(description="Weight of this category in overall scoring")
+    raw_score: float = Field(ge=0, le=1, description="Raw score for this category (0-1)")
+    weighted_score: float = Field(description="Category score * category weight")
+    attribute_matches: List[WeightedAttributeMatch] = Field(
+        default_factory=list,
+        description="Individual attribute evaluations"
+    )
+
+
 class RedFlag(BaseModel):
     """A potential concern about the candidate."""
     concern: str = Field(description="Brief description of the concern")
     severity: str = Field(description="High, Medium, or Low")
     evidence: str = Field(description="What in the profile suggests this")
+    matched_job_red_flag: Optional[str] = Field(None, description="If this matches a job-defined red flag")
 
 
 class GreenFlag(BaseModel):
     """A positive signal about the candidate."""
     strength: str = Field(description="Brief description of the strength")
     evidence: str = Field(description="What in the profile demonstrates this")
+    matched_success_signal: Optional[str] = Field(None, description="If this matches a job-defined success signal")
 
 
 class SkillMatch(BaseModel):
     """How a candidate skill matches job requirements."""
     skill: str = Field(description="The skill being evaluated")
     match_level: str = Field(description="Strong Match, Partial Match, or No Match")
+    weight: float = Field(default=1.0, description="Skill weight from job requirements")
     notes: Optional[str] = Field(None, description="Additional context")
 
 
@@ -80,89 +105,212 @@ class ScreeningResult(BaseModel):
     # Extracted Profile
     profile: ExtractedProfile
 
-    # Scoring
+    # Overall Scoring
     overall_score: int = Field(ge=0, le=100, description="Overall fit score 0-100")
     recommendation: str = Field(description="Strong Fit, Good Fit, Potential Fit, or Not a Fit")
     fit_summary: str = Field(description="2-3 sentence summary of fit assessment")
 
-    # Detailed Analysis
+    # Category-Level Scores
+    category_scores: List[CategoryScore] = Field(
+        default_factory=list,
+        description="Detailed scores for each category"
+    )
+
+    # Skill Analysis
     skill_matches: List[SkillMatch] = Field(default_factory=list, description="How skills match job requirements")
+
+    # Flags
     green_flags: List[GreenFlag] = Field(default_factory=list, description="Positive signals")
     red_flags: List[RedFlag] = Field(default_factory=list, description="Concerns or risks")
 
+    # Deal Breaker Assessment
+    deal_breakers_triggered: List[str] = Field(
+        default_factory=list,
+        description="Any deal breakers from job requirements that were triggered"
+    )
+    has_deal_breaker: bool = Field(default=False, description="True if any deal breaker is triggered")
+
+    # Behavioral & Cultural Fit
+    behavioral_assessment: Optional[str] = Field(None, description="Assessment of behavioral traits fit")
+    cultural_fit_assessment: Optional[str] = Field(None, description="Assessment of cultural fit")
+
     # Interview Guidance
-    interview_questions: List[str] = Field(default_factory=list, description="3 tailored interview questions")
+    interview_questions: List[str] = Field(default_factory=list, description="3-5 tailored interview questions")
 
 
 # ============================================================================
 # Screening Functions
 # ============================================================================
 
+def format_weighted_attributes(attrs: List[WeightedAttribute], name: str) -> str:
+    """Format weighted attributes for the prompt."""
+    if not attrs:
+        return f"{name}: (none specified)"
+
+    lines = [f"{name}:"]
+    for attr in attrs:
+        lines.append(f"  - {attr.value} (weight: {attr.weight:.2f})")
+    return "\n".join(lines)
+
+
 def build_screening_prompt(
     enrichment_data: Dict[str, Any],
     job_title: str,
     job_description: str,
-    required_skills: List[str] = None,
+    extracted_requirements: Optional[ExtractedRequirements] = None,
 ) -> str:
-    """Build the combined extraction + scoring prompt."""
+    """Build the combined extraction + scoring prompt with weighted attributes."""
 
     # Format enrichment data for the prompt
-    enrichment_str = json.dumps(enrichment_data, indent=2, default=str)[:8000]  # Limit size
+    enrichment_str = json.dumps(enrichment_data, indent=2, default=str)[:10000]
 
-    # Build requirements section
+    # Build requirements section from ExtractedRequirements
     requirements_section = ""
-    if required_skills:
+    category_weights_section = ""
+
+    if extracted_requirements:
+        req = extracted_requirements
+
+        # Basic requirements
+        basic_reqs = []
+        if req.years_experience:
+            basic_reqs.append(f"Years Experience: {req.years_experience}")
+        if req.education:
+            basic_reqs.append(f"Education: {req.education}")
+        if req.location:
+            basic_reqs.append(f"Location: {req.location}")
+        if req.work_type:
+            basic_reqs.append(f"Work Type: {req.work_type}")
+
         requirements_section = f"""
-REQUIRED SKILLS/QUALIFICATIONS:
-{chr(10).join(f"- {skill}" for skill in required_skills)}
+== BASIC REQUIREMENTS ==
+{chr(10).join(basic_reqs) if basic_reqs else "(none specified)"}
+
+== WEIGHTED SKILL REQUIREMENTS ==
+{format_weighted_attributes(req.required_skills, "Required Skills")}
+
+{format_weighted_attributes(req.preferred_skills, "Preferred Skills")}
+
+== SUCCESS SIGNALS (Green Flags) - Look for these positive indicators ==
+{format_weighted_attributes(req.success_signals, "Success Signals")}
+
+== RED FLAGS - Watch for these warning signs ==
+{format_weighted_attributes(req.red_flags, "Red Flags")}
+
+== BEHAVIORAL TRAITS - Evaluate these work behaviors ==
+{format_weighted_attributes(req.behavioral_traits, "Behavioral Traits")}
+
+== CULTURAL INDICATORS - Assess cultural fit ==
+{format_weighted_attributes(req.cultural_indicators, "Cultural Indicators")}
+
+== DEAL BREAKERS - Non-negotiable requirements (high priority) ==
+{format_weighted_attributes(req.deal_breakers, "Deal Breakers")}
+
+== IDEAL BACKGROUND ==
+{req.ideal_background or "(not specified)"}
 """
 
-    return f"""You are an expert recruiter performing candidate screening.
+        # Category weights section
+        weights = req.category_weights
+        category_weights_section = f"""
+== CATEGORY WEIGHTS FOR SCORING ==
+- Required Skills: {weights.get('required_skills', 0.25):.0%}
+- Preferred Skills: {weights.get('preferred_skills', 0.10):.0%}
+- Success Signals: {weights.get('success_signals', 0.20):.0%}
+- Red Flags (penalty): {weights.get('red_flags', 0.15):.0%}
+- Behavioral Traits: {weights.get('behavioral_traits', 0.15):.0%}
+- Cultural Indicators: {weights.get('cultural_indicators', 0.10):.0%}
+- Deal Breakers: {weights.get('deal_breakers', 0.05):.0%}
+"""
+    else:
+        requirements_section = """
+== JOB REQUIREMENTS ==
+(No structured requirements extracted - evaluate based on job description)
+"""
 
-TASK: Analyze the candidate's LinkedIn/enrichment data and evaluate their fit for the role.
-Do BOTH extraction AND scoring in this single response.
+    return f"""You are an expert recruiter performing comprehensive candidate screening.
+
+TASK: Analyze the candidate's profile data and evaluate their fit for the role using
+the weighted requirements. Do BOTH extraction AND scoring in this single response.
 
 == JOB INFORMATION ==
 Title: {job_title}
 
 Description:
-{job_description[:3000] if job_description else "Not provided - evaluate based on general professional quality"}
+{job_description[:4000] if job_description else "Not provided"}
+
 {requirements_section}
 
-== CANDIDATE RAW DATA (LinkedIn/Enrichment) ==
+{category_weights_section}
+
+== CANDIDATE RAW DATA ==
 {enrichment_str}
 
-== INSTRUCTIONS ==
+== SCORING INSTRUCTIONS ==
 
 1. EXTRACT the candidate's profile from the raw data:
-   - Find their full name (check: full_name, name, first_name + last_name)
-   - Extract headline, summary, current role, company, location
+   - Full name, headline, current role, company, location
    - Estimate years of experience from work history
-   - List their key skills (max 15)
-   - Identify industries they've worked in
-   - Summarize their education
+   - List key skills (max 20)
+   - Identify industries worked in
+   - Summarize education
 
-2. SCORE the candidate against the job requirements:
-   - Overall score (0-100): How well do they match this specific role?
-   - Recommendation: "Strong Fit" (80+), "Good Fit" (60-79), "Potential Fit" (40-59), "Not a Fit" (<40)
-   - Fit summary: 2-3 sentences explaining the score
+2. EVALUATE EACH WEIGHTED ATTRIBUTE:
+   For each category, evaluate how well the candidate matches:
 
-3. ANALYZE in detail:
-   - Skill matches: For each required skill, rate match level
-   - Green flags: What makes them stand out positively?
-   - Red flags: Any concerns? (job hopping, gaps, overqualified, misalignment)
+   a) REQUIRED SKILLS: Score each skill 0-1 based on match level
+      - 1.0 = Strong match (explicit experience)
+      - 0.5 = Partial match (related experience)
+      - 0.0 = No match
 
-4. SUGGEST 3 interview questions tailored to:
-   - Validate their strongest claimed skills
-   - Probe any gaps or concerns
-   - Assess fit for this specific role
+   b) PREFERRED SKILLS: Same scoring as required skills
 
-== SCORING RUBRIC ==
-90-100: Exceptional - Exceeds all requirements, strong culture indicators
-75-89: Strong Fit - Meets critical requirements, minor gaps
-60-74: Good Fit - Meets most requirements, coachable gaps
-40-59: Potential Fit - Some relevant experience, significant gaps
-0-39: Not a Fit - Missing critical requirements
+   c) SUCCESS SIGNALS: Score each signal 0-1 based on evidence
+      - 1.0 = Clear evidence in profile
+      - 0.5 = Some indication
+      - 0.0 = No evidence
+
+   d) RED FLAGS: Score severity 0-1 (INVERTED for scoring)
+      - 1.0 = Red flag clearly present (BAD)
+      - 0.5 = Potential concern
+      - 0.0 = No red flag detected (GOOD)
+
+   e) BEHAVIORAL TRAITS: Score 0-1 based on evidence
+
+   f) CULTURAL INDICATORS: Score 0-1 based on evidence
+
+   g) DEAL BREAKERS: Check each one - ANY triggered = major penalty
+      - List ALL triggered deal breakers
+      - If ANY deal breaker is triggered, overall score should be < 40
+
+3. CALCULATE CATEGORY SCORES:
+   - For each category: sum(attribute_score * attribute_weight) / sum(weights)
+   - Then apply category weight: category_score * category_weight
+   - Red flags are PENALTY: (1 - red_flag_score) * category_weight
+
+4. CALCULATE OVERALL SCORE:
+   - Sum all weighted category scores
+   - Scale to 0-100
+   - Apply deal breaker penalty if triggered
+
+5. PROVIDE RECOMMENDATION:
+   - "Strong Fit" (80-100): Exceeds requirements, minimal concerns
+   - "Good Fit" (60-79): Meets most requirements, coachable gaps
+   - "Potential Fit" (40-59): Some relevant experience, significant gaps
+   - "Not a Fit" (0-39): Missing critical requirements or deal breakers triggered
+
+6. IDENTIFY FLAGS:
+   - Green flags: Match with success_signals AND other positive indicators
+   - Red flags: Match with job red_flags AND detected concerns
+
+7. ASSESS BEHAVIORAL & CULTURAL FIT:
+   - Summarize how candidate matches behavioral traits
+   - Summarize cultural fit indicators
+
+8. GENERATE INTERVIEW QUESTIONS:
+   - 3-5 questions to validate strengths
+   - Probe any concerns or gaps
+   - Assess cultural/behavioral fit
 
 Return ONLY valid JSON matching the exact schema provided."""
 
@@ -171,7 +319,8 @@ async def screen_candidate(
     enrichment_data: Dict[str, Any],
     job_title: str,
     job_description: str,
-    required_skills: List[str] = None,
+    extracted_requirements: Optional[ExtractedRequirements] = None,
+    required_skills: List[str] = None,  # Legacy parameter for backwards compatibility
 ) -> ScreeningResult:
     """
     Perform combined extraction and scoring for a candidate.
@@ -180,27 +329,40 @@ async def screen_candidate(
         enrichment_data: Raw enrichment/LinkedIn data for the candidate
         job_title: The job title
         job_description: Full job description text
-        required_skills: Optional list of required skills/qualifications
+        extracted_requirements: Full ExtractedRequirements with weighted attributes
+        required_skills: Legacy parameter (ignored if extracted_requirements provided)
 
     Returns:
-        ScreeningResult with extracted profile and scoring
+        ScreeningResult with extracted profile and comprehensive scoring
     """
+    # If we have extracted_requirements, use full screening
+    # Otherwise fall back to legacy behavior
+    if not extracted_requirements and required_skills:
+        # Create minimal ExtractedRequirements from legacy required_skills
+        extracted_requirements = ExtractedRequirements(
+            required_skills=[
+                WeightedAttribute(value=skill, weight=1.0)
+                for skill in required_skills
+            ]
+        )
+
     prompt = build_screening_prompt(
         enrichment_data=enrichment_data,
         job_title=job_title,
         job_description=job_description,
-        required_skills=required_skills,
+        extracted_requirements=extracted_requirements,
     )
 
     for attempt in range(MAX_RETRIES + 1):
         try:
-            # Use structured output for reliable parsing
             completion = await client.beta.chat.completions.parse(
                 model=SCREENING_MODEL,
                 messages=[
                     {
                         "role": "system",
-                        "content": "You are an expert recruiter. Extract candidate data and evaluate job fit. Return precise, evidence-based JSON."
+                        "content": """You are an expert recruiter performing comprehensive candidate screening.
+Evaluate candidates against ALL weighted requirements. Return precise, evidence-based JSON.
+Be thorough in evaluating each weighted attribute and calculating scores."""
                     },
                     {"role": "user", "content": prompt},
                 ],
@@ -241,9 +403,12 @@ async def screen_candidate(
                 overall_score=0,
                 recommendation="Unable to Score",
                 fit_summary=f"Screening failed: {str(e)[:100]}",
+                category_scores=[],
                 skill_matches=[],
                 green_flags=[],
                 red_flags=[],
+                deal_breakers_triggered=[],
+                has_deal_breaker=False,
                 interview_questions=[],
             )
 
@@ -253,9 +418,12 @@ async def screen_candidate(
         overall_score=0,
         recommendation="Unable to Score",
         fit_summary="Screening failed after retries",
+        category_scores=[],
         skill_matches=[],
         green_flags=[],
         red_flags=[],
+        deal_breakers_triggered=[],
+        has_deal_breaker=False,
         interview_questions=[],
     )
 
@@ -264,6 +432,7 @@ async def screen_candidates_batch(
     candidates: List[Dict[str, Any]],
     job_title: str,
     job_description: str,
+    extracted_requirements: Optional[ExtractedRequirements] = None,
     required_skills: List[str] = None,
     batch_size: int = 5,
     progress_callback=None,
@@ -275,7 +444,8 @@ async def screen_candidates_batch(
         candidates: List of dicts with 'enrichment_data' and 'candidate_id'
         job_title: The job title
         job_description: Full job description text
-        required_skills: Optional list of required skills
+        extracted_requirements: Full ExtractedRequirements with weighted attributes
+        required_skills: Legacy parameter
         batch_size: Number of concurrent LLM calls
         progress_callback: Optional async callback(current, total, result)
 
@@ -295,6 +465,7 @@ async def screen_candidates_batch(
                 enrichment_data=candidate.get("enrichment_data", {}),
                 job_title=job_title,
                 job_description=job_description,
+                extracted_requirements=extracted_requirements,
                 required_skills=required_skills,
             )
             tasks.append(task)
@@ -312,9 +483,12 @@ async def screen_candidates_batch(
                     overall_score=0,
                     recommendation="Error",
                     fit_summary=str(result)[:200],
+                    category_scores=[],
                     skill_matches=[],
                     green_flags=[],
                     red_flags=[],
+                    deal_breakers_triggered=[],
+                    has_deal_breaker=False,
                     interview_questions=[],
                 )
 
@@ -342,7 +516,8 @@ async def process_candidate_screening(
     enrichment_data: Dict[str, Any],
     job_title: str,
     job_description: str,
-    required_skills: List[str] = None,
+    extracted_requirements: Optional[ExtractedRequirements] = None,
+    required_skills: List[str] = None,  # Legacy parameter
 ):
     """
     Background task to screen a single candidate and update the database.
@@ -358,11 +533,12 @@ async def process_candidate_screening(
     person_repo = PersonRepository()
 
     try:
-        # Run the screening
+        # Run the screening with full weighted attributes
         result = await screen_candidate(
             enrichment_data=enrichment_data,
             job_title=job_title,
             job_description=job_description,
+            extracted_requirements=extracted_requirements,
             required_skills=required_skills,
         )
 
@@ -379,14 +555,24 @@ async def process_candidate_screening(
         )
         person_repo.update_sync(person_id, person_update)
 
-        # Update Candidate with scoring results
-        # Store red flags and green flags as JSON in screening_notes
+        # Build comprehensive screening notes
         screening_data = {
             "fit_summary": result.fit_summary,
             "recommendation": result.recommendation,
+            # Category-level scores
+            "category_scores": [cs.model_dump() for cs in result.category_scores],
+            # Skill analysis
             "skill_matches": [m.model_dump() for m in result.skill_matches],
+            # Flags
             "green_flags": [g.model_dump() for g in result.green_flags],
             "red_flags": [r.model_dump() for r in result.red_flags],
+            # Deal breakers
+            "deal_breakers_triggered": result.deal_breakers_triggered,
+            "has_deal_breaker": result.has_deal_breaker,
+            # Assessments
+            "behavioral_assessment": result.behavioral_assessment,
+            "cultural_fit_assessment": result.cultural_fit_assessment,
+            # Interview guidance
             "interview_questions": result.interview_questions,
         }
 
