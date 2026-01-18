@@ -24,7 +24,10 @@ import {
   Sparkles,
   ChevronDown,
   ChevronUp,
+  Play,
+  CalendarPlus,
 } from "lucide-react";
+import ScheduleInterviewModal from "@/components/ScheduleInterviewModal";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -185,6 +188,7 @@ export default function CandidateDetailPage({
   const [loading, setLoading] = useState(true);
   const [screeningNotes, setScreeningNotes] = useState<ScreeningNotes | null>(null);
   const [showAllSkills, setShowAllSkills] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -313,6 +317,16 @@ export default function CandidateDetailPage({
                 <span className="text-2xl font-light">{score}</span>
                 <span className="text-xs text-white/50">/100</span>
               </div>
+            )}
+            {/* Schedule Interview Button */}
+            {candidate.pipeline_status !== "accepted" && candidate.pipeline_status !== "rejected" && (
+              <button
+                onClick={() => setShowScheduleModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-medium transition-colors"
+              >
+                <CalendarPlus className="w-4 h-4" />
+                Schedule Interview
+              </button>
             )}
           </div>
         </div>
@@ -648,6 +662,23 @@ export default function CandidateDetailPage({
           </div>
         )}
       </div>
+
+      {/* Schedule Interview Modal */}
+      <ScheduleInterviewModal
+        isOpen={showScheduleModal}
+        onClose={() => setShowScheduleModal(false)}
+        onScheduled={() => {
+          setShowScheduleModal(false);
+          fetchData();
+        }}
+        candidateId={candidate.id}
+        candidateName={candidate.person_name}
+        jobId={resolvedParams.id}
+        jobTitle={job?.title || "Interview"}
+        stage={candidate.pipeline_status === "new" ? "round_1" :
+               candidate.pipeline_status === "round_1" ? "round_2" :
+               candidate.pipeline_status === "round_2" ? "round_3" : "round_1"}
+      />
     </main>
   );
 }

@@ -17,6 +17,11 @@ import {
   AlertCircle,
   TrendingUp,
   TrendingDown,
+  X,
+  ArrowRightCircle,
+  XCircle,
+  CheckCircle2,
+  Loader2,
 } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -76,6 +81,16 @@ interface Analytics {
   recommendation: string;
 }
 
+type BulkAction = "move_stage" | "reject" | "accept";
+
+const PIPELINE_STAGES = [
+  { value: "new", label: "New" },
+  { value: "round_1", label: "Round 1" },
+  { value: "round_2", label: "Round 2" },
+  { value: "round_3", label: "Round 3" },
+  { value: "decision_pending", label: "Decision Pending" },
+];
+
 export default function JobCandidatesPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
@@ -87,6 +102,11 @@ export default function JobCandidatesPage({ params }: { params: Promise<{ id: st
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"score" | "fit" | "name" | "date">("score");
+
+  // Bulk selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkActionLoading, setBulkActionLoading] = useState(false);
+  const [showStageDropdown, setShowStageDropdown] = useState(false);
 
   // Helper to get fit rank (lower is better)
   const getFitRank = (recommendation: string | null): number => {
@@ -204,6 +224,81 @@ export default function JobCandidatesPage({ params }: { params: Promise<{ id: st
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
 
+  // Bulk selection handlers
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredCandidates.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredCandidates.map((c) => c.id)));
+    }
+  };
+
+  const toggleSelect = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  const clearSelection = () => {
+    setSelectedIds(new Set());
+    setShowStageDropdown(false);
+  };
+
+  // Bulk action handler
+  const executeBulkAction = async (action: BulkAction, targetStage?: string) => {
+    if (selectedIds.size === 0) return;
+
+    setBulkActionLoading(true);
+    setShowStageDropdown(false);
+
+    try {
+      const headers = {
+        ...getAuthHeaders(),
+        "Content-Type": "application/json",
+      };
+
+      const body: Record<string, unknown> = {
+        candidate_ids: Array.from(selectedIds),
+        action,
+      };
+
+      if (action === "move_stage" && targetStage) {
+        body.target_stage = targetStage;
+      }
+
+      const response = await fetch(
+        `${API_URL}/api/jobs/${resolvedParams.id}/candidates/bulk-update`,
+        {
+          method: "POST",
+          headers,
+          body: JSON.stringify(body),
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Bulk update result:", result);
+        // Refresh data and clear selection
+        await fetchData();
+        setSelectedIds(new Set());
+      } else {
+        const error = await response.json();
+        console.error("Bulk update failed:", error);
+        alert(`Failed to update candidates: ${error.detail || "Unknown error"}`);
+      }
+    } catch (error) {
+      console.error("Bulk action error:", error);
+      alert("An error occurred while updating candidates");
+    } finally {
+      setBulkActionLoading(false);
+    }
+  };
+
   // Stats
   const completedCount = candidates.filter((c) => c.interview_status === "completed").length;
   const pendingCount = candidates.filter((c) => c.interview_status === "pending").length;
@@ -217,6 +312,9 @@ export default function JobCandidatesPage({ params }: { params: Promise<{ id: st
   const goodFitCount = candidates.filter((c) => getRecommendation(c) === "Good Fit").length;
   const potentialFitCount = candidates.filter((c) => getRecommendation(c) === "Potential Fit").length;
   const notFitCount = candidates.filter((c) => getRecommendation(c) === "Not a Fit").length;
+
+  const isAllSelected = filteredCandidates.length > 0 && selectedIds.size === filteredCandidates.length;
+  const isSomeSelected = selectedIds.size > 0 && selectedIds.size < filteredCandidates.length;
 
   // Show loading while checking auth
   if (authLoading) {
@@ -277,6 +375,76 @@ export default function JobCandidatesPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
       </header>
+
+      {/* Bulk Action Bar */}
+      {selectedIds.size > 0 && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-40 bg-indigo-600 rounded-2xl shadow-2xl shadow-indigo-500/20 px-6 py-3 flex items-center gap-4 animate-in slide-in-from-top-2 duration-200">
+          <span className="text-sm font-medium text-white">
+            {selectedIds.size} selected
+          </span>
+          <div className="h-5 w-px bg-white/20" />
+
+          {/* Move to Stage */}
+          <div className="relative">
+            <button
+              onClick={() => setShowStageDropdown(!showStageDropdown)}
+              disabled={bulkActionLoading}
+              className="flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+            >
+              <ArrowRightCircle className="w-4 h-4" />
+              Move to Stage
+            </button>
+            {showStageDropdown && (
+              <div className="absolute top-full left-0 mt-2 bg-[#1a1a2e] border border-white/10 rounded-xl shadow-xl py-2 min-w-[160px]">
+                {PIPELINE_STAGES.map((stage) => (
+                  <button
+                    key={stage.value}
+                    onClick={() => executeBulkAction("move_stage", stage.value)}
+                    className="w-full px-4 py-2 text-left text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors"
+                  >
+                    {stage.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Accept */}
+          <button
+            onClick={() => executeBulkAction("accept")}
+            disabled={bulkActionLoading}
+            className="flex items-center gap-2 px-3 py-1.5 bg-green-500/20 hover:bg-green-500/30 text-green-300 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+          >
+            <CheckCircle2 className="w-4 h-4" />
+            Accept
+          </button>
+
+          {/* Reject */}
+          <button
+            onClick={() => executeBulkAction("reject")}
+            disabled={bulkActionLoading}
+            className="flex items-center gap-2 px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+          >
+            <XCircle className="w-4 h-4" />
+            Reject
+          </button>
+
+          <div className="h-5 w-px bg-white/20" />
+
+          {/* Clear Selection */}
+          <button
+            onClick={clearSelection}
+            disabled={bulkActionLoading}
+            className="flex items-center gap-1 px-2 py-1.5 hover:bg-white/10 rounded-lg text-sm text-white/70 hover:text-white transition-colors disabled:opacity-50"
+          >
+            <X className="w-4 h-4" />
+          </button>
+
+          {bulkActionLoading && (
+            <Loader2 className="w-4 h-4 animate-spin text-white" />
+          )}
+        </div>
+      )}
 
       <div className="pt-28 px-6 pb-12 max-w-7xl mx-auto">
         {/* Stats */}
@@ -414,9 +582,25 @@ export default function JobCandidatesPage({ params }: { params: Promise<{ id: st
           <div className="glass-panel rounded-2xl overflow-hidden">
             {/* Table Header */}
             <div className="grid grid-cols-12 gap-4 p-4 border-b border-white/10 text-xs text-white/50 uppercase tracking-wider">
+              <div className="col-span-1 flex items-center">
+                <button
+                  onClick={toggleSelectAll}
+                  className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                    isAllSelected
+                      ? "bg-indigo-500 border-indigo-500"
+                      : isSomeSelected
+                      ? "bg-indigo-500/50 border-indigo-500"
+                      : "border-white/30 hover:border-white/50"
+                  }`}
+                >
+                  {(isAllSelected || isSomeSelected) && (
+                    <CheckCircle2 className="w-3 h-3 text-white" />
+                  )}
+                </button>
+              </div>
               <div className="col-span-3">Candidate</div>
               <div className="col-span-2">Fit</div>
-              <div className="col-span-2 text-center">Score</div>
+              <div className="col-span-1 text-center">Score</div>
               <div className="col-span-2">Status</div>
               <div className="col-span-2">Pipeline</div>
               <div className="col-span-1 text-right">Actions</div>
@@ -427,12 +611,29 @@ export default function JobCandidatesPage({ params }: { params: Promise<{ id: st
               {filteredCandidates.map((candidate, index) => {
                 const recommendation = getRecommendation(candidate);
                 const score = candidate.combined_score ?? candidate.ranking_score;
+                const isSelected = selectedIds.has(candidate.id);
                 return (
                   <div
                     key={candidate.id}
-                    className="grid grid-cols-12 gap-4 p-4 hover:bg-white/5 transition-colors cursor-pointer items-center"
+                    className={`grid grid-cols-12 gap-4 p-4 hover:bg-white/5 transition-colors cursor-pointer items-center ${
+                      isSelected ? "bg-indigo-500/10" : ""
+                    }`}
                     onClick={() => router.push(`/jobs/${resolvedParams.id}/candidates/${candidate.id}`)}
                   >
+                    {/* Checkbox */}
+                    <div className="col-span-1 flex items-center">
+                      <button
+                        onClick={(e) => toggleSelect(candidate.id, e)}
+                        className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                          isSelected
+                            ? "bg-indigo-500 border-indigo-500"
+                            : "border-white/30 hover:border-white/50"
+                        }`}
+                      >
+                        {isSelected && <CheckCircle2 className="w-3 h-3 text-white" />}
+                      </button>
+                    </div>
+
                     {/* Candidate Info */}
                     <div className="col-span-3 flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60 font-medium">
@@ -465,16 +666,16 @@ export default function JobCandidatesPage({ params }: { params: Promise<{ id: st
                     </div>
 
                     {/* Score */}
-                    <div className="col-span-2 text-center">
+                    <div className="col-span-1 text-center">
                       {score != null ? (
-                        <div className="inline-flex items-center gap-2">
+                        <div className="inline-flex items-center gap-1">
                           <span className="text-lg font-light text-white">
                             {score}
                           </span>
                           {score >= 75 ? (
-                            <TrendingUp className="w-4 h-4 text-green-400" />
+                            <TrendingUp className="w-3 h-3 text-green-400" />
                           ) : score <= 40 ? (
-                            <TrendingDown className="w-4 h-4 text-red-400" />
+                            <TrendingDown className="w-3 h-3 text-red-400" />
                           ) : null}
                         </div>
                       ) : (

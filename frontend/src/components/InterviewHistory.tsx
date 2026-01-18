@@ -34,10 +34,14 @@ import {
 } from "@/lib/interviewApi";
 import TranscriptPasteTab from "@/components/interview/TranscriptPasteTab";
 import AnalyticsDisplay, { type Analytics } from "@/components/AnalyticsDisplay";
+import ScheduleInterviewModal from "@/components/ScheduleInterviewModal";
+import { Calendar } from "lucide-react";
 
 interface InterviewHistoryProps {
     candidateId: string;
     candidateName: string;
+    jobId?: string;
+    jobTitle?: string;
     onStartInterview?: (roomUrl: string, token: string, stage: string) => void;
 }
 
@@ -46,12 +50,15 @@ const STAGES = ['round_1', 'round_2', 'round_3'] as const;
 export default function InterviewHistory({
     candidateId,
     candidateName,
+    jobId,
+    jobTitle,
     onStartInterview
 }: InterviewHistoryProps) {
     const router = useRouter();
     const [data, setData] = useState<CandidateInterviewsResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [showScheduleModal, setShowScheduleModal] = useState(false);
     const [startingInterview, setStartingInterview] = useState(false);
     const [expandedStages, setExpandedStages] = useState<Set<string>>(new Set());
     const [showDecisionModal, setShowDecisionModal] = useState(false);
@@ -634,24 +641,38 @@ export default function InterviewHistory({
                 ))}
             </div>
 
-            {/* -------------------- ACTION BUTTON -------------------- */}
+            {/* -------------------- ACTION BUTTONS -------------------- */}
             <div className="pt-4">
                 {data.next_stage && !data.all_stages_complete && (
-                    <button
-                        onClick={handleStartInterview}
-                        disabled={startingInterview}
-                        className="w-full group relative overflow-hidden rounded-2xl bg-white p-1 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-black"
-                    >
-                        <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-90 transition-all duration-300 group-hover:opacity-100"></div>
-                        <div className="relative flex items-center justify-center gap-3 rounded-xl bg-black px-8 py-5 transition-all duration-300 group-hover:bg-transparent">
-                            {startingInterview ? (
-                                <Loader2 className="h-6 w-6 animate-spin text-white" />
-                            ) : (
-                                <PlayCircle className="h-6 w-6 text-white" />
-                            )}
-                            <span className="text-lg font-semibold text-white">Start {formatStageName(data.next_stage)} Session</span>
-                        </div>
-                    </button>
+                    <div className="flex gap-3">
+                        {/* Schedule Interview Button */}
+                        <button
+                            onClick={() => setShowScheduleModal(true)}
+                            className="flex-1 group relative overflow-hidden rounded-2xl bg-white/10 p-1 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-black border border-white/20 hover:border-indigo-500/50 transition-colors"
+                        >
+                            <div className="relative flex items-center justify-center gap-3 rounded-xl px-6 py-5">
+                                <Calendar className="h-5 w-5 text-indigo-400" />
+                                <span className="text-base font-medium text-white">Schedule</span>
+                            </div>
+                        </button>
+
+                        {/* Start Interview Now Button */}
+                        <button
+                            onClick={handleStartInterview}
+                            disabled={startingInterview}
+                            className="flex-[2] group relative overflow-hidden rounded-2xl bg-white p-1 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-black"
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-90 transition-all duration-300 group-hover:opacity-100"></div>
+                            <div className="relative flex items-center justify-center gap-3 rounded-xl bg-black px-8 py-5 transition-all duration-300 group-hover:bg-transparent">
+                                {startingInterview ? (
+                                    <Loader2 className="h-6 w-6 animate-spin text-white" />
+                                ) : (
+                                    <PlayCircle className="h-6 w-6 text-white" />
+                                )}
+                                <span className="text-lg font-semibold text-white">Start {formatStageName(data.next_stage)} Now</span>
+                            </div>
+                        </button>
+                    </div>
                 )}
 
                 {/* Offer Prep Card - Shows when all interviews complete */}
@@ -870,6 +891,23 @@ export default function InterviewHistory({
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Schedule Interview Modal */}
+            {dbCandidateId && data?.next_stage && jobId && (
+                <ScheduleInterviewModal
+                    isOpen={showScheduleModal}
+                    onClose={() => setShowScheduleModal(false)}
+                    onScheduled={() => {
+                        setShowScheduleModal(false);
+                        loadInterviews();
+                    }}
+                    candidateId={dbCandidateId}
+                    candidateName={candidateName}
+                    jobId={jobId}
+                    jobTitle={jobTitle || "Interview"}
+                    stage={data.next_stage}
+                />
             )}
         </div>
     );

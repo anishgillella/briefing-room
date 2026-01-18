@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useRecruiter } from "@/contexts/RecruiterContext";
+import { useAuth } from "@/contexts/AuthContext";
 import RecruiterSelector from "@/components/RecruiterSelector";
 import {
   Briefcase,
@@ -17,7 +18,10 @@ import {
   Target,
   BarChart3,
   Calendar,
+  CalendarDays,
+  Settings,
 } from "lucide-react";
+import UpcomingInterviews from "@/components/UpcomingInterviews";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -69,6 +73,7 @@ interface Job {
 export default function DashboardPage() {
   const router = useRouter();
   const { currentRecruiter } = useRecruiter();
+  const { isAuthenticated, isLoading: authLoading, token } = useAuth();
 
   const [stats, setStats] = useState<RecruiterStats | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -76,45 +81,76 @@ export default function DashboardPage() {
   const [topCandidates, setTopCandidates] = useState<TopCandidate[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Helper to build auth headers using token from context
+  const getHeaders = (): Record<string, string> => {
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    return headers;
+  };
+
+  // Redirect to login if not authenticated
   useEffect(() => {
-    if (currentRecruiter) {
+    if (!authLoading && !isAuthenticated) {
+      router.push("/login");
+    }
+  }, [isAuthenticated, authLoading, router]);
+
+  useEffect(() => {
+    if (isAuthenticated && currentRecruiter) {
       fetchDashboardData();
-    } else {
+    } else if (!authLoading && !currentRecruiter) {
       setLoading(false);
     }
-  }, [currentRecruiter]);
+  }, [isAuthenticated, currentRecruiter, authLoading]);
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
+      const headers = getHeaders();
 
       // Fetch recruiter stats
       const statsResponse = await fetch(
-        `${API_URL}/api/recruiters/${currentRecruiter?.id}/stats`
+        `${API_URL}/api/recruiters/${currentRecruiter?.id}/stats`,
+        { headers }
       );
       if (statsResponse.ok) {
         const statsData = await statsResponse.json();
         setStats(statsData);
       }
 
-      // Fetch recruiter's jobs
+      // Fetch recruiter's jobs (filtered by recruiter to avoid fetching all jobs)
       const jobsResponse = await fetch(
-        `${API_URL}/api/jobs?recruiter_id=${currentRecruiter?.id}`
+        `${API_URL}/api/jobs?recruiter_id=${currentRecruiter?.id}`,
+        { headers }
       );
       if (jobsResponse.ok) {
         const jobsData = await jobsResponse.json();
-        setJobs(jobsData.slice(0, 5));
+        // Sort by status (active first) and limit to 5
+        const sortedJobs = jobsData.sort((a: Job, b: Job) => {
+          if (a.status === "active" && b.status !== "active") return -1;
+          if (a.status !== "active" && b.status === "active") return 1;
+          return 0;
+        });
+        setJobs(sortedJobs.slice(0, 5));
       }
 
       // Fetch recent activity
-      const activityResponse = await fetch(`${API_URL}/api/dashboard/activity?limit=5`);
+      const activityResponse = await fetch(
+        `${API_URL}/api/dashboard/activity?limit=5`,
+        { headers }
+      );
       if (activityResponse.ok) {
         const activityData = await activityResponse.json();
         setActivities(activityData.activities || []);
       }
 
       // Fetch top candidates
-      const topResponse = await fetch(`${API_URL}/api/dashboard/top-candidates?limit=5`);
+      const topResponse = await fetch(
+        `${API_URL}/api/dashboard/top-candidates?limit=5`,
+        { headers }
+      );
       if (topResponse.ok) {
         const topData = await topResponse.json();
         setTopCandidates(topData.candidates || []);
@@ -283,12 +319,12 @@ export default function DashboardPage() {
 
             {/* Main Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Active Jobs */}
+              {/* Jobs */}
               <div className="lg:col-span-2 glass-panel rounded-2xl p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-lg font-medium text-white flex items-center gap-2">
                     <Briefcase className="w-5 h-5 text-white/60" />
-                    Active Jobs
+                    Jobs
                   </h3>
                   <Link
                     href="/jobs"
@@ -350,6 +386,23 @@ export default function DashboardPage() {
 
               {/* Right Column */}
               <div className="space-y-6">
+                {/* Upcoming Interviews */}
+                <UpcomingInterviews limit={5} showHeader={true} />
+
+                {/* Quick Actions */}
+                <div className="glass-panel rounded-2xl p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-white/60">Interviewer Availability</span>
+                    <button
+                      onClick={() => router.push("/dashboard/availability")}
+                      className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-xs text-white/80 transition-colors"
+                    >
+                      <Settings className="w-3.5 h-3.5" />
+                      Manage
+                    </button>
+                  </div>
+                </div>
+
                 {/* Top Candidates */}
                 <div className="glass-panel rounded-2xl p-6">
                   <div className="flex items-center justify-between mb-4">
