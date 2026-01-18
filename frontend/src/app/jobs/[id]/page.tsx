@@ -103,10 +103,55 @@ interface Job {
 interface Candidate {
   id: string;
   person_name: string;
+  person_email?: string;
+  email?: string;
   pipeline_status: string;
   ranking_score?: number;
+  combined_score?: number;
+  screening_notes?: string;
+  current_title?: string;
   interview_status: string;
 }
+
+// Parse screening notes to get recommendation
+const getRecommendation = (candidate: Candidate): string | null => {
+  if (!candidate.screening_notes) return null;
+  try {
+    const notes = typeof candidate.screening_notes === 'string'
+      ? JSON.parse(candidate.screening_notes)
+      : candidate.screening_notes;
+    return notes.recommendation || null;
+  } catch {
+    return null;
+  }
+};
+
+// Get fit badge color
+const getFitBadgeStyle = (recommendation: string | null) => {
+  switch (recommendation) {
+    case "Strong Fit":
+      return "bg-green-500/20 border-green-500/40 text-green-400";
+    case "Good Fit":
+      return "bg-blue-500/20 border-blue-500/40 text-blue-400";
+    case "Potential Fit":
+      return "bg-yellow-500/20 border-yellow-500/40 text-yellow-400";
+    case "Not a Fit":
+      return "bg-red-500/20 border-red-500/40 text-red-400";
+    default:
+      return "bg-gray-500/20 border-gray-500/40 text-gray-400";
+  }
+};
+
+// Get fit rank (lower is better)
+const getFitRank = (recommendation: string | null): number => {
+  switch (recommendation) {
+    case "Strong Fit": return 1;
+    case "Good Fit": return 2;
+    case "Potential Fit": return 3;
+    case "Not a Fit": return 4;
+    default: return 5;
+  }
+};
 
 interface JobStats {
   candidate_stats: {
@@ -1265,27 +1310,65 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
               </div>
             ) : (
               <div className="space-y-3">
-                {candidates.slice(0, 10).map((candidate) => (
-                  <div
-                    key={candidate.id}
-                    className="flex items-center p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-colors cursor-pointer"
-                    onClick={() => router.push(`/candidates/${candidate.id}`)}
-                  >
-                    <div className="flex-1">
-                      <h4 className="font-medium text-white">{candidate.person_name}</h4>
-                      <div className="text-sm text-white/50">{candidate.pipeline_status}</div>
-                    </div>
-                    {candidate.ranking_score && (
-                      <div className="text-right mr-4">
-                        <div className="text-lg font-light text-white">
-                          {candidate.ranking_score.toFixed(0)}
+                {/* Sort candidates by score (highest first) */}
+                {[...candidates]
+                  .sort((a, b) => {
+                    const fitRankA = getFitRank(getRecommendation(a));
+                    const fitRankB = getFitRank(getRecommendation(b));
+                    if (fitRankA !== fitRankB) return fitRankA - fitRankB;
+                    const scoreA = a.combined_score ?? a.ranking_score ?? 0;
+                    const scoreB = b.combined_score ?? b.ranking_score ?? 0;
+                    return scoreB - scoreA;
+                  })
+                  .slice(0, 10)
+                  .map((candidate) => {
+                    const recommendation = getRecommendation(candidate);
+                    const score = candidate.combined_score ?? candidate.ranking_score;
+                    return (
+                      <div
+                        key={candidate.id}
+                        className="flex items-center p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-colors cursor-pointer"
+                        onClick={() => router.push(`/jobs/${resolvedParams.id}/candidates/${candidate.id}`)}
+                      >
+                        <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60 font-medium mr-3">
+                          {candidate.person_name?.charAt(0)?.toUpperCase() || "?"}
                         </div>
-                        <div className="text-xs text-white/40">Score</div>
+                        <div className="flex-1">
+                          <h4 className="font-medium text-white">{candidate.person_name}</h4>
+                          <div className="text-sm text-white/50">
+                            {candidate.current_title || candidate.person_email || candidate.email || "No title"}
+                          </div>
+                        </div>
+                        {/* Fit Badge */}
+                        <div className="mr-4">
+                          {recommendation ? (
+                            <span
+                              className={`text-[10px] px-2 py-1 rounded-full uppercase tracking-wider border ${getFitBadgeStyle(recommendation)}`}
+                            >
+                              {recommendation}
+                            </span>
+                          ) : (
+                            <span className="text-white/30 text-xs">—</span>
+                          )}
+                        </div>
+                        {/* Score */}
+                        {score != null ? (
+                          <div className="text-right mr-4 w-14">
+                            <div className="text-lg font-light text-white">
+                              {score}
+                            </div>
+                            <div className="text-xs text-white/40">Score</div>
+                          </div>
+                        ) : (
+                          <div className="text-right mr-4 w-14">
+                            <div className="text-lg font-light text-white/30">—</div>
+                            <div className="text-xs text-white/40">Score</div>
+                          </div>
+                        )}
+                        <ChevronRight className="w-5 h-5 text-white/30" />
                       </div>
-                    )}
-                    <ChevronRight className="w-5 h-5 text-white/30" />
-                  </div>
-                ))}
+                    );
+                  })}
                 {candidates.length > 10 && (
                   <Link
                     href={`/jobs/${resolvedParams.id}/candidates`}
