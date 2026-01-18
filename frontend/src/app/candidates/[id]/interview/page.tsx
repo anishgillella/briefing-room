@@ -339,6 +339,9 @@ function InterviewPageContent() {
     const [livekitUrl, setLivekitUrl] = useState<string>("");
     const [usingLiveKit, setUsingLiveKit] = useState(false);
 
+    // View mode: "interviewer" (recruiter conducting interview) vs "candidate" (candidate being interviewed)
+    const [viewMode, setViewMode] = useState<'interviewer' | 'candidate'>('interviewer');
+
     // AI Chat state
     const [chatMessages, setChatMessages] = useState<Message[]>([]);
     const [chatInput, setChatInput] = useState("");
@@ -670,10 +673,10 @@ function InterviewPageContent() {
 
             // Fetch Prebrief
             try {
-                const prebriefRes = await fetch(`${API_URL}/api/pluto/prebrief/${candidateId}`);
+                const prebriefRes = await fetch(`${API_URL}/api/pluto/candidates/${candidateId}/prebrief`);
                 if (prebriefRes.ok) {
                     const prebriefData = await prebriefRes.json();
-                    setPrebrief(prebriefData);
+                    setPrebrief(prebriefData.prebrief || prebriefData);
                 }
             } catch (pErr) {
                 console.warn("Failed to fetch prebrief:", pErr);
@@ -1542,6 +1545,30 @@ function InterviewPageContent() {
                 </div>
 
                 <div className="flex items-center gap-4">
+                    {/* View Mode Toggle */}
+                    <div className="flex items-center rounded-lg bg-white/5 border border-white/10 p-0.5">
+                        <button
+                            onClick={() => setViewMode('interviewer')}
+                            className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                                viewMode === 'interviewer'
+                                    ? 'bg-blue-600 text-white shadow-lg'
+                                    : 'text-white/50 hover:text-white/80'
+                            }`}
+                        >
+                            Interviewer
+                        </button>
+                        <button
+                            onClick={() => setViewMode('candidate')}
+                            className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                                viewMode === 'candidate'
+                                    ? 'bg-purple-600 text-white shadow-lg'
+                                    : 'text-white/50 hover:text-white/80'
+                            }`}
+                        >
+                            Candidate
+                        </button>
+                    </div>
+
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
                         <div className={`w-2 h-2 rounded-full ${connected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
                         <span className="text-xs font-mono text-white/60">{formatTime(elapsedTime)}</span>
@@ -1599,7 +1626,10 @@ function InterviewPageContent() {
                         {/* Status Text */}
                         <div className="text-center">
                             <h2 className="text-2xl font-light text-white mb-2 tracking-tight">
-                                {aiSpeaking ? "Interviewer is speaking..." : "Listening..."}
+                                {viewMode === 'interviewer'
+                                    ? (aiSpeaking ? `${candidateName} is speaking...` : "Waiting for response...")
+                                    : (aiSpeaking ? "Interviewer is speaking..." : "Your turn to speak...")
+                                }
                             </h2>
                             <p className="text-white/40 text-sm font-light tracking-wide">
                                 {connected ? "Live Session Active" : "Connecting..."}
@@ -1618,23 +1648,65 @@ function InterviewPageContent() {
                                     Conversation will appear here...
                                 </div>
                             ) : (
-                                transcript.map((item, i) => (
-                                    <div key={i} className={`flex flex-col gap-1 ${item.speaker === "interviewer" ? "items-start" : "items-end"}`}>
-                                        <div className="flex items-center gap-2 text-[10px] text-white/30 uppercase tracking-wider">
-                                            <span className={item.speaker === "interviewer" ? "text-purple-400" : "text-blue-400"}>
-                                                {item.speaker === "interviewer" ? "AI Interviewer" : candidateName}
-                                            </span>
-                                            <span>•</span>
-                                            <span>{item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                                transcript.map((item, i) => {
+                                    // Determine display based on view mode
+                                    // AI agent plays "candidate" role, so:
+                                    // - speaker="candidate" means AI is talking
+                                    // - speaker="interviewer" means human is talking
+
+                                    const isAISpeaker = item.speaker === "candidate";
+                                    const isHumanSpeaker = item.speaker === "interviewer";
+
+                                    // In Interviewer View: human=You (interviewer), AI=Candidate Name
+                                    // In Candidate View: human=You (candidate), AI=Interviewer
+                                    let displayName: string;
+                                    let isLeftAligned: boolean;
+                                    let nameColor: string;
+                                    let bubbleStyle: string;
+
+                                    if (viewMode === 'interviewer') {
+                                        // Interviewer view: You are the interviewer (human), AI is candidate
+                                        if (isHumanSpeaker) {
+                                            displayName = "You";
+                                            isLeftAligned = true;
+                                            nameColor = "text-green-400";
+                                            bubbleStyle = "bg-green-600/20 text-green-100 rounded-tl-none border border-green-500/20";
+                                        } else {
+                                            displayName = `${candidateName} (AI)`;
+                                            isLeftAligned = false;
+                                            nameColor = "text-purple-400";
+                                            bubbleStyle = "bg-purple-600/20 text-purple-100 rounded-tr-none border border-purple-500/20";
+                                        }
+                                    } else {
+                                        // Candidate view: You are the candidate (human), AI is interviewer
+                                        if (isHumanSpeaker) {
+                                            displayName = "Interviewer (AI)";
+                                            isLeftAligned = true;
+                                            nameColor = "text-blue-400";
+                                            bubbleStyle = "bg-blue-600/20 text-blue-100 rounded-tl-none border border-blue-500/20";
+                                        } else {
+                                            displayName = "You";
+                                            isLeftAligned = false;
+                                            nameColor = "text-green-400";
+                                            bubbleStyle = "bg-green-600/20 text-green-100 rounded-tr-none border border-green-500/20";
+                                        }
+                                    }
+
+                                    return (
+                                        <div key={i} className={`flex flex-col gap-1 ${isLeftAligned ? "items-start" : "items-end"}`}>
+                                            <div className="flex items-center gap-2 text-[10px] text-white/30 uppercase tracking-wider">
+                                                <span className={nameColor}>
+                                                    {displayName}
+                                                </span>
+                                                <span>•</span>
+                                                <span>{item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                                            </div>
+                                            <div className={`p-3 rounded-2xl max-w-[80%] text-sm leading-relaxed ${bubbleStyle}`}>
+                                                {item.text}
+                                            </div>
                                         </div>
-                                        <div className={`p-3 rounded-2xl max-w-[80%] text-sm leading-relaxed ${item.speaker === "interviewer"
-                                            ? "bg-white/5 text-white/90 rounded-tl-none border border-white/5"
-                                            : "bg-blue-600/20 text-blue-100 rounded-tr-none border border-blue-500/20"
-                                            }`}>
-                                            {item.text}
-                                        </div>
-                                    </div>
-                                ))
+                                    );
+                                })
                             )}
                             <div ref={transcriptEndRef} />
                         </div>
@@ -1645,7 +1717,8 @@ function InterviewPageContent() {
                 {/* RIGHT COLUMN: Chat & Assistant (4 cols) */}
                 <div className="col-span-4 flex flex-col gap-6 h-full min-h-0">
 
-                    {/* Copilot S */}
+                    {/* Copilot Suggestions - Only show in Interviewer mode */}
+                    {viewMode === 'interviewer' ? (
                     <div className="flex-1 glass-card-premium rounded-3xl p-6 relative flex flex-col min-h-0 bg-black/40 backdrop-blur-xl border border-white/10">
                         <h3 className="text-xs font-medium text-white/40 mb-4 uppercase tracking-wider flex items-center gap-2">
                             <Sparkles className="w-3 h-3 text-yellow-400" /> AI Coach Suggestions
@@ -1739,6 +1812,30 @@ function InterviewPageContent() {
                             )}
                         </div>
                     </div>
+                    ) : (
+                    /* Candidate View - Interview Tips Panel */
+                    <div className="flex-1 glass-card-premium rounded-3xl p-6 relative flex flex-col min-h-0 bg-black/40 backdrop-blur-xl border border-purple-500/20">
+                        <h3 className="text-xs font-medium text-purple-400/80 mb-4 uppercase tracking-wider flex items-center gap-2">
+                            <Sparkles className="w-3 h-3 text-purple-400" /> Candidate View
+                        </h3>
+                        <div className="flex-1 flex flex-col items-center justify-center text-center px-4 space-y-4">
+                            <div className="w-16 h-16 rounded-full bg-purple-500/20 flex items-center justify-center">
+                                <User className="w-8 h-8 text-purple-400" />
+                            </div>
+                            <div>
+                                <h4 className="text-lg font-medium text-white mb-2">You are the Candidate</h4>
+                                <p className="text-sm text-white/50 leading-relaxed">
+                                    In this view, you're simulating the candidate experience. The AI is playing the interviewer role.
+                                </p>
+                            </div>
+                            <div className="pt-4 border-t border-white/10 w-full">
+                                <p className="text-xs text-white/40 italic">
+                                    💡 Tip: Answer questions naturally. The AI will evaluate your responses and provide coaching feedback after the interview.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    )}
 
                     {/* AI Assistant Chat */}
                     <div className="h-80 glass-card-premium rounded-3xl p-4 relative flex flex-col min-h-0 bg-black/40 backdrop-blur-xl border border-white/10">
