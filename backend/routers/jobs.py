@@ -10,9 +10,10 @@ Phase 4 Multi-tenancy: Organization-scoped queries with authentication
 """
 
 from fastapi import APIRouter, HTTPException, BackgroundTasks, UploadFile, File, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 from uuid import UUID
+from enum import Enum
 import csv
 import io
 import logging
@@ -2005,3 +2006,134 @@ async def get_all_job_analytics(
         "analytics": formatted,
         "total": len(formatted),
     }
+
+
+# ============================================================================
+# BULK ACTIONS
+# ============================================================================
+
+
+class BulkActionType(str, Enum):
+    """Types of bulk actions that can be performed on candidates."""
+    MOVE_STAGE = "move_stage"
+    REJECT = "reject"
+    ACCEPT = "accept"
+
+
+class BulkUpdateRequest(BaseModel):
+    """Request body for bulk candidate updates."""
+    candidate_ids: List[UUID] = Field(..., min_length=1, description="List of candidate IDs to update")
+    action: BulkActionType = Field(..., description="The bulk action to perform")
+    target_stage: Optional[str] = Field(
+        None,
+        description="Target pipeline stage (required for move_stage action)"
+    )
+
+
+class BulkUpdateResult(BaseModel):
+    """Result of a bulk update operation."""
+    success_count: int
+    failed_count: int
+    updated_ids: List[str]
+    failed_ids: List[str]
+    errors: List[str]
+
+
+@router.post("/{job_id}/candidates/bulk-update", response_model=BulkUpdateResult)
+async def bulk_update_candidates(
+    job_id: UUID,
+    request: BulkUpdateRequest,
+    current_user: CurrentUser = Depends(get_current_user),
+) -> BulkUpdateResult:
+    """
+    Perform bulk actions on multiple candidates.
+
+    Supported actions:
+    - move_stage: Move candidates to a specific pipeline stage (requires target_stage)
+    - reject: Mark candidates as rejected
+    - accept: Mark candidates as accepted
+
+    All candidates must belong to the specified job.
+    """
+    from enum import Enum as PyEnum
+
+    job_repo = get_job_repo()
+    candidate_repo = CandidateRepository()
+
+    # Validate job exists and belongs to user's organization
+    job = job_repo.get_by_id_for_org_sync(job_id, current_user.organization_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    # Validate target_stage for move_stage action
+    if request.action == BulkActionType.MOVE_STAGE:
+        if not request.target_stage:
+            raise HTTPException(
+                status_code=400,
+                detail="target_stage is required for move_stage action"
+            )
+        valid_stages = ["new", "round_1", "round_2", "round_3", "decision_pending"]
+        if request.target_stage not in valid_stages:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid target_stage. Must be one of: {', '.join(valid_stages)}"
+            )
+
+    updated_ids = []
+    failed_ids = []
+    errors = []
+
+    for candidate_id in request.candidate_ids:
+        try:
+            # Verify candidate belongs to this job
+            candidate = candidate_repo.get_by_id_sync(candidate_id)
+            if not candidate:
+                failed_ids.append(str(candidate_id))
+                errors.append(f"Candidate {candidate_id} not found")
+                continue
+
+            if candidate.job_id != job_id:
+                failed_ids.append(str(candidate_id))
+                errors.append(f"Candidate {candidate_id} does not belong to this job")
+                continue
+
+            # Determine update based on action
+            update_data = {}
+
+            if request.action == BulkActionType.MOVE_STAGE:
+                update_data["pipeline_status"] = request.target_stage
+            elif request.action == BulkActionType.REJECT:
+                update_data["pipeline_status"] = "rejected"
+                update_data["interview_status"] = "completed"
+            elif request.action == BulkActionType.ACCEPT:
+                update_data["pipeline_status"] = "accepted"
+                update_data["interview_status"] = "completed"
+
+            # Apply the update
+            from models.streamlined.candidate import CandidateUpdate
+            candidate_update = CandidateUpdate(**update_data)
+            updated = candidate_repo.update_sync(candidate_id, candidate_update)
+
+            if updated:
+                updated_ids.append(str(candidate_id))
+            else:
+                failed_ids.append(str(candidate_id))
+                errors.append(f"Failed to update candidate {candidate_id}")
+
+        except Exception as e:
+            failed_ids.append(str(candidate_id))
+            errors.append(f"Error updating candidate {candidate_id}: {str(e)}")
+            logger.error(f"Bulk update error for candidate {candidate_id}: {e}")
+
+    logger.info(
+        f"Bulk update completed for job {job_id}: "
+        f"{len(updated_ids)} updated, {len(failed_ids)} failed"
+    )
+
+    return BulkUpdateResult(
+        success_count=len(updated_ids),
+        failed_count=len(failed_ids),
+        updated_ids=updated_ids,
+        failed_ids=failed_ids,
+        errors=errors,
+    )
