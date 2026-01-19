@@ -8,24 +8,24 @@ import { cn } from "@/lib/utils";
 import { Spinner } from "./motion";
 
 // =============================================================================
-// BUTTON VARIANTS
+// BUTTON VARIANTS - Light Theme
 // =============================================================================
 
 const buttonVariants = cva(
   // Base styles
   `inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium
    transition-all duration-200 ease-out
-   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950
+   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white
    disabled:pointer-events-none disabled:opacity-50
    active:scale-[0.98]`,
   {
     variants: {
       variant: {
-        // Primary - Main CTA
+        // Primary - Main CTA (Indigo)
         primary: `
           bg-gradient-to-b from-indigo-500 to-indigo-600
-          text-white
-          shadow-[0_1px_2px_rgba(0,0,0,0.3),0_0_0_1px_rgba(99,102,241,0.5),inset_0_1px_0_rgba(255,255,255,0.1)]
+          text-white font-semibold
+          shadow-[0_1px_2px_rgba(0,0,0,0.1),0_0_0_1px_rgba(99,102,241,0.5),inset_0_1px_0_rgba(255,255,255,0.1)]
           hover:from-indigo-400 hover:to-indigo-500
           hover:shadow-[0_4px_20px_-4px_rgba(99,102,241,0.5),0_0_0_1px_rgba(99,102,241,0.6),inset_0_1px_0_rgba(255,255,255,0.15)]
           hover:-translate-y-0.5
@@ -33,78 +33,79 @@ const buttonVariants = cva(
 
         // Secondary - Secondary actions
         secondary: `
-          bg-zinc-800/80
-          text-zinc-100
-          border border-zinc-700/50
-          shadow-[0_1px_2px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.03)]
-          hover:bg-zinc-700/80
-          hover:border-zinc-600/50
-          hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.05)]
+          bg-white
+          text-slate-700
+          border border-slate-200
+          shadow-[0_1px_2px_rgba(0,0,0,0.05)]
+          hover:bg-slate-50
+          hover:border-slate-300
+          hover:shadow-[0_2px_8px_-2px_rgba(0,0,0,0.1)]
         `,
 
         // Outline - Bordered button
         outline: `
           bg-transparent
-          text-zinc-300
-          border border-zinc-700/80
-          hover:bg-zinc-800/50
-          hover:text-zinc-100
-          hover:border-zinc-600
+          text-slate-600
+          border border-slate-300
+          hover:bg-slate-50
+          hover:text-slate-900
+          hover:border-slate-400
         `,
 
         // Ghost - Minimal button
         ghost: `
           bg-transparent
-          text-zinc-400
-          hover:bg-zinc-800/60
-          hover:text-zinc-100
+          text-slate-500
+          hover:bg-slate-100
+          hover:text-slate-900
         `,
 
         // Danger - Destructive actions
         danger: `
           bg-gradient-to-b from-red-500 to-red-600
           text-white
-          shadow-[0_1px_2px_rgba(0,0,0,0.3),0_0_0_1px_rgba(239,68,68,0.5)]
+          shadow-[0_1px_2px_rgba(0,0,0,0.1),0_0_0_1px_rgba(239,68,68,0.5)]
           hover:from-red-400 hover:to-red-500
-          hover:shadow-[0_4px_20px_-4px_rgba(239,68,68,0.5),0_0_0_1px_rgba(239,68,68,0.6)]
+          hover:shadow-[0_4px_20px_-4px_rgba(239,68,68,0.4),0_0_0_1px_rgba(239,68,68,0.6)]
         `,
 
         // Success - Positive actions
         success: `
           bg-gradient-to-b from-emerald-500 to-emerald-600
           text-white
-          shadow-[0_1px_2px_rgba(0,0,0,0.3),0_0_0_1px_rgba(34,197,94,0.5)]
+          shadow-[0_1px_2px_rgba(0,0,0,0.1),0_0_0_1px_rgba(34,197,94,0.5)]
           hover:from-emerald-400 hover:to-emerald-500
-          hover:shadow-[0_4px_20px_-4px_rgba(34,197,94,0.5),0_0_0_1px_rgba(34,197,94,0.6)]
+          hover:shadow-[0_4px_20px_-4px_rgba(34,197,94,0.4),0_0_0_1px_rgba(34,197,94,0.6)]
         `,
 
         // Glass - Glassmorphism style
         glass: `
-          bg-white/5
-          text-zinc-100
-          border border-white/10
+          bg-white/60
+          text-slate-700
+          border border-slate-200/60
           backdrop-blur-xl
-          hover:bg-white/10
-          hover:border-white/20
+          hover:bg-white/80
+          hover:border-slate-300/60
         `,
 
         // Link - Text-only button
         link: `
           bg-transparent
-          text-indigo-400
+          text-indigo-600 font-medium
           underline-offset-4
-          hover:text-indigo-300
+          hover:text-indigo-700
           hover:underline
           p-0 h-auto
         `,
 
-        // White - For dark backgrounds
-        white: `
-          bg-white
-          text-zinc-900
-          shadow-[0_1px_2px_rgba(0,0,0,0.1)]
-          hover:bg-zinc-100
-          hover:shadow-[0_4px_12px_-4px_rgba(255,255,255,0.3)]
+        // Accent - For emphasis (Rose/Pink)
+        accent: `
+          bg-gradient-to-b from-rose-500 to-rose-600
+          text-white font-semibold
+          shadow-[0_1px_2px_rgba(0,0,0,0.1),0_0_0_1px_rgba(244,63,94,0.5)]
+          hover:from-rose-400 hover:to-rose-500
+          hover:shadow-[0_4px_20px_-4px_rgba(244,63,94,0.5),0_0_0_1px_rgba(244,63,94,0.6)]
+          hover:-translate-y-0.5
         `,
       },
 

@@ -6,7 +6,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 // =============================================================================
-// CARD VARIANTS
+// CARD VARIANTS - Light Theme
 // =============================================================================
 
 const cardVariants = cva(
@@ -16,57 +16,57 @@ const cardVariants = cva(
       variant: {
         // Default elevated card
         default: `
-          bg-zinc-900/80
-          border border-zinc-800/50
-          shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_4px_24px_-4px_rgba(0,0,0,0.5)]
+          bg-white
+          border border-slate-200
+          shadow-[0_1px_3px_rgba(0,0,0,0.05),0_1px_2px_rgba(0,0,0,0.1)]
         `,
 
         // Glass effect card
         glass: `
-          bg-white/[0.03]
+          bg-white/70
           backdrop-blur-2xl
-          border border-white/[0.06]
-          shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_4px_24px_-4px_rgba(0,0,0,0.3)]
+          border border-slate-200/60
+          shadow-[0_1px_3px_rgba(0,0,0,0.05),0_1px_2px_rgba(0,0,0,0.1)]
         `,
 
         // Subtle card - less prominent
         subtle: `
-          bg-zinc-900/40
-          border border-zinc-800/30
+          bg-slate-50
+          border border-slate-100
         `,
 
         // Outlined card
         outline: `
           bg-transparent
-          border border-zinc-800
+          border border-slate-200
         `,
 
         // Interactive card with hover effects
         interactive: `
-          bg-zinc-900/80
-          border border-zinc-800/50
-          shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_4px_24px_-4px_rgba(0,0,0,0.5)]
+          bg-white
+          border border-slate-200
+          shadow-[0_1px_3px_rgba(0,0,0,0.05),0_1px_2px_rgba(0,0,0,0.1)]
           cursor-pointer
-          hover:bg-zinc-800/80
-          hover:border-zinc-700/50
-          hover:shadow-[0_0_0_1px_rgba(255,255,255,0.06),0_8px_32px_-4px_rgba(0,0,0,0.6)]
+          hover:bg-slate-50
+          hover:border-slate-300
+          hover:shadow-[0_4px_12px_-2px_rgba(0,0,0,0.1),0_2px_4px_-1px_rgba(0,0,0,0.06)]
           hover:-translate-y-1
           active:translate-y-0
-          active:shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_4px_16px_-4px_rgba(0,0,0,0.5)]
+          active:shadow-[0_1px_3px_rgba(0,0,0,0.05)]
         `,
 
-        // Highlight card - with accent border
+        // Highlight card - with accent border (teal)
         highlight: `
-          bg-zinc-900/80
-          border border-indigo-500/30
-          shadow-[0_0_0_1px_rgba(99,102,241,0.1),0_4px_24px_-4px_rgba(0,0,0,0.5)]
+          bg-white
+          border border-teal-300
+          shadow-[0_1px_3px_rgba(13,148,136,0.1),0_1px_2px_rgba(0,0,0,0.05)]
         `,
 
-        // Glow card - with glow effect
+        // Glow card - with glow effect (teal)
         glow: `
-          bg-zinc-900/80
-          border border-zinc-800/50
-          shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_4px_24px_-4px_rgba(0,0,0,0.5),0_0_40px_-20px_rgba(99,102,241,0.3)]
+          bg-white
+          border border-slate-200
+          shadow-[0_1px_3px_rgba(0,0,0,0.05),0_1px_2px_rgba(0,0,0,0.1),0_0_40px_-20px_rgba(13,148,136,0.3)]
         `,
       },
 
@@ -173,7 +173,7 @@ const CardTitle = forwardRef<HTMLParagraphElement, HTMLAttributes<HTMLHeadingEle
   ({ className, ...props }, ref) => (
     <h3
       ref={ref}
-      className={cn("text-lg font-semibold text-zinc-100 leading-tight", className)}
+      className={cn("text-lg font-semibold text-slate-900 leading-tight", className)}
       {...props}
     />
   )
@@ -189,7 +189,7 @@ const CardDescription = forwardRef<HTMLParagraphElement, HTMLAttributes<HTMLPara
   ({ className, ...props }, ref) => (
     <p
       ref={ref}
-      className={cn("text-sm text-zinc-400", className)}
+      className={cn("text-sm text-slate-500", className)}
       {...props}
     />
   )
@@ -245,13 +245,13 @@ export function StatCard({ label, value, icon, trend, className }: StatCardProps
     <Card className={cn("", className)}>
       <div className="flex items-start justify-between">
         <div className="space-y-1">
-          <p className="text-sm text-zinc-400">{label}</p>
-          <p className="text-3xl font-light text-zinc-100 tracking-tight">{value}</p>
+          <p className="text-sm text-slate-500">{label}</p>
+          <p className="text-3xl font-light text-slate-900 tracking-tight">{value}</p>
           {trend && (
             <p
               className={cn(
                 "text-sm font-medium",
-                trend.isPositive ? "text-emerald-400" : "text-red-400"
+                trend.isPositive ? "text-emerald-600" : "text-red-600"
               )}
             >
               {trend.isPositive ? "+" : "-"}{Math.abs(trend.value)}%
@@ -259,7 +259,7 @@ export function StatCard({ label, value, icon, trend, className }: StatCardProps
           )}
         </div>
         {icon && (
-          <div className="p-3 rounded-xl bg-zinc-800/50">
+          <div className="p-3 rounded-xl bg-slate-100">
             {icon}
           </div>
         )}
@@ -299,14 +299,14 @@ export function FeatureCard({
     >
       <div className="flex items-start gap-4">
         {icon && (
-          <div className="shrink-0 p-3 rounded-xl bg-indigo-500/10 text-indigo-400">
+          <div className="shrink-0 p-3 rounded-xl bg-teal-50 text-teal-600">
             {icon}
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <h4 className="font-medium text-zinc-100">{title}</h4>
+          <h4 className="font-medium text-slate-900">{title}</h4>
           {description && (
-            <p className="mt-1 text-sm text-zinc-400 line-clamp-2">{description}</p>
+            <p className="mt-1 text-sm text-slate-500 line-clamp-2">{description}</p>
           )}
         </div>
         {action && <div className="shrink-0">{action}</div>}

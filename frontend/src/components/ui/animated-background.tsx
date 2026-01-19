@@ -247,7 +247,7 @@ export function GradientBackground({ className = "" }: { className?: string }) {
 }
 
 // =============================================================================
-// MESH GRADIENT (CSS-only version)
+// MESH GRADIENT (CSS-only version) - Dark theme
 // =============================================================================
 
 export function MeshGradient({ className = "" }: { className?: string }) {
@@ -289,6 +289,184 @@ export function MeshGradient({ className = "" }: { className?: string }) {
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
         }}
       />
+    </div>
+  );
+}
+
+// =============================================================================
+// LIGHT MESH GRADIENT (CSS-only version) - Light theme
+// =============================================================================
+
+export function LightMeshGradient({ className = "" }: { className?: string }) {
+  return (
+    <div className={`fixed inset-0 -z-10 overflow-hidden ${className}`}>
+      {/* Base gradient - light */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-slate-100" />
+
+      {/* Mesh gradient blobs - teal and orange for light theme */}
+      <div
+        className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full opacity-40"
+        style={{
+          background: "radial-gradient(circle, #0d9488 0%, transparent 70%)",
+          filter: "blur(80px)",
+          animation: "float 8s ease-in-out infinite",
+        }}
+      />
+      <div
+        className="absolute -bottom-40 -right-40 w-[400px] h-[400px] rounded-full opacity-30"
+        style={{
+          background: "radial-gradient(circle, #f97316 0%, transparent 70%)",
+          filter: "blur(60px)",
+          animation: "float 10s ease-in-out infinite reverse",
+        }}
+      />
+      <div
+        className="absolute top-1/3 right-1/4 w-[300px] h-[300px] rounded-full opacity-25"
+        style={{
+          background: "radial-gradient(circle, #14b8a6 0%, transparent 70%)",
+          filter: "blur(50px)",
+          animation: "float 12s ease-in-out infinite",
+        }}
+      />
+      <div
+        className="absolute bottom-1/3 left-1/4 w-[350px] h-[350px] rounded-full opacity-20"
+        style={{
+          background: "radial-gradient(circle, #fb923c 0%, transparent 70%)",
+          filter: "blur(60px)",
+          animation: "float 14s ease-in-out infinite reverse",
+        }}
+      />
+
+      {/* Subtle noise texture */}
+      <div
+        className="absolute inset-0 opacity-[0.02]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+        }}
+      />
+    </div>
+  );
+}
+
+// =============================================================================
+// PREMIUM AUTH BACKGROUND - Enhanced with particles, grid, and glow effects
+// =============================================================================
+
+export function PremiumAuthBackground({ className = "" }: { className?: string }) {
+  return (
+    <div className={`fixed inset-0 -z-10 overflow-hidden ${className}`}>
+      {/* Base gradient - subtle warm light */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-teal-50/30" />
+
+      {/* Animated grid pattern */}
+      <div
+        className="absolute inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage: `
+            linear-gradient(rgba(13, 148, 136, 0.3) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(13, 148, 136, 0.3) 1px, transparent 1px)
+          `,
+          backgroundSize: '60px 60px',
+          animation: 'gridMove 20s linear infinite',
+        }}
+      />
+
+      {/* Large floating orbs with glow */}
+      <div
+        className="absolute -top-32 -left-32 w-[600px] h-[600px] rounded-full"
+        style={{
+          background: "radial-gradient(circle, rgba(13, 148, 136, 0.15) 0%, transparent 60%)",
+          filter: "blur(40px)",
+          animation: "floatSlow 15s ease-in-out infinite",
+        }}
+      />
+      <div
+        className="absolute -bottom-48 -right-48 w-[700px] h-[700px] rounded-full"
+        style={{
+          background: "radial-gradient(circle, rgba(249, 115, 22, 0.12) 0%, transparent 60%)",
+          filter: "blur(50px)",
+          animation: "floatSlow 18s ease-in-out infinite reverse",
+        }}
+      />
+      <div
+        className="absolute top-1/4 right-1/3 w-[400px] h-[400px] rounded-full"
+        style={{
+          background: "radial-gradient(circle, rgba(20, 184, 166, 0.1) 0%, transparent 60%)",
+          filter: "blur(30px)",
+          animation: "floatSlow 12s ease-in-out infinite",
+        }}
+      />
+
+      {/* Floating particles */}
+      <div className="absolute inset-0 overflow-hidden">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-2 h-2 rounded-full bg-teal-400/20"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animation: `floatParticle ${8 + Math.random() * 10}s ease-in-out infinite`,
+              animationDelay: `${Math.random() * 5}s`,
+            }}
+          />
+        ))}
+        {[...Array(15)].map((_, i) => (
+          <div
+            key={`orange-${i}`}
+            className="absolute w-1.5 h-1.5 rounded-full bg-orange-400/15"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animation: `floatParticle ${10 + Math.random() * 8}s ease-in-out infinite reverse`,
+              animationDelay: `${Math.random() * 5}s`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Spotlight effect from top */}
+      <div
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px]"
+        style={{
+          background: "radial-gradient(ellipse at top, rgba(13, 148, 136, 0.08) 0%, transparent 70%)",
+        }}
+      />
+
+      {/* Subtle radial gradient overlay */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: "radial-gradient(ellipse at center, transparent 0%, rgba(248, 250, 252, 0.5) 100%)",
+        }}
+      />
+
+      {/* Noise texture for premium feel */}
+      <div
+        className="absolute inset-0 opacity-[0.015]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+        }}
+      />
+
+      {/* CSS for animations */}
+      <style jsx>{`
+        @keyframes floatSlow {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(30px, -30px) scale(1.05); }
+          66% { transform: translate(-20px, 20px) scale(0.95); }
+        }
+        @keyframes floatParticle {
+          0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
+          25% { transform: translateY(-20px) translateX(10px); opacity: 0.6; }
+          50% { transform: translateY(-40px) translateX(-5px); opacity: 0.4; }
+          75% { transform: translateY(-20px) translateX(-10px); opacity: 0.7; }
+        }
+        @keyframes gridMove {
+          0% { transform: translate(0, 0); }
+          100% { transform: translate(60px, 60px); }
+        }
+      `}</style>
     </div>
   );
 }

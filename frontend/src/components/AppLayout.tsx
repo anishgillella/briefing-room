@@ -55,8 +55,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
   // Show loading while checking auth
   if (isLoading) {
     return (
-      <main className="min-h-screen gradient-bg flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+      <main className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-teal-200 border-t-teal-600 rounded-full animate-spin" />
       </main>
     );
   }
@@ -64,14 +64,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
   // Don't render for unauthenticated users (they'll be redirected)
   if (!isAuthenticated) {
     return (
-      <main className="min-h-screen gradient-bg flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+      <main className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-teal-200 border-t-teal-600 rounded-full animate-spin" />
       </main>
     );
   }
 
   return (
-    <div className="min-h-screen gradient-bg text-white">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       <Sidebar defaultCollapsed={sidebarCollapsed} />
       <main
         className={`min-h-screen transition-all duration-300 ${
