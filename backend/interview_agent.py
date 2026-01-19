@@ -642,8 +642,27 @@ Return ONLY valid JSON. No markdown code blocks."""
                 # Inspect event item
                 item = event.item
                 role = getattr(item, "role", "unknown")
-                text = getattr(item, "content", "")
-                
+                raw_content = getattr(item, "content", "")
+
+                # Handle content being a list of content objects (LiveKit SDK format)
+                # Content can be: string, list of strings, list of objects with "text" field
+                text = ""
+                if isinstance(raw_content, str):
+                    text = raw_content
+                elif isinstance(raw_content, list):
+                    # Extract text from list of content parts
+                    text_parts = []
+                    for part in raw_content:
+                        if isinstance(part, str):
+                            text_parts.append(part)
+                        elif hasattr(part, "text"):
+                            text_parts.append(part.text)
+                        elif isinstance(part, dict) and "text" in part:
+                            text_parts.append(part["text"])
+                    text = " ".join(text_parts)
+                elif hasattr(raw_content, "text"):
+                    text = raw_content.text
+
                 # Map role to speaker
                 if role == "user":
                     speaker = "interviewer"
@@ -652,9 +671,9 @@ Return ONLY valid JSON. No markdown code blocks."""
                 else:
                     return
 
-                if text:
+                if text and isinstance(text, str) and text.strip():
                     await broadcast_transcript(speaker, text, ctx.room)
-                    
+
                     # Trigger Copilot Analysis ONLY after Candidate speaks (completing an exchange)
                     if speaker == "candidate":
                         # Minimize latency: 100ms buffer is enough for transcript stability
@@ -663,7 +682,7 @@ Return ONLY valid JSON. No markdown code blocks."""
 
             except Exception as e:
                 logger.warning(f"Failed to process conversation item: {e}")
-        
+
         asyncio.create_task(_async_process_item(event))
 
     await session.start(agent, room=ctx.room)

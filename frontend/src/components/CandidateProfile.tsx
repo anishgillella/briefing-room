@@ -285,11 +285,15 @@ export default function CandidateProfile({
                                 <div className="glass-card-premium p-10 animate-fade-up delay-600">
                                     <h2 className="text-sm font-bold uppercase tracking-widest text-white/40 mb-8">Core Competencies</h2>
                                     <div className="flex flex-wrap gap-3">
-                                        {candidate.skills?.map((skill, i) => (
-                                            <span key={i} className="px-5 py-2.5 rounded-xl bg-white/5 border border-white/5 text-white/80 text-sm font-medium hover:bg-white/10 hover:border-white/20 transition-all cursor-default hover:scale-105 duration-300">
-                                                {skill}
-                                            </span>
-                                        ))}
+                                        {candidate.skills && candidate.skills.length > 0 ? (
+                                            candidate.skills.map((skill, i) => (
+                                                <span key={i} className="px-5 py-2.5 rounded-xl bg-white/5 border border-white/5 text-white/80 text-sm font-medium hover:bg-white/10 hover:border-white/20 transition-all cursor-default hover:scale-105 duration-300">
+                                                    {skill}
+                                                </span>
+                                            ))
+                                        ) : (
+                                            <span className="text-white/30 text-sm italic">No skills data available.</span>
+                                        )}
                                     </div>
                                 </div>
 
@@ -315,7 +319,7 @@ export default function CandidateProfile({
                                         AI Reasoning Engine
                                     </h2>
                                     <p className="text-white/90 leading-relaxed font-light text-xl border-l-2 border-purple-500/30 pl-8">
-                                        {candidate.reasoning}
+                                        {candidate.reasoning || "No AI analysis available yet. Run AI scoring to generate detailed reasoning."}
                                     </p>
                                 </div>
 
@@ -326,14 +330,18 @@ export default function CandidateProfile({
                                             <ThumbsUp className="w-5 h-5" /> Key Strengths
                                         </h3>
                                         <ul className="space-y-5">
-                                            {candidate.pros?.map((pro, i) => (
-                                                <li key={i} className="flex items-start gap-4 group">
-                                                    <div className="mt-1 w-5 h-5 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-500/20 transition-colors">
-                                                        <CheckCircle className="w-3 h-3 text-emerald-500" />
-                                                    </div>
-                                                    <span className="text-white/70 font-light group-hover:text-white transition-colors">{pro}</span>
-                                                </li>
-                                            ))}
+                                            {candidate.pros && candidate.pros.length > 0 ? (
+                                                candidate.pros.map((pro, i) => (
+                                                    <li key={i} className="flex items-start gap-4 group">
+                                                        <div className="mt-1 w-5 h-5 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-500/20 transition-colors">
+                                                            <CheckCircle className="w-3 h-3 text-emerald-500" />
+                                                        </div>
+                                                        <span className="text-white/70 font-light group-hover:text-white transition-colors">{pro}</span>
+                                                    </li>
+                                                ))
+                                            ) : (
+                                                <li className="text-white/30 text-sm italic">No strengths data available.</li>
+                                            )}
                                         </ul>
                                     </div>
                                     <div className="glass-card-premium p-8 bg-rose-950/10 border-rose-500/10 hover:bg-rose-950/20 transition-colors">
@@ -341,14 +349,18 @@ export default function CandidateProfile({
                                             <ThumbsDown className="w-5 h-5" /> Potential Concerns
                                         </h3>
                                         <ul className="space-y-5">
-                                            {candidate.cons?.map((con, i) => (
-                                                <li key={i} className="flex items-start gap-4 group">
-                                                    <div className="mt-1 w-5 h-5 rounded-full bg-rose-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-rose-500/20 transition-colors">
-                                                        <AlertTriangle className="w-3 h-3 text-rose-500" />
-                                                    </div>
-                                                    <span className="text-white/70 font-light group-hover:text-white transition-colors">{con}</span>
-                                                </li>
-                                            ))}
+                                            {candidate.cons && candidate.cons.length > 0 ? (
+                                                candidate.cons.map((con, i) => (
+                                                    <li key={i} className="flex items-start gap-4 group">
+                                                        <div className="mt-1 w-5 h-5 rounded-full bg-rose-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-rose-500/20 transition-colors">
+                                                            <AlertTriangle className="w-3 h-3 text-rose-500" />
+                                                        </div>
+                                                        <span className="text-white/70 font-light group-hover:text-white transition-colors">{con}</span>
+                                                    </li>
+                                                ))
+                                            ) : (
+                                                <li className="text-white/30 text-sm italic">No concerns data available.</li>
+                                            )}
                                         </ul>
                                     </div>
                                 </div>
@@ -366,14 +378,20 @@ export default function CandidateProfile({
                                         Suggested Interview Questions
                                     </h2>
                                     <div className="space-y-5">
-                                        {candidate.interview_questions?.map((q, i) => (
-                                            <div key={i} className="p-8 bg-white/[0.02] rounded-3xl border border-white/5 hover:bg-white/[0.05] transition-all group duration-300 hover:-translate-x-[-8px]">
-                                                <div className="flex gap-8">
-                                                    <span className="text-5xl font-bold text-white/[0.03] group-hover:text-white/10 transition-colors select-none font-mono">0{i + 1}</span>
-                                                    <p className="text-xl text-white/90 mt-2 font-light">{q}</p>
+                                        {candidate.interview_questions && candidate.interview_questions.length > 0 ? (
+                                            candidate.interview_questions.map((q, i) => (
+                                                <div key={i} className="p-8 bg-white/[0.02] rounded-3xl border border-white/5 hover:bg-white/[0.05] transition-all group duration-300 hover:-translate-x-[-8px]">
+                                                    <div className="flex gap-8">
+                                                        <span className="text-5xl font-bold text-white/[0.03] group-hover:text-white/10 transition-colors select-none font-mono">0{i + 1}</span>
+                                                        <p className="text-xl text-white/90 mt-2 font-light">{q}</p>
+                                                    </div>
                                                 </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-white/30 text-sm italic text-center py-8">
+                                                No interview questions available. Questions will be generated after AI analysis.
                                             </div>
-                                        ))}
+                                        )}
                                     </div>
                                 </div>
 
@@ -435,11 +453,15 @@ export default function CandidateProfile({
                                 <Building2 className="w-4 h-4" /> Target Industries
                             </h3>
                             <div className="flex flex-wrap gap-2.5">
-                                {candidate.industries?.map((ind, i) => (
-                                    <span key={i} className="px-4 py-2 bg-indigo-500/10 text-indigo-200 rounded-xl text-[11px] font-bold border border-indigo-500/20 uppercase tracking-wider hover:bg-indigo-500/20 transition-colors">
-                                        {ind}
-                                    </span>
-                                ))}
+                                {candidate.industries && candidate.industries.length > 0 ? (
+                                    candidate.industries.map((ind, i) => (
+                                        <span key={i} className="px-4 py-2 bg-indigo-500/10 text-indigo-200 rounded-xl text-[11px] font-bold border border-indigo-500/20 uppercase tracking-wider hover:bg-indigo-500/20 transition-colors">
+                                            {ind}
+                                        </span>
+                                    ))
+                                ) : (
+                                    <span className="text-white/30 text-sm italic">No industries data available.</span>
+                                )}
                             </div>
                         </div>
 
