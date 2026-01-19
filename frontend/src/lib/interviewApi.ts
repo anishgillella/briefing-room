@@ -64,6 +64,21 @@ export interface DecisionResponse {
     candidate_id: string;
 }
 
+export interface DeleteInterviewResponse {
+    status: string;
+    interview_id: string;
+    stage: string;
+    candidate_id: string;
+    new_pipeline_status: string;
+}
+
+export interface CreateForTranscriptResponse {
+    interview_id: string;
+    stage: string;
+    candidate_id: string;
+    message: string;
+}
+
 // API Functions
 
 /**
@@ -106,6 +121,23 @@ export async function startNextInterview(candidateId: string): Promise<StartInte
     if (!response.ok) {
         const error = await response.json();
         throw new Error(error.detail || 'Failed to start interview');
+    }
+    return response.json();
+}
+
+/**
+ * Create an interview record for transcript upload only.
+ * This doesn't start a live interview room, just creates the record
+ * so you can upload a transcript and generate analytics.
+ */
+export async function createInterviewForTranscript(candidateId: string): Promise<CreateForTranscriptResponse> {
+    const response = await fetch(`${API_BASE}/api/interviews/candidate/${candidateId}/create-for-transcript`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to create interview');
     }
     return response.json();
 }
@@ -171,6 +203,21 @@ export async function getInterviewContext(interviewId: string): Promise<{
     const response = await fetch(`${API_BASE}/api/interviews/${interviewId}/context`);
     if (!response.ok) {
         throw new Error('Failed to get interview context');
+    }
+    return response.json();
+}
+
+/**
+ * Delete an interview and all associated data (analytics, transcript, etc.)
+ * This allows retrying the interview from scratch.
+ */
+export async function deleteInterview(interviewId: string): Promise<DeleteInterviewResponse> {
+    const response = await fetch(`${API_BASE}/api/interviews/${interviewId}`, {
+        method: 'DELETE',
+    });
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to delete interview');
     }
     return response.json();
 }

@@ -167,6 +167,19 @@ class AvailableSlotsResponse(BaseModel):
 
 
 # ============================================
+# CANDIDATE SCORES (for interview cards)
+# ============================================
+
+class CandidateScores(BaseModel):
+    """Scores for a candidate across all completed interview rounds."""
+    round_1: Optional[float] = None
+    round_2: Optional[float] = None
+    round_3: Optional[float] = None
+    cumulative: Optional[float] = None
+    has_completed_interviews: bool = False
+
+
+# ============================================
 # SCHEDULED INTERVIEW (Extended Interview)
 # ============================================
 
@@ -204,6 +217,9 @@ class ScheduledInterview(BaseModel):
     interviewer_name: Optional[str] = None
     interviewer_email: Optional[str] = None
     job_title: Optional[str] = None
+
+    # Candidate scores (populated when include_scores=true)
+    scores: Optional[CandidateScores] = None
 
     created_at: datetime = Field(default_factory=datetime.utcnow)
 

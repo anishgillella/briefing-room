@@ -282,14 +282,14 @@ class InterviewRepository:
         interviews = self.get_candidate_interviews(candidate_id)
         questions_asked = self.get_questions_asked(candidate_id)
         topics_to_probe = self.get_topics_to_probe(candidate_id)
-        
+
         # Filter prior interviews (stages before current)
         current_idx = STAGE_ORDER.index(current_stage) if current_stage in STAGE_ORDER else 0
         prior_interviews = [
-            i for i in interviews 
+            i for i in interviews
             if STAGE_ORDER.index(i["stage"]) < current_idx
         ] if interviews else []
-        
+
         return {
             "prior_interviews": prior_interviews,
             "questions_to_avoid": [q["question_text"] for q in questions_asked],
@@ -297,10 +297,39 @@ class InterviewRepository:
             "score_history": [
                 {
                     "stage": i["stage"],
-                    "score": i.get("analytics", [{}])[0].get("overall_score") 
+                    "score": i.get("analytics", [{}])[0].get("overall_score")
                             if isinstance(i.get("analytics"), list) and i.get("analytics")
                             else None
                 }
                 for i in prior_interviews
             ]
         }
+
+    def delete(self, interview_id: str) -> bool:
+        """
+        Delete an interview and all associated data.
+        Cascade deletes in DB will handle transcripts, analytics, questions_asked, etc.
+        """
+        try:
+            result = self._get_db().table(self.table_name)\
+                .delete()\
+                .eq("id", interview_id)\
+                .execute()
+            return len(result.data) > 0 if result.data else False
+        except Exception as e:
+            logger.error(f"Error deleting interview {interview_id}: {e}")
+            return False
+
+    def get_previous_completed_stage(self, candidate_id: str) -> Optional[str]:
+        """
+        Get the most recently completed stage for a candidate.
+        Used to determine pipeline status after deleting an interview.
+        """
+        completed = self.get_completed_stages(candidate_id)
+        if not completed:
+            return None
+        # Return the highest completed stage
+        for stage in reversed(STAGE_ORDER):
+            if stage in completed:
+                return stage
+        return None

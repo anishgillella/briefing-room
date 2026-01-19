@@ -9,6 +9,7 @@ import {
     RemoteParticipant,
     RemoteTrackPublication,
     DataPacket_Kind,
+    LocalVideoTrack,
 } from "livekit-client";
 import {
     ArrowLeft,
@@ -38,6 +39,8 @@ import {
     Users,
     ThumbsUp,
     HelpCircle,
+    Camera,
+    CameraOff,
 } from "lucide-react";
 import CandidateProfile from "@/components/CandidateProfile";
 import InterviewerSelector from "@/components/InterviewerSelector";
@@ -325,6 +328,8 @@ function InterviewPageContent() {
     const [connecting, setConnecting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [micEnabled, setMicEnabled] = useState(true);
+    const [cameraEnabled, setCameraEnabled] = useState(false);
+    const [cameraError, setCameraError] = useState<string | null>(null);
     const [transcript, setTranscript] = useState<TranscriptItem[]>([]);
     const [elapsedTime, setElapsedTime] = useState(0);
     const [aiSpeaking, setAiSpeaking] = useState(false);
@@ -374,6 +379,7 @@ function InterviewPageContent() {
     // Refs
     const roomRef = useRef<Room | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
+    const videoRef = useRef<HTMLVideoElement | null>(null);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
     const transcriptEndRef = useRef<HTMLDivElement>(null);
     const hasStartedRef = useRef(false);
@@ -619,6 +625,17 @@ function InterviewPageContent() {
         transcriptEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [transcript]);
 
+    // Attach video track when camera is enabled and video element is ready
+    useEffect(() => {
+        if (cameraEnabled && roomRef.current && videoRef.current) {
+            const videoTrack = roomRef.current.localParticipant.getTrackPublication(Track.Source.Camera)?.track;
+            if (videoTrack) {
+                videoTrack.attach(videoRef.current);
+                console.log("[LiveKit] Video track attached via effect");
+            }
+        }
+    }, [cameraEnabled]);
+
     // Format time helper
     const formatTime = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
@@ -783,12 +800,39 @@ function InterviewPageContent() {
                 console.log("[LiveKit] Participant connected:", participant.identity);
             });
 
+            // Listen for local video track being published
+            room.on(RoomEvent.LocalTrackPublished, (publication) => {
+                console.log("[LiveKit] Local track published:", publication.track?.kind);
+                if (publication.track?.kind === Track.Kind.Video && videoRef.current) {
+                    publication.track.attach(videoRef.current);
+                    console.log("[LiveKit] Local video track attached");
+                }
+            });
+
             // 6. Connect to room
             await room.connect(livekit_url, token);
 
             // 7. Enable microphone
             await room.localParticipant.setMicrophoneEnabled(true);
             setMicEnabled(true);
+
+            // 8. Enable camera and attach to video element
+            try {
+                await room.localParticipant.setCameraEnabled(true);
+                setCameraEnabled(true);
+                setCameraError(null);
+
+                // Attach local video track to video element
+                const videoTrack = room.localParticipant.getTrackPublication(Track.Source.Camera)?.track;
+                if (videoTrack && videoRef.current) {
+                    videoTrack.attach(videoRef.current);
+                    console.log("[LiveKit] Camera enabled and attached");
+                }
+            } catch (cameraErr: any) {
+                console.warn("[LiveKit] Camera not available:", cameraErr.message);
+                setCameraError("Camera not available. Interview will continue with audio only.");
+                setCameraEnabled(false);
+            }
 
             console.log("[LiveKit] Interview ready with LiveKit Agent");
 
@@ -897,6 +941,28 @@ function InterviewPageContent() {
             const newState = !micEnabled;
             await roomRef.current.localParticipant.setMicrophoneEnabled(newState);
             setMicEnabled(newState);
+        }
+    };
+
+    // Toggle camera
+    const toggleCamera = async () => {
+        if (roomRef.current) {
+            try {
+                const newState = !cameraEnabled;
+                await roomRef.current.localParticipant.setCameraEnabled(newState);
+                setCameraEnabled(newState);
+
+                // Re-attach video track if enabling
+                if (newState && videoRef.current) {
+                    const videoTrack = roomRef.current.localParticipant.getTrackPublication(Track.Source.Camera)?.track;
+                    if (videoTrack) {
+                        videoTrack.attach(videoRef.current);
+                    }
+                }
+            } catch (err: any) {
+                console.error("[LiveKit] Camera toggle failed:", err);
+                setCameraError("Failed to toggle camera");
+            }
         }
     };
 
@@ -1682,6 +1748,16 @@ function InterviewPageContent() {
                         {micEnabled ? 'Mute' : 'Unmute'}
                     </button>
                     <button
+                        onClick={toggleCamera}
+                        className={`px-4 py-1.5 rounded-lg border text-xs font-medium transition-colors flex items-center gap-2 ${cameraEnabled
+                            ? 'bg-green-500/10 hover:bg-green-500/20 border-green-500/20 text-green-400'
+                            : 'bg-white/5 hover:bg-white/10 border-white/10 text-white/60'
+                            }`}
+                    >
+                        {cameraEnabled ? <Camera className="w-4 h-4" /> : <CameraOff className="w-4 h-4" />}
+                        {cameraEnabled ? 'Camera On' : 'Camera Off'}
+                    </button>
+                    <button
                         onClick={endInterview}
                         className="px-4 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-xs font-medium text-red-400 transition-colors"
                     >
@@ -1696,35 +1772,128 @@ function InterviewPageContent() {
                 {/* LEFT COLUMN: Voice & Transcript (8 cols) */}
                 <div className="col-span-8 flex flex-col gap-6 h-full min-h-0">
 
-                    {/* Voice Interface (Top - Flex Grow) */}
-                    <div className="flex-1 glass-card-premium rounded-3xl p-8 relative overflow-hidden flex flex-col items-center justify-center min-h-0 bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl">
-                        {/* Audio Visualizer / Avatar */}
-                        <div className="relative mb-8">
-                            <div className={`w-32 h-32 rounded-full border border-white/10 flex items-center justify-center relative z-10 bg-black/50 backdrop-blur-md transition-all duration-300 ${aiSpeaking ? 'shadow-[0_0_50px_rgba(168,85,247,0.4)] border-purple-500/50' : ''}`}>
-                                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center">
-                                    <Volume2 className={`w-10 h-10 ${aiSpeaking ? 'text-purple-400' : 'text-white/20'}`} />
+                    {/* Video & Voice Interface - 50/50 Split */}
+                    <div className="flex-1 glass-card-premium rounded-3xl relative overflow-hidden flex min-h-0 bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl">
+                        {/* Camera Error Banner */}
+                        {cameraError && (
+                            <div className="absolute top-4 left-4 right-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg px-4 py-2 text-xs text-yellow-400 flex items-center gap-2 z-20">
+                                <AlertTriangle className="w-4 h-4" />
+                                {cameraError}
+                            </div>
+                        )}
+
+                        {/* 50/50 Split Layout */}
+                        <div className="flex-1 grid grid-cols-2 gap-1">
+                            {/* LEFT HALF: User's Video */}
+                            <div className="relative flex flex-col bg-black/60">
+                                {/* Video Container */}
+                                <div className="flex-1 relative">
+                                    {cameraEnabled ? (
+                                        <video
+                                            ref={videoRef}
+                                            autoPlay
+                                            playsInline
+                                            muted
+                                            className="absolute inset-0 w-full h-full object-cover scale-x-[-1]"
+                                        />
+                                    ) : (
+                                        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-900 to-black">
+                                            <div className="text-center">
+                                                <div className="w-32 h-32 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
+                                                    <CameraOff className="w-16 h-16 text-white/20" />
+                                                </div>
+                                                <p className="text-white/40 text-lg">Camera Off</p>
+                                                <p className="text-white/20 text-sm mt-1">Click "Camera Off" to enable</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {/* Overlay indicators */}
+                                    <div className="absolute bottom-4 left-4 flex items-center gap-3">
+                                        <div className={`px-3 py-1.5 rounded-full flex items-center gap-2 backdrop-blur-sm ${
+                                            micEnabled ? 'bg-green-500/20 border border-green-500/30' : 'bg-red-500/20 border border-red-500/30'
+                                        }`}>
+                                            {micEnabled ? (
+                                                <Mic className="w-4 h-4 text-green-400" />
+                                            ) : (
+                                                <MicOff className="w-4 h-4 text-red-400" />
+                                            )}
+                                            <span className={`text-xs font-medium ${micEnabled ? 'text-green-400' : 'text-red-400'}`}>
+                                                {micEnabled ? 'Mic On' : 'Muted'}
+                                            </span>
+                                        </div>
+                                        {cameraEnabled && (
+                                            <div className="px-3 py-1.5 rounded-full flex items-center gap-2 bg-green-500/20 border border-green-500/30 backdrop-blur-sm">
+                                                <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                                                <span className="text-xs font-medium text-green-400">Live</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    {/* Name label */}
+                                    <div className="absolute top-4 left-4 px-3 py-1.5 rounded-lg bg-black/50 backdrop-blur-sm border border-white/10">
+                                        <p className="text-white text-sm font-medium">
+                                            You ({viewMode === 'interviewer' ? 'Interviewer' : 'Candidate'})
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
-                            {/* Ripple Effects during speech */}
-                            {aiSpeaking && (
-                                <>
-                                    <div className="absolute inset-0 rounded-full border border-purple-500/30 animate-ping opacity-20" />
-                                    <div className="absolute inset-[-20%] rounded-full border border-purple-500/10 animate-pulse delay-75" />
-                                </>
-                            )}
+
+                            {/* RIGHT HALF: AI Agent */}
+                            <div className={`relative flex flex-col items-center justify-center bg-gradient-to-br from-purple-950/30 to-black transition-all duration-500 ${
+                                aiSpeaking ? 'from-purple-900/40' : ''
+                            }`}>
+                                {/* AI Avatar - Large */}
+                                <div className="relative">
+                                    <div className={`w-48 h-48 rounded-full border-4 flex items-center justify-center bg-black/50 backdrop-blur-md transition-all duration-300 ${
+                                        aiSpeaking ? 'border-purple-500 shadow-[0_0_80px_rgba(168,85,247,0.5)]' : 'border-white/10'
+                                    }`}>
+                                        <div className="w-40 h-40 rounded-full bg-gradient-to-br from-purple-500/30 to-blue-500/30 flex items-center justify-center">
+                                            <Volume2 className={`w-20 h-20 transition-all duration-300 ${
+                                                aiSpeaking ? 'text-purple-400 scale-110' : 'text-white/30'
+                                            }`} />
+                                        </div>
+                                    </div>
+                                    {/* Ripple Effects during AI speech */}
+                                    {aiSpeaking && (
+                                        <>
+                                            <div className="absolute inset-[-10%] rounded-full border-2 border-purple-500/40 animate-ping opacity-30" />
+                                            <div className="absolute inset-[-20%] rounded-full border border-purple-500/20 animate-pulse" />
+                                            <div className="absolute inset-[-30%] rounded-full border border-purple-500/10 animate-pulse delay-150" />
+                                        </>
+                                    )}
+                                </div>
+                                {/* AI Name & Status */}
+                                <div className="mt-6 text-center">
+                                    <p className="text-white text-xl font-medium">
+                                        AI {viewMode === 'interviewer' ? candidateName : 'Interviewer'}
+                                    </p>
+                                    <p className={`text-sm mt-1 transition-colors ${
+                                        aiSpeaking ? 'text-purple-400' : 'text-white/40'
+                                    }`}>
+                                        {aiSpeaking ? 'Speaking...' : 'Listening'}
+                                    </p>
+                                </div>
+                                {/* Name label (top corner) */}
+                                <div className="absolute top-4 right-4 px-3 py-1.5 rounded-lg bg-black/50 backdrop-blur-sm border border-purple-500/20">
+                                    <p className="text-purple-300 text-sm font-medium">
+                                        {viewMode === 'interviewer' ? 'Candidate' : 'Interviewer'}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
 
-                        {/* Status Text */}
-                        <div className="text-center">
-                            <h2 className="text-2xl font-light text-white mb-2 tracking-tight">
-                                {viewMode === 'interviewer'
-                                    ? (aiSpeaking ? `${candidateName} is speaking...` : "Waiting for response...")
-                                    : (aiSpeaking ? "Interviewer is speaking..." : "Your turn to speak...")
-                                }
-                            </h2>
-                            <p className="text-white/40 text-sm font-light tracking-wide">
-                                {connected ? "Live Session Active" : "Connecting..."}
-                            </p>
+                        {/* Bottom Status Bar */}
+                        <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center gap-6 py-3 bg-black/60 backdrop-blur-sm border-t border-white/5">
+                            <div className="text-center">
+                                <p className="text-white/60 text-sm">
+                                    {viewMode === 'interviewer'
+                                        ? (aiSpeaking ? `${candidateName} is speaking...` : "Waiting for response...")
+                                        : (aiSpeaking ? "Interviewer is speaking..." : "Your turn to speak...")
+                                    }
+                                </p>
+                                <p className="text-white/40 text-xs font-light tracking-wide mt-1">
+                                    {connected ? "Live Session Active" : "Connecting..."} • {formatTime(elapsedTime)}
+                                </p>
+                            </div>
                         </div>
                     </div>
 

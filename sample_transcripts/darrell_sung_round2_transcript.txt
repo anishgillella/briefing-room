@@ -1,0 +1,89 @@
+INTERVIEW TRANSCRIPT - ROUND 2
+Candidate: Darrell Sung
+Position: Founding Account Executive - AI SaaS Marketplace
+Date: January 19, 2026
+Interviewer: Michael Torres (Co-Founder & CEO)
+Duration: 45 minutes
+
+---
+
+INTERVIEWER: Darrell, good to meet you. Sarah spoke highly of your first conversation. I'm Michael, one of the co-founders. Today I want to dig deeper into your sales experience and methodology.
+
+DARRELL: Great to meet you too, Michael. I'm looking forward to it.
+
+INTERVIEWER: Let's start with a specific deal. Walk me through your most complex sale from start to finish. I want to hear about the challenges, how you navigated them, and what the outcome was.
+
+DARRELL: Sure. The deal that comes to mind is a $380K annual contract with a large asset management firm when I was at Visible Alpha. It took about five months to close and involved multiple stakeholders.
+
+The initial contact was the Director of Research. He was frustrated with the manual process of consolidating analyst estimates and saw our platform as a way to automate that. I did my standard discovery and built a strong business case around time savings - we estimated about 15 hours per week per analyst that could be redirected to actual research.
+
+The challenge came when we needed to expand beyond the research team. The CFO got involved because of the budget size, and she was skeptical. She didn't see data tools as a priority - her focus was on cost reduction, not adding new vendors.
+
+INTERVIEWER: How did you handle that objection?
+
+DARRELL: I reframed the conversation entirely. Instead of talking about time savings for analysts, I quantified it in dollars. Fifteen hours per week times 12 analysts times $150 per hour loaded cost - that's over a million dollars annually in productivity. Then I showed her the break-even analysis: even if we only delivered 40% of the projected value, the ROI was still positive in year one.
+
+I also brought in a reference customer - a CFO at a similar firm who could speak to the actual results they'd seen. That peer validation was crucial. CFOs trust other CFOs more than they trust salespeople.
+
+INTERVIEWER: Smart. What was the final objection before close?
+
+DARRELL: Legal and security review. They wanted a custom data processing agreement and had concerns about where the data was stored. This dragged on for about six weeks. I worked closely with our legal team to negotiate terms, and I learned to never underestimate how long enterprise procurement can take.
+
+In hindsight, I should have started that process earlier - that's a lesson I've carried forward. Now I always ask about security and legal requirements in my second or third meeting, not after we've agreed on terms.
+
+INTERVIEWER: Good learnings. Let's switch gears. Tell me about a deal you lost and what you learned from it.
+
+DARRELL: At Sensor Tower, I was working a deal with a major fintech company. It was about $200K ACV, and I thought I had it locked. The champion was strong, the business case was solid, and we'd beaten out two competitors in their evaluation.
+
+But I lost it because I didn't map the full buying committee. There was a VP of Product who had political capital and was pushing for a different solution - not even a direct competitor, but an adjacent tool. He convinced the CEO that they should consolidate vendors instead of adding new ones.
+
+I didn't even know this VP existed until the deal was dead. That taught me to always ask: "Who else will be involved in this decision?" and "Who might have concerns about bringing in a new vendor?" I now do a stakeholder mapping exercise for every deal over $50K.
+
+INTERVIEWER: That's a painful but valuable lesson. Now, let's do a quick role play. I'm going to be a CFO at a mid-market tech company. You're reaching out to me cold. Go.
+
+DARRELL: [Clears throat] Hi Michael, this is Darrell with [Company Name]. I know you're busy, so I'll be brief. I was reading about your recent Series C, and I imagine with that growth comes pressure to scale your financial operations efficiently.
+
+We help finance teams at companies like yours automate a lot of the manual work - things like vendor management, invoice processing, that sort of thing. I'm not sure if that's on your radar, but I'd love to learn more about your priorities for the finance team this year. Would you have 15 minutes later this week?
+
+INTERVIEWER: [In character] Look, we've got a lot going on. We just closed this round, and my plate is full with board prep and hiring. Why should I make time for this?
+
+DARRELL: I completely understand - post-raise is always intense. Actually, that's exactly why this might be relevant. A lot of the CFOs I work with tell me that scaling the team is one thing, but scaling the processes is what keeps them up at night. If you're going from 50 to 150 people this year, your finance stack either enables that growth or becomes a bottleneck.
+
+I'm not here to pitch you today - I just want to understand your situation. If there's a fit, great. If not, I'll be the first to tell you. Can we find 15 minutes?
+
+INTERVIEWER: [Breaking character] Not bad. You handled the objection without being pushy. I liked that you acknowledged his situation before redirecting. In reality, you'd probably need 2-3 more touches, but that's a solid cold call approach.
+
+DARRELL: Thanks. I find that genuine curiosity goes further than aggressive pitching, especially with finance leaders. They're analytical - they can smell a hard sell from a mile away.
+
+INTERVIEWER: Agreed. Now, one thing I want to understand better - you've been in financial data sales, which is adjacent but not exactly SaaS in the traditional sense. How do you think about transitioning to a pure SaaS sale?
+
+DARRELL: It's a fair point. The buying motion is a bit different. In financial data, you're often selling content and information value. In SaaS, you're selling workflow and efficiency gains.
+
+That said, I think the fundamentals transfer well. Discovery, business case building, stakeholder management, ROI conversations - those are consistent. What I'd need to ramp on is understanding the specific product, the competitive landscape, and the nuances of how mid-market companies make software decisions versus how institutional investors do.
+
+I'm a quick learner, and I've done product transitions before. At IBM, I moved between three different product lines and had to rebuild my knowledge base each time. I'm not intimidated by a learning curve.
+
+INTERVIEWER: What's your understanding of our product and market?
+
+DARRELL: From what I've researched, you're building an AI-powered marketplace that helps go-to-market teams - specifically in finance and accounting - connect with vendors and solutions. It's a matchmaking play, but with intelligence that helps both sides find better fits faster.
+
+The market is interesting because there's a lot of fragmentation in the finance software space, and buyers are overwhelmed with options. If you can be the trusted curator, there's real value there.
+
+I'm curious - is the monetization primarily from the vendor side, the buyer side, or both?
+
+INTERVIEWER: Good question. It's primarily vendor-side right now, but we're exploring buyer-side monetization as we build out premium features. You've done your homework.
+
+DARRELL: I try to. If I'm going to commit to something, I want to understand what I'm getting into.
+
+INTERVIEWER: Last question for me. Why this company, at this stage? You could probably go somewhere with more stability and a bigger paycheck.
+
+DARRELL: Honestly, stability isn't what motivates me anymore. I've had stable jobs, and what I've learned is that I'm most energized when there's a direct line between my effort and the company's success. At a company this size, every deal matters. That's what I want.
+
+Plus, the market timing feels right. AI is transforming every industry, and being at the intersection of AI and fintech sales is where I want to build my career. Ten years from now, I don't want to look back and think I played it safe when I could have been part of something transformative.
+
+INTERVIEWER: I appreciate that perspective. We'll be in touch about the next round, which will be with our Head of Customer Success and one of our investors. Thanks for your time today, Darrell.
+
+DARRELL: Thank you, Michael. I really enjoyed the conversation and the role play - it's been a while since I've done one of those in an interview. Looking forward to the next step.
+
+---
+END OF TRANSCRIPT

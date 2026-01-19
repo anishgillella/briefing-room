@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import AppLayout from "@/components/AppLayout";
 import {
@@ -27,6 +26,8 @@ import {
   Video,
   UserCheck,
   Loader2,
+  Star,
+  TrendingUp,
 } from "lucide-react";
 import StartInterviewModal from "@/components/StartInterviewModal";
 
@@ -175,6 +176,13 @@ export default function InterviewsPage() {
 
   const getStatusStyle = (status: string) => {
     return STATUS_COLORS[status] || STATUS_COLORS.scheduled;
+  };
+
+  const getScoreColor = (score: number | null | undefined) => {
+    if (score === null || score === undefined) return "text-white/40";
+    if (score >= 80) return "text-green-400";
+    if (score >= 60) return "text-yellow-400";
+    return "text-red-400";
   };
 
   return (
@@ -422,7 +430,8 @@ export default function InterviewsPage() {
               return (
                 <div
                   key={interview.id}
-                  className="glass-panel rounded-2xl p-5 hover:bg-white/[0.08] transition-all"
+                  onClick={() => router.push(`/candidates/${interview.candidate_id}`)}
+                  className="glass-panel rounded-2xl p-5 hover:bg-white/[0.08] transition-all cursor-pointer"
                 >
                   <div className="flex items-start justify-between gap-4">
                     {/* Left: Interview Details */}
@@ -494,6 +503,48 @@ export default function InterviewsPage() {
                           Cancelled: {interview.cancel_reason}
                         </p>
                       )}
+
+                      {/* Scores Display */}
+                      {interview.scores && (
+                        <div className="mt-3 pt-3 border-t border-white/5">
+                          {interview.scores.has_completed_interviews ? (
+                            <div className="flex items-center gap-4 text-sm">
+                              <div className="flex items-center gap-1.5">
+                                <Star className="w-3.5 h-3.5 text-yellow-400" />
+                                <span className="text-white/40">Scores:</span>
+                              </div>
+                              {interview.scores.round_1 !== null && (
+                                <span className={`font-medium ${getScoreColor(interview.scores.round_1)}`}>
+                                  R1: {interview.scores.round_1}
+                                </span>
+                              )}
+                              {interview.scores.round_2 !== null && (
+                                <span className={`font-medium ${getScoreColor(interview.scores.round_2)}`}>
+                                  R2: {interview.scores.round_2}
+                                </span>
+                              )}
+                              {interview.scores.round_3 !== null && (
+                                <span className={`font-medium ${getScoreColor(interview.scores.round_3)}`}>
+                                  R3: {interview.scores.round_3}
+                                </span>
+                              )}
+                              {interview.scores.cumulative !== null && (
+                                <span className="flex items-center gap-1 text-white/70">
+                                  <TrendingUp className="w-3.5 h-3.5 text-indigo-400" />
+                                  <span className={`font-semibold ${getScoreColor(interview.scores.cumulative)}`}>
+                                    {interview.scores.cumulative}
+                                  </span>
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 text-sm text-white/30">
+                              <Clock className="w-3.5 h-3.5" />
+                              <span>Interviews pending</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {/* Right: Actions */}
@@ -501,7 +552,8 @@ export default function InterviewsPage() {
                       {/* Start button for scheduled, active, or in_progress interviews */}
                       {canStart && (
                         <button
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setSelectedInterviewForStart({
                               candidateId: interview.candidate_id,
                               candidateName: interview.candidate_name || "Unknown Candidate",
@@ -518,7 +570,8 @@ export default function InterviewsPage() {
                       {/* Cancel button only for scheduled interviews */}
                       {isUpcoming && (
                         <button
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setCancellingId(interview.id);
                             setCancelModalOpen(true);
                           }}
@@ -529,13 +582,16 @@ export default function InterviewsPage() {
                         </button>
                       )}
                       {interview.status === "completed" && (
-                        <Link
-                          href={`/candidates/${interview.candidate_id}`}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/candidates/${interview.candidate_id}`);
+                          }}
                           className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm text-white/60 hover:bg-white/10 transition-colors"
                         >
                           View Details
                           <ChevronRight className="w-4 h-4" />
-                        </Link>
+                        </button>
                       )}
                     </div>
                   </div>

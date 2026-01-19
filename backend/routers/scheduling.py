@@ -22,6 +22,7 @@ from models.scheduling import (
     RescheduleInterviewRequest,
     CancelInterviewRequest,
     ScheduledInterview,
+    CandidateScores,
     TimeSlot,
     AvailableSlotsResponse,
     InterviewerSchedulingSettings,
@@ -30,6 +31,7 @@ from models.scheduling import (
     OverrideType,
 )
 from repositories.scheduling_repository import SchedulingRepository
+from repositories.interview_repository import InterviewRepository
 from middleware.auth_middleware import get_current_user, get_optional_user
 from models.auth import CurrentUser
 
@@ -41,6 +43,55 @@ router = APIRouter(prefix="/api/scheduling", tags=["scheduling"])
 def get_scheduling_repo() -> SchedulingRepository:
     """Dependency for getting SchedulingRepository instance."""
     return SchedulingRepository()
+
+
+def get_interview_repo() -> InterviewRepository:
+    """Dependency for getting InterviewRepository instance."""
+    return InterviewRepository()
+
+
+def get_candidate_scores(candidate_id: str, interview_repo: InterviewRepository) -> CandidateScores:
+    """
+    Get scores for a candidate across all completed interview rounds.
+    Returns round_1, round_2, round_3 scores and cumulative average.
+    """
+    interviews = interview_repo.get_candidate_interviews(candidate_id)
+
+    scores = CandidateScores()
+    all_scores = []
+
+    for interview in interviews:
+        if interview.get("status") != "completed":
+            continue
+
+        scores.has_completed_interviews = True
+        analytics = interview.get("analytics")
+
+        if not analytics:
+            continue
+
+        # Handle both list and dict formats
+        if isinstance(analytics, list) and analytics:
+            overall_score = analytics[0].get("overall_score")
+        elif isinstance(analytics, dict):
+            overall_score = analytics.get("overall_score")
+        else:
+            overall_score = None
+
+        if overall_score is not None:
+            stage = interview.get("stage")
+            if stage == "round_1":
+                scores.round_1 = overall_score
+            elif stage == "round_2":
+                scores.round_2 = overall_score
+            elif stage == "round_3":
+                scores.round_3 = overall_score
+            all_scores.append(overall_score)
+
+    if all_scores:
+        scores.cumulative = round(sum(all_scores) / len(all_scores), 1)
+
+    return scores
 
 
 # ============================================
@@ -387,6 +438,7 @@ async def get_scheduled_interviews(
     date_from: Optional[date] = Query(None, description="Start date"),
     date_to: Optional[date] = Query(None, description="End date"),
     status: Optional[str] = Query(None, description="Interview status (scheduled, in_progress, completed, cancelled). Leave empty for all"),
+    include_scores: bool = Query(True, description="Include candidate scores from completed interviews"),
     current_user: CurrentUser = Depends(get_optional_user),
 ):
     """Get scheduled interviews with optional filters."""
@@ -400,6 +452,14 @@ async def get_scheduled_interviews(
         date_to=date_to,
         status=status,
     )
+
+    # Pre-fetch scores for all unique candidates if requested
+    candidate_scores_cache: dict[str, CandidateScores] = {}
+    if include_scores:
+        interview_repo = get_interview_repo()
+        unique_candidate_ids = set(i['candidate_id'] for i in interviews)
+        for cid in unique_candidate_ids:
+            candidate_scores_cache[cid] = get_candidate_scores(cid, interview_repo)
 
     result = []
     for i in interviews:
@@ -421,6 +481,9 @@ async def get_scheduled_interviews(
         job_title = None
         if i.get('job_postings'):
             job_title = i['job_postings'].get('title')
+
+        # Get scores from cache if available
+        scores = candidate_scores_cache.get(i['candidate_id']) if include_scores else None
 
         result.append(ScheduledInterview(
             id=i['id'],
@@ -445,6 +508,7 @@ async def get_scheduled_interviews(
             interviewer_name=interviewer_name,
             interviewer_email=interviewer_email,
             job_title=job_title,
+            scores=scores,
             created_at=datetime.fromisoformat(i['created_at'].replace('Z', '+00:00')) if isinstance(i['created_at'], str) else i['created_at'],
         ))
 
