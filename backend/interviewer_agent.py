@@ -284,7 +284,26 @@ START by greeting them warmly and asking them to introduce themselves.
             try:
                 item = event.item
                 role = getattr(item, "role", "unknown")
-                text = getattr(item, "content", "")
+                raw_content = getattr(item, "content", "")
+
+                # Handle content being a list of content objects (LiveKit SDK format)
+                # Content can be: string, list of strings, list of objects with "text" field
+                text = ""
+                if isinstance(raw_content, str):
+                    text = raw_content
+                elif isinstance(raw_content, list):
+                    # Extract text from list of content parts
+                    text_parts = []
+                    for part in raw_content:
+                        if isinstance(part, str):
+                            text_parts.append(part)
+                        elif hasattr(part, "text"):
+                            text_parts.append(part.text)
+                        elif isinstance(part, dict) and "text" in part:
+                            text_parts.append(part["text"])
+                    text = " ".join(text_parts)
+                elif hasattr(raw_content, "text"):
+                    text = raw_content.text
 
                 # In interviewer agent: assistant=interviewer, user=candidate
                 if role == "user":
@@ -294,7 +313,7 @@ START by greeting them warmly and asking them to introduce themselves.
                 else:
                     return
 
-                if text:
+                if text and isinstance(text, str) and text.strip():
                     await broadcast_transcript(speaker, text, ctx.room)
             except Exception as e:
                 logger.warning(f"Failed to process conversation item: {e}")

@@ -726,7 +726,9 @@ function InterviewPageContent() {
                 console.log("[Interview] LiveKit not configured, falling back to OpenAI...");
                 setUsingLiveKit(false);
                 // Fall back to original OpenAI Realtime implementation
-                await initializeOpenAIInterview(candidateData);
+                if (candidate) {
+                    await initializeOpenAIInterview(candidate);
+                }
                 return;
             }
 
@@ -1726,81 +1728,6 @@ function InterviewPageContent() {
                         </div>
                     </div>
 
-                    {/* Transcript (Bottom - Fixed Height) */}
-                    <div className="h-64 glass-card-premium rounded-3xl p-6 relative flex flex-col min-h-0 bg-black/40 backdrop-blur-xl border border-white/10">
-                        <h3 className="text-xs font-medium text-white/40 mb-4 uppercase tracking-wider flex items-center gap-2">
-                            <MessageSquare className="w-3 h-3" /> Live Transcript
-                        </h3>
-                        <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
-                            {transcript.length === 0 ? (
-                                <div className="h-full flex items-center justify-center text-white/20 text-sm italic">
-                                    Conversation will appear here...
-                                </div>
-                            ) : (
-                                transcript.map((item, i) => {
-                                    // Determine display based on view mode
-                                    // AI agent plays "candidate" role, so:
-                                    // - speaker="candidate" means AI is talking
-                                    // - speaker="interviewer" means human is talking
-
-                                    const isAISpeaker = item.speaker === "candidate";
-                                    const isHumanSpeaker = item.speaker === "interviewer";
-
-                                    // In Interviewer View: human=You (interviewer), AI=Candidate Name
-                                    // In Candidate View: human=You (candidate), AI=Interviewer
-                                    let displayName: string;
-                                    let isLeftAligned: boolean;
-                                    let nameColor: string;
-                                    let bubbleStyle: string;
-
-                                    if (viewMode === 'interviewer') {
-                                        // Interviewer view: You are the interviewer (human), AI is candidate
-                                        if (isHumanSpeaker) {
-                                            displayName = "You";
-                                            isLeftAligned = true;
-                                            nameColor = "text-green-400";
-                                            bubbleStyle = "bg-green-600/20 text-green-100 rounded-tl-none border border-green-500/20";
-                                        } else {
-                                            displayName = `${candidateName} (AI)`;
-                                            isLeftAligned = false;
-                                            nameColor = "text-purple-400";
-                                            bubbleStyle = "bg-purple-600/20 text-purple-100 rounded-tr-none border border-purple-500/20";
-                                        }
-                                    } else {
-                                        // Candidate view: You are the candidate (human), AI is interviewer
-                                        if (isHumanSpeaker) {
-                                            displayName = "Interviewer (AI)";
-                                            isLeftAligned = true;
-                                            nameColor = "text-blue-400";
-                                            bubbleStyle = "bg-blue-600/20 text-blue-100 rounded-tl-none border border-blue-500/20";
-                                        } else {
-                                            displayName = "You";
-                                            isLeftAligned = false;
-                                            nameColor = "text-green-400";
-                                            bubbleStyle = "bg-green-600/20 text-green-100 rounded-tr-none border border-green-500/20";
-                                        }
-                                    }
-
-                                    return (
-                                        <div key={i} className={`flex flex-col gap-1 ${isLeftAligned ? "items-start" : "items-end"}`}>
-                                            <div className="flex items-center gap-2 text-[10px] text-white/30 uppercase tracking-wider">
-                                                <span className={nameColor}>
-                                                    {displayName}
-                                                </span>
-                                                <span>•</span>
-                                                <span>{item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
-                                            </div>
-                                            <div className={`p-3 rounded-2xl max-w-[80%] text-sm leading-relaxed ${bubbleStyle}`}>
-                                                {item.text}
-                                            </div>
-                                        </div>
-                                    );
-                                })
-                            )}
-                            <div ref={transcriptEndRef} />
-                        </div>
-                    </div>
-
                 </div>
 
                 {/* RIGHT COLUMN: Chat & Assistant (4 cols) */}
@@ -1819,18 +1746,17 @@ function InterviewPageContent() {
                                 </div>
                             ) : (
                                 aiSuggestions.map((suggestion, i) => {
-                                    // Determine color based on verdict/category
+                                    // Determine color based on verdict/category - only green or red
                                     const verdict = (suggestion.category || "ADEQUATE").toUpperCase();
-                                    let colorClass = "bg-purple-500/10 border-purple-500/20 text-purple-300";
-                                    let titleColor = "text-purple-300";
+                                    let colorClass: string;
+                                    let titleColor: string;
 
                                     if (["STRONG", "ADEQUATE"].includes(verdict)) {
+                                        // Positive assessments - green
                                         colorClass = "bg-green-500/10 border-green-500/20 text-green-300";
                                         titleColor = "text-green-300";
-                                    } else if (verdict === "NEEDS_PROBING") {
-                                        colorClass = "bg-orange-500/10 border-orange-500/20 text-orange-300";
-                                        titleColor = "text-orange-300";
-                                    } else if (["WEAK", "INADEQUATE"].includes(verdict)) {
+                                    } else {
+                                        // Negative/needs work assessments (WEAK, INADEQUATE, NEEDS_PROBING, etc.) - red
                                         colorClass = "bg-red-500/10 border-red-500/20 text-red-300";
                                         titleColor = "text-red-300";
                                     }

@@ -522,17 +522,67 @@ async def list_candidates(
 
 @router.get("/candidates/{candidate_id}")
 async def get_candidate_detail(candidate_id: str) -> dict:
-    """Get a specific candidate by ID. Falls back to database if not in JSON store."""
+    """
+    Get a specific candidate by ID.
+
+    Merges data from JSON store (rich data from CSV upload) and database (interview tracking).
+    Priority: JSON store data for rich fields (skills, bio, pros, cons, etc.),
+              database for interview-related fields.
+    """
+    from repositories.candidate_repository import CandidateRepository
+
     # First try JSON store (Pluto CSV upload flow)
     candidate = get_candidate(candidate_id)
     if candidate:
         return candidate.model_dump()
 
     # Fallback to database (interview scheduling flow)
-    from repositories.candidate_repository import CandidateRepository
     candidate_repo = CandidateRepository()
     db_candidate = candidate_repo.get_by_id(candidate_id)
+
     if db_candidate:
+        # Try to find matching candidate in JSON store by name for rich data
+        candidate_name = db_candidate.get("name", "")
+        if candidate_name:
+            # Search JSON store for matching candidate by name
+            all_json_candidates = get_all_candidates()
+            json_match = next(
+                (c for c in all_json_candidates if c.name and c.name.lower() == candidate_name.lower()),
+                None
+            )
+
+            if json_match:
+                # Merge: Start with JSON store data (rich data), override with DB data (tracking fields)
+                merged = json_match.model_dump()
+
+                # Override with DB fields that are relevant for interview tracking
+                # but keep rich data from JSON store
+                db_override_fields = [
+                    "id",  # Use DB UUID
+                    "pipeline_status",
+                    "final_decision",
+                    "decision_notes",
+                    "decided_at",
+                    "interview_status",
+                    "room_name",
+                    "interview_score",
+                    "recommendation",
+                ]
+
+                for field in db_override_fields:
+                    if field in db_candidate and db_candidate[field] is not None:
+                        merged[field] = db_candidate[field]
+
+                # Also update json_id in DB for future lookups
+                try:
+                    candidate_repo.set_json_id(db_candidate["id"], json_match.id)
+                except Exception:
+                    pass
+
+                logger.info(f"Merged candidate data for '{candidate_name}' (DB UUID: {db_candidate['id']}, JSON ID: {json_match.id})")
+                return merged
+
+        # No JSON match found, return DB data as-is
         return db_candidate
 
     raise HTTPException(status_code=404, detail="Candidate not found")
@@ -641,7 +691,7 @@ async def get_candidate_prebrief(candidate_id: str):
     from pathlib import Path
     from repositories.candidate_repository import CandidateRepository
 
-    # Try JSON store first, fallback to database
+    # Try JSON store first, fallback to database with data merging
     candidate = get_candidate(candidate_id)
     candidate_dict = None
 
@@ -652,7 +702,30 @@ async def get_candidate_prebrief(candidate_id: str):
         candidate_repo = CandidateRepository()
         db_candidate = candidate_repo.get_by_id(candidate_id)
         if db_candidate:
-            candidate_dict = db_candidate
+            # Try to find matching candidate in JSON store by name for rich data
+            candidate_name = db_candidate.get("name", "")
+            if candidate_name:
+                all_json_candidates = get_all_candidates()
+                json_match = next(
+                    (c for c in all_json_candidates if c.name and c.name.lower() == candidate_name.lower()),
+                    None
+                )
+
+                if json_match:
+                    # Merge: Start with JSON store data (rich data), override with DB tracking fields
+                    candidate_dict = json_match.model_dump()
+
+                    db_override_fields = [
+                        "id", "pipeline_status", "final_decision", "decision_notes",
+                        "decided_at", "interview_status", "room_name", "interview_score", "recommendation",
+                    ]
+                    for field in db_override_fields:
+                        if field in db_candidate and db_candidate[field] is not None:
+                            candidate_dict[field] = db_candidate[field]
+                else:
+                    candidate_dict = db_candidate
+            else:
+                candidate_dict = db_candidate
         else:
             raise HTTPException(status_code=404, detail="Candidate not found")
 
@@ -762,7 +835,7 @@ async def start_full_interview(
     import json
     from repositories.candidate_repository import CandidateRepository
 
-    # Try JSON store first, fallback to database
+    # Try JSON store first, fallback to database with data merging
     candidate = get_candidate(candidate_id)
     candidate_dict = None
     is_db_candidate = False
@@ -774,8 +847,34 @@ async def start_full_interview(
         candidate_repo = CandidateRepository()
         db_candidate = candidate_repo.get_by_id(candidate_id)
         if db_candidate:
-            candidate_dict = db_candidate
             is_db_candidate = True
+
+            # Try to find matching candidate in JSON store by name for rich data
+            candidate_name = db_candidate.get("name", "")
+            if candidate_name:
+                all_json_candidates = get_all_candidates()
+                json_match = next(
+                    (c for c in all_json_candidates if c.name and c.name.lower() == candidate_name.lower()),
+                    None
+                )
+
+                if json_match:
+                    # Merge: Start with JSON store data (rich data), override with DB tracking fields
+                    candidate_dict = json_match.model_dump()
+
+                    db_override_fields = [
+                        "id", "pipeline_status", "final_decision", "decision_notes",
+                        "decided_at", "interview_status", "room_name", "interview_score", "recommendation",
+                    ]
+                    for field in db_override_fields:
+                        if field in db_candidate and db_candidate[field] is not None:
+                            candidate_dict[field] = db_candidate[field]
+
+                    logger.info(f"[Interview] Merged candidate data for '{candidate_name}'")
+                else:
+                    candidate_dict = db_candidate
+            else:
+                candidate_dict = db_candidate
         else:
             raise HTTPException(status_code=404, detail="Candidate not found")
     
@@ -947,7 +1046,7 @@ async def save_interview_analytics(candidate_id: str, request: SaveAnalyticsRequ
     from repositories.candidate_repository import CandidateRepository
 
     try:
-        # Try JSON store first, fallback to database
+        # Try JSON store first, fallback to database with data merging
         candidate = get_candidate(candidate_id)
         candidate_dict = None
         is_db_candidate = False
@@ -959,8 +1058,32 @@ async def save_interview_analytics(candidate_id: str, request: SaveAnalyticsRequ
             candidate_repo = CandidateRepository()
             db_candidate = candidate_repo.get_by_id(candidate_id)
             if db_candidate:
-                candidate_dict = db_candidate
                 is_db_candidate = True
+
+                # Try to find matching candidate in JSON store by name for rich data
+                candidate_name = db_candidate.get("name", "")
+                if candidate_name:
+                    all_json_candidates = get_all_candidates()
+                    json_match = next(
+                        (c for c in all_json_candidates if c.name and c.name.lower() == candidate_name.lower()),
+                        None
+                    )
+
+                    if json_match:
+                        # Merge: Start with JSON store data (rich data), override with DB tracking fields
+                        candidate_dict = json_match.model_dump()
+
+                        db_override_fields = [
+                            "id", "pipeline_status", "final_decision", "decision_notes",
+                            "decided_at", "interview_status", "room_name", "interview_score", "recommendation",
+                        ]
+                        for field in db_override_fields:
+                            if field in db_candidate and db_candidate[field] is not None:
+                                candidate_dict[field] = db_candidate[field]
+                    else:
+                        candidate_dict = db_candidate
+                else:
+                    candidate_dict = db_candidate
             else:
                 raise HTTPException(status_code=404, detail="Candidate not found")
 
