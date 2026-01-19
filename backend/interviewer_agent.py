@@ -34,6 +34,7 @@ from livekit.agents import (
     cli,
     Agent,
     AgentSession,
+    RoomInputOptions,
 )
 from livekit.plugins import deepgram, openai, silero
 from config import LLM_MODEL
@@ -320,7 +321,12 @@ START by greeting them warmly and asking them to introduce themselves.
 
         asyncio.create_task(_process(event))
 
-    await session.start(agent, room=ctx.room)
+    # Configure room input options to NOT close session when mic is muted
+    room_input_options = RoomInputOptions(
+        close_on_disconnect=False,  # Keep session alive even if participant mutes/disconnects temporarily
+    )
+
+    await session.start(agent, room=ctx.room, room_input_options=room_input_options)
 
     logger.info(f"Interviewer Agent ready - interviewing {candidate_name} for {job_title}")
 

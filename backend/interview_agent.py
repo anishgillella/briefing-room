@@ -36,6 +36,7 @@ from livekit.agents import (
     function_tool,
     Agent,
     AgentSession,
+    RoomInputOptions,
 )
 from livekit.plugins import deepgram, openai, silero, elevenlabs
 from config import GEMINI_ANALYTICS_MODEL, LLM_MODEL
@@ -685,8 +686,13 @@ Return ONLY valid JSON. No markdown code blocks."""
 
         asyncio.create_task(_async_process_item(event))
 
-    await session.start(agent, room=ctx.room)
-    
+    # Configure room input options to NOT close session when mic is muted
+    room_input_options = RoomInputOptions(
+        close_on_disconnect=False,  # Keep session alive even if participant mutes/disconnects temporarily
+    )
+
+    await session.start(agent, room=ctx.room, room_input_options=room_input_options)
+
     logger.info(f"Interview Agent ready - playing {candidate_name}")
     
     # Greet the interviewer

@@ -19,13 +19,16 @@ import {
     Gift,
     Sparkles,
     Eye,
-    ArrowLeft
+    ArrowLeft,
+    Trash2
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
     getCandidateInterviews,
     startNextInterview,
+    createInterviewForTranscript,
     submitDecision,
+    deleteInterview,
     formatStageName,
     getStageStatus,
     lookupCandidateByName,
@@ -76,6 +79,12 @@ export default function InterviewHistory({
     } | null>(null);
     const [fullAnalytics, setFullAnalytics] = useState<Analytics | null>(null);
     const [loadingFullAnalytics, setLoadingFullAnalytics] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState<{
+        interviewId: string;
+        stage: string;
+    } | null>(null);
+    const [deletingInterview, setDeletingInterview] = useState(false);
+    const [creatingForTranscript, setCreatingForTranscript] = useState(false);
 
     useEffect(() => {
         loadInterviews();
@@ -213,6 +222,44 @@ export default function InterviewHistory({
         setShowTranscriptModal(null);
         // Refresh interviews to show updated data
         loadInterviews();
+    };
+
+    const handleDeleteInterview = async () => {
+        if (!showDeleteModal) return;
+
+        try {
+            setDeletingInterview(true);
+            await deleteInterview(showDeleteModal.interviewId);
+            setShowDeleteModal(null);
+            // Refresh interviews to show updated data
+            await loadInterviews();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Failed to delete interview");
+        } finally {
+            setDeletingInterview(false);
+        }
+    };
+
+    const handleCreateForTranscript = async () => {
+        if (!dbCandidateId) {
+            setError("Cannot create interview: Candidate not found in database");
+            return;
+        }
+        try {
+            setCreatingForTranscript(true);
+            const response = await createInterviewForTranscript(dbCandidateId);
+            // Refresh to show the new interview
+            await loadInterviews();
+            // Open the transcript modal for the newly created interview
+            setShowTranscriptModal({
+                interviewId: response.interview_id,
+                stage: response.stage
+            });
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Failed to create interview");
+        } finally {
+            setCreatingForTranscript(false);
+        }
     };
 
     const getScoreColor = (score?: number) => {
@@ -433,8 +480,9 @@ export default function InterviewHistory({
                             <div className="px-8 pb-8 pt-2 animate-fade-in">
                                 <div className="h-px w-full bg-white/5 mb-8"></div>
 
-                                {/* Upload Transcript Button - Always visible */}
-                                <div className="mb-8">
+                                {/* Action Buttons Row */}
+                                <div className="mb-8 flex gap-3">
+                                    {/* Upload Transcript Button */}
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
@@ -443,17 +491,34 @@ export default function InterviewHistory({
                                                 stage: interview.stage
                                             });
                                         }}
-                                        className="w-full py-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-500/30 transition-all flex items-center justify-center gap-3 group"
+                                        className="flex-1 py-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-500/30 transition-all flex items-center justify-center gap-3 group"
                                     >
                                         <Upload className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform" />
                                         <span className="text-white/70 group-hover:text-white font-medium">
-                                            {interview.analytics ? "Update Transcript" : "Upload External Transcript"}
+                                            {interview.analytics ? "Update Transcript" : "Upload Transcript"}
                                         </span>
                                     </button>
-                                    <p className="text-center text-white/30 text-xs mt-3">
-                                        Paste a transcript from Zoom, Otter, or another source to {interview.analytics ? "update" : "add"} analytics
-                                    </p>
+
+                                    {/* Delete Interview Button */}
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setShowDeleteModal({
+                                                interviewId: interview.id,
+                                                stage: interview.stage
+                                            });
+                                        }}
+                                        className="px-6 py-4 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/40 transition-all flex items-center justify-center gap-2 group"
+                                    >
+                                        <Trash2 className="w-5 h-5 text-red-400 group-hover:scale-110 transition-transform" />
+                                        <span className="text-red-400 group-hover:text-red-300 font-medium">
+                                            Delete & Retry
+                                        </span>
+                                    </button>
                                 </div>
+                                <p className="text-center text-white/30 text-xs -mt-5 mb-8">
+                                    Upload transcript to {interview.analytics ? "update" : "add"} analytics, or delete to retry the interview
+                                </p>
 
                                 {interview.analytics && (
                                     <>
@@ -644,34 +709,57 @@ export default function InterviewHistory({
             {/* -------------------- ACTION BUTTONS -------------------- */}
             <div className="pt-4">
                 {data.next_stage && !data.all_stages_complete && (
-                    <div className="flex gap-3">
-                        {/* Schedule Interview Button */}
-                        <button
-                            onClick={() => setShowScheduleModal(true)}
-                            className="flex-1 group relative overflow-hidden rounded-2xl bg-white/10 p-1 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-black border border-white/20 hover:border-indigo-500/50 transition-colors"
-                        >
-                            <div className="relative flex items-center justify-center gap-3 rounded-xl px-6 py-5">
-                                <Calendar className="h-5 w-5 text-indigo-400" />
-                                <span className="text-base font-medium text-white">Schedule</span>
-                            </div>
-                        </button>
+                    <div className="flex flex-col gap-3">
+                        <div className="flex gap-3">
+                            {/* Schedule Interview Button */}
+                            <button
+                                onClick={() => setShowScheduleModal(true)}
+                                className="flex-1 group relative overflow-hidden rounded-2xl bg-white/10 p-1 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-black border border-white/20 hover:border-indigo-500/50 transition-colors"
+                            >
+                                <div className="relative flex items-center justify-center gap-3 rounded-xl px-6 py-5">
+                                    <Calendar className="h-5 w-5 text-indigo-400" />
+                                    <span className="text-base font-medium text-white">Schedule</span>
+                                </div>
+                            </button>
 
-                        {/* Start Interview Now Button */}
+                            {/* Start Interview Now Button */}
+                            <button
+                                onClick={handleStartInterview}
+                                disabled={startingInterview}
+                                className="flex-[2] group relative overflow-hidden rounded-2xl bg-white p-1 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-black"
+                            >
+                                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-90 transition-all duration-300 group-hover:opacity-100"></div>
+                                <div className="relative flex items-center justify-center gap-3 rounded-xl bg-black px-8 py-5 transition-all duration-300 group-hover:bg-transparent">
+                                    {startingInterview ? (
+                                        <Loader2 className="h-6 w-6 animate-spin text-white" />
+                                    ) : (
+                                        <PlayCircle className="h-6 w-6 text-white" />
+                                    )}
+                                    <span className="text-lg font-semibold text-white">Start {formatStageName(data.next_stage)} Now</span>
+                                </div>
+                            </button>
+                        </div>
+
+                        {/* Upload Transcript Only Button */}
                         <button
-                            onClick={handleStartInterview}
-                            disabled={startingInterview}
-                            className="flex-[2] group relative overflow-hidden rounded-2xl bg-white p-1 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-black"
+                            onClick={handleCreateForTranscript}
+                            disabled={creatingForTranscript}
+                            className="group relative overflow-hidden rounded-2xl bg-white/5 p-1 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-black border border-white/10 hover:border-purple-500/30 transition-colors"
                         >
-                            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-90 transition-all duration-300 group-hover:opacity-100"></div>
-                            <div className="relative flex items-center justify-center gap-3 rounded-xl bg-black px-8 py-5 transition-all duration-300 group-hover:bg-transparent">
-                                {startingInterview ? (
-                                    <Loader2 className="h-6 w-6 animate-spin text-white" />
+                            <div className="relative flex items-center justify-center gap-3 rounded-xl px-6 py-4 transition-all">
+                                {creatingForTranscript ? (
+                                    <Loader2 className="h-5 w-5 animate-spin text-purple-400" />
                                 ) : (
-                                    <PlayCircle className="h-6 w-6 text-white" />
+                                    <Upload className="h-5 w-5 text-purple-400" />
                                 )}
-                                <span className="text-lg font-semibold text-white">Start {formatStageName(data.next_stage)} Now</span>
+                                <span className="text-base font-medium text-white/70 group-hover:text-white">
+                                    Upload Transcript Only for {formatStageName(data.next_stage)}
+                                </span>
                             </div>
                         </button>
+                        <p className="text-center text-white/30 text-xs -mt-1">
+                            Create an interview record and upload a transcript without starting a live session
+                        </p>
                     </div>
                 )}
 
@@ -908,6 +996,61 @@ export default function InterviewHistory({
                     jobTitle={jobTitle || "Interview"}
                     stage={data.next_stage}
                 />
+            )}
+
+            {/* Delete Interview Confirmation Modal */}
+            {showDeleteModal && (
+                <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
+                    <div className="bg-[#121212] rounded-3xl p-8 max-w-md w-full mx-4 border border-red-500/20 shadow-2xl scale-100 animate-scale-in">
+                        <div className="flex items-center gap-4 mb-4">
+                            <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center">
+                                <Trash2 className="w-6 h-6 text-red-400" />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-semibold text-white">Delete Interview?</h3>
+                                <p className="text-white/40 text-sm">{formatStageName(showDeleteModal.stage)}</p>
+                            </div>
+                        </div>
+
+                        <p className="text-white/60 mb-6">
+                            This will permanently delete the interview along with all its analytics, transcript, and history.
+                            You can then start a fresh interview for this round.
+                        </p>
+
+                        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-6">
+                            <p className="text-red-300 text-sm">
+                                <strong>Warning:</strong> This action cannot be undone. All data for {formatStageName(showDeleteModal.stage)} will be lost.
+                            </p>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                            <button
+                                onClick={() => setShowDeleteModal(null)}
+                                disabled={deletingInterview}
+                                className="py-3 bg-white/5 hover:bg-white/10 rounded-xl text-white font-medium transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleDeleteInterview}
+                                disabled={deletingInterview}
+                                className="py-3 bg-red-500 hover:bg-red-600 rounded-xl text-white font-bold transition-colors flex items-center justify-center gap-2"
+                            >
+                                {deletingInterview ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        Deleting...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Trash2 className="w-4 h-4" />
+                                        Delete Interview
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

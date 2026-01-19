@@ -249,6 +249,57 @@ async def start_next_interview(candidate_id: str) -> StartInterviewResponse:
     )
 
 
+class CreateForTranscriptResponse(BaseModel):
+    """Response after creating an interview for transcript upload."""
+    interview_id: str
+    stage: str
+    candidate_id: str
+    message: str
+
+
+@router.post("/candidate/{candidate_id}/create-for-transcript")
+async def create_interview_for_transcript(candidate_id: str) -> CreateForTranscriptResponse:
+    """
+    Create an interview record for transcript upload only.
+    This allows uploading a transcript without joining a live interview room.
+
+    Auto-determines which stage is next (round_1 → round_2 → round_3).
+    The interview is created in 'active' status so transcripts can be uploaded.
+    """
+    candidate = candidate_repo.get_by_id(candidate_id)
+    if not candidate:
+        raise HTTPException(status_code=404, detail="Candidate not found")
+
+    # Check if all stages are complete
+    if interview_repo.all_stages_complete(candidate_id):
+        raise HTTPException(
+            status_code=400,
+            detail="All interview stages complete. Submit a decision instead."
+        )
+
+    # Create the next interview (this auto-determines the stage)
+    interview = interview_repo.start_next_interview(candidate_id)
+    if not interview:
+        raise HTTPException(status_code=500, detail="Failed to create interview")
+
+    stage = interview["stage"]
+
+    # Update candidate pipeline status
+    candidate_repo.update_pipeline_status(candidate_id, stage)
+
+    # Mark interview as active (so transcripts can be uploaded)
+    interview_repo.start_interview(interview["id"])
+
+    logger.info(f"Created {stage} interview for transcript upload for {candidate['name']}")
+
+    return CreateForTranscriptResponse(
+        interview_id=interview["id"],
+        stage=stage,
+        candidate_id=candidate_id,
+        message=f"Interview created for {stage}. You can now upload a transcript."
+    )
+
+
 @router.post("/candidate/{candidate_id}/decision")
 async def submit_decision(
     candidate_id: str, 
@@ -300,17 +351,71 @@ async def complete_interview(interview_id: str):
     interview = interview_repo.get_by_id(interview_id)
     if not interview:
         raise HTTPException(status_code=404, detail="Interview not found")
-    
+
     result = interview_repo.complete_interview(interview_id)
     if not result:
         raise HTTPException(status_code=500, detail="Failed to complete interview")
-    
+
     # Update candidate pipeline status to decision_pending if all complete
     candidate_id = interview["candidate_id"]
     if interview_repo.all_stages_complete(candidate_id):
         candidate_repo.update_pipeline_status(candidate_id, "decision_pending")
-    
+
     return {"status": "completed", "interview_id": interview_id}
+
+
+class DeleteInterviewResponse(BaseModel):
+    """Response after deleting an interview."""
+    status: str
+    interview_id: str
+    stage: str
+    candidate_id: str
+    new_pipeline_status: str
+
+
+@router.delete("/{interview_id}")
+async def delete_interview(interview_id: str) -> DeleteInterviewResponse:
+    """
+    Delete an interview and all associated data (analytics, transcript, etc.).
+    This allows retrying the interview from scratch.
+
+    The cascade delete in the database will automatically remove:
+    - transcripts
+    - analytics
+    - questions_asked
+    - interviewer_analytics
+
+    After deletion, the candidate's pipeline status is updated to reflect
+    the new state (previous completed stage, or 'new' if no stages remain).
+    """
+    # Get the interview first
+    interview = interview_repo.get_by_id(interview_id)
+    if not interview:
+        raise HTTPException(status_code=404, detail="Interview not found")
+
+    candidate_id = interview["candidate_id"]
+    stage = interview["stage"]
+
+    # Delete the interview (cascades to related tables)
+    success = interview_repo.delete(interview_id)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to delete interview")
+
+    # Update candidate pipeline status
+    # Find the previous completed stage, or set to 'new' if none
+    previous_stage = interview_repo.get_previous_completed_stage(candidate_id)
+    new_status = previous_stage if previous_stage else "new"
+    candidate_repo.update_pipeline_status(candidate_id, new_status)
+
+    logger.info(f"Deleted interview {interview_id} ({stage}) for candidate {candidate_id}. New pipeline status: {new_status}")
+
+    return DeleteInterviewResponse(
+        status="deleted",
+        interview_id=interview_id,
+        stage=stage,
+        candidate_id=candidate_id,
+        new_pipeline_status=new_status
+    )
 
 
 @router.post("/{interview_id}/analytics")
@@ -940,7 +1045,9 @@ IMPORTANT: Return ONLY valid JSON. No markdown, no code blocks, no explanatory t
                 elif "```" in content:
                     content = content.split("```")[1].split("```")[0]
 
+                logger.info(f"OpenRouter returned content length: {len(content)}")
                 candidate_analytics = json.loads(content.strip())
+                logger.info(f"Parsed analytics JSON successfully for interview {interview_id}")
 
                 highlights_data = candidate_analytics.get("highlights")
                 if isinstance(highlights_data, dict):
@@ -957,13 +1064,18 @@ IMPORTANT: Return ONLY valid JSON. No markdown, no code blocks, no explanatory t
                         highlights_data["standout_moments"] = validated_standouts
 
                 # Save to database
-                analytics_repo.save_analytics(interview_id, candidate_analytics)
-                logger.info(f"Saved candidate analytics for interview {interview_id}")
+                save_result = analytics_repo.save_analytics(interview_id, candidate_analytics)
+                if save_result:
+                    logger.info(f"Saved candidate analytics for interview {interview_id}")
+                else:
+                    logger.error(f"Failed to save candidate analytics for interview {interview_id} - save_analytics returned None")
             else:
                 logger.error(f"OpenRouter error: {response.status_code} - {response.text}")
 
     except Exception as e:
+        import traceback
         logger.error(f"Error generating candidate analytics: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
 
     # =====================
     # Generate Interviewer Analytics
