@@ -1,0 +1,89 @@
+INTERVIEW TRANSCRIPT - ROUND 3
+Candidate: Darrell Sung
+Position: Founding Account Executive - AI SaaS Marketplace
+Date: January 20, 2026
+Interviewers: Jennifer Park (Head of Customer Success), David Kim (Board Member / Investor)
+Duration: 50 minutes
+
+---
+
+JENNIFER: Hi Darrell, I'm Jennifer, Head of Customer Success. And this is David from our board. We're excited to chat with you today.
+
+DAVID: Good to meet you, Darrell. I've heard good things from Sarah and Michael.
+
+DARRELL: Thanks for having me. I'm excited to be at this stage and learn more about the broader team.
+
+JENNIFER: Let's dive in. From my perspective, the handoff between sales and customer success is critical. Can you tell me about a time when you worked closely with a CS or implementation team to ensure a smooth customer onboarding?
+
+DARRELL: Absolutely. At Visible Alpha, we had a pretty structured handoff process, but it wasn't always smooth. I remember one deal where I closed a large asset manager, and during the handoff, I realized I hadn't documented some of the specific use cases the client had mentioned.
+
+The CS team started onboarding with a generic playbook, and the client got frustrated because they felt like they were repeating themselves. I stepped in, joined the kickoff call, and helped bridge the gap. After that, I changed my process - I now create a detailed handoff document for every deal that includes not just the contract terms, but the specific pain points, success metrics, and any promises made during the sales process.
+
+JENNIFER: That's exactly the kind of ownership I like to hear. How do you handle it when a customer has expectations that were set during sales that CS can't deliver on?
+
+DARRELL: That's a tough situation, and honestly, the best answer is to prevent it in the first place. I try to be careful about what I promise and always involve the product or CS team before committing to anything non-standard.
+
+But when it does happen - and it has - I think the right approach is to own it. I'll get on a call with the customer and the CS team together, acknowledge where we fell short, and work collaboratively on a solution. Sometimes that means finding a workaround, sometimes it means adjusting expectations and offering something in return.
+
+The worst thing you can do is throw your colleagues under the bus or go dark. Customers respect transparency, even when the news isn't what they wanted to hear.
+
+JENNIFER: Well said. One more from me - how do you stay engaged with customers after the deal is closed? Do you see that as part of your role?
+
+DARRELL: I do, actually. Some salespeople treat closed deals as "done," but I think that's short-sighted. My best deals have come from referrals and expansions, and those don't happen if you disappear after the signature.
+
+I try to check in quarterly, even if it's just a quick email or a coffee if I'm in their city. I want to know how things are going, if they're seeing value, and if there's anything blocking adoption. It's also good competitive intelligence - if a customer is unhappy, I'd rather hear it from them than find out when they churn.
+
+JENNIFER: That's great. David, want to take it from here?
+
+DAVID: Sure. Darrell, as an investor, I'm thinking about this hire from a long-term perspective. If we bring you on, what does your career trajectory look like? Where do you see yourself in 3-5 years?
+
+DARRELL: Great question. In the near term, I want to be a top-performing AE and help establish the sales playbook here. I genuinely enjoy the craft of selling and want to keep sharpening those skills.
+
+In 3-5 years, I'd like to be in a leadership role - either as a sales manager building and mentoring a team, or potentially in a more strategic role like revenue operations or go-to-market strategy. I'm drawn to the systems side of sales, not just the individual deals.
+
+What excites me about this opportunity is that in a company this size, those paths aren't predetermined. If I perform well and the company grows, I'll have a chance to shape my own trajectory rather than waiting for a spot to open up.
+
+DAVID: That's a mature perspective. Let me ask you a harder question. You've moved around a bit - several roles in the 1-2 year range. If we invest in ramping you up and building you into our sales culture, how do I know you'll stick around?
+
+DARRELL: I appreciate you asking directly. The short answer is that I'm looking for exactly what you're offering - an opportunity to build something, not just execute a playbook.
+
+My shorter tenures weren't because I got bored or chased money elsewhere. At Daloopa, there were layoffs. At IBM, I was intentionally rotating through teams as part of a development program. The only true "I chose to leave" decision was Visible Alpha, and that was because I'd hit a ceiling and wanted more ownership.
+
+What I'm looking for now is a place where I can grow with the company. If this company succeeds - and I believe it will - I want to be here for that journey. I'm not interested in being a mercenary who jumps for a 10% raise. I'm interested in building equity, both financial and personal, in something meaningful.
+
+DAVID: Fair enough. What's your understanding of the startup environment? Have you worked in one before?
+
+DARRELL: Not at this scale, but I've experienced startup-like conditions. At IBM, I was part of a new business unit that operated like a startup within a larger company - small team, undefined processes, lots of experimentation. At Daloopa, it was a Series A company, so a bit further along but still very dynamic.
+
+I know that startups mean ambiguity, changing priorities, and doing things outside your job description. I'm not just okay with that - I'm energized by it. I'd rather be stretched and learning than comfortable and stagnant.
+
+DAVID: One more from me. What's something you've failed at, and what did you learn?
+
+DARRELL: When I first moved into enterprise sales at Sensor Tower, I tried to apply the same approach I'd used for mid-market deals. I was moving too fast, pushing for close dates that made sense to me but not to the customer, and I wasn't investing enough in relationship building with the broader buying committee.
+
+I missed my number in Q1 and Q2 of my first year there. It was humbling. I had to step back and really study the enterprise motion - longer cycles, more stakeholders, more focus on risk mitigation for the buyer.
+
+By Q3, things started clicking, and I finished the year at 95%. The next year I was at 112%. But that failure taught me that what got me here won't get me there - I need to keep evolving my approach as the deals get more complex.
+
+JENNIFER: That's a great reflection. Alright, let's switch gears. What questions do you have for us?
+
+DARRELL: A few things. Jennifer, for you - what's the biggest challenge you're facing in customer success right now, and how could a strong partnership with sales help?
+
+JENNIFER: Honestly, it's adoption. We're good at getting customers live, but driving consistent usage is harder. A lot of that comes down to setting the right expectations during sales - if the customer understands the value from day one, they're more likely to engage. So the better aligned we are on what success looks like, the better our outcomes.
+
+DARRELL: That makes sense. I'd love to be part of shaping that alignment as the sales process matures. David, for you - what does success look like for this hire from a board perspective? What metrics will you be watching?
+
+DAVID: Great question. Obviously revenue and quota attainment matter, but at this stage, I'm also looking at leading indicators - pipeline generation, conversion rates, deal velocity. And qualitatively, I want to see someone who's contributing to the culture and the process, not just closing deals. We need missionaries, not mercenaries.
+
+DARRELL: I love that framing. Last question - what's the timeline for a decision?
+
+JENNIFER: We're moving quickly. We have a few other candidates in final rounds, but we're hoping to make a decision within the next week.
+
+DARRELL: Perfect. Well, thank you both for your time today. I've really enjoyed getting to know the team through this process, and I'm very excited about the opportunity. This feels like the right fit for where I am in my career and what I want to build.
+
+JENNIFER: Thanks, Darrell. We'll be in touch soon.
+
+DAVID: Good luck, Darrell. Enjoyed the conversation.
+
+---
+END OF TRANSCRIPT
