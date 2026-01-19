@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import AppLayout from "@/components/AppLayout";
 import {
@@ -13,13 +14,17 @@ import {
   MapPin,
   Building2,
   Briefcase,
-  LogOut,
-  LayoutDashboard,
   X,
   User,
   Star,
   GitBranch,
 } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { UserAvatar } from "@/components/ui/avatar";
+import { FadeInUp, Stagger, StaggerItem, Spinner } from "@/components/ui/motion";
+import { cn } from "@/lib/utils";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -54,7 +59,7 @@ interface FilterOptions {
 
 export default function TalentPoolPage() {
   const router = useRouter();
-  const { isAuthenticated, isLoading: authLoading, recruiter, logout, token } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, token } = useAuth();
 
   const [persons, setPersons] = useState<PersonSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,8 +75,6 @@ export default function TalentPoolPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
-
-  // Auth redirect is handled by AppLayout
 
   useEffect(() => {
     if (isAuthenticated && token) {
@@ -182,368 +185,417 @@ export default function TalentPoolPage() {
     (selectedTier ? 1 : 0) +
     (selectedStatus ? 1 : 0);
 
-  // Auth loading is handled by AppLayout
-
   return (
     <AppLayout>
       <div className="px-6 py-8 max-w-7xl mx-auto">
         {/* Page Title */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-2xl font-light tracking-wide">Talent Pool</h2>
-            <p className="text-white/50 text-sm mt-1">
-              {filterOptions?.total_persons || total} people across all jobs
-            </p>
+        <FadeInUp>
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-3xl font-bold text-white tracking-tight">Talent Pool</h2>
+              <p className="text-zinc-400 text-sm mt-1">
+                {filterOptions?.total_persons || total} people across all jobs
+              </p>
+            </div>
           </div>
-        </div>
+        </FadeInUp>
 
         {/* Search and Filters */}
-        <div className="mb-6 space-y-4">
-          {/* Search Bar */}
-          <div className="flex gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-              <input
-                type="text"
-                placeholder="Search by name..."
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setPage(1);
-                }}
-                className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:border-white/30 placeholder:text-white/30"
-              />
+        <FadeInUp delay={0.1}>
+          <div className="mb-6 space-y-4">
+            {/* Search Bar */}
+            <div className="flex gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                <input
+                  type="text"
+                  placeholder="Search by name..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setPage(1);
+                  }}
+                  className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                />
+              </div>
+              <Button
+                variant={showFilters || hasActiveFilters ? "secondary" : "ghost"}
+                onClick={() => setShowFilters(!showFilters)}
+                leftIcon={<Filter className="w-4 h-4" />}
+              >
+                Filters
+                {hasActiveFilters && (
+                  <span className="ml-2 px-2 py-0.5 bg-indigo-500/30 text-indigo-300 text-xs rounded-full">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </Button>
             </div>
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 px-4 py-3 rounded-xl border transition-colors ${
-                showFilters || hasActiveFilters
-                  ? "bg-white/10 border-white/30 text-white"
-                  : "bg-white/5 border-white/10 text-white/60 hover:border-white/20"
-              }`}
-            >
-              <Filter className="w-4 h-4" />
-              Filters
-              {hasActiveFilters && (
-                <span className="bg-white/20 text-white text-xs px-2 py-0.5 rounded-full">
-                  {activeFilterCount}
-                </span>
+
+            {/* Filter Panel */}
+            <AnimatePresence>
+              {showFilters && filterOptions && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Card padding="lg" className="space-y-6">
+                    {/* Active Filters */}
+                    {hasActiveFilters && (
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm text-zinc-500">Active filters:</span>
+                        {selectedSkills.map((skill) => (
+                          <motion.button
+                            key={skill}
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            onClick={() => toggleSkill(skill)}
+                            className="flex items-center gap-1 px-2 py-1 bg-indigo-500/20 border border-indigo-500/30 rounded-lg text-xs text-indigo-400 hover:bg-indigo-500/30 transition-colors"
+                          >
+                            {skill}
+                            <X className="w-3 h-3" />
+                          </motion.button>
+                        ))}
+                        {selectedLocation && (
+                          <motion.button
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            onClick={() => setSelectedLocation("")}
+                            className="flex items-center gap-1 px-2 py-1 bg-emerald-500/20 border border-emerald-500/30 rounded-lg text-xs text-emerald-400 hover:bg-emerald-500/30 transition-colors"
+                          >
+                            <MapPin className="w-3 h-3" />
+                            {selectedLocation}
+                            <X className="w-3 h-3" />
+                          </motion.button>
+                        )}
+                        {selectedCompany && (
+                          <motion.button
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            onClick={() => setSelectedCompany("")}
+                            className="flex items-center gap-1 px-2 py-1 bg-purple-500/20 border border-purple-500/30 rounded-lg text-xs text-purple-400 hover:bg-purple-500/30 transition-colors"
+                          >
+                            <Building2 className="w-3 h-3" />
+                            {selectedCompany}
+                            <X className="w-3 h-3" />
+                          </motion.button>
+                        )}
+                        {selectedJob && (
+                          <motion.button
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            onClick={() => setSelectedJob("")}
+                            className="flex items-center gap-1 px-2 py-1 bg-amber-500/20 border border-amber-500/30 rounded-lg text-xs text-amber-400 hover:bg-amber-500/30 transition-colors"
+                          >
+                            <Briefcase className="w-3 h-3" />
+                            {filterOptions.jobs.find(j => j.id === selectedJob)?.title || "Job"}
+                            <X className="w-3 h-3" />
+                          </motion.button>
+                        )}
+                        {selectedTier && (
+                          <motion.button
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            onClick={() => setSelectedTier("")}
+                            className="flex items-center gap-1 px-2 py-1 bg-yellow-500/20 border border-yellow-500/30 rounded-lg text-xs text-yellow-400 hover:bg-yellow-500/30 transition-colors"
+                          >
+                            <Star className="w-3 h-3" />
+                            {selectedTier}
+                            <X className="w-3 h-3" />
+                          </motion.button>
+                        )}
+                        {selectedStatus && (
+                          <motion.button
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            onClick={() => setSelectedStatus("")}
+                            className="flex items-center gap-1 px-2 py-1 bg-cyan-500/20 border border-cyan-500/30 rounded-lg text-xs text-cyan-400 hover:bg-cyan-500/30 transition-colors"
+                          >
+                            <GitBranch className="w-3 h-3" />
+                            {selectedStatus.replace(/_/g, " ")}
+                            <X className="w-3 h-3" />
+                          </motion.button>
+                        )}
+                        <button
+                          onClick={clearFilters}
+                          className="text-xs text-zinc-500 hover:text-zinc-300 underline ml-2 transition-colors"
+                        >
+                          Clear all
+                        </button>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {/* Location Filter */}
+                      <div>
+                        <label className="text-sm text-zinc-400 mb-2 block">Location</label>
+                        <select
+                          value={selectedLocation}
+                          onChange={(e) => {
+                            setSelectedLocation(e.target.value);
+                            setPage(1);
+                          }}
+                          className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                        >
+                          <option value="">All Locations</option>
+                          {filterOptions.locations.map((loc) => (
+                            <option key={loc} value={loc}>
+                              {loc}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Company Filter */}
+                      <div>
+                        <label className="text-sm text-zinc-400 mb-2 block">Company</label>
+                        <select
+                          value={selectedCompany}
+                          onChange={(e) => {
+                            setSelectedCompany(e.target.value);
+                            setPage(1);
+                          }}
+                          className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                        >
+                          <option value="">All Companies</option>
+                          {filterOptions.companies.map((company) => (
+                            <option key={company} value={company}>
+                              {company}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Job Filter */}
+                      {filterOptions.jobs && filterOptions.jobs.length > 0 && (
+                        <div>
+                          <label className="text-sm text-zinc-400 mb-2 block">Job Position</label>
+                          <select
+                            value={selectedJob}
+                            onChange={(e) => {
+                              setSelectedJob(e.target.value);
+                              setPage(1);
+                            }}
+                            className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                          >
+                            <option value="">All Jobs</option>
+                            {filterOptions.jobs.map((job) => (
+                              <option key={job.id} value={job.id}>
+                                {job.title} ({job.candidate_count})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
+                      {/* Tier Filter */}
+                      <div>
+                        <label className="text-sm text-zinc-400 mb-2 block">Candidate Tier</label>
+                        <select
+                          value={selectedTier}
+                          onChange={(e) => {
+                            setSelectedTier(e.target.value);
+                            setPage(1);
+                          }}
+                          className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                        >
+                          <option value="">All Tiers</option>
+                          {filterOptions.tiers.map((tier) => (
+                            <option key={tier} value={tier}>
+                              {tier}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Pipeline Status Filter */}
+                      <div>
+                        <label className="text-sm text-zinc-400 mb-2 block">Pipeline Status</label>
+                        <select
+                          value={selectedStatus}
+                          onChange={(e) => {
+                            setSelectedStatus(e.target.value);
+                            setPage(1);
+                          }}
+                          className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                        >
+                          <option value="">All Statuses</option>
+                          {filterOptions.pipeline_statuses.map((status) => (
+                            <option key={status} value={status}>
+                              {status.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Skills Filter */}
+                    <div>
+                      <label className="text-sm text-zinc-400 mb-2 block">Skills</label>
+                      <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
+                        {filterOptions.skills.slice(0, 30).map((skill) => (
+                          <motion.button
+                            key={skill}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => toggleSkill(skill)}
+                            className={cn(
+                              "px-3 py-1.5 rounded-lg text-xs border transition-all",
+                              selectedSkills.includes(skill)
+                                ? "bg-indigo-500/20 border-indigo-500/50 text-indigo-400"
+                                : "bg-white/[0.03] border-white/[0.06] text-zinc-400 hover:border-white/[0.12] hover:text-zinc-300"
+                            )}
+                          >
+                            {skill}
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
+                  </Card>
+                </motion.div>
               )}
-            </button>
+            </AnimatePresence>
           </div>
-
-          {/* Filter Panel */}
-          {showFilters && filterOptions && (
-            <div className="glass-panel rounded-2xl p-6 space-y-6">
-              {/* Active Filters */}
-              {hasActiveFilters && (
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm text-white/50">Active filters:</span>
-                  {selectedSkills.map((skill) => (
-                    <button
-                      key={skill}
-                      onClick={() => toggleSkill(skill)}
-                      className="flex items-center gap-1 px-2 py-1 bg-blue-500/20 border border-blue-500/30 rounded-lg text-xs text-blue-400"
-                    >
-                      {skill}
-                      <X className="w-3 h-3" />
-                    </button>
-                  ))}
-                  {selectedLocation && (
-                    <button
-                      onClick={() => setSelectedLocation("")}
-                      className="flex items-center gap-1 px-2 py-1 bg-green-500/20 border border-green-500/30 rounded-lg text-xs text-green-400"
-                    >
-                      <MapPin className="w-3 h-3" />
-                      {selectedLocation}
-                      <X className="w-3 h-3" />
-                    </button>
-                  )}
-                  {selectedCompany && (
-                    <button
-                      onClick={() => setSelectedCompany("")}
-                      className="flex items-center gap-1 px-2 py-1 bg-purple-500/20 border border-purple-500/30 rounded-lg text-xs text-purple-400"
-                    >
-                      <Building2 className="w-3 h-3" />
-                      {selectedCompany}
-                      <X className="w-3 h-3" />
-                    </button>
-                  )}
-                  {selectedJob && (
-                    <button
-                      onClick={() => setSelectedJob("")}
-                      className="flex items-center gap-1 px-2 py-1 bg-orange-500/20 border border-orange-500/30 rounded-lg text-xs text-orange-400"
-                    >
-                      <Briefcase className="w-3 h-3" />
-                      {filterOptions.jobs.find(j => j.id === selectedJob)?.title || "Job"}
-                      <X className="w-3 h-3" />
-                    </button>
-                  )}
-                  {selectedTier && (
-                    <button
-                      onClick={() => setSelectedTier("")}
-                      className="flex items-center gap-1 px-2 py-1 bg-yellow-500/20 border border-yellow-500/30 rounded-lg text-xs text-yellow-400"
-                    >
-                      <Star className="w-3 h-3" />
-                      {selectedTier}
-                      <X className="w-3 h-3" />
-                    </button>
-                  )}
-                  {selectedStatus && (
-                    <button
-                      onClick={() => setSelectedStatus("")}
-                      className="flex items-center gap-1 px-2 py-1 bg-cyan-500/20 border border-cyan-500/30 rounded-lg text-xs text-cyan-400"
-                    >
-                      <GitBranch className="w-3 h-3" />
-                      {selectedStatus.replace(/_/g, " ")}
-                      <X className="w-3 h-3" />
-                    </button>
-                  )}
-                  <button
-                    onClick={clearFilters}
-                    className="text-xs text-white/40 hover:text-white/60 underline ml-2"
-                  >
-                    Clear all
-                  </button>
-                </div>
-              )}
-
-              {/* Location Filter */}
-              <div>
-                <label className="text-sm text-white/60 mb-2 block">Location</label>
-                <select
-                  value={selectedLocation}
-                  onChange={(e) => {
-                    setSelectedLocation(e.target.value);
-                    setPage(1);
-                  }}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-white/30"
-                >
-                  <option value="">All Locations</option>
-                  {filterOptions.locations.map((loc) => (
-                    <option key={loc} value={loc}>
-                      {loc}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Company Filter */}
-              <div>
-                <label className="text-sm text-white/60 mb-2 block">Company</label>
-                <select
-                  value={selectedCompany}
-                  onChange={(e) => {
-                    setSelectedCompany(e.target.value);
-                    setPage(1);
-                  }}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-white/30"
-                >
-                  <option value="">All Companies</option>
-                  {filterOptions.companies.map((company) => (
-                    <option key={company} value={company}>
-                      {company}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Job Filter */}
-              {filterOptions.jobs && filterOptions.jobs.length > 0 && (
-                <div>
-                  <label className="text-sm text-white/60 mb-2 block">Job Position</label>
-                  <select
-                    value={selectedJob}
-                    onChange={(e) => {
-                      setSelectedJob(e.target.value);
-                      setPage(1);
-                    }}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-white/30"
-                  >
-                    <option value="">All Jobs</option>
-                    {filterOptions.jobs.map((job) => (
-                      <option key={job.id} value={job.id}>
-                        {job.title} ({job.candidate_count})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {/* Tier Filter */}
-              <div>
-                <label className="text-sm text-white/60 mb-2 block">Candidate Tier</label>
-                <select
-                  value={selectedTier}
-                  onChange={(e) => {
-                    setSelectedTier(e.target.value);
-                    setPage(1);
-                  }}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-white/30"
-                >
-                  <option value="">All Tiers</option>
-                  {filterOptions.tiers.map((tier) => (
-                    <option key={tier} value={tier}>
-                      {tier}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Pipeline Status Filter */}
-              <div>
-                <label className="text-sm text-white/60 mb-2 block">Pipeline Status</label>
-                <select
-                  value={selectedStatus}
-                  onChange={(e) => {
-                    setSelectedStatus(e.target.value);
-                    setPage(1);
-                  }}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-white/30"
-                >
-                  <option value="">All Statuses</option>
-                  {filterOptions.pipeline_statuses.map((status) => (
-                    <option key={status} value={status}>
-                      {status.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Skills Filter */}
-              <div>
-                <label className="text-sm text-white/60 mb-2 block">Skills</label>
-                <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
-                  {filterOptions.skills.slice(0, 30).map((skill) => (
-                    <button
-                      key={skill}
-                      onClick={() => toggleSkill(skill)}
-                      className={`px-3 py-1.5 rounded-lg text-xs border transition-colors ${
-                        selectedSkills.includes(skill)
-                          ? "bg-blue-500/20 border-blue-500/50 text-blue-400"
-                          : "bg-white/5 border-white/10 text-white/60 hover:border-white/20"
-                      }`}
-                    >
-                      {skill}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
+        </FadeInUp>
 
         {/* Results */}
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
-          </div>
-        ) : persons.length === 0 ? (
-          <div className="glass-panel rounded-3xl p-12 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-6">
-              <Users className="w-8 h-8 text-white/20" />
-            </div>
-            <h3 className="text-xl font-light mb-2">No people found</h3>
-            <p className="text-white/50 text-sm">
-              {hasActiveFilters
-                ? "Try adjusting your filters or search query"
-                : "Upload candidates to jobs to populate the talent pool"}
-            </p>
-          </div>
-        ) : (
-          <>
-            {/* Person Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {persons.map((person) => (
-                <Link
-                  key={person.id}
-                  href={`/talent-pool/${person.id}`}
-                  className="glass-panel rounded-2xl p-5 hover:bg-white/[0.08] transition-all group"
+        <AnimatePresence mode="wait">
+          {loading ? (
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex items-center justify-center py-20"
+            >
+              <Spinner size="lg" />
+            </motion.div>
+          ) : persons.length === 0 ? (
+            <FadeInUp key="empty">
+              <Card padding="xl" className="text-center">
+                <motion.div
+                  className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 flex items-center justify-center mx-auto mb-6 border border-white/5"
+                  animate={{ y: [0, -8, 0] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                 >
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center border border-white/10 flex-shrink-0">
-                      <User className="w-6 h-6 text-white/60" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-white truncate group-hover:text-blue-400 transition-colors">
-                        {person.name}
-                      </h3>
-                      {person.headline && (
-                        <p className="text-sm text-white/50 truncate mt-0.5">{person.headline}</p>
-                      )}
-                      {(person.current_title || person.current_company) && (
-                        <p className="text-xs text-white/40 truncate mt-1">
-                          {person.current_title}
-                          {person.current_title && person.current_company && " at "}
-                          {person.current_company}
-                        </p>
-                      )}
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-white/40 flex-shrink-0" />
-                  </div>
-
-                  {/* Location and Applications */}
-                  <div className="flex items-center gap-4 mt-4 text-xs text-white/40">
-                    {person.location && (
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {person.location}
-                      </span>
-                    )}
-                    {person.application_count > 0 && (
-                      <span className="flex items-center gap-1">
-                        <Briefcase className="w-3 h-3" />
-                        {person.application_count} application{person.application_count !== 1 ? "s" : ""}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Skills */}
-                  {person.skills && person.skills.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-3">
-                      {person.skills.slice(0, 4).map((skill) => (
-                        <span
-                          key={skill}
-                          className="px-2 py-0.5 bg-white/5 border border-white/10 rounded text-[10px] text-white/50"
+                  <Users className="w-10 h-10 text-indigo-400" />
+                </motion.div>
+                <h3 className="text-xl font-semibold text-white mb-2">No people found</h3>
+                <p className="text-zinc-500 text-sm">
+                  {hasActiveFilters
+                    ? "Try adjusting your filters or search query"
+                    : "Upload candidates to jobs to populate the talent pool"}
+                </p>
+              </Card>
+            </FadeInUp>
+          ) : (
+            <motion.div
+              key="results"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              {/* Person Cards */}
+              <Stagger className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {persons.map((person) => (
+                  <StaggerItem key={person.id}>
+                    <Link href={`/talent-pool/${person.id}`}>
+                      <motion.div
+                        whileHover={{ y: -4, scale: 1.01 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                      >
+                        <Card
+                          padding="md"
+                          className="h-full group cursor-pointer"
                         >
-                          {skill}
-                        </span>
-                      ))}
-                      {person.skills.length > 4 && (
-                        <span className="px-2 py-0.5 text-[10px] text-white/30">
-                          +{person.skills.length - 4} more
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </Link>
-              ))}
-            </div>
+                          <div className="flex items-start gap-4">
+                            <UserAvatar name={person.name} size="lg" />
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-medium text-white truncate group-hover:text-indigo-400 transition-colors">
+                                {person.name}
+                              </h3>
+                              {person.headline && (
+                                <p className="text-sm text-zinc-500 truncate mt-0.5">{person.headline}</p>
+                              )}
+                              {(person.current_title || person.current_company) && (
+                                <p className="text-xs text-zinc-600 truncate mt-1">
+                                  {person.current_title}
+                                  {person.current_title && person.current_company && " at "}
+                                  {person.current_company}
+                                </p>
+                              )}
+                            </div>
+                            <ChevronRight className="w-4 h-4 text-zinc-600 group-hover:text-zinc-400 flex-shrink-0 transition-colors" />
+                          </div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-8">
-                <button
-                  onClick={() => setPage(Math.max(1, page - 1))}
-                  disabled={page === 1}
-                  className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-sm disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/10 transition-colors"
-                >
-                  Previous
-                </button>
-                <span className="text-sm text-white/50 px-4">
-                  Page {page} of {totalPages}
-                </span>
-                <button
-                  onClick={() => setPage(Math.min(totalPages, page + 1))}
-                  disabled={page === totalPages}
-                  className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-sm disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/10 transition-colors"
-                >
-                  Next
-                </button>
-              </div>
-            )}
-          </>
-        )}
+                          {/* Location and Applications */}
+                          <div className="flex items-center gap-4 mt-4 text-xs text-zinc-500">
+                            {person.location && (
+                              <span className="flex items-center gap-1">
+                                <MapPin className="w-3 h-3" />
+                                {person.location}
+                              </span>
+                            )}
+                            {person.application_count > 0 && (
+                              <span className="flex items-center gap-1">
+                                <Briefcase className="w-3 h-3" />
+                                {person.application_count} application{person.application_count !== 1 ? "s" : ""}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Skills */}
+                          {person.skills && person.skills.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-3">
+                              {person.skills.slice(0, 4).map((skill) => (
+                                <Badge key={skill} variant="secondary" size="sm">
+                                  {skill}
+                                </Badge>
+                              ))}
+                              {person.skills.length > 4 && (
+                                <span className="px-2 py-0.5 text-[10px] text-zinc-500">
+                                  +{person.skills.length - 4} more
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </Card>
+                      </motion.div>
+                    </Link>
+                  </StaggerItem>
+                ))}
+              </Stagger>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <FadeInUp delay={0.2} className="flex items-center justify-center gap-2 mt-8">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setPage(Math.max(1, page - 1))}
+                    disabled={page === 1}
+                  >
+                    Previous
+                  </Button>
+                  <span className="text-sm text-zinc-500 px-4">
+                    Page {page} of {totalPages}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setPage(Math.min(totalPages, page + 1))}
+                    disabled={page === totalPages}
+                  >
+                    Next
+                  </Button>
+                </FadeInUp>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </AppLayout>
   );

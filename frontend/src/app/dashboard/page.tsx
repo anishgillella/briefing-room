@@ -7,6 +7,7 @@ import { useRecruiter } from "@/contexts/RecruiterContext";
 import { useAuth } from "@/contexts/AuthContext";
 import RecruiterSelector from "@/components/RecruiterSelector";
 import AppLayout from "@/components/AppLayout";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Briefcase,
   Users,
@@ -18,11 +19,15 @@ import {
   Star,
   Target,
   BarChart3,
-  Calendar,
-  CalendarDays,
   Settings,
 } from "lucide-react";
 import UpcomingInterviews from "@/components/UpcomingInterviews";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { UserAvatar } from "@/components/ui/avatar";
+import { StatusBadge } from "@/components/ui/badge";
+import { FadeInUp, Stagger, StaggerItem, Spinner } from "@/components/ui/motion";
+import { cn } from "@/lib/utils";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -82,7 +87,6 @@ export default function DashboardPage() {
   const [topCandidates, setTopCandidates] = useState<TopCandidate[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Helper to build auth headers using token from context
   const getHeaders = (): Record<string, string> => {
     const headers: Record<string, string> = {};
     if (token) {
@@ -90,8 +94,6 @@ export default function DashboardPage() {
     }
     return headers;
   };
-
-  // Auth redirect is handled by AppLayout
 
   useEffect(() => {
     if (isAuthenticated && currentRecruiter) {
@@ -106,7 +108,6 @@ export default function DashboardPage() {
       setLoading(true);
       const headers = getHeaders();
 
-      // Fetch recruiter stats
       const statsResponse = await fetch(
         `${API_URL}/api/recruiters/${currentRecruiter?.id}/stats`,
         { headers }
@@ -116,14 +117,12 @@ export default function DashboardPage() {
         setStats(statsData);
       }
 
-      // Fetch recruiter's jobs (filtered by recruiter to avoid fetching all jobs)
       const jobsResponse = await fetch(
         `${API_URL}/api/jobs/?recruiter_id=${currentRecruiter?.id}`,
         { headers }
       );
       if (jobsResponse.ok) {
         const jobsData = await jobsResponse.json();
-        // Sort by status (active first) and limit to 5
         const sortedJobs = jobsData.sort((a: Job, b: Job) => {
           if (a.status === "active" && b.status !== "active") return -1;
           if (a.status !== "active" && b.status === "active") return 1;
@@ -132,7 +131,6 @@ export default function DashboardPage() {
         setJobs(sortedJobs.slice(0, 5));
       }
 
-      // Fetch recent activity
       const activityResponse = await fetch(
         `${API_URL}/api/dashboard/activity?limit=5`,
         { headers }
@@ -142,7 +140,6 @@ export default function DashboardPage() {
         setActivities(activityData.activities || []);
       }
 
-      // Fetch top candidates
       const topResponse = await fetch(
         `${API_URL}/api/dashboard/top-candidates?limit=5`,
         { headers }
@@ -158,346 +155,419 @@ export default function DashboardPage() {
     }
   };
 
-  const getRecommendationColor = (rec: string) => {
-    switch (rec) {
-      case "strong_hire":
-        return "text-green-400 bg-green-500/10";
-      case "hire":
-        return "text-blue-400 bg-blue-500/10";
-      case "maybe":
-        return "text-yellow-400 bg-yellow-500/10";
-      case "no_hire":
-        return "text-red-400 bg-red-500/10";
-      default:
-        return "text-white/40 bg-white/5";
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "bg-green-500/10 border-green-500/30 text-green-400";
-      case "draft":
-        return "bg-yellow-500/10 border-yellow-500/30 text-yellow-400";
-      default:
-        return "bg-gray-500/10 border-gray-500/30 text-gray-400";
-    }
-  };
-
   return (
     <AppLayout>
       <div className="px-6 py-8 max-w-7xl mx-auto">
         {/* Page Header with Recruiter Selector */}
-        <div className="flex items-center justify-end mb-6">
-          <RecruiterSelector />
-        </div>
-        {!currentRecruiter ? (
-          <div className="glass-panel rounded-3xl p-12 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-indigo-500/20 flex items-center justify-center mx-auto mb-6">
-              <BarChart3 className="w-8 h-8 text-indigo-400" />
-            </div>
-            <h3 className="text-xl font-medium text-white mb-2">Welcome to Briefing Room</h3>
-            <p className="text-white/50 mb-6">
-              Select or create a recruiter to view your dashboard.
-            </p>
+        <FadeInUp>
+          <div className="flex items-center justify-end mb-6">
+            <RecruiterSelector />
           </div>
-        ) : loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
-          </div>
-        ) : (
-          <>
-            {/* Welcome Header */}
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h2 className="text-3xl font-bold text-white mb-2">
-                  Welcome back, {currentRecruiter.name.split(" ")[0]}
-                </h2>
-                <p className="text-white/50">Here's an overview of your hiring pipeline</p>
-              </div>
-              <button
-                onClick={() => router.push("/jobs/new")}
-                className="flex items-center gap-2 px-5 py-3 bg-white text-black rounded-full font-medium hover:bg-gray-100 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                Create New Job
-              </button>
-            </div>
+        </FadeInUp>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              <div className="glass-panel rounded-2xl p-5">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center">
-                    <Briefcase className="w-5 h-5 text-indigo-400" />
-                  </div>
+        <AnimatePresence mode="wait">
+          {!currentRecruiter ? (
+            <motion.div
+              key="no-recruiter"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+            >
+              <Card variant="glass" padding="lg" className="text-center py-16">
+                <motion.div
+                  className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center mx-auto mb-6 border border-white/10"
+                  animate={{ y: [0, -8, 0] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  <BarChart3 className="w-10 h-10 text-indigo-400" />
+                </motion.div>
+                <h3 className="text-2xl font-bold text-white mb-3">
+                  Welcome to Briefing Room
+                </h3>
+                <p className="text-zinc-400 max-w-md mx-auto">
+                  Select or create a recruiter to view your dashboard and start managing your hiring pipeline.
+                </p>
+              </Card>
+            </motion.div>
+          ) : loading ? (
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex items-center justify-center py-20"
+            >
+              <Spinner size="lg" />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="dashboard"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              {/* Welcome Header */}
+              <FadeInUp>
+                <div className="flex items-start justify-between mb-8">
                   <div>
-                    <div className="text-2xl font-light text-white">{stats?.active_jobs || 0}</div>
-                    <div className="text-xs text-white/50 uppercase tracking-wider">Active Jobs</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="glass-panel rounded-2xl p-5">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
-                    <Users className="w-5 h-5 text-purple-400" />
-                  </div>
-                  <div>
-                    <div className="text-2xl font-light text-white">
-                      {stats?.total_candidates || 0}
-                    </div>
-                    <div className="text-xs text-white/50 uppercase tracking-wider">Candidates</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="glass-panel rounded-2xl p-5">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
-                    <Target className="w-5 h-5 text-green-400" />
-                  </div>
-                  <div>
-                    <div className="text-2xl font-light text-white">
-                      {(stats?.strong_hires || 0) + (stats?.hires || 0)}
-                    </div>
-                    <div className="text-xs text-white/50 uppercase tracking-wider">Hire Ready</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="glass-panel rounded-2xl p-5">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5 text-cyan-400" />
-                  </div>
-                  <div>
-                    <div className="text-2xl font-light text-white">
-                      {stats?.hire_rate.toFixed(0) || 0}%
-                    </div>
-                    <div className="text-xs text-white/50 uppercase tracking-wider">Hire Rate</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Main Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Jobs */}
-              <div className="lg:col-span-2 glass-panel rounded-2xl p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-medium text-white flex items-center gap-2">
-                    <Briefcase className="w-5 h-5 text-white/60" />
-                    Jobs
-                  </h3>
-                  <Link
-                    href="/jobs"
-                    className="text-sm text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
-                  >
-                    View All
-                    <ChevronRight className="w-4 h-4" />
-                  </Link>
-                </div>
-
-                {jobs.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Briefcase className="w-12 h-12 text-white/20 mx-auto mb-4" />
-                    <p className="text-white/50 mb-4">No jobs yet</p>
-                    <button
-                      onClick={() => router.push("/jobs/new")}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-medium transition-colors"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Create Your First Job
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {jobs.map((job) => (
-                      <div
-                        key={job.id}
-                        onClick={() => router.push(`/jobs/${job.id}`)}
-                        className="flex items-center p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-colors cursor-pointer"
-                      >
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-medium text-white">{job.title}</h4>
-                            <span
-                              className={`text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider border ${getStatusColor(
-                                job.status
-                              )}`}
-                            >
-                              {job.status}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-4 text-sm text-white/50">
-                            <span className="flex items-center gap-1">
-                              <Users className="w-3.5 h-3.5" />
-                              {job.candidate_count} candidates
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <CheckCircle className="w-3.5 h-3.5" />
-                              {job.interviewed_count} interviewed
-                            </span>
-                          </div>
-                        </div>
-                        <ChevronRight className="w-5 h-5 text-white/30" />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Right Column */}
-              <div className="space-y-6">
-                {/* Upcoming Interviews */}
-                <UpcomingInterviews limit={5} showHeader={true} />
-
-                {/* Quick Actions */}
-                <div className="glass-panel rounded-2xl p-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-white/60">Interviewer Availability</span>
-                    <button
-                      onClick={() => router.push("/dashboard/availability")}
-                      className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-xs text-white/80 transition-colors"
-                    >
-                      <Settings className="w-3.5 h-3.5" />
-                      Manage
-                    </button>
-                  </div>
-                </div>
-
-                {/* Top Candidates */}
-                <div className="glass-panel rounded-2xl p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-medium text-white flex items-center gap-2">
-                      <Star className="w-5 h-5 text-yellow-400" />
-                      Top Candidates
-                    </h3>
-                  </div>
-
-                  {topCandidates.length === 0 ? (
-                    <p className="text-white/40 text-sm text-center py-4">
-                      No candidates evaluated yet
+                    <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">
+                      Welcome back, {currentRecruiter.name.split(" ")[0]}
+                    </h2>
+                    <p className="text-zinc-400">
+                      Here's an overview of your hiring pipeline
                     </p>
-                  ) : (
-                    <div className="space-y-3">
-                      {topCandidates.map((candidate) => (
-                        <div
-                          key={candidate.candidate_id}
-                          onClick={() => router.push(`/candidates/${candidate.candidate_id}`)}
-                          className="flex items-center gap-3 p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors cursor-pointer"
+                  </div>
+                  <Button
+                    onClick={() => router.push("/jobs/new")}
+                    leftIcon={<Plus className="w-4 h-4" />}
+                    size="lg"
+                  >
+                    Create New Job
+                  </Button>
+                </div>
+              </FadeInUp>
+
+              {/* Stats Grid */}
+              <FadeInUp delay={0.1}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                  {[
+                    {
+                      icon: Briefcase,
+                      value: stats?.active_jobs || 0,
+                      label: "Active Jobs",
+                      color: "indigo",
+                    },
+                    {
+                      icon: Users,
+                      value: stats?.total_candidates || 0,
+                      label: "Candidates",
+                      color: "purple",
+                    },
+                    {
+                      icon: Target,
+                      value: (stats?.strong_hires || 0) + (stats?.hires || 0),
+                      label: "Hire Ready",
+                      color: "emerald",
+                    },
+                    {
+                      icon: TrendingUp,
+                      value: `${stats?.hire_rate.toFixed(0) || 0}%`,
+                      label: "Hire Rate",
+                      color: "cyan",
+                    },
+                  ].map((stat) => (
+                    <motion.div
+                      key={stat.label}
+                      whileHover={{ y: -2 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                    >
+                      <Card padding="md" className="h-full">
+                        <div className="flex items-center gap-4">
+                          <div
+                            className={cn(
+                              "p-3 rounded-xl",
+                              stat.color === "indigo" && "bg-indigo-500/10",
+                              stat.color === "purple" && "bg-purple-500/10",
+                              stat.color === "emerald" && "bg-emerald-500/10",
+                              stat.color === "cyan" && "bg-cyan-500/10"
+                            )}
+                          >
+                            <stat.icon
+                              className={cn(
+                                "w-5 h-5",
+                                stat.color === "indigo" && "text-indigo-400",
+                                stat.color === "purple" && "text-purple-400",
+                                stat.color === "emerald" && "text-emerald-400",
+                                stat.color === "cyan" && "text-cyan-400"
+                              )}
+                            />
+                          </div>
+                          <div>
+                            <p className="text-3xl font-light text-white tracking-tight">
+                              {stat.value}
+                            </p>
+                            <p className="text-xs text-zinc-500 uppercase tracking-wider mt-0.5">
+                              {stat.label}
+                            </p>
+                          </div>
+                        </div>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </div>
+              </FadeInUp>
+
+              {/* Main Content Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Jobs Section */}
+                <FadeInUp delay={0.15} className="lg:col-span-2">
+                  <Card padding="lg">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-lg font-medium text-white flex items-center gap-2">
+                        <Briefcase className="w-5 h-5 text-zinc-500" />
+                        Jobs
+                      </h3>
+                      <Link
+                        href="/jobs"
+                        className="text-sm text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition-colors"
+                      >
+                        View All
+                        <ChevronRight className="w-4 h-4" />
+                      </Link>
+                    </div>
+
+                    {jobs.length === 0 ? (
+                      <div className="text-center py-12">
+                        <motion.div
+                          className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 flex items-center justify-center mx-auto mb-4 border border-white/5"
+                          animate={{ y: [0, -4, 0] }}
+                          transition={{ duration: 2, repeat: Infinity }}
                         >
-                          <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/60 text-sm">
-                            {candidate.candidate_name?.charAt(0).toUpperCase() || "?"}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium text-white text-sm truncate">
-                              {candidate.candidate_name || "Unknown"}
-                            </div>
-                            <div className="text-xs text-white/40 truncate">
-                              {candidate.job_title}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-lg font-light text-white">
-                              {candidate.score.toFixed(0)}
-                            </div>
-                            <div
-                              className={`text-[10px] px-2 py-0.5 rounded-full ${getRecommendationColor(
-                                candidate.recommendation
-                              )}`}
+                          <Briefcase className="w-8 h-8 text-indigo-400" />
+                        </motion.div>
+                        <p className="text-zinc-400 mb-4">No jobs yet</p>
+                        <Button
+                          onClick={() => router.push("/jobs/new")}
+                          leftIcon={<Plus className="w-4 h-4" />}
+                        >
+                          Create Your First Job
+                        </Button>
+                      </div>
+                    ) : (
+                      <Stagger className="space-y-3">
+                        {jobs.map((job) => (
+                          <StaggerItem key={job.id}>
+                            <motion.div
+                              onClick={() => router.push(`/jobs/${job.id}`)}
+                              className="flex items-center p-4 bg-white/[0.03] rounded-xl hover:bg-white/[0.06] transition-all cursor-pointer border border-white/[0.04] group"
+                              whileHover={{ x: 4 }}
+                              transition={{ type: "spring", stiffness: 400, damping: 25 }}
                             >
-                              {candidate.recommendation.replace("_", " ")}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-1">
+                                  <h4 className="font-medium text-white group-hover:text-indigo-300 transition-colors">
+                                    {job.title}
+                                  </h4>
+                                  <StatusBadge
+                                    status={job.status as "active" | "draft" | "paused" | "closed"}
+                                    size="sm"
+                                  />
+                                </div>
+                                <div className="flex items-center gap-4 text-sm text-zinc-500">
+                                  <span className="flex items-center gap-1.5">
+                                    <Users className="w-3.5 h-3.5" />
+                                    {job.candidate_count} candidates
+                                  </span>
+                                  <span className="flex items-center gap-1.5">
+                                    <CheckCircle className="w-3.5 h-3.5" />
+                                    {job.interviewed_count} interviewed
+                                  </span>
+                                </div>
+                              </div>
+                              <ChevronRight className="w-5 h-5 text-zinc-600 group-hover:text-zinc-400 transition-colors" />
+                            </motion.div>
+                          </StaggerItem>
+                        ))}
+                      </Stagger>
+                    )}
+                  </Card>
+                </FadeInUp>
 
-                {/* Recent Activity */}
-                <div className="glass-panel rounded-2xl p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-medium text-white flex items-center gap-2">
-                      <Clock className="w-5 h-5 text-white/60" />
-                      Recent Activity
+                {/* Right Column */}
+                <div className="space-y-6">
+                  {/* Upcoming Interviews */}
+                  <FadeInUp delay={0.2}>
+                    <UpcomingInterviews limit={5} showHeader={true} />
+                  </FadeInUp>
+
+                  {/* Quick Actions */}
+                  <FadeInUp delay={0.25}>
+                    <Card padding="md">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-zinc-400">
+                          Interviewer Availability
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => router.push("/dashboard/availability")}
+                          leftIcon={<Settings className="w-3.5 h-3.5" />}
+                        >
+                          Manage
+                        </Button>
+                      </div>
+                    </Card>
+                  </FadeInUp>
+
+                  {/* Top Candidates */}
+                  <FadeInUp delay={0.3}>
+                    <Card padding="lg">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-medium text-white flex items-center gap-2">
+                          <Star className="w-5 h-5 text-yellow-400" />
+                          Top Candidates
+                        </h3>
+                      </div>
+
+                      {topCandidates.length === 0 ? (
+                        <p className="text-zinc-500 text-sm text-center py-6">
+                          No candidates evaluated yet
+                        </p>
+                      ) : (
+                        <div className="space-y-3">
+                          {topCandidates.map((candidate) => (
+                            <motion.div
+                              key={candidate.candidate_id}
+                              onClick={() =>
+                                router.push(`/candidates/${candidate.candidate_id}`)
+                              }
+                              className="flex items-center gap-3 p-3 bg-white/[0.03] rounded-xl hover:bg-white/[0.06] transition-all cursor-pointer border border-white/[0.04] group"
+                              whileHover={{ x: 2 }}
+                            >
+                              <UserAvatar
+                                name={candidate.candidate_name || "?"}
+                                size="sm"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium text-white text-sm truncate group-hover:text-indigo-300 transition-colors">
+                                  {candidate.candidate_name || "Unknown"}
+                                </div>
+                                <div className="text-xs text-zinc-500 truncate">
+                                  {candidate.job_title}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-lg font-light text-white">
+                                  {candidate.score.toFixed(0)}
+                                </div>
+                                <StatusBadge
+                                  status={
+                                    candidate.recommendation === "strong_hire"
+                                      ? "active"
+                                      : candidate.recommendation === "hire"
+                                      ? "active"
+                                      : candidate.recommendation === "maybe"
+                                      ? "paused"
+                                      : "closed"
+                                  }
+                                  size="sm"
+                                />
+                              </div>
+                            </motion.div>
+                          ))}
+                        </div>
+                      )}
+                    </Card>
+                  </FadeInUp>
+
+                  {/* Recent Activity */}
+                  <FadeInUp delay={0.35}>
+                    <Card padding="lg">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-medium text-white flex items-center gap-2">
+                          <Clock className="w-5 h-5 text-zinc-500" />
+                          Recent Activity
+                        </h3>
+                      </div>
+
+                      {activities.length === 0 ? (
+                        <p className="text-zinc-500 text-sm text-center py-6">
+                          No recent activity
+                        </p>
+                      ) : (
+                        <div className="space-y-4">
+                          {activities.map((activity, i) => (
+                            <motion.div
+                              key={i}
+                              className="flex items-start gap-3 text-sm"
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: i * 0.05 }}
+                            >
+                              <div className="w-2 h-2 rounded-full bg-indigo-400 mt-1.5 shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-zinc-300">
+                                  <span className="font-medium text-white">
+                                    {activity.candidate_name}
+                                  </span>{" "}
+                                  interviewed for{" "}
+                                  <span className="text-indigo-300">
+                                    {activity.job_title}
+                                  </span>
+                                </p>
+                                <p className="text-xs text-zinc-600 mt-0.5">
+                                  {new Date(activity.timestamp).toLocaleDateString()}
+                                </p>
+                              </div>
+                              {activity.score && (
+                                <div className="text-zinc-400 font-medium">
+                                  {activity.score.toFixed(0)}
+                                </div>
+                              )}
+                            </motion.div>
+                          ))}
+                        </div>
+                      )}
+                    </Card>
+                  </FadeInUp>
+                </div>
+              </div>
+
+              {/* Performance Summary */}
+              {stats && (
+                <FadeInUp delay={0.4}>
+                  <Card padding="lg" className="mt-8">
+                    <h3 className="text-lg font-medium text-white mb-6">
+                      Performance Summary
                     </h3>
-                  </div>
-
-                  {activities.length === 0 ? (
-                    <p className="text-white/40 text-sm text-center py-4">No recent activity</p>
-                  ) : (
-                    <div className="space-y-3">
-                      {activities.map((activity, i) => (
-                        <div key={i} className="flex items-start gap-3 text-sm">
-                          <div className="w-2 h-2 rounded-full bg-indigo-400 mt-1.5" />
-                          <div className="flex-1">
-                            <p className="text-white/80">
-                              <span className="font-medium text-white">
-                                {activity.candidate_name}
-                              </span>{" "}
-                              interviewed for{" "}
-                              <span className="text-indigo-300">{activity.job_title}</span>
-                            </p>
-                            <p className="text-xs text-white/40">
-                              {new Date(activity.timestamp).toLocaleDateString()}
-                            </p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                      {[
+                        { value: stats.total_jobs, label: "Total Jobs" },
+                        { value: stats.total_candidates, label: "Total Candidates" },
+                        { value: stats.interviewed_candidates, label: "Interviewed" },
+                        {
+                          value: stats.strong_hires,
+                          label: "Strong Hires",
+                          color: "emerald",
+                        },
+                        { value: stats.avg_candidate_score.toFixed(0), label: "Avg Score" },
+                        {
+                          value: `${stats.hire_rate.toFixed(0)}%`,
+                          label: "Hire Rate",
+                          color: "cyan",
+                        },
+                      ].map((item, index) => (
+                        <motion.div
+                          key={item.label}
+                          className="text-center"
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.5 + index * 0.05 }}
+                        >
+                          <div
+                            className={cn(
+                              "text-3xl font-light tracking-tight",
+                              item.color === "emerald"
+                                ? "text-emerald-400"
+                                : item.color === "cyan"
+                                ? "text-cyan-400"
+                                : "text-white"
+                            )}
+                          >
+                            {item.value}
                           </div>
-                          {activity.score && (
-                            <div className="text-white/60">{activity.score.toFixed(0)}</div>
-                          )}
-                        </div>
+                          <div className="text-xs text-zinc-500 uppercase tracking-wider mt-1">
+                            {item.label}
+                          </div>
+                        </motion.div>
                       ))}
                     </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Performance Summary */}
-            {stats && (
-              <div className="mt-8 glass-panel rounded-2xl p-6">
-                <h3 className="text-lg font-medium text-white mb-6">Performance Summary</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                  <div className="text-center">
-                    <div className="text-3xl font-light text-white">{stats.total_jobs}</div>
-                    <div className="text-xs text-white/50 uppercase tracking-wider">Total Jobs</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-light text-white">{stats.total_candidates}</div>
-                    <div className="text-xs text-white/50 uppercase tracking-wider">
-                      Total Candidates
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-light text-white">
-                      {stats.interviewed_candidates}
-                    </div>
-                    <div className="text-xs text-white/50 uppercase tracking-wider">Interviewed</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-light text-green-400">{stats.strong_hires}</div>
-                    <div className="text-xs text-white/50 uppercase tracking-wider">Strong Hires</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-light text-white">
-                      {stats.avg_candidate_score.toFixed(0)}
-                    </div>
-                    <div className="text-xs text-white/50 uppercase tracking-wider">Avg Score</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-light text-cyan-400">
-                      {stats.hire_rate.toFixed(0)}%
-                    </div>
-                    <div className="text-xs text-white/50 uppercase tracking-wider">Hire Rate</div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </>
-        )}
+                  </Card>
+                </FadeInUp>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </AppLayout>
   );
