@@ -1,74 +1,89 @@
 /**
- * BRIEFING ROOM DESIGN SYSTEM
- * ===========================
- * Inspired by Apple's Dark Mode - Luminous, not gloomy
+ * BRIEFING ROOM DESIGN SYSTEM - VIBRANT LIGHT THEME
+ * ==================================================
+ * A bright, energetic theme for modern recruiting
  *
  * Key principles:
- * 1. Depth through subtle elevation, not harsh borders
- * 2. Color as accent, not decoration
- * 3. White space is a feature, not wasted space
- * 4. Motion should feel natural and purposeful
+ * 1. Vibrant & Energetic - exciting, not clinical
+ * 2. Electric Blue primary - modern, tech-forward
+ * 3. Vibrant Coral accent - energetic CTAs
+ * 4. High contrast text - always readable
+ * 5. Bold gradients - premium, standout UI
  */
 
 // =============================================================================
-// COLOR PALETTE
+// COLOR PALETTE - VIBRANT & ENERGETIC
 // =============================================================================
-// Moving from pure black (#000) to rich, warm darks with subtle color undertones
 
 export const colors = {
-  // Background layers - from deepest to surface
+  // Background layers - clean with subtle warmth
   background: {
-    base: "#09090b",        // Zinc-950 - rich black, not pure black
-    elevated: "#18181b",    // Zinc-900 - card surfaces
-    hover: "#27272a",       // Zinc-800 - interactive states
-    active: "#3f3f46",      // Zinc-700 - pressed states
+    base: "#fafbff",        // Slight blue tint - modern feel
+    elevated: "#ffffff",     // Pure white - card surfaces
+    hover: "#f0f4ff",       // Light blue tint on hover
+    active: "#e8efff",      // Pressed states
+    subtle: "#f8fafc",      // Off-white for subtle sections
   },
 
-  // Foreground / Text
+  // Foreground / Text - HIGH CONTRAST
   foreground: {
-    primary: "#fafafa",     // Zinc-50 - primary text
-    secondary: "#a1a1aa",   // Zinc-400 - secondary text
-    muted: "#71717a",       // Zinc-500 - disabled/placeholder
-    inverse: "#09090b",     // For light backgrounds
+    primary: "#1e1b4b",     // Deep indigo - rich, readable
+    secondary: "#4338ca",   // Indigo-600 - secondary text with color
+    muted: "#6366f1",       // Indigo-500 - softer but visible
+    inverse: "#ffffff",     // For dark backgrounds
   },
 
-  // Border colors - subtle, not harsh
+  // Border colors - visible but not harsh
   border: {
-    default: "#27272a",     // Zinc-800
-    subtle: "#18181b",      // Zinc-900
-    focus: "#6366f1",       // Indigo-500
+    default: "#c7d2fe",     // Indigo-200 - visible borders
+    subtle: "#e0e7ff",      // Indigo-100
+    focus: "#6366f1",       // Indigo-500 - focus rings
   },
 
-  // Primary brand color - Indigo with vibrance
+  // Primary brand color - Electric Indigo (modern, tech-forward)
   primary: {
     50: "#eef2ff",
     100: "#e0e7ff",
     200: "#c7d2fe",
     300: "#a5b4fc",
     400: "#818cf8",
-    500: "#6366f1",         // Main brand color
-    600: "#4f46e5",
+    500: "#6366f1",         // Main brand color - VIBRANT
+    600: "#4f46e5",         // Primary button - BOLD
     700: "#4338ca",
     800: "#3730a3",
     900: "#312e81",
     950: "#1e1b4b",
   },
 
-  // Accent - Electric cyan for highlights
+  // Accent - Hot Coral/Pink (energetic, exciting)
   accent: {
-    50: "#ecfeff",
-    100: "#cffafe",
-    200: "#a5f3fc",
-    300: "#67e8f9",
-    400: "#22d3ee",
-    500: "#06b6d4",         // Main accent
-    600: "#0891b2",
-    700: "#0e7490",
-    800: "#155e75",
-    900: "#164e63",
+    50: "#fff1f2",
+    100: "#ffe4e6",
+    200: "#fecdd3",
+    300: "#fda4af",
+    400: "#fb7185",
+    500: "#f43f5e",         // Main accent - VIBRANT ROSE
+    600: "#e11d48",         // Accent button - BOLD
+    700: "#be123c",
+    800: "#9f1239",
+    900: "#881337",
   },
 
-  // Semantic colors
+  // Secondary accent - Vibrant Teal
+  teal: {
+    50: "#f0fdfa",
+    100: "#ccfbf1",
+    200: "#99f6e4",
+    300: "#5eead4",
+    400: "#2dd4bf",
+    500: "#14b8a6",
+    600: "#0d9488",
+    700: "#0f766e",
+    800: "#115e59",
+    900: "#134e4a",
+  },
+
+  // Semantic colors - BRIGHT & CLEAR
   success: {
     light: "#4ade80",
     default: "#22c55e",
@@ -85,12 +100,12 @@ export const colors = {
     dark: "#dc2626",
   },
 
-  // Glow effects - for that premium luminous feel
+  // Glow effects - VIBRANT
   glow: {
-    primary: "rgba(99, 102, 241, 0.5)",
-    accent: "rgba(6, 182, 212, 0.5)",
-    success: "rgba(34, 197, 94, 0.5)",
-    white: "rgba(255, 255, 255, 0.1)",
+    primary: "rgba(99, 102, 241, 0.5)",      // Indigo glow
+    accent: "rgba(244, 63, 94, 0.4)",        // Rose glow
+    teal: "rgba(20, 184, 166, 0.4)",         // Teal glow
+    soft: "rgba(99, 102, 241, 0.15)",
   },
 } as const;
 
@@ -115,6 +130,7 @@ export const typography = {
     "4xl": ["2.25rem", { lineHeight: "2.5rem" }],
     "5xl": ["3rem", { lineHeight: "1.16" }],
     "6xl": ["3.75rem", { lineHeight: "1.1" }],
+    "7xl": ["4.5rem", { lineHeight: "1.05" }],
   },
 
   fontWeight: {
@@ -123,6 +139,7 @@ export const typography = {
     medium: "500",
     semibold: "600",
     bold: "700",
+    extrabold: "800",
   },
 
   letterSpacing: {
@@ -193,7 +210,7 @@ export const borderRadius = {
 } as const;
 
 // =============================================================================
-// SHADOWS - Layered for depth
+// SHADOWS - Bold and visible
 // =============================================================================
 
 export const shadows = {
@@ -206,17 +223,17 @@ export const shadows = {
   "2xl": "0 25px 50px -12px rgb(0 0 0 / 0.25)",
   inner: "inset 0 2px 4px 0 rgb(0 0 0 / 0.05)",
 
-  // Premium glow shadows
+  // Vibrant glow shadows
   glow: {
-    sm: "0 0 10px -3px var(--glow-color, rgba(99, 102, 241, 0.5))",
-    md: "0 0 20px -5px var(--glow-color, rgba(99, 102, 241, 0.5))",
-    lg: "0 0 30px -5px var(--glow-color, rgba(99, 102, 241, 0.5))",
-    xl: "0 0 50px -10px var(--glow-color, rgba(99, 102, 241, 0.5))",
+    sm: "0 0 15px -3px var(--glow-color, rgba(99, 102, 241, 0.5))",
+    md: "0 0 25px -5px var(--glow-color, rgba(99, 102, 241, 0.5))",
+    lg: "0 0 40px -5px var(--glow-color, rgba(99, 102, 241, 0.5))",
+    xl: "0 0 60px -10px var(--glow-color, rgba(99, 102, 241, 0.5))",
   },
 
-  // Card elevation
-  card: "0 0 0 1px rgba(255, 255, 255, 0.05), 0 4px 24px -4px rgba(0, 0, 0, 0.5)",
-  cardHover: "0 0 0 1px rgba(255, 255, 255, 0.1), 0 8px 32px -4px rgba(0, 0, 0, 0.6)",
+  // Card elevation - visible depth
+  card: "0 2px 8px rgba(99, 102, 241, 0.08), 0 4px 16px rgba(0, 0, 0, 0.06)",
+  cardHover: "0 8px 24px rgba(99, 102, 241, 0.15), 0 16px 40px rgba(0, 0, 0, 0.1)",
 } as const;
 
 // =============================================================================

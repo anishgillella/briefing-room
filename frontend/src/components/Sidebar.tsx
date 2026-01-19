@@ -126,20 +126,20 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
       initial={false}
       animate={{ width: isCollapsed ? 72 : 260 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="fixed top-0 left-0 h-full bg-[#0a0a0f]/95 backdrop-blur-xl border-r border-white/[0.06] z-40 flex flex-col"
+      className="fixed top-0 left-0 h-full bg-white/80 backdrop-blur-xl border-r border-slate-200 z-40 flex flex-col shadow-sm"
     >
       {/* Logo */}
-      <div className="h-16 flex items-center px-4 border-b border-white/[0.06]">
+      <div className="h-16 flex items-center px-4 border-b border-slate-100">
         <Link
           href="/dashboard"
           className="flex items-center gap-3 group"
         >
           <motion.div
-            className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center border border-white/10 shrink-0"
+            className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 shrink-0"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <Sparkles className="w-5 h-5 text-indigo-400" />
+            <Sparkles className="w-5 h-5 text-white" />
           </motion.div>
           <AnimatePresence mode="wait">
             {!isCollapsed && (
@@ -148,7 +148,7 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}
                 transition={{ duration: 0.15 }}
-                className="text-base font-semibold text-white tracking-tight whitespace-nowrap"
+                className="text-base font-semibold text-slate-900 tracking-tight whitespace-nowrap"
               >
                 Briefing Room
               </motion.span>
@@ -173,12 +173,12 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
                   backgroundColor: active
                     ? "rgba(99, 102, 241, 0.1)"
                     : isHovered
-                    ? "rgba(255, 255, 255, 0.05)"
+                    ? "rgba(0, 0, 0, 0.03)"
                     : "transparent",
                 }}
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors relative overflow-hidden",
-                  active ? "text-white" : "text-zinc-400"
+                  active ? "text-slate-900" : "text-slate-500"
                 )}
                 onHoverStart={() => setHoveredItem(item.href)}
                 onHoverEnd={() => setHoveredItem(null)}
@@ -196,7 +196,7 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
                 <motion.span
                   className={cn(
                     "shrink-0 relative z-10",
-                    active ? "text-indigo-400" : "text-zinc-500"
+                    active ? "text-indigo-600" : "text-slate-400"
                   )}
                   animate={{ scale: isHovered && !active ? 1.1 : 1 }}
                   transition={{ type: "spring", stiffness: 400, damping: 17 }}
@@ -219,15 +219,6 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
                   )}
                 </AnimatePresence>
 
-                {/* Expand arrow for items with children */}
-                {hasChildren && !isCollapsed && (
-                  <motion.span
-                    animate={{ rotate: isExpanded ? 180 : 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <ChevronDown className="w-4 h-4 text-zinc-500" />
-                  </motion.span>
-                )}
               </motion.div>
             );
 
@@ -242,23 +233,35 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
                   <>
                     {isCollapsed ? (
                       <SimpleTooltip content={item.label} side="right">
-                        <button
-                          onClick={() => {
+                        <Link
+                          href={item.href}
+                          onClick={(e) => {
+                            e.preventDefault();
                             setIsCollapsed(false);
                             setExpandedItems([item.href]);
                           }}
-                          className="w-full"
+                          className="w-full block"
                         >
                           {NavContent}
-                        </button>
+                        </Link>
                       </SimpleTooltip>
                     ) : (
-                      <button
-                        onClick={() => toggleExpanded(item.href)}
-                        className="w-full"
-                      >
-                        {NavContent}
-                      </button>
+                      <div className="flex items-center">
+                        <Link href={item.href} className="flex-1 block">
+                          {NavContent}
+                        </Link>
+                        <button
+                          onClick={() => toggleExpanded(item.href)}
+                          className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
+                        >
+                          <motion.span
+                            animate={{ rotate: isExpanded ? 180 : 0 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <ChevronDown className="w-4 h-4 text-slate-400" />
+                          </motion.span>
+                        </button>
+                      </div>
                     )}
 
                     {/* Children */}
@@ -269,7 +272,7 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
                           animate={{ opacity: 1, height: "auto" }}
                           exit={{ opacity: 0, height: 0 }}
                           transition={{ duration: 0.2 }}
-                          className="mt-1 ml-4 pl-4 border-l border-zinc-800 space-y-1 overflow-hidden"
+                          className="mt-1 ml-4 pl-4 border-l border-slate-200 space-y-1 overflow-hidden"
                         >
                           {item.children.map((child, childIndex) => {
                             const childActive = pathname === child.href;
@@ -285,14 +288,14 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
                                   className={cn(
                                     "flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-sm group",
                                     childActive
-                                      ? "bg-indigo-500/10 text-indigo-300"
-                                      : "text-zinc-500 hover:text-white hover:bg-white/5"
+                                      ? "bg-indigo-50 text-indigo-700"
+                                      : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
                                   )}
                                 >
                                   <span
                                     className={cn(
                                       "transition-transform group-hover:scale-110",
-                                      childActive ? "text-indigo-400" : ""
+                                      childActive ? "text-indigo-600" : ""
                                     )}
                                   >
                                     {child.icon}
@@ -324,17 +327,17 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
       </nav>
 
       {/* User Section & Toggle */}
-      <div className="border-t border-white/[0.06] p-3 space-y-2">
+      <div className="border-t border-slate-100 p-3 space-y-2">
         {/* User Info */}
         {recruiter && (
           <motion.div
             className={cn(
-              "flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.04]",
+              "flex items-center gap-3 px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-100",
               isCollapsed ? "justify-center" : ""
             )}
-            whileHover={{ backgroundColor: "rgba(255, 255, 255, 0.06)" }}
+            whileHover={{ backgroundColor: "rgba(241, 245, 249, 1)" }}
           >
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold shrink-0 shadow-lg shadow-indigo-500/20">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white text-sm font-semibold shrink-0 shadow-lg shadow-indigo-500/30">
               {recruiter.name?.charAt(0).toUpperCase() || "U"}
             </div>
             <AnimatePresence mode="wait">
@@ -345,10 +348,10 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
                   exit={{ opacity: 0, x: -10 }}
                   className="flex-1 min-w-0"
                 >
-                  <p className="text-sm font-medium text-white truncate">
+                  <p className="text-sm font-medium text-slate-900 truncate">
                     {recruiter.name}
                   </p>
-                  <p className="text-xs text-zinc-500 truncate">
+                  <p className="text-xs text-slate-500 truncate">
                     {recruiter.email}
                   </p>
                 </motion.div>
@@ -362,7 +365,7 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
           <SimpleTooltip content="Sign out" side="right">
             <motion.button
               onClick={logout}
-              className="w-full flex items-center justify-center gap-3 px-3 py-2.5 rounded-xl text-zinc-500 hover:text-white hover:bg-white/5 transition-all"
+              className="w-full flex items-center justify-center gap-3 px-3 py-2.5 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -372,7 +375,7 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
         ) : (
           <motion.button
             onClick={logout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-500 hover:text-white hover:bg-white/5 transition-all"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all"
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
           >
@@ -385,7 +388,7 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
         <motion.button
           onClick={() => setIsCollapsed(!isCollapsed)}
           className={cn(
-            "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-600 hover:text-zinc-400 hover:bg-white/5 transition-all",
+            "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all",
             isCollapsed ? "justify-center" : ""
           )}
           whileHover={{ scale: 1.01 }}
