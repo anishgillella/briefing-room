@@ -69,12 +69,16 @@ const colors = {
   accentRed: "#EF4444",
 };
 
-// Spring configurations for smooth interactions
+// Spring configurations for smooth interactions (faster, snappier responses)
 const springs = {
-  stiff: { stiffness: 260, damping: 20 },
-  soft: { stiffness: 200, damping: 25 },
-  snappy: { stiffness: 400, damping: 30 },
+  stiff: { stiffness: 300, damping: 22 },      // Faster card lifts
+  soft: { stiffness: 220, damping: 20 },       // Smoother but still responsive
+  snappy: { stiffness: 450, damping: 25 },     // Very quick micro-interactions
+  bounce: { stiffness: 350, damping: 18 },     // Slight bounce for CTAs
 };
+
+// Hover transition duration (150-220ms as per spec)
+const hoverDuration = 0.15;
 
 // =============================================================================
 // ANIMATION VARIANTS
@@ -99,7 +103,7 @@ const staggerItem = {
 // GLASS NAVBAR
 // =============================================================================
 
-// Animated nav link with sliding underline
+// Animated nav link with sliding underline - faster, more responsive
 function AnimatedNavLink({ href, children }: { href: string; children: React.ReactNode }) {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -107,17 +111,29 @@ function AnimatedNavLink({ href, children }: { href: string; children: React.Rea
     <Link
       href={href}
       className="relative text-sm font-medium py-1"
-      style={{ color: isHovered ? colors.titleText : colors.mutedText }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {children}
+      <motion.span
+        style={{ color: colors.mutedText }}
+        animate={{
+          color: isHovered ? colors.titleText : colors.mutedText,
+          textShadow: isHovered ? `0 0 20px ${colors.primary}30` : "none",
+        }}
+        transition={{ duration: hoverDuration }}
+      >
+        {children}
+      </motion.span>
       <motion.span
         className="absolute left-0 -bottom-0.5 h-px"
-        style={{ background: colors.primary }}
-        initial={{ width: 0 }}
-        animate={{ width: isHovered ? "100%" : 0 }}
-        transition={{ duration: 0.2, ease: "easeOut" }}
+        style={{ background: `linear-gradient(90deg, ${colors.primary}, ${colors.accentCyan})` }}
+        initial={{ width: 0, opacity: 0 }}
+        animate={{
+          width: isHovered ? "100%" : 0,
+          opacity: isHovered ? 1 : 0,
+          boxShadow: isHovered ? `0 0 8px ${colors.primary}60` : "none",
+        }}
+        transition={{ duration: hoverDuration, ease: "easeOut" }}
       />
     </Link>
   );
@@ -145,32 +161,51 @@ function GlassNavbar() {
       <motion.nav
         className="max-w-[1440px] mx-auto rounded-2xl px-6 py-3"
         style={{
-          background: scrolled || navHovered ? "rgba(12, 17, 32, 0.85)" : "rgba(12, 17, 32, 0.55)",
-          backdropFilter: scrolled || navHovered ? "blur(24px)" : "blur(20px)",
-          border: `1px solid ${navHovered ? colors.cardBorderHover : colors.cardBorder}`,
-          boxShadow: scrolled ? "0 8px 32px rgba(0, 0, 0, 0.3)" : "none",
+          background: scrolled || navHovered ? "rgba(12, 17, 32, 0.88)" : "rgba(12, 17, 32, 0.55)",
+          backdropFilter: scrolled || navHovered ? "blur(28px)" : "blur(20px)",
+          border: `1px solid ${colors.cardBorder}`,
         }}
         onMouseEnter={() => setNavHovered(true)}
         onMouseLeave={() => setNavHovered(false)}
         animate={{
           borderColor: navHovered ? colors.cardBorderHover : colors.cardBorder,
+          boxShadow: scrolled
+            ? "0 8px 32px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.05)"
+            : navHovered
+            ? "0 4px 20px rgba(0, 0, 0, 0.2)"
+            : "none",
         }}
-        transition={{ duration: 0.2 }}
+        transition={{ duration: hoverDuration }}
       >
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 group">
             <motion.div
-              className="w-9 h-9 rounded-xl flex items-center justify-center"
+              className="w-9 h-9 rounded-xl flex items-center justify-center relative overflow-hidden"
               style={{ background: colors.primary }}
-              whileHover={{ scale: 1.05, boxShadow: `0 0 20px ${colors.primary}50` }}
-              transition={springs.snappy}
+              whileHover={{
+                scale: 1.08,
+                boxShadow: `0 0 25px ${colors.primary}60, 0 0 50px ${colors.primary}30`,
+              }}
+              whileTap={{ scale: 0.95 }}
+              transition={springs.bounce}
             >
-              <Sparkles className="w-5 h-5 text-white" />
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent"
+                initial={{ x: "-100%", y: "-100%" }}
+                whileHover={{ x: "100%", y: "100%" }}
+                transition={{ duration: 0.4 }}
+              />
+              <Sparkles className="w-5 h-5 text-white relative z-10" />
             </motion.div>
-            <span className="text-lg font-semibold group-hover:text-white transition-colors" style={{ color: colors.titleText }}>
+            <motion.span
+              className="text-lg font-semibold"
+              style={{ color: colors.titleText }}
+              whileHover={{ color: "#ffffff", textShadow: `0 0 15px ${colors.primary}40` }}
+              transition={{ duration: hoverDuration }}
+            >
               Hirely
-            </span>
+            </motion.span>
           </Link>
 
           {/* Nav Links - Desktop */}
@@ -191,9 +226,12 @@ function GlassNavbar() {
               <span className="hidden sm:inline">Sign In</span>
             </AnimatedNavLink>
             <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              transition={springs.snappy}
+              whileHover={{
+                scale: 1.04,
+                y: -2,
+              }}
+              whileTap={{ scale: 0.96 }}
+              transition={springs.bounce}
             >
               <Link
                 href="/auth?tab=signup"
@@ -204,10 +242,17 @@ function GlassNavbar() {
                 }}
               >
                 <motion.span
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
                   initial={{ x: "-100%" }}
                   whileHover={{ x: "100%" }}
-                  transition={{ duration: 0.5 }}
+                  transition={{ duration: 0.35 }}
+                />
+                <motion.span
+                  className="absolute inset-0 rounded-xl"
+                  whileHover={{
+                    boxShadow: `0 0 30px ${colors.primary}50, inset 0 0 20px rgba(255,255,255,0.1)`,
+                  }}
+                  transition={{ duration: hoverDuration }}
                 />
                 <span className="relative z-10">Get Started Free</span>
               </Link>
@@ -220,27 +265,33 @@ function GlassNavbar() {
 }
 
 // =============================================================================
-// TILT CARD WRAPPER (For Hero Preview)
+// TILT CARD WRAPPER (For Hero Preview) - Enhanced with more pronounced tilt
 // =============================================================================
 
 interface TiltCardWrapperProps {
   children: React.ReactNode;
   className?: string;
   tiltMaxAngle?: number;
+  onHoverChange?: (isHovered: boolean) => void;
 }
 
-function TiltCardWrapper({ children, className = "", tiltMaxAngle = 6 }: TiltCardWrapperProps) {
+function TiltCardWrapper({ children, className = "", tiltMaxAngle = 10, onHoverChange }: TiltCardWrapperProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
 
   const x = useMotionValue(0);
   const y = useMotionValue(0);
 
-  const rotateX = useSpring(useTransform(y, [-0.5, 0.5], [tiltMaxAngle, -tiltMaxAngle]), springs.soft);
-  const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-tiltMaxAngle, tiltMaxAngle]), springs.soft);
+  // More responsive spring for tilt
+  const tiltSpring = { stiffness: 350, damping: 25 };
+  const rotateX = useSpring(useTransform(y, [-0.5, 0.5], [tiltMaxAngle, -tiltMaxAngle]), tiltSpring);
+  const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-tiltMaxAngle, tiltMaxAngle]), tiltSpring);
 
-  const glowX = useSpring(useTransform(x, [-0.5, 0.5], [0, 100]), springs.soft);
-  const glowY = useSpring(useTransform(y, [-0.5, 0.5], [0, 100]), springs.soft);
+  const glowX = useSpring(useTransform(x, [-0.5, 0.5], [0, 100]), tiltSpring);
+  const glowY = useSpring(useTransform(y, [-0.5, 0.5], [0, 100]), tiltSpring);
+
+  // Scale on hover
+  const scale = useSpring(1, { stiffness: 300, damping: 22 });
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!ref.current) return;
@@ -251,10 +302,18 @@ function TiltCardWrapper({ children, className = "", tiltMaxAngle = 6 }: TiltCar
     y.set(normalizedY);
   };
 
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+    scale.set(1.02);
+    onHoverChange?.(true);
+  };
+
   const handleMouseLeave = () => {
     setIsHovered(false);
     x.set(0);
     y.set(0);
+    scale.set(1);
+    onHoverChange?.(false);
   };
 
   return (
@@ -262,33 +321,44 @@ function TiltCardWrapper({ children, className = "", tiltMaxAngle = 6 }: TiltCar
       ref={ref}
       className={`relative ${className}`}
       style={{
-        perspective: 1000,
+        perspective: 1200,
         transformStyle: "preserve-3d",
       }}
       onMouseMove={handleMouseMove}
-      onMouseEnter={() => setIsHovered(true)}
+      onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       <motion.div
         style={{
           rotateX,
           rotateY,
+          scale,
           transformStyle: "preserve-3d",
         }}
         className="relative"
       >
-        {/* Glow that follows cursor */}
+        {/* Glow that follows cursor - more intense */}
         <motion.div
-          className="absolute inset-0 rounded-[20px] pointer-events-none"
+          className="absolute inset-0 rounded-[20px] pointer-events-none z-10"
           style={{
             background: useTransform(
               [glowX, glowY],
               ([gx, gy]) =>
-                `radial-gradient(circle at ${gx}% ${gy}%, rgba(79, 124, 255, 0.15), transparent 50%)`
+                `radial-gradient(circle at ${gx}% ${gy}%, rgba(79, 124, 255, 0.22), transparent 55%)`
             ),
             opacity: isHovered ? 1 : 0,
           }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: hoverDuration }}
+        />
+        {/* Edge highlight on hover */}
+        <motion.div
+          className="absolute inset-0 rounded-[20px] pointer-events-none"
+          animate={{
+            boxShadow: isHovered
+              ? `0 0 50px rgba(79, 124, 255, 0.25), inset 0 0 40px rgba(79, 124, 255, 0.08)`
+              : "none",
+          }}
+          transition={{ duration: hoverDuration }}
         />
         {children}
       </motion.div>
@@ -297,12 +367,46 @@ function TiltCardWrapper({ children, className = "", tiltMaxAngle = 6 }: TiltCar
 }
 
 // =============================================================================
-// PIPELINE PREVIEW CARD (Animated)
+// PIPELINE PREVIEW CARD (Animated) - Enhanced with hover states & score tick-up
 // =============================================================================
 
-function PipelinePreviewCard() {
+// Animated counter for score tick-up effect
+function AnimatedScore({ value, delay = 0 }: { value: number; delay?: number }) {
+  const [displayValue, setDisplayValue] = useState(0);
+  const [hasAnimated, setHasAnimated] = useState(false);
+
+  useEffect(() => {
+    if (hasAnimated) return;
+    const timer = setTimeout(() => {
+      setHasAnimated(true);
+      const duration = 800;
+      const startTime = Date.now();
+      const startValue = Math.max(0, value - 15); // Start from value - 15
+
+      const animate = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        // Ease out cubic
+        const eased = 1 - Math.pow(1 - progress, 3);
+        setDisplayValue(Math.round(startValue + (value - startValue) * eased));
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        }
+      };
+      animate();
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [value, delay, hasAnimated]);
+
+  return <span>{displayValue}</span>;
+}
+
+function PipelinePreviewCard({ isParentHovered = false }: { isParentHovered?: boolean }) {
   const [activeStage, setActiveStage] = useState(3);
   const [showChip, setShowChip] = useState(false);
+  const [hoveredCandidate, setHoveredCandidate] = useState<number | null>(null);
 
   const stages = [
     { name: "Job Profile", icon: Briefcase },
@@ -319,15 +423,16 @@ function PipelinePreviewCard() {
     { name: "Priya K.", score: 85, signal: "Strong", signalColor: colors.accentGreen },
   ];
 
-  // Animate pipeline progression
+  // Animate pipeline progression - slower on parent hover (focus effect)
   useEffect(() => {
+    const intervalDuration = isParentHovered ? 6000 : 4000; // Slow down on hover
     const interval = setInterval(() => {
       setActiveStage((prev) => (prev + 1) % stages.length);
       setShowChip(true);
       setTimeout(() => setShowChip(false), 2000);
-    }, 4000);
+    }, intervalDuration);
     return () => clearInterval(interval);
-  }, [stages.length]);
+  }, [stages.length, isParentHovered]);
 
   return (
     <motion.div
@@ -336,10 +441,14 @@ function PipelinePreviewCard() {
       transition={{ type: "spring", stiffness: 200, damping: 25, delay: 0.4 }}
       className="relative"
     >
-      {/* Floating animation */}
+      {/* Floating animation - slower on parent hover */}
       <motion.div
         animate={{ y: [0, -8, 0] }}
-        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        transition={{
+          duration: isParentHovered ? 6 : 4, // Slower float on hover
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
         className="rounded-[20px] p-6 relative overflow-hidden"
         style={{
           background: colors.cardBg,
@@ -347,42 +456,59 @@ function PipelinePreviewCard() {
           boxShadow: "0 30px 90px rgba(0, 0, 0, 0.45)",
         }}
       >
-        {/* Inner highlight */}
-        <div
+        {/* Inner highlight - enhanced on parent hover */}
+        <motion.div
           className="absolute top-0 left-4 right-4 h-px"
-          style={{
-            background: `linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)`,
+          animate={{
+            opacity: isParentHovered ? 1 : 0.6,
           }}
+          style={{
+            background: `linear-gradient(90deg, transparent, rgba(255,255,255,${isParentHovered ? 0.2 : 0.1}), transparent)`,
+          }}
+          transition={{ duration: hoverDuration }}
         />
 
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
-            <span
+            <motion.span
               className="px-3 py-1 rounded-full text-xs font-medium"
               style={{ background: "rgba(79, 124, 255, 0.15)", color: colors.primary }}
+              whileHover={{ scale: 1.05, boxShadow: `0 0 15px ${colors.primary}30` }}
+              transition={{ duration: hoverDuration }}
             >
               Role: Founding Engineer
-            </span>
-            <span
+            </motion.span>
+            <motion.span
               className="px-3 py-1 rounded-full text-xs font-medium"
               style={{ background: "rgba(56, 189, 248, 0.15)", color: colors.accentCyan }}
+              animate={{ boxShadow: isParentHovered ? `0 0 12px ${colors.accentCyan}25` : "none" }}
+              transition={{ duration: hoverDuration }}
             >
               Stage: {stages[activeStage].name}
-            </span>
+            </motion.span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <div
-              className="w-2 h-2 rounded-full animate-pulse"
+          <motion.div
+            className="flex items-center gap-1.5"
+            animate={{ scale: isParentHovered ? 1.05 : 1 }}
+            transition={{ duration: hoverDuration }}
+          >
+            <motion.div
+              className="w-2 h-2 rounded-full"
               style={{ background: colors.accentAmber }}
+              animate={{
+                scale: [1, 1.3, 1],
+                opacity: [1, 0.7, 1],
+              }}
+              transition={{ duration: 1.5, repeat: Infinity }}
             />
             <span className="text-xs font-medium" style={{ color: colors.accentAmber }}>
               LIVE
             </span>
-          </div>
+          </motion.div>
         </div>
 
-        {/* Pipeline Stages */}
+        {/* Pipeline Stages - with individual hover states */}
         <div className="flex items-center gap-1 mb-5 overflow-x-auto pb-2">
           {stages.map((stage, i) => {
             const Icon = stage.icon;
@@ -392,14 +518,19 @@ function PipelinePreviewCard() {
             return (
               <div key={stage.name} className="flex items-center">
                 <motion.div
-                  className="flex flex-col items-center gap-1 px-2 py-1.5 rounded-lg transition-all"
+                  className="flex flex-col items-center gap-1 px-2 py-1.5 rounded-lg cursor-pointer"
                   animate={{
                     background: isActive ? "rgba(79, 124, 255, 0.15)" : "transparent",
                     scale: isActive ? 1.05 : 1,
                   }}
+                  whileHover={{
+                    scale: 1.08,
+                    background: isActive ? "rgba(79, 124, 255, 0.2)" : "rgba(255, 255, 255, 0.05)",
+                  }}
+                  transition={{ duration: hoverDuration }}
                 >
-                  <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
+                  <motion.div
+                    className="w-8 h-8 rounded-lg flex items-center justify-center"
                     style={{
                       background: isActive
                         ? colors.primary
@@ -408,6 +539,15 @@ function PipelinePreviewCard() {
                         : "rgba(255, 255, 255, 0.05)",
                       boxShadow: isActive ? `0 0 20px ${colors.primary}40` : "none",
                     }}
+                    whileHover={{
+                      scale: 1.1,
+                      boxShadow: isActive
+                        ? `0 0 30px ${colors.primary}60`
+                        : isPast
+                        ? `0 0 15px ${colors.accentGreen}30`
+                        : `0 0 12px rgba(255, 255, 255, 0.1)`,
+                    }}
+                    transition={springs.bounce}
                   >
                     {isPast ? (
                       <Check className="w-4 h-4" style={{ color: colors.accentGreen }} />
@@ -417,7 +557,7 @@ function PipelinePreviewCard() {
                         style={{ color: isActive ? "white" : colors.mutedText }}
                       />
                     )}
-                  </div>
+                  </motion.div>
                   <span
                     className="text-[10px] font-medium whitespace-nowrap"
                     style={{ color: isActive ? colors.titleText : colors.mutedText }}
@@ -426,8 +566,8 @@ function PipelinePreviewCard() {
                   </span>
                 </motion.div>
                 {i < stages.length - 1 && (
-                  <div
-                    className="w-4 h-0.5 mx-1 rounded-full transition-all"
+                  <motion.div
+                    className="w-4 h-0.5 mx-1 rounded-full"
                     style={{
                       background: isPast
                         ? colors.accentGreen
@@ -435,6 +575,10 @@ function PipelinePreviewCard() {
                         ? `linear-gradient(90deg, ${colors.primary}, ${colors.mutedText}40)`
                         : "rgba(255, 255, 255, 0.1)",
                     }}
+                    animate={{
+                      scaleX: isPast || i === activeStage ? 1 : 0.8,
+                    }}
+                    transition={{ duration: 0.3 }}
                   />
                 )}
               </div>
@@ -442,7 +586,7 @@ function PipelinePreviewCard() {
           })}
         </div>
 
-        {/* Candidate Cards */}
+        {/* Candidate Cards - with individual hover states */}
         <div className="space-y-2">
           {candidates.map((candidate, i) => (
             <motion.div
@@ -450,42 +594,73 @@ function PipelinePreviewCard() {
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.6 + i * 0.1 }}
-              className="flex items-center justify-between p-3 rounded-xl"
+              className="flex items-center justify-between p-3 rounded-xl cursor-pointer"
               style={{ background: "rgba(255, 255, 255, 0.03)" }}
+              onMouseEnter={() => setHoveredCandidate(i)}
+              onMouseLeave={() => setHoveredCandidate(null)}
+              whileHover={{
+                background: "rgba(255, 255, 255, 0.06)",
+                y: -2,
+                scale: 1.01,
+                boxShadow: `0 8px 25px rgba(0, 0, 0, 0.2), 0 0 20px ${candidate.signalColor}15`,
+              }}
+              whileTap={{ scale: 0.99 }}
             >
               <div className="flex items-center gap-3">
-                <div
+                <motion.div
                   className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold"
                   style={{ background: "rgba(79, 124, 255, 0.2)", color: colors.primary }}
+                  animate={{
+                    scale: hoveredCandidate === i ? 1.1 : 1,
+                    boxShadow: hoveredCandidate === i ? `0 0 15px ${colors.primary}40` : "none",
+                  }}
+                  transition={springs.bounce}
                 >
                   {candidate.name.charAt(0)}
-                </div>
+                </motion.div>
                 <div>
-                  <p className="text-sm font-medium" style={{ color: colors.titleText }}>
+                  <motion.p
+                    className="text-sm font-medium"
+                    style={{ color: colors.titleText }}
+                    animate={{
+                      color: hoveredCandidate === i ? "#ffffff" : colors.titleText,
+                    }}
+                    transition={{ duration: hoverDuration }}
+                  >
                     {candidate.name}
-                  </p>
+                  </motion.p>
                   <p className="text-xs" style={{ color: colors.mutedText }}>
                     Fit Score:{" "}
-                    <span style={{ fontFamily: "JetBrains Mono, monospace", color: colors.accentCyan }}>
-                      {candidate.score}
-                    </span>
+                    <motion.span
+                      style={{ fontFamily: "JetBrains Mono, monospace", color: colors.accentCyan }}
+                      animate={{
+                        textShadow: hoveredCandidate === i ? `0 0 10px ${colors.accentCyan}50` : "none",
+                      }}
+                    >
+                      <AnimatedScore value={candidate.score} delay={600 + i * 100} />
+                    </motion.span>
                   </p>
                 </div>
               </div>
-              <span
+              <motion.span
                 className="px-2 py-1 rounded-md text-xs font-medium"
                 style={{
                   background: `${candidate.signalColor}15`,
                   color: candidate.signalColor,
                 }}
+                animate={{
+                  scale: hoveredCandidate === i ? 1.05 : 1,
+                  boxShadow: hoveredCandidate === i ? `0 0 12px ${candidate.signalColor}30` : "none",
+                }}
+                transition={{ duration: hoverDuration }}
               >
                 {candidate.signal}
-              </span>
+              </motion.span>
             </motion.div>
           ))}
         </div>
 
-        {/* AI Chip Animation */}
+        {/* AI Chip Animation - enhanced */}
         <AnimatePresence>
           {showChip && (
             <motion.div
@@ -498,8 +673,17 @@ function PipelinePreviewCard() {
                 border: `1px solid ${colors.accentCyan}40`,
                 color: colors.accentCyan,
               }}
+              whileHover={{
+                scale: 1.05,
+                boxShadow: `0 0 20px ${colors.accentCyan}30`,
+              }}
             >
-              <Zap className="w-3 h-3" />
+              <motion.span
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                <Zap className="w-3 h-3" />
+              </motion.span>
               AI: &quot;Follow-up suggested: system tradeoffs&quot;
             </motion.div>
           )}
@@ -507,9 +691,16 @@ function PipelinePreviewCard() {
 
         {/* Footer hint */}
         <div className="mt-4 pt-3 border-t" style={{ borderColor: colors.cardBorder }}>
-          <p className="text-xs text-center" style={{ color: colors.mutedText }}>
+          <motion.p
+            className="text-xs text-center"
+            style={{ color: colors.mutedText }}
+            animate={{
+              color: isParentHovered ? colors.subtitleText : colors.mutedText,
+            }}
+            transition={{ duration: hoverDuration }}
+          >
             AI copilots at every step
-          </p>
+          </motion.p>
         </div>
       </motion.div>
     </motion.div>
@@ -521,6 +712,8 @@ function PipelinePreviewCard() {
 // =============================================================================
 
 function HeroSection() {
+  const [isPipelineHovered, setIsPipelineHovered] = useState(false);
+
   const trustItems = [
     { icon: Shield, text: "Security-first" },
     { icon: Clock, text: "Setup in 5 minutes" },
@@ -538,7 +731,7 @@ function HeroSection() {
             animate="animate"
             className="text-center lg:text-left"
           >
-            {/* Badge with hover glow */}
+            {/* Badge with hover glow - enhanced */}
             <motion.div variants={staggerItem} className="mb-6">
               <motion.span
                 className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium cursor-default"
@@ -548,20 +741,21 @@ function HeroSection() {
                   color: colors.accentCyan,
                 }}
                 whileHover={{
-                  boxShadow: `0 0 20px ${colors.accentCyanGlow}`,
+                  boxShadow: `0 0 30px ${colors.accentCyanGlow}, 0 0 60px rgba(56, 189, 248, 0.2)`,
                   borderColor: colors.accentCyan,
+                  scale: 1.02,
                 }}
-                transition={springs.soft}
+                transition={springs.stiff}
               >
                 <motion.div
                   className="w-1.5 h-1.5 rounded-full"
                   style={{ background: colors.accentCyan }}
-                  animate={{ scale: [1, 1.2, 1], opacity: [1, 0.7, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
+                  animate={{ scale: [1, 1.3, 1], opacity: [1, 0.6, 1] }}
+                  transition={{ duration: 1.8, repeat: Infinity }}
                 />
                 <motion.span
-                  whileHover={{ rotate: 10 }}
-                  transition={springs.snappy}
+                  whileHover={{ rotate: 12, scale: 1.1 }}
+                  transition={springs.bounce}
                   className="inline-flex"
                 >
                   <Sparkles className="w-3 h-3 mr-1" />
@@ -607,9 +801,9 @@ function HeroSection() {
             >
               {/* Primary CTA - Get Started */}
               <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                transition={springs.snappy}
+                whileHover={{ scale: 1.04, y: -3 }}
+                whileTap={{ scale: 0.96 }}
+                transition={springs.bounce}
               >
                 <Link
                   href="/auth?tab=signup"
@@ -620,16 +814,23 @@ function HeroSection() {
                   }}
                 >
                   <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent"
                     initial={{ x: "-100%" }}
                     whileHover={{ x: "100%" }}
-                    transition={{ duration: 0.5 }}
+                    transition={{ duration: 0.35 }}
+                  />
+                  <motion.div
+                    className="absolute inset-0 rounded-xl"
+                    whileHover={{
+                      boxShadow: `0 0 40px ${colors.primary}60, 0 15px 50px ${colors.primary}35`,
+                    }}
+                    transition={{ duration: hoverDuration }}
                   />
                   <span className="relative z-10">Get Started Free</span>
                   <motion.span
                     className="relative z-10"
                     initial={{ x: 0 }}
-                    whileHover={{ x: 4 }}
+                    whileHover={{ x: 6 }}
                     transition={springs.snappy}
                   >
                     <ArrowRight className="w-4 h-4" />
@@ -639,25 +840,36 @@ function HeroSection() {
 
               {/* Secondary CTA - Watch Demo */}
               <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                transition={springs.snappy}
+                whileHover={{ scale: 1.03, y: -2 }}
+                whileTap={{ scale: 0.97 }}
+                transition={springs.stiff}
               >
                 <Link
                   href="#how-it-works"
-                  className="group flex items-center gap-2 px-4 py-3 text-base font-medium"
+                  className="group flex items-center gap-2 px-4 py-3 text-base font-medium relative"
                   style={{ color: colors.subtitleText }}
                 >
                   <motion.span
-                    whileHover={{ scale: 1.1, rotate: 10 }}
-                    transition={springs.snappy}
+                    whileHover={{
+                      scale: 1.15,
+                      rotate: 15,
+                      boxShadow: `0 0 15px ${colors.primary}50`,
+                    }}
+                    transition={springs.bounce}
+                    className="rounded-full"
                   >
                     <Play className="w-4 h-4" style={{ color: colors.primary }} />
                   </motion.span>
-                  <span className="group-hover:text-white transition-colors">Watch Demo</span>
                   <motion.span
-                    animate={{ x: [0, 4, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
+                    initial={{ color: colors.subtitleText }}
+                    whileHover={{ color: "#ffffff" }}
+                    transition={{ duration: hoverDuration }}
+                  >
+                    Watch Demo
+                  </motion.span>
+                  <motion.span
+                    animate={{ x: [0, 5, 0] }}
+                    transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
                   >
                     <ChevronRight className="w-4 h-4" />
                   </motion.span>
@@ -683,8 +895,8 @@ function HeroSection() {
 
           {/* Right: Pipeline Preview with Tilt Effect */}
           <div className="relative lg:pl-8">
-            <TiltCardWrapper tiltMaxAngle={5}>
-              <PipelinePreviewCard />
+            <TiltCardWrapper tiltMaxAngle={8} onHoverChange={setIsPipelineHovered}>
+              <PipelinePreviewCard isParentHovered={isPipelineHovered} />
             </TiltCardWrapper>
           </div>
         </div>
@@ -748,40 +960,52 @@ function WhySection() {
                 key={card.title}
                 initial={{ opacity: 0, y: 20 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.5, delay: 0.1 + i * 0.1 }}
                 className="group p-6 rounded-2xl cursor-pointer relative overflow-hidden"
                 style={{
                   background: colors.cardBg,
                   border: `1px solid ${colors.cardBorder}`,
                 }}
                 whileHover={{
-                  y: -4,
-                  scale: 1.01,
+                  y: -6,
+                  scale: 1.02,
                   borderColor: colors.cardBorderHover,
-                  boxShadow: `0 20px 40px rgba(0, 0, 0, 0.3), 0 0 30px rgba(79, 124, 255, 0.15)`,
+                  boxShadow: `0 25px 50px rgba(0, 0, 0, 0.35), 0 0 40px rgba(79, 124, 255, 0.18)`,
+                  transition: springs.stiff,
                 }}
-                whileTap={{ scale: 0.99 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.4, delay: 0.1 + i * 0.08 }}
               >
-                {/* Hover highlight overlay */}
+                {/* Hover highlight overlay with gradient */}
                 <motion.div
                   className="absolute inset-0 rounded-2xl pointer-events-none"
-                  style={{
-                    background: `linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 50%)`,
-                  }}
                   initial={{ opacity: 0 }}
                   whileHover={{ opacity: 1 }}
-                  transition={{ duration: 0.2 }}
+                  transition={{ duration: hoverDuration }}
+                  style={{
+                    background: `linear-gradient(135deg, rgba(79, 124, 255, 0.08) 0%, transparent 50%, rgba(56, 189, 248, 0.04) 100%)`,
+                  }}
+                />
+                {/* Top border glow on hover */}
+                <motion.div
+                  className="absolute top-0 left-4 right-4 h-px pointer-events-none"
+                  initial={{ opacity: 0 }}
+                  whileHover={{ opacity: 1 }}
+                  transition={{ duration: hoverDuration }}
+                  style={{
+                    background: `linear-gradient(90deg, transparent, ${colors.primary}60, transparent)`,
+                  }}
                 />
                 <motion.div
                   className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 relative z-10"
                   style={{ background: `${colors.primary}20` }}
                   whileHover={{
-                    background: `${colors.primary}30`,
-                    boxShadow: `0 0 20px ${colors.primary}30`,
+                    background: `${colors.primary}35`,
+                    boxShadow: `0 0 25px ${colors.primary}40`,
+                    scale: 1.08,
                   }}
-                  transition={springs.soft}
+                  transition={springs.bounce}
                 >
-                  <Icon className="w-6 h-6 group-hover:scale-110 transition-transform" style={{ color: colors.primary }} />
+                  <Icon className="w-6 h-6" style={{ color: colors.primary }} />
                 </motion.div>
                 <h3 className="text-lg font-semibold mb-2 relative z-10" style={{ color: colors.titleText }}>
                   {card.title}
@@ -824,43 +1048,60 @@ function MetricsSection() {
                 key={metric.label}
                 initial={{ opacity: 0, y: 20 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.4, delay: i * 0.1 }}
                 className="group p-5 rounded-2xl text-center cursor-pointer relative overflow-hidden"
                 style={{
                   background: colors.cardBg,
                   border: `1px solid ${colors.cardBorder}`,
                 }}
                 whileHover={{
-                  y: -4,
-                  scale: 1.02,
+                  y: -5,
+                  scale: 1.03,
                   borderColor: colors.cardBorderHover,
-                  boxShadow: `0 15px 35px rgba(0, 0, 0, 0.25), 0 0 25px rgba(56, 189, 248, 0.1)`,
+                  boxShadow: `0 20px 40px rgba(0, 0, 0, 0.3), 0 0 30px rgba(56, 189, 248, 0.15)`,
+                  transition: springs.stiff,
                 }}
-                whileTap={{ scale: 0.98 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ duration: 0.35, delay: i * 0.08 }}
               >
-                {/* Hover overlay */}
+                {/* Hover overlay with cyan tint */}
                 <motion.div
                   className="absolute inset-0 rounded-2xl pointer-events-none"
-                  style={{
-                    background: `linear-gradient(135deg, rgba(56, 189, 248, 0.05) 0%, transparent 60%)`,
-                  }}
                   initial={{ opacity: 0 }}
                   whileHover={{ opacity: 1 }}
-                  transition={{ duration: 0.2 }}
+                  transition={{ duration: hoverDuration }}
+                  style={{
+                    background: `linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, transparent 60%)`,
+                  }}
+                />
+                {/* Top highlight */}
+                <motion.div
+                  className="absolute top-0 left-3 right-3 h-px pointer-events-none"
+                  initial={{ opacity: 0 }}
+                  whileHover={{ opacity: 1 }}
+                  transition={{ duration: hoverDuration }}
+                  style={{
+                    background: `linear-gradient(90deg, transparent, ${colors.accentCyan}50, transparent)`,
+                  }}
                 />
                 <motion.div
                   className="relative z-10"
-                  whileHover={{ scale: 1.1, y: -2 }}
-                  transition={springs.soft}
+                  whileHover={{
+                    scale: 1.15,
+                    y: -3,
+                    filter: `drop-shadow(0 0 12px ${colors.accentCyan}60)`,
+                  }}
+                  transition={springs.bounce}
                 >
                   <Icon className="w-6 h-6 mx-auto mb-3" style={{ color: colors.accentCyan }} />
                 </motion.div>
-                <p
+                <motion.p
                   className="text-2xl md:text-3xl font-bold mb-1 relative z-10"
                   style={{ color: colors.titleText }}
+                  whileHover={{ textShadow: `0 0 20px ${colors.accentCyan}40` }}
+                  transition={{ duration: hoverDuration }}
                 >
                   {metric.value}
-                </p>
+                </motion.p>
                 <p className="text-xs relative z-10" style={{ color: colors.mutedText }}>
                   {metric.label}
                 </p>
@@ -946,33 +1187,48 @@ function HowItWorksSection() {
                   key={step.title}
                   initial={{ opacity: 0, x: -20 }}
                   animate={isInView ? { opacity: 1, x: 0 } : {}}
-                  transition={{ duration: 0.4, delay: 0.1 + i * 0.1 }}
                   onClick={() => setActiveStep(i)}
                   className="w-full text-left p-5 rounded-2xl relative overflow-hidden"
                   style={{
                     background: isActive ? colors.cardBg : "transparent",
                     border: `1px solid ${isActive ? colors.primary + "40" : colors.cardBorder}`,
-                    boxShadow: isActive ? `0 0 30px ${colors.primary}15` : "none",
+                    boxShadow: isActive ? `0 0 35px ${colors.primary}18` : "none",
                   }}
                   whileHover={{
-                    y: -2,
-                    borderColor: isActive ? `${colors.primary}60` : colors.cardBorderHover,
+                    y: -4,
+                    scale: 1.01,
+                    borderColor: isActive ? `${colors.primary}70` : colors.cardBorderHover,
                     boxShadow: isActive
-                      ? `0 10px 40px ${colors.primary}20`
-                      : `0 8px 30px rgba(0, 0, 0, 0.2)`,
+                      ? `0 15px 45px ${colors.primary}25`
+                      : `0 12px 35px rgba(0, 0, 0, 0.25)`,
+                    transition: springs.stiff,
                   }}
-                  whileTap={{ scale: 0.99 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ duration: 0.35, delay: 0.1 + i * 0.08 }}
                 >
-                  {/* Hover overlay */}
+                  {/* Hover overlay with gradient */}
                   <motion.div
                     className="absolute inset-0 rounded-2xl pointer-events-none"
-                    style={{
-                      background: `linear-gradient(135deg, rgba(79, 124, 255, 0.03) 0%, transparent 50%)`,
-                    }}
                     initial={{ opacity: 0 }}
                     whileHover={{ opacity: 1 }}
-                    transition={{ duration: 0.2 }}
+                    transition={{ duration: hoverDuration }}
+                    style={{
+                      background: isActive
+                        ? `linear-gradient(135deg, rgba(79, 124, 255, 0.08) 0%, transparent 60%)`
+                        : `linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, transparent 50%)`,
+                    }}
                   />
+                  {/* Top border highlight on active */}
+                  {isActive && (
+                    <motion.div
+                      className="absolute top-0 left-4 right-4 h-px pointer-events-none"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      style={{
+                        background: `linear-gradient(90deg, transparent, ${colors.primary}50, transparent)`,
+                      }}
+                    />
+                  )}
                   <div className="flex items-start gap-4 relative z-10">
                     <motion.div
                       className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
@@ -980,10 +1236,12 @@ function HowItWorksSection() {
                         background: isActive ? colors.primary : "rgba(255,255,255,0.05)",
                       }}
                       whileHover={{
-                        scale: 1.05,
-                        boxShadow: isActive ? `0 0 20px ${colors.primary}50` : `0 0 15px rgba(255,255,255,0.1)`,
+                        scale: 1.1,
+                        boxShadow: isActive
+                          ? `0 0 25px ${colors.primary}60`
+                          : `0 0 18px rgba(255,255,255,0.12)`,
                       }}
-                      transition={springs.snappy}
+                      transition={springs.bounce}
                     >
                       <Icon
                         className="w-5 h-5"
@@ -999,8 +1257,10 @@ function HowItWorksSection() {
                             color: isActive ? colors.primary : colors.mutedText,
                           }}
                           whileHover={{
-                            boxShadow: isActive ? `0 0 10px ${colors.primary}30` : "none",
+                            boxShadow: isActive ? `0 0 12px ${colors.primary}35` : "none",
+                            scale: 1.05,
                           }}
+                          transition={{ duration: hoverDuration }}
                         >
                           Step {i + 1}
                         </motion.span>
@@ -1138,7 +1398,6 @@ function FeaturesSection() {
                   key={feature.title}
                   initial={{ opacity: 0, x: -20 }}
                   animate={isInView ? { opacity: 1, x: 0 } : {}}
-                  transition={{ duration: 0.4, delay: 0.1 + i * 0.1 }}
                   onClick={() => setActiveTab(i)}
                   className="w-full text-left p-4 rounded-xl relative overflow-hidden"
                   style={{
@@ -1146,44 +1405,68 @@ function FeaturesSection() {
                     border: `1px solid ${isActive ? colors.cardBorder : "transparent"}`,
                   }}
                   whileHover={{
-                    y: -2,
-                    background: isActive ? colors.cardBg : "rgba(255,255,255,0.02)",
+                    y: -3,
+                    scale: 1.01,
+                    background: isActive ? colors.cardBg : "rgba(255,255,255,0.03)",
                     borderColor: isActive ? colors.cardBorderHover : colors.cardBorder,
+                    boxShadow: isActive
+                      ? `0 10px 30px rgba(0, 0, 0, 0.2)`
+                      : `0 8px 25px rgba(0, 0, 0, 0.15)`,
+                    transition: springs.stiff,
                   }}
-                  whileTap={{ scale: 0.99 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ duration: 0.35, delay: 0.1 + i * 0.08 }}
                 >
-                  {/* Hover overlay */}
+                  {/* Hover overlay with gradient */}
                   <motion.div
                     className="absolute inset-0 rounded-xl pointer-events-none"
-                    style={{
-                      background: `linear-gradient(90deg, rgba(79, 124, 255, 0.05) 0%, transparent 50%)`,
-                    }}
                     initial={{ opacity: 0 }}
                     whileHover={{ opacity: 1 }}
-                    transition={{ duration: 0.2 }}
+                    transition={{ duration: hoverDuration }}
+                    style={{
+                      background: `linear-gradient(90deg, rgba(79, 124, 255, 0.08) 0%, transparent 60%)`,
+                    }}
                   />
                   <div className="flex items-center gap-3 relative z-10">
                     <motion.div
-                      whileHover={{ scale: 1.1 }}
-                      transition={springs.snappy}
+                      whileHover={{
+                        scale: 1.15,
+                        filter: `drop-shadow(0 0 8px ${colors.primary}50)`,
+                      }}
+                      transition={springs.bounce}
                     >
                       <Icon
                         className="w-5 h-5"
                         style={{ color: isActive ? colors.primary : colors.mutedText }}
                       />
                     </motion.div>
-                    <span
+                    <motion.span
                       className="font-medium"
                       style={{ color: isActive ? colors.titleText : colors.subtitleText }}
+                      whileHover={{
+                        color: colors.titleText,
+                        textShadow: isActive ? `0 0 15px ${colors.primary}30` : "none",
+                      }}
+                      transition={{ duration: hoverDuration }}
                     >
                       {feature.title}
-                    </span>
+                    </motion.span>
+                    {/* Learn more indicator on hover */}
+                    <motion.span
+                      className="ml-auto text-xs flex items-center gap-1"
+                      style={{ color: colors.primary }}
+                      initial={{ opacity: 0, x: -10 }}
+                      whileHover={{ opacity: 1, x: 0 }}
+                      transition={{ duration: hoverDuration }}
+                    >
+                      Learn more <ArrowRight className="w-3 h-3" />
+                    </motion.span>
                   </div>
                   {isActive && (
                     <motion.div
                       layoutId="activeFeature"
                       className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full"
-                      style={{ background: colors.primary, boxShadow: `0 0 10px ${colors.primary}50` }}
+                      style={{ background: colors.primary, boxShadow: `0 0 15px ${colors.primary}60` }}
                     />
                   )}
                 </motion.button>
@@ -1246,7 +1529,7 @@ function FinalCTASection() {
 
   return (
     <section ref={ref} className="py-24 relative overflow-hidden" style={{ background: "transparent" }}>
-      {/* Background glow */}
+      {/* Background glow - more dynamic */}
       <div className="absolute inset-0 -z-10 pointer-events-none">
         <motion.div
           className="absolute inset-0"
@@ -1254,10 +1537,10 @@ function FinalCTASection() {
             background: `radial-gradient(ellipse 60% 40% at 50% 50%, rgba(79, 124, 255, 0.15), transparent)`,
           }}
           animate={{
-            opacity: isHovered ? 1.3 : 1,
-            scale: isHovered ? 1.05 : 1,
+            opacity: isHovered ? 1.4 : 1,
+            scale: isHovered ? 1.08 : 1,
           }}
-          transition={{ duration: 0.4 }}
+          transition={{ duration: 0.25 }}
         />
       </div>
 
@@ -1265,7 +1548,6 @@ function FinalCTASection() {
         <motion.div
           initial={{ opacity: 0, y: 20, scale: 0.95 }}
           animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
-          transition={{ duration: 0.5 }}
           className="rounded-3xl p-10 md:p-14 relative overflow-hidden"
           style={{
             background: colors.cardBg,
@@ -1275,35 +1557,53 @@ function FinalCTASection() {
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           whileHover={{
+            scale: 1.01,
             borderColor: colors.cardBorderHover,
-            boxShadow: `0 40px 100px rgba(0, 0, 0, 0.5), 0 0 60px rgba(79, 124, 255, 0.15)`,
+            boxShadow: `0 45px 110px rgba(0, 0, 0, 0.5), 0 0 80px rgba(79, 124, 255, 0.2)`,
+            transition: springs.soft,
           }}
+          transition={{ duration: 0.5 }}
         >
-          {/* Animated gradient overlay on hover */}
+          {/* Animated gradient overlay on hover - faster */}
           <motion.div
             className="absolute inset-0 pointer-events-none"
             style={{
-              background: `linear-gradient(135deg, rgba(79, 124, 255, 0.05) 0%, transparent 40%, rgba(56, 189, 248, 0.03) 100%)`,
+              background: `linear-gradient(135deg, rgba(79, 124, 255, 0.08) 0%, transparent 40%, rgba(56, 189, 248, 0.05) 100%)`,
             }}
             animate={{ opacity: isHovered ? 1 : 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: hoverDuration }}
+          />
+          {/* Top highlight */}
+          <motion.div
+            className="absolute top-0 left-8 right-8 h-px pointer-events-none"
+            animate={{ opacity: isHovered ? 1 : 0.5 }}
+            transition={{ duration: hoverDuration }}
+            style={{
+              background: `linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent)`,
+            }}
           />
           <h2
             className="text-3xl md:text-4xl font-bold mb-4 relative z-10"
             style={{ color: colors.titleText }}
           >
             Stop Juggling Tools.{" "}
-            <span style={{ color: colors.primary }}>Start Hiring Smarter.</span>
+            <motion.span
+              style={{ color: colors.primary }}
+              animate={{ textShadow: isHovered ? `0 0 30px ${colors.primary}50` : "none" }}
+              transition={{ duration: hoverDuration }}
+            >
+              Start Hiring Smarter.
+            </motion.span>
           </h2>
           <p className="text-lg mb-8 max-w-xl mx-auto relative z-10" style={{ color: colors.subtitleText }}>
             Everything you need to run evidence-driven interviews — in one place.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
-            {/* Primary CTA with magnetic effect */}
+            {/* Primary CTA - strongest glow on the page */}
             <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              transition={springs.snappy}
+              whileHover={{ scale: 1.05, y: -4 }}
+              whileTap={{ scale: 0.95 }}
+              transition={springs.bounce}
             >
               <Link
                 href="/auth?tab=signup"
@@ -1314,16 +1614,23 @@ function FinalCTASection() {
                 }}
               >
                 <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
                   initial={{ x: "-100%" }}
                   whileHover={{ x: "100%" }}
-                  transition={{ duration: 0.5 }}
+                  transition={{ duration: 0.35 }}
+                />
+                <motion.div
+                  className="absolute inset-0 rounded-xl"
+                  whileHover={{
+                    boxShadow: `0 0 50px ${colors.primary}70, 0 20px 60px ${colors.primary}40`,
+                  }}
+                  transition={{ duration: hoverDuration }}
                 />
                 <span className="relative z-10">Get Started Free</span>
                 <motion.span
                   className="relative z-10"
                   initial={{ x: 0 }}
-                  whileHover={{ x: 4 }}
+                  whileHover={{ x: 6 }}
                   transition={springs.snappy}
                 >
                   <ArrowRight className="w-4 h-4" />
@@ -1331,21 +1638,37 @@ function FinalCTASection() {
               </Link>
             </motion.div>
 
-            {/* Secondary CTA */}
+            {/* Secondary CTA - enhanced hover */}
             <motion.div
-              whileHover={{ scale: 1.02, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              transition={springs.snappy}
+              whileHover={{
+                scale: 1.04,
+                y: -3,
+                boxShadow: `0 15px 40px rgba(0, 0, 0, 0.25)`,
+              }}
+              whileTap={{ scale: 0.96 }}
+              transition={springs.stiff}
             >
               <Link
                 href="/demo"
-                className="px-8 py-4 rounded-xl text-base font-medium block"
+                className="px-8 py-4 rounded-xl text-base font-medium block relative overflow-hidden"
                 style={{
                   border: `1px solid ${colors.cardBorder}`,
                   color: colors.subtitleText,
                 }}
               >
-                Schedule a Demo
+                <motion.div
+                  className="absolute inset-0 rounded-xl pointer-events-none"
+                  initial={{ opacity: 0 }}
+                  whileHover={{
+                    opacity: 1,
+                    borderColor: colors.cardBorderHover,
+                  }}
+                  transition={{ duration: hoverDuration }}
+                  style={{
+                    background: `linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, transparent 50%)`,
+                  }}
+                />
+                <span className="relative z-10">Schedule a Demo</span>
               </Link>
             </motion.div>
           </div>
@@ -1359,7 +1682,7 @@ function FinalCTASection() {
 // FOOTER
 // =============================================================================
 
-// Animated footer link with underline
+// Animated footer link with underline - faster
 function AnimatedFooterLink({ href, children }: { href: string; children: React.ReactNode }) {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -1367,17 +1690,26 @@ function AnimatedFooterLink({ href, children }: { href: string; children: React.
     <Link
       href={href}
       className="relative text-sm py-0.5"
-      style={{ color: isHovered ? colors.titleText : colors.mutedText }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {children}
+      <motion.span
+        animate={{
+          color: isHovered ? colors.titleText : colors.mutedText,
+        }}
+        transition={{ duration: hoverDuration }}
+      >
+        {children}
+      </motion.span>
       <motion.span
         className="absolute left-0 -bottom-0.5 h-px"
-        style={{ background: colors.primary }}
-        initial={{ width: 0 }}
-        animate={{ width: isHovered ? "100%" : 0 }}
-        transition={{ duration: 0.2, ease: "easeOut" }}
+        style={{ background: `linear-gradient(90deg, ${colors.primary}, ${colors.accentCyan})` }}
+        initial={{ width: 0, opacity: 0 }}
+        animate={{
+          width: isHovered ? "100%" : 0,
+          opacity: isHovered ? 1 : 0,
+        }}
+        transition={{ duration: hoverDuration, ease: "easeOut" }}
       />
     </Link>
   );
@@ -1401,16 +1733,31 @@ function Footer() {
           <div>
             <Link href="/" className="flex items-center gap-2.5 mb-4 group">
               <motion.div
-                className="w-9 h-9 rounded-xl flex items-center justify-center"
+                className="w-9 h-9 rounded-xl flex items-center justify-center relative overflow-hidden"
                 style={{ background: colors.primary }}
-                whileHover={{ scale: 1.05, boxShadow: `0 0 20px ${colors.primary}50` }}
-                transition={springs.snappy}
+                whileHover={{
+                  scale: 1.08,
+                  boxShadow: `0 0 25px ${colors.primary}60`,
+                }}
+                whileTap={{ scale: 0.95 }}
+                transition={springs.bounce}
               >
-                <Sparkles className="w-5 h-5 text-white" />
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent"
+                  initial={{ x: "-100%", y: "-100%" }}
+                  whileHover={{ x: "100%", y: "100%" }}
+                  transition={{ duration: 0.35 }}
+                />
+                <Sparkles className="w-5 h-5 text-white relative z-10" />
               </motion.div>
-              <span className="text-lg font-semibold group-hover:text-white transition-colors" style={{ color: colors.titleText }}>
+              <motion.span
+                className="text-lg font-semibold"
+                style={{ color: colors.titleText }}
+                whileHover={{ color: "#ffffff" }}
+                transition={{ duration: hoverDuration }}
+              >
                 Hirely
-              </span>
+              </motion.span>
             </Link>
             <p className="text-sm" style={{ color: colors.mutedText }}>
               AI-powered recruiting platform for modern teams.
