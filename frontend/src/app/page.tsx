@@ -27,7 +27,14 @@ import {
   Gift,
   Check,
 } from "lucide-react";
-import { motion, AnimatePresence, useInView } from "framer-motion";
+import {
+  motion,
+  AnimatePresence,
+  useInView,
+  useMotionValue,
+  useSpring,
+  useTransform,
+} from "framer-motion";
 
 // Dynamically import background components
 const StarfieldBackground = dynamic(
@@ -47,17 +54,26 @@ const colors = {
   surface: "#0C1120",
   cardBg: "rgba(12, 17, 32, 0.72)",
   cardBorder: "rgba(255, 255, 255, 0.08)",
-  cardBorderHover: "rgba(255, 255, 255, 0.14)",
+  cardBorderHover: "rgba(255, 255, 255, 0.16)",
   titleText: "#EAF0FF",
   subtitleText: "#C8D1E8",
   mutedText: "#8892AD",
   primary: "#4F7CFF",
   primaryHover: "#3D67F2",
   primaryGlow: "0 10px 30px rgba(79, 124, 255, 0.25)",
+  primaryGlowHover: "0 15px 40px rgba(79, 124, 255, 0.35)",
   accentCyan: "#38BDF8",
+  accentCyanGlow: "rgba(56, 189, 248, 0.4)",
   accentAmber: "#FFB020",
   accentGreen: "#22C55E",
   accentRed: "#EF4444",
+};
+
+// Spring configurations for smooth interactions
+const springs = {
+  stiff: { stiffness: 260, damping: 20 },
+  soft: { stiffness: 200, damping: 25 },
+  snappy: { stiffness: 400, damping: 30 },
 };
 
 // =============================================================================
@@ -75,7 +91,7 @@ const staggerItem = {
   animate: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] },
+    transition: { duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] as const },
   },
 };
 
@@ -83,8 +99,33 @@ const staggerItem = {
 // GLASS NAVBAR
 // =============================================================================
 
+// Animated nav link with sliding underline
+function AnimatedNavLink({ href, children }: { href: string; children: React.ReactNode }) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <Link
+      href={href}
+      className="relative text-sm font-medium py-1"
+      style={{ color: isHovered ? colors.titleText : colors.mutedText }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {children}
+      <motion.span
+        className="absolute left-0 -bottom-0.5 h-px"
+        style={{ background: colors.primary }}
+        initial={{ width: 0 }}
+        animate={{ width: isHovered ? "100%" : 0 }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
+      />
+    </Link>
+  );
+}
+
 function GlassNavbar() {
   const [scrolled, setScrolled] = useState(false);
+  const [navHovered, setNavHovered] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -101,25 +142,33 @@ function GlassNavbar() {
       transition={{ duration: 0.5, delay: 0.1 }}
       className="fixed top-4 left-0 right-0 z-50 px-4"
     >
-      <nav
-        className="max-w-[1440px] mx-auto rounded-2xl px-6 py-3 transition-all duration-300"
+      <motion.nav
+        className="max-w-[1440px] mx-auto rounded-2xl px-6 py-3"
         style={{
-          background: scrolled ? "rgba(12, 17, 32, 0.85)" : "rgba(12, 17, 32, 0.55)",
-          backdropFilter: "blur(20px)",
-          border: `1px solid ${colors.cardBorder}`,
+          background: scrolled || navHovered ? "rgba(12, 17, 32, 0.85)" : "rgba(12, 17, 32, 0.55)",
+          backdropFilter: scrolled || navHovered ? "blur(24px)" : "blur(20px)",
+          border: `1px solid ${navHovered ? colors.cardBorderHover : colors.cardBorder}`,
           boxShadow: scrolled ? "0 8px 32px rgba(0, 0, 0, 0.3)" : "none",
         }}
+        onMouseEnter={() => setNavHovered(true)}
+        onMouseLeave={() => setNavHovered(false)}
+        animate={{
+          borderColor: navHovered ? colors.cardBorderHover : colors.cardBorder,
+        }}
+        transition={{ duration: 0.2 }}
       >
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5">
-            <div
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <motion.div
               className="w-9 h-9 rounded-xl flex items-center justify-center"
               style={{ background: colors.primary }}
+              whileHover={{ scale: 1.05, boxShadow: `0 0 20px ${colors.primary}50` }}
+              transition={springs.snappy}
             >
               <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-lg font-semibold" style={{ color: colors.titleText }}>
+            </motion.div>
+            <span className="text-lg font-semibold group-hover:text-white transition-colors" style={{ color: colors.titleText }}>
               Hirely
             </span>
           </Link>
@@ -127,40 +176,123 @@ function GlassNavbar() {
           {/* Nav Links - Desktop */}
           <div className="hidden md:flex items-center gap-8">
             {["Features", "How it Works", "Pricing"].map((item) => (
-              <Link
+              <AnimatedNavLink
                 key={item}
                 href={`#${item.toLowerCase().replace(/\s/g, "-")}`}
-                className="text-sm font-medium transition-colors hover:text-white"
-                style={{ color: colors.mutedText }}
               >
                 {item}
-              </Link>
+              </AnimatedNavLink>
             ))}
           </div>
 
           {/* CTA */}
           <div className="flex items-center gap-3">
-            <Link
-              href="/auth"
-              className="text-sm font-medium transition-colors hover:text-white hidden sm:block"
-              style={{ color: colors.mutedText }}
+            <AnimatedNavLink href="/auth">
+              <span className="hidden sm:inline">Sign In</span>
+            </AnimatedNavLink>
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              transition={springs.snappy}
             >
-              Sign In
-            </Link>
-            <Link
-              href="/auth?tab=signup"
-              className="px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:scale-105"
-              style={{
-                background: colors.primary,
-                boxShadow: colors.primaryGlow,
-              }}
-            >
-              Get Started Free
-            </Link>
+              <Link
+                href="/auth?tab=signup"
+                className="relative px-4 py-2 rounded-xl text-sm font-semibold text-white overflow-hidden block"
+                style={{
+                  background: colors.primary,
+                  boxShadow: colors.primaryGlow,
+                }}
+              >
+                <motion.span
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                  initial={{ x: "-100%" }}
+                  whileHover={{ x: "100%" }}
+                  transition={{ duration: 0.5 }}
+                />
+                <span className="relative z-10">Get Started Free</span>
+              </Link>
+            </motion.div>
           </div>
         </div>
-      </nav>
+      </motion.nav>
     </motion.header>
+  );
+}
+
+// =============================================================================
+// TILT CARD WRAPPER (For Hero Preview)
+// =============================================================================
+
+interface TiltCardWrapperProps {
+  children: React.ReactNode;
+  className?: string;
+  tiltMaxAngle?: number;
+}
+
+function TiltCardWrapper({ children, className = "", tiltMaxAngle = 6 }: TiltCardWrapperProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const rotateX = useSpring(useTransform(y, [-0.5, 0.5], [tiltMaxAngle, -tiltMaxAngle]), springs.soft);
+  const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-tiltMaxAngle, tiltMaxAngle]), springs.soft);
+
+  const glowX = useSpring(useTransform(x, [-0.5, 0.5], [0, 100]), springs.soft);
+  const glowY = useSpring(useTransform(y, [-0.5, 0.5], [0, 100]), springs.soft);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const normalizedX = (e.clientX - rect.left) / rect.width - 0.5;
+    const normalizedY = (e.clientY - rect.top) / rect.height - 0.5;
+    x.set(normalizedX);
+    y.set(normalizedY);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.div
+      ref={ref}
+      className={`relative ${className}`}
+      style={{
+        perspective: 1000,
+        transformStyle: "preserve-3d",
+      }}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={handleMouseLeave}
+    >
+      <motion.div
+        style={{
+          rotateX,
+          rotateY,
+          transformStyle: "preserve-3d",
+        }}
+        className="relative"
+      >
+        {/* Glow that follows cursor */}
+        <motion.div
+          className="absolute inset-0 rounded-[20px] pointer-events-none"
+          style={{
+            background: useTransform(
+              [glowX, glowY],
+              ([gx, gy]) =>
+                `radial-gradient(circle at ${gx}% ${gy}%, rgba(79, 124, 255, 0.15), transparent 50%)`
+            ),
+            opacity: isHovered ? 1 : 0,
+          }}
+          transition={{ duration: 0.3 }}
+        />
+        {children}
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -406,22 +538,36 @@ function HeroSection() {
             animate="animate"
             className="text-center lg:text-left"
           >
-            {/* Badge */}
+            {/* Badge with hover glow */}
             <motion.div variants={staggerItem} className="mb-6">
-              <span
-                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium"
+              <motion.span
+                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium cursor-default"
                 style={{
                   border: `1px solid ${colors.accentCyan}`,
                   background: "rgba(56, 189, 248, 0.1)",
                   color: colors.accentCyan,
                 }}
+                whileHover={{
+                  boxShadow: `0 0 20px ${colors.accentCyanGlow}`,
+                  borderColor: colors.accentCyan,
+                }}
+                transition={springs.soft}
               >
-                <div
-                  className="w-1.5 h-1.5 rounded-full animate-pulse"
+                <motion.div
+                  className="w-1.5 h-1.5 rounded-full"
                   style={{ background: colors.accentCyan }}
+                  animate={{ scale: [1, 1.2, 1], opacity: [1, 0.7, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
                 />
+                <motion.span
+                  whileHover={{ rotate: 10 }}
+                  transition={springs.snappy}
+                  className="inline-flex"
+                >
+                  <Sparkles className="w-3 h-3 mr-1" />
+                </motion.span>
                 AI RECRUITING PLATFORM
-              </span>
+              </motion.span>
             </motion.div>
 
             {/* Headline */}
@@ -454,42 +600,69 @@ function HeroSection() {
               structured evidence and preserve context across every step.
             </motion.p>
 
-            {/* CTA Row */}
+            {/* CTA Row with juicy interactions */}
             <motion.div
               variants={staggerItem}
               className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 mb-8"
             >
-              <Link
-                href="/auth?tab=signup"
-                className="group relative px-6 py-3 rounded-xl text-base font-semibold text-white flex items-center gap-2 transition-all hover:scale-105 overflow-hidden"
-                style={{
-                  background: colors.primary,
-                  boxShadow: colors.primaryGlow,
-                }}
+              {/* Primary CTA - Get Started */}
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                transition={springs.snappy}
               >
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                  initial={{ x: "-100%" }}
-                  whileHover={{ x: "100%" }}
-                  transition={{ duration: 0.6 }}
-                />
-                <span className="relative z-10">Get Started Free</span>
-                <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <Link
-                href="#how-it-works"
-                className="group flex items-center gap-2 px-4 py-3 text-base font-medium transition-colors"
-                style={{ color: colors.subtitleText }}
-              >
-                <Play className="w-4 h-4" style={{ color: colors.primary }} />
-                Watch Demo
-                <motion.span
-                  animate={{ x: [0, 4, 0] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
+                <Link
+                  href="/auth?tab=signup"
+                  className="group relative px-6 py-3 rounded-xl text-base font-semibold text-white flex items-center gap-2 overflow-hidden"
+                  style={{
+                    background: colors.primary,
+                    boxShadow: colors.primaryGlow,
+                  }}
                 >
-                  <ChevronRight className="w-4 h-4" />
-                </motion.span>
-              </Link>
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                    initial={{ x: "-100%" }}
+                    whileHover={{ x: "100%" }}
+                    transition={{ duration: 0.5 }}
+                  />
+                  <span className="relative z-10">Get Started Free</span>
+                  <motion.span
+                    className="relative z-10"
+                    initial={{ x: 0 }}
+                    whileHover={{ x: 4 }}
+                    transition={springs.snappy}
+                  >
+                    <ArrowRight className="w-4 h-4" />
+                  </motion.span>
+                </Link>
+              </motion.div>
+
+              {/* Secondary CTA - Watch Demo */}
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                transition={springs.snappy}
+              >
+                <Link
+                  href="#how-it-works"
+                  className="group flex items-center gap-2 px-4 py-3 text-base font-medium"
+                  style={{ color: colors.subtitleText }}
+                >
+                  <motion.span
+                    whileHover={{ scale: 1.1, rotate: 10 }}
+                    transition={springs.snappy}
+                  >
+                    <Play className="w-4 h-4" style={{ color: colors.primary }} />
+                  </motion.span>
+                  <span className="group-hover:text-white transition-colors">Watch Demo</span>
+                  <motion.span
+                    animate={{ x: [0, 4, 0] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </motion.span>
+                </Link>
+              </motion.div>
             </motion.div>
 
             {/* Trust Row */}
@@ -508,9 +681,11 @@ function HeroSection() {
             </motion.div>
           </motion.div>
 
-          {/* Right: Pipeline Preview */}
+          {/* Right: Pipeline Preview with Tilt Effect */}
           <div className="relative lg:pl-8">
-            <PipelinePreviewCard />
+            <TiltCardWrapper tiltMaxAngle={5}>
+              <PipelinePreviewCard />
+            </TiltCardWrapper>
           </div>
         </div>
       </div>
@@ -566,32 +741,57 @@ function WhySection() {
         </motion.div>
 
         <div className="grid md:grid-cols-3 gap-6">
-          {cards.map((card, i) => (
-            <motion.div
-              key={card.title}
-              initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.5, delay: 0.1 + i * 0.1 }}
-              className="p-6 rounded-2xl transition-all hover:-translate-y-1 hover:shadow-lg"
-              style={{
-                background: colors.cardBg,
-                border: `1px solid ${colors.cardBorder}`,
-              }}
-            >
-              <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
-                style={{ background: `${colors.primary}20` }}
+          {cards.map((card, i) => {
+            const Icon = card.icon;
+            return (
+              <motion.div
+                key={card.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.5, delay: 0.1 + i * 0.1 }}
+                className="group p-6 rounded-2xl cursor-pointer relative overflow-hidden"
+                style={{
+                  background: colors.cardBg,
+                  border: `1px solid ${colors.cardBorder}`,
+                }}
+                whileHover={{
+                  y: -4,
+                  scale: 1.01,
+                  borderColor: colors.cardBorderHover,
+                  boxShadow: `0 20px 40px rgba(0, 0, 0, 0.3), 0 0 30px rgba(79, 124, 255, 0.15)`,
+                }}
+                whileTap={{ scale: 0.99 }}
               >
-                <card.icon className="w-6 h-6" style={{ color: colors.primary }} />
-              </div>
-              <h3 className="text-lg font-semibold mb-2" style={{ color: colors.titleText }}>
-                {card.title}
-              </h3>
-              <p className="text-sm" style={{ color: colors.mutedText }}>
-                {card.description}
-              </p>
-            </motion.div>
-          ))}
+                {/* Hover highlight overlay */}
+                <motion.div
+                  className="absolute inset-0 rounded-2xl pointer-events-none"
+                  style={{
+                    background: `linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 50%)`,
+                  }}
+                  initial={{ opacity: 0 }}
+                  whileHover={{ opacity: 1 }}
+                  transition={{ duration: 0.2 }}
+                />
+                <motion.div
+                  className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 relative z-10"
+                  style={{ background: `${colors.primary}20` }}
+                  whileHover={{
+                    background: `${colors.primary}30`,
+                    boxShadow: `0 0 20px ${colors.primary}30`,
+                  }}
+                  transition={springs.soft}
+                >
+                  <Icon className="w-6 h-6 group-hover:scale-110 transition-transform" style={{ color: colors.primary }} />
+                </motion.div>
+                <h3 className="text-lg font-semibold mb-2 relative z-10" style={{ color: colors.titleText }}>
+                  {card.title}
+                </h3>
+                <p className="text-sm relative z-10" style={{ color: colors.mutedText }}>
+                  {card.description}
+                </p>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -617,30 +817,56 @@ function MetricsSection() {
     <section ref={ref} className="py-16 relative" style={{ background: "transparent" }}>
       <div className="max-w-[1440px] mx-auto px-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {metrics.map((metric, i) => (
-            <motion.div
-              key={metric.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.4, delay: i * 0.1 }}
-              className="p-5 rounded-2xl text-center"
-              style={{
-                background: colors.cardBg,
-                border: `1px solid ${colors.cardBorder}`,
-              }}
-            >
-              <metric.icon className="w-6 h-6 mx-auto mb-3" style={{ color: colors.accentCyan }} />
-              <p
-                className="text-2xl md:text-3xl font-bold mb-1"
-                style={{ color: colors.titleText }}
+          {metrics.map((metric, i) => {
+            const Icon = metric.icon;
+            return (
+              <motion.div
+                key={metric.label}
+                initial={{ opacity: 0, y: 20 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.4, delay: i * 0.1 }}
+                className="group p-5 rounded-2xl text-center cursor-pointer relative overflow-hidden"
+                style={{
+                  background: colors.cardBg,
+                  border: `1px solid ${colors.cardBorder}`,
+                }}
+                whileHover={{
+                  y: -4,
+                  scale: 1.02,
+                  borderColor: colors.cardBorderHover,
+                  boxShadow: `0 15px 35px rgba(0, 0, 0, 0.25), 0 0 25px rgba(56, 189, 248, 0.1)`,
+                }}
+                whileTap={{ scale: 0.98 }}
               >
-                {metric.value}
-              </p>
-              <p className="text-xs" style={{ color: colors.mutedText }}>
-                {metric.label}
-              </p>
-            </motion.div>
-          ))}
+                {/* Hover overlay */}
+                <motion.div
+                  className="absolute inset-0 rounded-2xl pointer-events-none"
+                  style={{
+                    background: `linear-gradient(135deg, rgba(56, 189, 248, 0.05) 0%, transparent 60%)`,
+                  }}
+                  initial={{ opacity: 0 }}
+                  whileHover={{ opacity: 1 }}
+                  transition={{ duration: 0.2 }}
+                />
+                <motion.div
+                  className="relative z-10"
+                  whileHover={{ scale: 1.1, y: -2 }}
+                  transition={springs.soft}
+                >
+                  <Icon className="w-6 h-6 mx-auto mb-3" style={{ color: colors.accentCyan }} />
+                </motion.div>
+                <p
+                  className="text-2xl md:text-3xl font-bold mb-1 relative z-10"
+                  style={{ color: colors.titleText }}
+                >
+                  {metric.value}
+                </p>
+                <p className="text-xs relative z-10" style={{ color: colors.mutedText }}>
+                  {metric.label}
+                </p>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -709,7 +935,7 @@ function HowItWorksSection() {
         </motion.div>
 
         <div className="grid lg:grid-cols-2 gap-12 items-start">
-          {/* Left: Steps */}
+          {/* Left: Steps with hover lift */}
           <div className="space-y-4">
             {steps.map((step, i) => {
               const Icon = step.icon;
@@ -722,36 +948,62 @@ function HowItWorksSection() {
                   animate={isInView ? { opacity: 1, x: 0 } : {}}
                   transition={{ duration: 0.4, delay: 0.1 + i * 0.1 }}
                   onClick={() => setActiveStep(i)}
-                  className="w-full text-left p-5 rounded-2xl transition-all"
+                  className="w-full text-left p-5 rounded-2xl relative overflow-hidden"
                   style={{
                     background: isActive ? colors.cardBg : "transparent",
                     border: `1px solid ${isActive ? colors.primary + "40" : colors.cardBorder}`,
                     boxShadow: isActive ? `0 0 30px ${colors.primary}15` : "none",
                   }}
+                  whileHover={{
+                    y: -2,
+                    borderColor: isActive ? `${colors.primary}60` : colors.cardBorderHover,
+                    boxShadow: isActive
+                      ? `0 10px 40px ${colors.primary}20`
+                      : `0 8px 30px rgba(0, 0, 0, 0.2)`,
+                  }}
+                  whileTap={{ scale: 0.99 }}
                 >
-                  <div className="flex items-start gap-4">
-                    <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all"
+                  {/* Hover overlay */}
+                  <motion.div
+                    className="absolute inset-0 rounded-2xl pointer-events-none"
+                    style={{
+                      background: `linear-gradient(135deg, rgba(79, 124, 255, 0.03) 0%, transparent 50%)`,
+                    }}
+                    initial={{ opacity: 0 }}
+                    whileHover={{ opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                  />
+                  <div className="flex items-start gap-4 relative z-10">
+                    <motion.div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                       style={{
                         background: isActive ? colors.primary : "rgba(255,255,255,0.05)",
                       }}
+                      whileHover={{
+                        scale: 1.05,
+                        boxShadow: isActive ? `0 0 20px ${colors.primary}50` : `0 0 15px rgba(255,255,255,0.1)`,
+                      }}
+                      transition={springs.snappy}
                     >
                       <Icon
                         className="w-5 h-5"
                         style={{ color: isActive ? "white" : colors.mutedText }}
                       />
-                    </div>
+                    </motion.div>
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span
+                        <motion.span
                           className="text-xs font-medium px-2 py-0.5 rounded-full"
                           style={{
                             background: isActive ? `${colors.primary}20` : "rgba(255,255,255,0.05)",
                             color: isActive ? colors.primary : colors.mutedText,
                           }}
+                          whileHover={{
+                            boxShadow: isActive ? `0 0 10px ${colors.primary}30` : "none",
+                          }}
                         >
                           Step {i + 1}
-                        </span>
+                        </motion.span>
                       </div>
                       <h3
                         className="text-base font-semibold mb-1"
@@ -875,7 +1127,7 @@ function FeaturesSection() {
         </motion.div>
 
         <div className="grid lg:grid-cols-5 gap-8">
-          {/* Feature Tabs */}
+          {/* Feature Tabs with hover effects */}
           <div className="lg:col-span-2 space-y-3">
             {features.map((feature, i) => {
               const Icon = feature.icon;
@@ -888,17 +1140,38 @@ function FeaturesSection() {
                   animate={isInView ? { opacity: 1, x: 0 } : {}}
                   transition={{ duration: 0.4, delay: 0.1 + i * 0.1 }}
                   onClick={() => setActiveTab(i)}
-                  className="w-full text-left p-4 rounded-xl transition-all relative"
+                  className="w-full text-left p-4 rounded-xl relative overflow-hidden"
                   style={{
                     background: isActive ? colors.cardBg : "transparent",
                     border: `1px solid ${isActive ? colors.cardBorder : "transparent"}`,
                   }}
+                  whileHover={{
+                    y: -2,
+                    background: isActive ? colors.cardBg : "rgba(255,255,255,0.02)",
+                    borderColor: isActive ? colors.cardBorderHover : colors.cardBorder,
+                  }}
+                  whileTap={{ scale: 0.99 }}
                 >
-                  <div className="flex items-center gap-3">
-                    <Icon
-                      className="w-5 h-5"
-                      style={{ color: isActive ? colors.primary : colors.mutedText }}
-                    />
+                  {/* Hover overlay */}
+                  <motion.div
+                    className="absolute inset-0 rounded-xl pointer-events-none"
+                    style={{
+                      background: `linear-gradient(90deg, rgba(79, 124, 255, 0.05) 0%, transparent 50%)`,
+                    }}
+                    initial={{ opacity: 0 }}
+                    whileHover={{ opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                  />
+                  <div className="flex items-center gap-3 relative z-10">
+                    <motion.div
+                      whileHover={{ scale: 1.1 }}
+                      transition={springs.snappy}
+                    >
+                      <Icon
+                        className="w-5 h-5"
+                        style={{ color: isActive ? colors.primary : colors.mutedText }}
+                      />
+                    </motion.div>
                     <span
                       className="font-medium"
                       style={{ color: isActive ? colors.titleText : colors.subtitleText }}
@@ -910,7 +1183,7 @@ function FeaturesSection() {
                     <motion.div
                       layoutId="activeFeature"
                       className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full"
-                      style={{ background: colors.primary }}
+                      style={{ background: colors.primary, boxShadow: `0 0 10px ${colors.primary}50` }}
                     />
                   )}
                 </motion.button>
@@ -969,16 +1242,22 @@ function FeaturesSection() {
 function FinalCTASection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <section ref={ref} className="py-24 relative overflow-hidden" style={{ background: "transparent" }}>
       {/* Background glow */}
       <div className="absolute inset-0 -z-10 pointer-events-none">
-        <div
+        <motion.div
           className="absolute inset-0"
           style={{
             background: `radial-gradient(ellipse 60% 40% at 50% 50%, rgba(79, 124, 255, 0.15), transparent)`,
           }}
+          animate={{
+            opacity: isHovered ? 1.3 : 1,
+            scale: isHovered ? 1.05 : 1,
+          }}
+          transition={{ duration: 0.4 }}
         />
       </div>
 
@@ -987,51 +1266,88 @@ function FinalCTASection() {
           initial={{ opacity: 0, y: 20, scale: 0.95 }}
           animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
           transition={{ duration: 0.5 }}
-          className="rounded-3xl p-10 md:p-14"
+          className="rounded-3xl p-10 md:p-14 relative overflow-hidden"
           style={{
             background: colors.cardBg,
             border: `1px solid ${colors.cardBorder}`,
             boxShadow: "0 40px 100px rgba(0, 0, 0, 0.4)",
           }}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          whileHover={{
+            borderColor: colors.cardBorderHover,
+            boxShadow: `0 40px 100px rgba(0, 0, 0, 0.5), 0 0 60px rgba(79, 124, 255, 0.15)`,
+          }}
         >
+          {/* Animated gradient overlay on hover */}
+          <motion.div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: `linear-gradient(135deg, rgba(79, 124, 255, 0.05) 0%, transparent 40%, rgba(56, 189, 248, 0.03) 100%)`,
+            }}
+            animate={{ opacity: isHovered ? 1 : 0 }}
+            transition={{ duration: 0.3 }}
+          />
           <h2
-            className="text-3xl md:text-4xl font-bold mb-4"
+            className="text-3xl md:text-4xl font-bold mb-4 relative z-10"
             style={{ color: colors.titleText }}
           >
             Stop Juggling Tools.{" "}
             <span style={{ color: colors.primary }}>Start Hiring Smarter.</span>
           </h2>
-          <p className="text-lg mb-8 max-w-xl mx-auto" style={{ color: colors.subtitleText }}>
+          <p className="text-lg mb-8 max-w-xl mx-auto relative z-10" style={{ color: colors.subtitleText }}>
             Everything you need to run evidence-driven interviews — in one place.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              href="/auth?tab=signup"
-              className="group relative px-8 py-4 rounded-xl text-base font-semibold text-white flex items-center gap-2 transition-all hover:scale-105 overflow-hidden"
-              style={{
-                background: colors.primary,
-                boxShadow: colors.primaryGlow,
-              }}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
+            {/* Primary CTA with magnetic effect */}
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              transition={springs.snappy}
             >
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                initial={{ x: "-100%" }}
-                whileHover={{ x: "100%" }}
-                transition={{ duration: 0.6 }}
-              />
-              <span className="relative z-10">Get Started Free</span>
-              <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <Link
-              href="/demo"
-              className="px-8 py-4 rounded-xl text-base font-medium transition-all"
-              style={{
-                border: `1px solid ${colors.cardBorder}`,
-                color: colors.subtitleText,
-              }}
+              <Link
+                href="/auth?tab=signup"
+                className="group relative px-8 py-4 rounded-xl text-base font-semibold text-white flex items-center gap-2 overflow-hidden"
+                style={{
+                  background: colors.primary,
+                  boxShadow: colors.primaryGlow,
+                }}
+              >
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                  initial={{ x: "-100%" }}
+                  whileHover={{ x: "100%" }}
+                  transition={{ duration: 0.5 }}
+                />
+                <span className="relative z-10">Get Started Free</span>
+                <motion.span
+                  className="relative z-10"
+                  initial={{ x: 0 }}
+                  whileHover={{ x: 4 }}
+                  transition={springs.snappy}
+                >
+                  <ArrowRight className="w-4 h-4" />
+                </motion.span>
+              </Link>
+            </motion.div>
+
+            {/* Secondary CTA */}
+            <motion.div
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              transition={springs.snappy}
             >
-              Schedule a Demo
-            </Link>
+              <Link
+                href="/demo"
+                className="px-8 py-4 rounded-xl text-base font-medium block"
+                style={{
+                  border: `1px solid ${colors.cardBorder}`,
+                  color: colors.subtitleText,
+                }}
+              >
+                Schedule a Demo
+              </Link>
+            </motion.div>
           </div>
         </motion.div>
       </div>
@@ -1042,6 +1358,30 @@ function FinalCTASection() {
 // =============================================================================
 // FOOTER
 // =============================================================================
+
+// Animated footer link with underline
+function AnimatedFooterLink({ href, children }: { href: string; children: React.ReactNode }) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <Link
+      href={href}
+      className="relative text-sm py-0.5"
+      style={{ color: isHovered ? colors.titleText : colors.mutedText }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {children}
+      <motion.span
+        className="absolute left-0 -bottom-0.5 h-px"
+        style={{ background: colors.primary }}
+        initial={{ width: 0 }}
+        animate={{ width: isHovered ? "100%" : 0 }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
+      />
+    </Link>
+  );
+}
 
 function Footer() {
   const links = {
@@ -1057,16 +1397,18 @@ function Footer() {
     >
       <div className="max-w-[1440px] mx-auto px-6">
         <div className="grid md:grid-cols-4 gap-10 mb-12">
-          {/* Logo */}
+          {/* Logo with hover effect */}
           <div>
-            <Link href="/" className="flex items-center gap-2.5 mb-4">
-              <div
+            <Link href="/" className="flex items-center gap-2.5 mb-4 group">
+              <motion.div
                 className="w-9 h-9 rounded-xl flex items-center justify-center"
                 style={{ background: colors.primary }}
+                whileHover={{ scale: 1.05, boxShadow: `0 0 20px ${colors.primary}50` }}
+                transition={springs.snappy}
               >
                 <Sparkles className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-lg font-semibold" style={{ color: colors.titleText }}>
+              </motion.div>
+              <span className="text-lg font-semibold group-hover:text-white transition-colors" style={{ color: colors.titleText }}>
                 Hirely
               </span>
             </Link>
@@ -1075,7 +1417,7 @@ function Footer() {
             </p>
           </div>
 
-          {/* Links */}
+          {/* Links with animated underlines */}
           {Object.entries(links).map(([category, items]) => (
             <div key={category}>
               <h4 className="text-sm font-semibold mb-4" style={{ color: colors.titleText }}>
@@ -1084,13 +1426,9 @@ function Footer() {
               <ul className="space-y-2">
                 {items.map((item) => (
                   <li key={item}>
-                    <Link
-                      href={`/${item.toLowerCase()}`}
-                      className="text-sm transition-colors hover:text-white"
-                      style={{ color: colors.mutedText }}
-                    >
+                    <AnimatedFooterLink href={`/${item.toLowerCase()}`}>
                       {item}
-                    </Link>
+                    </AnimatedFooterLink>
                   </li>
                 ))}
               </ul>
@@ -1106,20 +1444,8 @@ function Footer() {
             © {new Date().getFullYear()} Hirely. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
-            <Link
-              href="/privacy"
-              className="text-sm transition-colors hover:text-white"
-              style={{ color: colors.mutedText }}
-            >
-              Privacy
-            </Link>
-            <Link
-              href="/terms"
-              className="text-sm transition-colors hover:text-white"
-              style={{ color: colors.mutedText }}
-            >
-              Terms
-            </Link>
+            <AnimatedFooterLink href="/privacy">Privacy</AnimatedFooterLink>
+            <AnimatedFooterLink href="/terms">Terms</AnimatedFooterLink>
           </div>
         </div>
       </div>
