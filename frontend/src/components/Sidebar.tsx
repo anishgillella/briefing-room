@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
   Briefcase,
@@ -15,8 +16,11 @@ import {
   Calendar,
   ChevronDown,
   Video,
+  Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/lib/utils";
+import { SimpleTooltip } from "@/components/ui/tooltip";
 
 interface NavItem {
   label: string;
@@ -74,6 +78,7 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
   const { recruiter, logout } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
   // Persist collapsed state
   useEffect(() => {
@@ -99,7 +104,7 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
         }
       }
     });
-  }, [pathname]);
+  }, [pathname, expandedItems]);
 
   const toggleExpanded = (href: string) => {
     setExpandedItems((prev) =>
@@ -117,179 +122,295 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
   };
 
   return (
-    <aside
-      className={`fixed top-0 left-0 h-full bg-[#0a0a0f] border-r border-white/5 z-40 transition-all duration-300 flex flex-col ${
-        isCollapsed ? "w-[72px]" : "w-[260px]"
-      }`}
+    <motion.aside
+      initial={false}
+      animate={{ width: isCollapsed ? 72 : 260 }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      className="fixed top-0 left-0 h-full bg-[#0a0a0f]/95 backdrop-blur-xl border-r border-white/[0.06] z-40 flex flex-col"
     >
       {/* Logo */}
-      <div className="h-16 flex items-center px-4 border-b border-white/5">
-        <Link href="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center border border-white/10 shrink-0">
-            <span className="text-base">⚛️</span>
-          </div>
-          {!isCollapsed && (
-            <span className="text-base font-medium text-white tracking-wide">
-              Briefing Room
-            </span>
-          )}
+      <div className="h-16 flex items-center px-4 border-b border-white/[0.06]">
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-3 group"
+        >
+          <motion.div
+            className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center border border-white/10 shrink-0"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Sparkles className="w-5 h-5 text-indigo-400" />
+          </motion.div>
+          <AnimatePresence mode="wait">
+            {!isCollapsed && (
+              <motion.span
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.15 }}
+                className="text-base font-semibold text-white tracking-tight whitespace-nowrap"
+              >
+                Briefing Room
+              </motion.span>
+            )}
+          </AnimatePresence>
         </Link>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-4 px-3 overflow-y-auto custom-scrollbar">
+      <nav className="flex-1 py-4 px-3 overflow-y-auto no-scrollbar">
         <ul className="space-y-1">
-          {navItems.map((item) => {
+          {navItems.map((item, index) => {
             const active = isActive(item.href);
             const hasChildren = item.children && item.children.length > 0;
             const isExpanded = expandedItems.includes(item.href);
+            const isHovered = hoveredItem === item.href;
+
+            const NavContent = (
+              <motion.div
+                initial={false}
+                animate={{
+                  backgroundColor: active
+                    ? "rgba(99, 102, 241, 0.1)"
+                    : isHovered
+                    ? "rgba(255, 255, 255, 0.05)"
+                    : "transparent",
+                }}
+                className={cn(
+                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors relative overflow-hidden",
+                  active ? "text-white" : "text-zinc-400"
+                )}
+                onHoverStart={() => setHoveredItem(item.href)}
+                onHoverEnd={() => setHoveredItem(null)}
+              >
+                {/* Active indicator */}
+                {active && (
+                  <motion.div
+                    layoutId="activeIndicator"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-indigo-500"
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  />
+                )}
+
+                {/* Icon */}
+                <motion.span
+                  className={cn(
+                    "shrink-0 relative z-10",
+                    active ? "text-indigo-400" : "text-zinc-500"
+                  )}
+                  animate={{ scale: isHovered && !active ? 1.1 : 1 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                >
+                  {item.icon}
+                </motion.span>
+
+                {/* Label */}
+                <AnimatePresence mode="wait">
+                  {!isCollapsed && (
+                    <motion.span
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -10 }}
+                      transition={{ duration: 0.15, delay: index * 0.02 }}
+                      className="flex-1 text-left text-sm font-medium whitespace-nowrap"
+                    >
+                      {item.label}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+
+                {/* Expand arrow for items with children */}
+                {hasChildren && !isCollapsed && (
+                  <motion.span
+                    animate={{ rotate: isExpanded ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <ChevronDown className="w-4 h-4 text-zinc-500" />
+                  </motion.span>
+                )}
+              </motion.div>
+            );
 
             return (
-              <li key={item.href}>
+              <motion.li
+                key={item.href}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
                 {hasChildren ? (
                   <>
-                    <button
-                      onClick={() => {
-                        if (isCollapsed) {
-                          setIsCollapsed(false);
-                          setExpandedItems([item.href]);
-                        } else {
-                          toggleExpanded(item.href);
-                        }
-                      }}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group ${
-                        active
-                          ? "bg-white/10 text-white"
-                          : "text-white/50 hover:text-white hover:bg-white/5"
-                      }`}
-                    >
-                      <span
-                        className={`shrink-0 ${
-                          active ? "text-indigo-400" : "text-white/50 group-hover:text-white/80"
-                        }`}
+                    {isCollapsed ? (
+                      <SimpleTooltip content={item.label} side="right">
+                        <button
+                          onClick={() => {
+                            setIsCollapsed(false);
+                            setExpandedItems([item.href]);
+                          }}
+                          className="w-full"
+                        >
+                          {NavContent}
+                        </button>
+                      </SimpleTooltip>
+                    ) : (
+                      <button
+                        onClick={() => toggleExpanded(item.href)}
+                        className="w-full"
                       >
-                        {item.icon}
-                      </span>
-                      {!isCollapsed && (
-                        <>
-                          <span className="flex-1 text-left text-sm font-medium">
-                            {item.label}
-                          </span>
-                          <ChevronDown
-                            className={`w-4 h-4 transition-transform ${
-                              isExpanded ? "rotate-180" : ""
-                            }`}
-                          />
-                        </>
-                      )}
-                    </button>
+                        {NavContent}
+                      </button>
+                    )}
+
                     {/* Children */}
-                    {!isCollapsed && isExpanded && item.children && (
-                      <ul className="mt-1 ml-4 pl-4 border-l border-white/10 space-y-1">
-                        {item.children.map((child) => {
-                          const childActive = pathname === child.href;
-                          return (
-                            <li key={child.href}>
-                              <Link
-                                href={child.href}
-                                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-sm ${
-                                  childActive
-                                    ? "bg-indigo-500/10 text-indigo-300"
-                                    : "text-white/40 hover:text-white hover:bg-white/5"
-                                }`}
+                    <AnimatePresence>
+                      {!isCollapsed && isExpanded && item.children && (
+                        <motion.ul
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="mt-1 ml-4 pl-4 border-l border-zinc-800 space-y-1 overflow-hidden"
+                        >
+                          {item.children.map((child, childIndex) => {
+                            const childActive = pathname === child.href;
+                            return (
+                              <motion.li
+                                key={child.href}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: childIndex * 0.05 }}
                               >
-                                <span className={childActive ? "text-indigo-400" : ""}>
-                                  {child.icon}
-                                </span>
-                                <span>{child.label}</span>
-                              </Link>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    )}
+                                <Link
+                                  href={child.href}
+                                  className={cn(
+                                    "flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-sm group",
+                                    childActive
+                                      ? "bg-indigo-500/10 text-indigo-300"
+                                      : "text-zinc-500 hover:text-white hover:bg-white/5"
+                                  )}
+                                >
+                                  <span
+                                    className={cn(
+                                      "transition-transform group-hover:scale-110",
+                                      childActive ? "text-indigo-400" : ""
+                                    )}
+                                  >
+                                    {child.icon}
+                                  </span>
+                                  <span>{child.label}</span>
+                                </Link>
+                              </motion.li>
+                            );
+                          })}
+                        </motion.ul>
+                      )}
+                    </AnimatePresence>
                   </>
+                ) : isCollapsed ? (
+                  <SimpleTooltip content={item.label} side="right">
+                    <Link href={item.href} className="block">
+                      {NavContent}
+                    </Link>
+                  </SimpleTooltip>
                 ) : (
-                  <Link
-                    href={item.href}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group ${
-                      active
-                        ? "bg-white/10 text-white"
-                        : "text-white/50 hover:text-white hover:bg-white/5"
-                    }`}
-                    title={isCollapsed ? item.label : undefined}
-                  >
-                    <span
-                      className={`shrink-0 ${
-                        active ? "text-indigo-400" : "text-white/50 group-hover:text-white/80"
-                      }`}
-                    >
-                      {item.icon}
-                    </span>
-                    {!isCollapsed && (
-                      <span className="text-sm font-medium">{item.label}</span>
-                    )}
+                  <Link href={item.href} className="block">
+                    {NavContent}
                   </Link>
                 )}
-              </li>
+              </motion.li>
             );
           })}
         </ul>
       </nav>
 
       {/* User Section & Toggle */}
-      <div className="border-t border-white/5 p-3 space-y-2">
+      <div className="border-t border-white/[0.06] p-3 space-y-2">
         {/* User Info */}
         {recruiter && (
-          <div
-            className={`flex items-center gap-3 px-3 py-2 rounded-xl bg-white/5 ${
+          <motion.div
+            className={cn(
+              "flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.04]",
               isCollapsed ? "justify-center" : ""
-            }`}
+            )}
+            whileHover={{ backgroundColor: "rgba(255, 255, 255, 0.06)" }}
           >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-sm font-medium shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold shrink-0 shadow-lg shadow-indigo-500/20">
               {recruiter.name?.charAt(0).toUpperCase() || "U"}
             </div>
-            {!isCollapsed && (
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">
-                  {recruiter.name}
-                </p>
-                <p className="text-xs text-white/40 truncate">{recruiter.email}</p>
-              </div>
-            )}
-          </div>
+            <AnimatePresence mode="wait">
+              {!isCollapsed && (
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  className="flex-1 min-w-0"
+                >
+                  <p className="text-sm font-medium text-white truncate">
+                    {recruiter.name}
+                  </p>
+                  <p className="text-xs text-zinc-500 truncate">
+                    {recruiter.email}
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
         )}
 
         {/* Logout Button */}
-        <button
-          onClick={logout}
-          className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-white/40 hover:text-white hover:bg-white/5 transition-all ${
-            isCollapsed ? "justify-center" : ""
-          }`}
-          title={isCollapsed ? "Sign out" : undefined}
-        >
-          <LogOut className="w-5 h-5 shrink-0" />
-          {!isCollapsed && <span className="text-sm">Sign out</span>}
-        </button>
+        {isCollapsed ? (
+          <SimpleTooltip content="Sign out" side="right">
+            <motion.button
+              onClick={logout}
+              className="w-full flex items-center justify-center gap-3 px-3 py-2.5 rounded-xl text-zinc-500 hover:text-white hover:bg-white/5 transition-all"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <LogOut className="w-5 h-5 shrink-0" />
+            </motion.button>
+          </SimpleTooltip>
+        ) : (
+          <motion.button
+            onClick={logout}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-500 hover:text-white hover:bg-white/5 transition-all"
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+          >
+            <LogOut className="w-5 h-5 shrink-0" />
+            <span className="text-sm">Sign out</span>
+          </motion.button>
+        )}
 
         {/* Collapse Toggle */}
-        <button
+        <motion.button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-white/30 hover:text-white hover:bg-white/5 transition-all ${
+          className={cn(
+            "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-600 hover:text-zinc-400 hover:bg-white/5 transition-all",
             isCollapsed ? "justify-center" : ""
-          }`}
-          title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {isCollapsed ? (
-            <ChevronRight className="w-5 h-5 shrink-0" />
-          ) : (
-            <>
-              <ChevronLeft className="w-5 h-5 shrink-0" />
-              <span className="text-sm">Collapse</span>
-            </>
           )}
-        </button>
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.99 }}
+        >
+          <motion.span
+            animate={{ rotate: isCollapsed ? 180 : 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <ChevronLeft className="w-5 h-5 shrink-0" />
+          </motion.span>
+          <AnimatePresence mode="wait">
+            {!isCollapsed && (
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="text-sm"
+              >
+                Collapse
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </motion.button>
       </div>
-    </aside>
+    </motion.aside>
   );
 }

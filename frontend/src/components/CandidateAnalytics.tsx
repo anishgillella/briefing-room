@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import type { LucideIcon } from "lucide-react";
 import {
     BarChart3,
     TrendingUp,
@@ -367,15 +368,17 @@ const ProgressBar = ({ value, max = 100, color = "purple", showValue = true, hei
 };
 
 // Metric Card Component
+type MetricColor = "white" | "green" | "yellow" | "red" | "purple" | "cyan";
+
 const MetricCard = ({ icon: Icon, label, value, subvalue, trend, color = "white" }: {
-    icon: React.ElementType;
+    icon: LucideIcon;
     label: string;
     value: string | number;
     subvalue?: string;
     trend?: "up" | "down" | "neutral";
-    color?: string;
+    color?: MetricColor;
 }) => {
-    const colorClasses: Record<string, string> = {
+    const colorClasses: Record<MetricColor, string> = {
         white: "text-white",
         green: "text-green-400",
         yellow: "text-yellow-400",
@@ -384,11 +387,13 @@ const MetricCard = ({ icon: Icon, label, value, subvalue, trend, color = "white"
         cyan: "text-cyan-400",
     };
 
+    const colorClass = colorClasses[color];
+
     return (
         <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:border-white/10 transition-all group">
             <div className="flex items-start justify-between mb-2">
                 <div className="p-2 rounded-xl bg-white/5 group-hover:bg-white/10 transition-colors">
-                    <Icon className={`w-4 h-4 ${colorClasses[color]}`} />
+                    <Icon className={`w-4 h-4 ${colorClass}`} />
                 </div>
                 {trend && (
                     <div className={`flex items-center gap-1 text-xs ${trend === "up" ? "text-green-400" : trend === "down" ? "text-red-400" : "text-white/40"}`}>
@@ -396,7 +401,7 @@ const MetricCard = ({ icon: Icon, label, value, subvalue, trend, color = "white"
                     </div>
                 )}
             </div>
-            <div className={`text-2xl font-semibold ${colorClasses[color]}`}>{value}</div>
+            <div className={`text-2xl font-semibold ${colorClass}`}>{value}</div>
             <div className="text-xs text-white/40 mt-1">{label}</div>
             {subvalue && <div className="text-[10px] text-white/30 mt-0.5">{subvalue}</div>}
         </div>
@@ -422,7 +427,7 @@ const Badge = ({ children, variant = "default" }: { children: React.ReactNode; v
 
 // Section Header
 const SectionHeader = ({ icon: Icon, title, subtitle, action }: {
-    icon: React.ElementType;
+    icon: LucideIcon;
     title: string;
     subtitle?: string;
     action?: React.ReactNode;
