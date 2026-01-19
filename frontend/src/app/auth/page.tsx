@@ -66,14 +66,25 @@ const colors = {
 };
 
 // =============================================================================
-// ANIMATION VARIANTS
+// ANIMATION VARIANTS - Faster, snappier (matching landing page)
 // =============================================================================
+
+// Spring configurations for smooth interactions
+const springs = {
+  stiff: { stiffness: 300, damping: 22 },
+  soft: { stiffness: 220, damping: 20 },
+  snappy: { stiffness: 450, damping: 25 },
+  bounce: { stiffness: 350, damping: 18 },
+};
+
+// Hover transition duration (150ms)
+const hoverDuration = 0.15;
 
 const pageVariants = {
   initial: { opacity: 0 },
   animate: {
     opacity: 1,
-    transition: { duration: 0.5, staggerChildren: 0.1 },
+    transition: { duration: 0.4, staggerChildren: 0.08 },
   },
 };
 
@@ -82,7 +93,7 @@ const leftPanelVariants = {
   animate: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const },
+    transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] as const },
   },
 };
 
@@ -93,8 +104,8 @@ const cardVariants = {
     x: 0,
     transition: {
       type: "spring" as const,
-      stiffness: 280,
-      damping: 26,
+      stiffness: 320,
+      damping: 24,
       delay: 0.1,
     },
   },
@@ -105,19 +116,19 @@ const formVariants = {
   animate: {
     opacity: 1,
     x: 0,
-    transition: { duration: 0.22, ease: "easeOut" as const },
+    transition: { duration: 0.18, ease: "easeOut" as const },
   },
   exit: {
     opacity: 0,
     x: -20,
-    transition: { duration: 0.18, ease: "easeIn" as const },
+    transition: { duration: 0.15, ease: "easeIn" as const },
   },
 };
 
 const staggerContainer = {
   animate: {
     transition: {
-      staggerChildren: 0.06,
+      staggerChildren: 0.05,
     },
   },
 };
@@ -127,7 +138,7 @@ const staggerItem = {
   animate: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.3, ease: "easeOut" as const },
+    transition: { duration: 0.25, ease: "easeOut" as const },
   },
 };
 
@@ -471,7 +482,7 @@ function LoginForm({
         </div>
       </div>
 
-      {/* Submit Button */}
+      {/* Submit Button - Enhanced hover */}
       <motion.button
         type="submit"
         disabled={isSubmitting}
@@ -480,21 +491,36 @@ function LoginForm({
           background: colors.primaryBtn,
           boxShadow: colors.primaryBtnGlow,
         }}
-        whileHover={{ scale: 1.02, background: colors.primaryBtnHover }}
-        whileTap={{ scale: 0.98, background: colors.primaryBtnPressed }}
+        whileHover={{
+          scale: 1.03,
+          y: -2,
+          background: colors.primaryBtnHover,
+          boxShadow: `0 0 35px ${colors.primaryBtn}50, 0 12px 40px ${colors.primaryBtn}30`,
+        }}
+        whileTap={{ scale: 0.97, background: colors.primaryBtnPressed }}
+        transition={springs.bounce}
         variants={staggerItem}
       >
-        {/* Shimmer effect */}
+        {/* Shimmer effect - faster */}
         <motion.div
-          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent"
           initial={{ x: "-100%" }}
           whileHover={{ x: "100%" }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.35 }}
         />
         <span className="relative z-10">
           {isSubmitting ? "Signing in..." : "Continue"}
         </span>
-        {!isSubmitting && <ArrowRight className="w-4 h-4 relative z-10" />}
+        {!isSubmitting && (
+          <motion.span
+            className="relative z-10"
+            initial={{ x: 0 }}
+            whileHover={{ x: 4 }}
+            transition={springs.snappy}
+          >
+            <ArrowRight className="w-4 h-4" />
+          </motion.span>
+        )}
       </motion.button>
 
       {/* Divider */}
@@ -515,10 +541,10 @@ function LoginForm({
         </div>
       </div>
 
-      {/* Google Button */}
+      {/* Google Button - Enhanced hover */}
       <motion.button
         type="button"
-        className="w-full h-11 rounded-xl text-sm font-medium flex items-center justify-center gap-3 transition-all"
+        className="w-full h-11 rounded-xl text-sm font-medium flex items-center justify-center gap-3 relative overflow-hidden"
         style={{
           background: colors.googleBtn,
           border: `1px solid ${colors.googleBtnBorder}`,
@@ -527,7 +553,11 @@ function LoginForm({
         whileHover={{
           background: colors.googleBtnHover,
           borderColor: colors.inputBorderHover,
+          y: -2,
+          boxShadow: "0 8px 25px rgba(0, 0, 0, 0.2)",
         }}
+        whileTap={{ scale: 0.98 }}
+        transition={springs.stiff}
         variants={staggerItem}
       >
         <svg className="w-4 h-4" viewBox="0 0 24 24">
@@ -704,7 +734,7 @@ function SignupForm({
         isFocused={focusedField === "workspace"}
       />
 
-      {/* Submit Button */}
+      {/* Submit Button - Enhanced hover */}
       <motion.button
         type="submit"
         disabled={isSubmitting}
@@ -713,21 +743,36 @@ function SignupForm({
           background: colors.primaryBtn,
           boxShadow: colors.primaryBtnGlow,
         }}
-        whileHover={{ scale: 1.02, background: colors.primaryBtnHover }}
-        whileTap={{ scale: 0.98, background: colors.primaryBtnPressed }}
+        whileHover={{
+          scale: 1.03,
+          y: -2,
+          background: colors.primaryBtnHover,
+          boxShadow: `0 0 35px ${colors.primaryBtn}50, 0 12px 40px ${colors.primaryBtn}30`,
+        }}
+        whileTap={{ scale: 0.97, background: colors.primaryBtnPressed }}
+        transition={springs.bounce}
         variants={staggerItem}
       >
-        {/* Shimmer effect */}
+        {/* Shimmer effect - faster */}
         <motion.div
-          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent"
           initial={{ x: "-100%" }}
           whileHover={{ x: "100%" }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.35 }}
         />
         <span className="relative z-10">
           {isSubmitting ? "Creating workspace..." : "Create workspace"}
         </span>
-        {!isSubmitting && <ArrowRight className="w-4 h-4 relative z-10" />}
+        {!isSubmitting && (
+          <motion.span
+            className="relative z-10"
+            initial={{ x: 0 }}
+            whileHover={{ x: 4 }}
+            transition={springs.snappy}
+          >
+            <ArrowRight className="w-4 h-4" />
+          </motion.span>
+        )}
       </motion.button>
 
       {/* Divider */}
@@ -748,10 +793,10 @@ function SignupForm({
         </div>
       </div>
 
-      {/* Google Button */}
+      {/* Google Button - Enhanced hover */}
       <motion.button
         type="button"
-        className="w-full h-11 rounded-xl text-sm font-medium flex items-center justify-center gap-3 transition-all"
+        className="w-full h-11 rounded-xl text-sm font-medium flex items-center justify-center gap-3 relative overflow-hidden"
         style={{
           background: colors.googleBtn,
           border: `1px solid ${colors.googleBtnBorder}`,
@@ -760,7 +805,11 @@ function SignupForm({
         whileHover={{
           background: colors.googleBtnHover,
           borderColor: colors.inputBorderHover,
+          y: -2,
+          boxShadow: "0 8px 25px rgba(0, 0, 0, 0.2)",
         }}
+        whileTap={{ scale: 0.98 }}
+        transition={springs.stiff}
         variants={staggerItem}
       >
         <svg className="w-4 h-4" viewBox="0 0 24 24">
