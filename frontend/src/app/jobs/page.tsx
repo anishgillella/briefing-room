@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import AppLayout from "@/components/AppLayout";
-import { useJobs, useDeleteJob } from "@/hooks/useApi";
+import { useJobs, useDeleteJob, type Job, type StageCount } from "@/hooks/useApi";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   Plus,
@@ -261,14 +261,7 @@ function JobCard({
   onClick,
   index,
 }: {
-  job: {
-    id: string;
-    title: string;
-    status: string;
-    candidate_count: number;
-    interviewed_count: number;
-    created_at: string;
-  };
+  job: Job;
   onDelete: (jobId: string, e: React.MouseEvent) => void;
   isDeleting: boolean;
   onClick: () => void;
@@ -276,14 +269,6 @@ function JobCard({
 }) {
   const shouldReduceMotion = useReducedMotion();
   const health = getPipelineHealth(job.interviewed_count, job.candidate_count);
-
-  // Calculate candidates at each stage
-  // Screen = candidates not yet interviewed
-  // Interview = candidates being interviewed (interviewed but not in offer)
-  // Offer = candidates in offer stage (estimate ~30% of interviewed)
-  const offerCount = Math.floor(job.interviewed_count * 0.3);
-  const interviewCount = job.interviewed_count - offerCount;
-  const screenCount = job.candidate_count - job.interviewed_count;
 
   const healthConfig = {
     healthy: { color: tokens.statusSuccess, label: "On Track", bg: "rgba(16,185,129,0.1)" },
@@ -293,11 +278,23 @@ function JobCard({
 
   const { color: healthColor, label: healthLabel, bg: healthBg } = healthConfig[health];
 
-  const pipelineStages = [
-    { label: "Screen", count: screenCount, color: tokens.brandSecondary },
-    { label: "Interview", count: interviewCount, color: tokens.brandPrimary },
-    { label: "Offer", count: offerCount, color: tokens.statusSuccess },
-  ];
+  // Use actual stage_counts from API, with fallback for backward compatibility
+  const pipelineStages = job.stage_counts && job.stage_counts.length > 0
+    ? job.stage_counts.map((stage, index) => ({
+        label: stage.stage_name,
+        count: stage.count,
+        color: stage.stage_key === "new"
+          ? tokens.brandSecondary      // Screen = secondary brand color
+          : stage.stage_key === "offer"
+            ? tokens.statusSuccess     // Offer = green
+            : tokens.brandPrimary,     // Interview stages = primary brand color
+      }))
+    : [
+        // Fallback to calculated values if stage_counts not available
+        { label: "Screen", count: job.candidate_count - job.interviewed_count, color: tokens.brandSecondary },
+        { label: "Interview", count: job.interviewed_count, color: tokens.brandPrimary },
+        { label: "Offer", count: 0, color: tokens.statusSuccess },
+      ];
 
   return (
     <motion.div

@@ -200,12 +200,25 @@ class ScoringCriteria(BaseModel):
     )
 
 
+class InterviewStage(BaseModel):
+    """Represents a single interview stage with name and optional metadata."""
+    name: str = Field(..., min_length=1, max_length=100, description="Stage name (e.g., 'Phone Screen', 'Technical')")
+
+
+# Default interview stages for new jobs
+DEFAULT_INTERVIEW_STAGES = ["Round 1", "Round 2", "Round 3"]
+
+
 class JobBase(BaseModel):
     """Base job fields for create/update operations."""
     title: str = Field(..., min_length=1, max_length=255, description="Job title")
     raw_description: str = Field(..., min_length=1, description="Full job description text")
     status: JobStatus = Field(default=JobStatus.DRAFT, description="Job status")
     recruiter_id: Optional[UUID] = Field(None, description="ID of the recruiter who owns this job")
+    interview_stages: List[str] = Field(
+        default_factory=lambda: DEFAULT_INTERVIEW_STAGES.copy(),
+        description="List of interview stage names. Default: ['Round 1', 'Round 2', 'Round 3']"
+    )
 
 
 class JobCreate(JobBase):
@@ -223,6 +236,17 @@ class JobUpdate(BaseModel):
     company_context: Optional[CompanyContext] = None
     scoring_criteria: Optional[ScoringCriteria] = None
     red_flags: Optional[List[str]] = None
+    interview_stages: Optional[List[str]] = Field(
+        None,
+        description="List of interview stage names"
+    )
+
+
+class StageCount(BaseModel):
+    """Count of candidates at a specific pipeline stage."""
+    stage_key: str = Field(..., description="Stage key (e.g., 'new', 'stage_0', 'stage_1', 'decision_pending')")
+    stage_name: str = Field(..., description="Human-readable stage name (e.g., 'Screen', 'Round 1', 'Offer')")
+    count: int = Field(default=0, description="Number of candidates at this stage")
 
 
 class Job(JobBase):
@@ -256,10 +280,16 @@ class Job(JobBase):
     )
 
     # Computed fields (populated by queries)
-    candidate_count: int = Field(default=0, description="Number of candidates")
-    interviewed_count: int = Field(default=0, description="Number interviewed")
+    candidate_count: int = Field(default=0, description="Total number of candidates")
+    interviewed_count: int = Field(default=0, description="Number of candidates who have completed at least one interview")
     recruiter_name: Optional[str] = Field(None, description="Name of the recruiter who owns this job")
     is_archived: bool = Field(default=False, description="True if job is archived (deleted_at is set)")
+
+    # Stage counts - actual candidate counts per pipeline stage
+    stage_counts: List[StageCount] = Field(
+        default_factory=list,
+        description="Candidate counts per pipeline stage (Screen, Interview stages, Offer)"
+    )
 
     class Config:
         from_attributes = True

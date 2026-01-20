@@ -35,6 +35,8 @@ import {
   X,
   Save,
   Loader2,
+  GripVertical,
+  Settings,
 } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -99,6 +101,14 @@ interface Job {
     weight_cultural?: number;
   };
   red_flags?: string[];
+  // Configurable interview stages
+  interview_stages?: string[];
+  // Actual candidate counts per stage
+  stage_counts?: {
+    stage_key: string;
+    stage_name: string;
+    count: number;
+  }[];
 }
 
 interface Candidate {
@@ -224,6 +234,11 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
   });
   const [newItemInputs, setNewItemInputs] = useState<Record<string, string>>({});
 
+  // Interview stages editor state
+  const [showStagesEditor, setShowStagesEditor] = useState(false);
+  const [editedStages, setEditedStages] = useState<string[]>([]);
+  const [savingStages, setSavingStages] = useState(false);
+
   // Auth redirect is handled by AppLayout
 
   useEffect(() => {
@@ -310,6 +325,10 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
           deal_breakers: 0.05,
         },
       });
+    }
+    // Initialize interview stages
+    if (job) {
+      setEditedStages(job.interview_stages || ["Round 1", "Round 2", "Round 3"]);
     }
   }, [job]);
 
@@ -404,6 +423,36 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
         [category]: weight,
       },
     });
+  };
+
+  // Save interview stages
+  const saveInterviewStages = async () => {
+    if (!job) return;
+
+    try {
+      setSavingStages(true);
+      const headers = {
+        ...getAuthHeaders(),
+        "Content-Type": "application/json",
+      };
+
+      const response = await fetch(`${API_URL}/api/jobs/${resolvedParams.id}`, {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify({
+          interview_stages: editedStages.filter(s => s.trim() !== ""),
+        }),
+      });
+
+      if (response.ok) {
+        fetchJobData();
+        setShowStagesEditor(false);
+      }
+    } catch (error) {
+      console.error("Failed to save interview stages:", error);
+    } finally {
+      setSavingStages(false);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -596,6 +645,148 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
               <ChevronRight className="w-5 h-5 text-white/30 group-hover:text-white/60 transition-colors" />
             </div>
           </Link>
+        </div>
+
+        {/* Interview Pipeline Configuration */}
+        <div className="glass-panel rounded-2xl p-6 mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-medium text-white flex items-center gap-2">
+                <Settings className="w-5 h-5 text-white/60" />
+                Interview Pipeline
+              </h3>
+              <p className="text-xs text-white/40 mt-1">
+                Configure the stages candidates go through
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowStagesEditor(!showStagesEditor)}
+              className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/70 rounded-lg text-xs font-medium transition-colors"
+            >
+              {showStagesEditor ? "Cancel" : "Edit Stages"}
+            </button>
+          </div>
+
+          {/* Pipeline Visualization */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Screen stage */}
+            <div className="flex items-center gap-2">
+              <div className="px-4 py-2 bg-indigo-500/10 text-indigo-300 rounded-lg border border-indigo-500/20 flex items-center gap-2">
+                <span className="font-medium">Screen</span>
+                <span className="text-xs bg-indigo-500/30 px-2 py-0.5 rounded">
+                  {job.stage_counts?.find(s => s.stage_key === "new")?.count ?? job.candidate_count - job.interviewed_count}
+                </span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-white/30" />
+            </div>
+
+            {/* Dynamic interview stages */}
+            {(job.interview_stages || ["Round 1", "Round 2", "Round 3"]).map((stage, index) => {
+              const stageCount = job.stage_counts?.find(s => s.stage_key === `stage_${index}`);
+              return (
+                <div key={index} className="flex items-center gap-2">
+                  <div className="px-4 py-2 bg-white/5 text-white/70 rounded-lg border border-white/10 flex items-center gap-2">
+                    <span className="font-medium">{stage}</span>
+                    <span className="text-xs bg-white/10 px-2 py-0.5 rounded">
+                      {stageCount?.count ?? 0}
+                    </span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-white/30" />
+                </div>
+              );
+            })}
+
+            {/* Offer stage */}
+            <div className="px-4 py-2 bg-green-500/10 text-green-300 rounded-lg border border-green-500/20 flex items-center gap-2">
+              <span className="font-medium">Offer</span>
+              <span className="text-xs bg-green-500/30 px-2 py-0.5 rounded">
+                {job.stage_counts?.find(s => s.stage_key === "offer")?.count ?? 0}
+              </span>
+            </div>
+          </div>
+
+          {/* Edit Stages Form */}
+          {showStagesEditor && (
+            <div className="mt-6 pt-6 border-t border-white/10 space-y-4">
+              <p className="text-sm text-white/60">
+                Customize the interview stages for this job. Changes will apply to new candidates.
+              </p>
+              <div className="space-y-3">
+                {editedStages.map((stage, index) => (
+                  <div key={index} className="flex items-center gap-3">
+                    <div className="text-white/30">
+                      <GripVertical className="w-4 h-4" />
+                    </div>
+                    <span className="text-white/40 text-sm w-8">{index + 1}.</span>
+                    <input
+                      type="text"
+                      value={stage}
+                      onChange={(e) => {
+                        const newStages = [...editedStages];
+                        newStages[index] = e.target.value;
+                        setEditedStages(newStages);
+                      }}
+                      placeholder={`Stage ${index + 1} name`}
+                      className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-white/30 focus:outline-none focus:border-indigo-500/50 text-sm"
+                    />
+                    {editedStages.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditedStages(editedStages.filter((_, i) => i !== index));
+                        }}
+                        className="p-2 text-white/40 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+
+                {/* Add Stage Button */}
+                <button
+                  type="button"
+                  onClick={() => setEditedStages([...editedStages, `Round ${editedStages.length + 1}`])}
+                  className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white/60 hover:text-white/80 rounded-lg text-sm transition-colors w-full justify-center"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Interview Stage
+                </button>
+              </div>
+
+              {/* Save / Cancel */}
+              <div className="flex items-center justify-end gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditedStages(job.interview_stages || ["Round 1", "Round 2", "Round 3"]);
+                    setShowStagesEditor(false);
+                  }}
+                  className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-white/60 font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={saveInterviewStages}
+                  disabled={savingStages || editedStages.filter(s => s.trim()).length === 0}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg font-medium transition-colors disabled:opacity-50"
+                >
+                  {savingStages ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      Save Stages
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Tabs */}
