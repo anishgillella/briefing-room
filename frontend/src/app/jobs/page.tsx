@@ -1,32 +1,763 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import AppLayout from "@/components/AppLayout";
 import { useJobs, useDeleteJob } from "@/hooks/useApi";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   Plus,
   Briefcase,
   Users,
   CheckCircle,
-  Clock,
   ChevronRight,
-  Play,
   Trash2,
   Mic,
   Sparkles,
   X,
+  AlertTriangle,
+  Search,
+  Command,
+  TrendingUp,
+  Clock,
+  Zap,
+  type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { SearchInput } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
-import { StatusBadge } from "@/components/ui/badge";
 import { SkeletonCard } from "@/components/ui/skeleton";
-import { FadeInUp, Stagger, StaggerItem } from "@/components/ui/motion";
-import { cn } from "@/lib/utils";
 
+// =============================================================================
+// DESIGN TOKENS - Premium Dark Theme
+// =============================================================================
+const tokens = {
+  // Backgrounds
+  bgApp: "#070B14",
+  bgSurface: "#0C1322",
+  bgSurfaceHover: "#111827",
+  bgCard: "#0F172A",
+  bgCardHover: "#1E293B",
+  bgGlass: "rgba(15, 23, 42, 0.8)",
+
+  // Borders
+  borderSubtle: "rgba(255,255,255,0.06)",
+  borderDefault: "rgba(255,255,255,0.08)",
+  borderHover: "rgba(255,255,255,0.12)",
+  borderFocus: "rgba(99,102,241,0.5)",
+
+  // Text
+  textPrimary: "#F8FAFC",
+  textSecondary: "#94A3B8",
+  textMuted: "#64748B",
+  textDisabled: "#475569",
+
+  // Brand
+  brandPrimary: "#6366F1",
+  brandSecondary: "#818CF8",
+  brandGlow: "rgba(99,102,241,0.15)",
+  brandGlowStrong: "rgba(99,102,241,0.3)",
+
+  // Status
+  statusSuccess: "#10B981",
+  statusWarning: "#F59E0B",
+  statusDanger: "#EF4444",
+  statusInfo: "#3B82F6",
+
+  // Gradients
+  gradientPrimary: "linear-gradient(135deg, #6366F1, #8B5CF6)",
+  gradientSuccess: "linear-gradient(135deg, #10B981, #34D399)",
+  gradientWarning: "linear-gradient(135deg, #F59E0B, #FBBF24)",
+  gradientDanger: "linear-gradient(135deg, #EF4444, #F87171)",
+};
+
+// Animation configs
+const springConfig = { type: "spring", stiffness: 300, damping: 30 };
+const easeOutCustom: [number, number, number, number] = [0.16, 1, 0.3, 1];
+
+// =============================================================================
+// PIPELINE HEALTH
+// =============================================================================
+type PipelineHealth = "healthy" | "slow" | "at_risk";
+
+function getPipelineHealth(interviewed: number, total: number): PipelineHealth {
+  if (total === 0) return "healthy";
+  const ratio = interviewed / total;
+  if (ratio >= 0.3) return "healthy";
+  if (ratio >= 0.1) return "slow";
+  return "at_risk";
+}
+
+// =============================================================================
+// STAT CARD - Premium Design
+// =============================================================================
+function StatCard({
+  icon: Icon,
+  value,
+  label,
+  trend,
+  variant = "default",
+  delay = 0,
+}: {
+  icon: LucideIcon;
+  value: number;
+  label: string;
+  trend?: { value: number; isPositive: boolean };
+  variant?: "default" | "success" | "warning" | "danger";
+  delay?: number;
+}) {
+  const variantStyles = {
+    default: {
+      iconBg: tokens.brandGlow,
+      iconColor: tokens.brandPrimary,
+      glow: "none",
+    },
+    success: {
+      iconBg: "rgba(16,185,129,0.15)",
+      iconColor: tokens.statusSuccess,
+      glow: "none",
+    },
+    warning: {
+      iconBg: "rgba(245,158,11,0.15)",
+      iconColor: tokens.statusWarning,
+      glow: "none",
+    },
+    danger: {
+      iconBg: "rgba(239,68,68,0.1)",
+      iconColor: tokens.statusDanger,
+      glow: "inset 0 0 0 1px rgba(239,68,68,0.2), 0 0 20px rgba(239,68,68,0.1)",
+    },
+  };
+
+  const styles = variantStyles[variant];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay, ease: easeOutCustom }}
+      whileHover={{
+        y: -4,
+        transition: springConfig,
+      }}
+      className="group relative cursor-default"
+    >
+      {/* Card */}
+      <div
+        className="relative p-5 rounded-2xl transition-all duration-300"
+        style={{
+          backgroundColor: tokens.bgSurface,
+          border: `1px solid ${tokens.borderDefault}`,
+          boxShadow: styles.glow,
+        }}
+      >
+        {/* Hover glow */}
+        <div
+          className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          style={{
+            background: `radial-gradient(circle at 50% 0%, ${styles.iconColor}10, transparent 70%)`,
+          }}
+        />
+
+        <div className="relative flex items-start justify-between">
+          <div className="flex-1">
+            <p
+              className="text-sm font-medium mb-2"
+              style={{ color: tokens.textMuted }}
+            >
+              {label}
+            </p>
+            <div className="flex items-baseline gap-3">
+              <p
+                className="text-3xl font-semibold tracking-tight tabular-nums"
+                style={{
+                  color: tokens.textPrimary,
+                  fontFamily: "var(--font-mono), monospace",
+                }}
+              >
+                {value}
+              </p>
+              {trend && (
+                <span
+                  className="flex items-center gap-1 text-xs font-medium"
+                  style={{
+                    color: trend.isPositive
+                      ? tokens.statusSuccess
+                      : tokens.statusDanger,
+                  }}
+                >
+                  <TrendingUp
+                    className={`w-3 h-3 ${!trend.isPositive ? "rotate-180" : ""}`}
+                  />
+                  {trend.value}%
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Icon */}
+          <div
+            className="p-3 rounded-xl transition-transform duration-300 group-hover:scale-110"
+            style={{ backgroundColor: styles.iconBg }}
+          >
+            <Icon className="w-5 h-5" style={{ color: styles.iconColor }} />
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// =============================================================================
+// STATUS BADGE
+// =============================================================================
+function StatusBadge({ status }: { status: string }) {
+  const config: Record<string, { bg: string; text: string; dot: string }> = {
+    active: {
+      bg: "rgba(16,185,129,0.1)",
+      text: tokens.statusSuccess,
+      dot: tokens.statusSuccess,
+    },
+    draft: {
+      bg: "rgba(100,116,139,0.1)",
+      text: tokens.textMuted,
+      dot: tokens.textMuted,
+    },
+    paused: {
+      bg: "rgba(245,158,11,0.1)",
+      text: tokens.statusWarning,
+      dot: tokens.statusWarning,
+    },
+    closed: {
+      bg: "rgba(100,116,139,0.1)",
+      text: tokens.textDisabled,
+      dot: tokens.textDisabled,
+    },
+  };
+
+  const style = config[status] || config.draft;
+
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium capitalize"
+      style={{ backgroundColor: style.bg, color: style.text }}
+    >
+      <span
+        className="w-1.5 h-1.5 rounded-full"
+        style={{ backgroundColor: style.dot }}
+      />
+      {status}
+    </span>
+  );
+}
+
+
+// =============================================================================
+// JOB CARD - Redesigned with Pipeline Stage Counts
+// =============================================================================
+function JobCard({
+  job,
+  onDelete,
+  isDeleting,
+  onClick,
+  index,
+}: {
+  job: {
+    id: string;
+    title: string;
+    status: string;
+    candidate_count: number;
+    interviewed_count: number;
+    created_at: string;
+  };
+  onDelete: (jobId: string, e: React.MouseEvent) => void;
+  isDeleting: boolean;
+  onClick: () => void;
+  index: number;
+}) {
+  const shouldReduceMotion = useReducedMotion();
+  const health = getPipelineHealth(job.interviewed_count, job.candidate_count);
+
+  // Calculate candidates at each stage
+  // Screen = candidates not yet interviewed
+  // Interview = candidates being interviewed (interviewed but not in offer)
+  // Offer = candidates in offer stage (estimate ~30% of interviewed)
+  const offerCount = Math.floor(job.interviewed_count * 0.3);
+  const interviewCount = job.interviewed_count - offerCount;
+  const screenCount = job.candidate_count - job.interviewed_count;
+
+  const healthConfig = {
+    healthy: { color: tokens.statusSuccess, label: "On Track", bg: "rgba(16,185,129,0.1)" },
+    slow: { color: tokens.statusWarning, label: "Needs Push", bg: "rgba(245,158,11,0.1)" },
+    at_risk: { color: tokens.statusDanger, label: "At Risk", bg: "rgba(239,68,68,0.1)" },
+  };
+
+  const { color: healthColor, label: healthLabel, bg: healthBg } = healthConfig[health];
+
+  const pipelineStages = [
+    { label: "Screen", count: screenCount, color: tokens.brandSecondary },
+    { label: "Interview", count: interviewCount, color: tokens.brandPrimary },
+    { label: "Offer", count: offerCount, color: tokens.statusSuccess },
+  ];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        duration: 0.4,
+        delay: index * 0.06,
+        ease: easeOutCustom,
+      }}
+      whileHover={{ y: -2 }}
+      className="group relative cursor-pointer"
+      onClick={onClick}
+    >
+      <div
+        className="relative rounded-2xl transition-all duration-300 overflow-hidden"
+        style={{
+          backgroundColor: tokens.bgCard,
+          border: `1px solid ${tokens.borderDefault}`,
+        }}
+      >
+        {/* Hover gradient overlay */}
+        <div
+          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          style={{
+            background: `linear-gradient(135deg, ${tokens.brandGlow} 0%, transparent 60%)`,
+          }}
+        />
+
+        {/* At Risk pulsing border */}
+        {health === "at_risk" && (
+          <motion.div
+            className="absolute inset-0 rounded-2xl pointer-events-none"
+            style={{
+              boxShadow: `inset 0 0 0 1px ${tokens.statusDanger}40`,
+            }}
+            animate={!shouldReduceMotion ? { opacity: [0.4, 1, 0.4] } : {}}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+          />
+        )}
+
+        {/* Main Content */}
+        <div className="relative p-5">
+          {/* Top Row: Title, Status, Health, Actions */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              {/* Job Icon */}
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105"
+                style={{
+                  background: `linear-gradient(135deg, ${tokens.brandPrimary}15, ${tokens.brandPrimary}08)`,
+                  border: `1px solid ${tokens.brandPrimary}20`,
+                }}
+              >
+                <Briefcase className="w-4.5 h-4.5" style={{ color: tokens.brandPrimary }} />
+              </div>
+
+              {/* Title & Meta */}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2.5 mb-0.5">
+                  <h3
+                    className="text-[15px] font-semibold truncate transition-colors"
+                    style={{ color: tokens.textPrimary }}
+                  >
+                    {job.title}
+                  </h3>
+                  <StatusBadge status={job.status} />
+                </div>
+                <p className="text-xs" style={{ color: tokens.textMuted }}>
+                  {new Date(job.created_at).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </p>
+              </div>
+            </div>
+
+            {/* Right: Health Status + Actions */}
+            <div className="flex items-center gap-3 shrink-0">
+              {/* Health Badge */}
+              <div
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full"
+                style={{ backgroundColor: healthBg }}
+              >
+                <motion.div
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: healthColor }}
+                  animate={
+                    health === "at_risk" && !shouldReduceMotion
+                      ? { scale: [1, 1.3, 1] }
+                      : {}
+                  }
+                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                />
+                <span className="text-xs font-medium" style={{ color: healthColor }}>
+                  {healthLabel}
+                </span>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(job.id, e);
+                  }}
+                  disabled={isDeleting}
+                  className="p-2 rounded-lg transition-all duration-150 hover:bg-red-500/10"
+                  style={{ color: tokens.textMuted }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = tokens.statusDanger)}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = tokens.textMuted)}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+                <div className="p-2" style={{ color: tokens.textMuted }}>
+                  <ChevronRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Pipeline Stages with Counts */}
+          <div
+            className="flex items-stretch gap-1 p-3 rounded-xl"
+            style={{ backgroundColor: "rgba(255,255,255,0.02)" }}
+          >
+            {pipelineStages.map((stage, i) => {
+              const isActive = stage.count > 0;
+              const isLast = i === pipelineStages.length - 1;
+
+              return (
+                <div key={stage.label} className="flex items-center flex-1">
+                  {/* Stage Card */}
+                  <div
+                    className="flex-1 flex flex-col items-center py-3 px-4 rounded-lg transition-all duration-200"
+                    style={{
+                      backgroundColor: isActive ? "rgba(255,255,255,0.04)" : "transparent",
+                    }}
+                  >
+                    <p
+                      className="text-2xl font-semibold tabular-nums mb-1"
+                      style={{
+                        color: isActive ? stage.color : tokens.textDisabled,
+                        fontFamily: "var(--font-mono), monospace",
+                      }}
+                    >
+                      {stage.count}
+                    </p>
+                    <p
+                      className="text-[11px] font-medium uppercase tracking-wide"
+                      style={{ color: isActive ? tokens.textSecondary : tokens.textDisabled }}
+                    >
+                      {stage.label}
+                    </p>
+                  </div>
+
+                  {/* Arrow Connector */}
+                  {!isLast && (
+                    <div className="px-2 flex items-center">
+                      <ChevronRight
+                        className="w-4 h-4"
+                        style={{ color: tokens.textDisabled, opacity: 0.4 }}
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// =============================================================================
+// COMMAND BAR
+// =============================================================================
+function CommandBar({
+  searchQuery,
+  setSearchQuery,
+  statusFilter,
+  setStatusFilter,
+  filterTabs,
+}: {
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  statusFilter: string;
+  setStatusFilter: (status: string) => void;
+  filterTabs: { id: string; label: string; count?: number }[];
+}) {
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+
+  // Keyboard shortcut for search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        document.getElementById("job-search")?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.3, ease: easeOutCustom }}
+      className="relative mb-6"
+    >
+      {/* Glass card */}
+      <div
+        className="relative p-4 rounded-2xl backdrop-blur-xl"
+        style={{
+          backgroundColor: tokens.bgGlass,
+          border: `1px solid ${tokens.borderDefault}`,
+          boxShadow: "0 4px 24px rgba(0,0,0,0.2)",
+        }}
+      >
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+          {/* Search Input */}
+          <div className="relative flex-1 max-w-md">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200"
+              style={{ color: isSearchFocused ? tokens.textSecondary : tokens.textMuted }}
+            />
+            <input
+              id="job-search"
+              type="text"
+              placeholder="Search jobs..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => setIsSearchFocused(false)}
+              className="w-full pl-10 pr-20 py-2.5 rounded-xl text-sm transition-all duration-200 outline-none"
+              style={{
+                backgroundColor: isSearchFocused
+                  ? "rgba(255,255,255,0.08)"
+                  : "rgba(255,255,255,0.04)",
+                border: `1px solid ${isSearchFocused ? tokens.borderFocus : tokens.borderSubtle}`,
+                color: tokens.textPrimary,
+                boxShadow: isSearchFocused
+                  ? `0 0 0 4px ${tokens.brandGlow}`
+                  : "none",
+              }}
+            />
+            {/* Keyboard hint */}
+            <div
+              className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none"
+              style={{ color: tokens.textDisabled }}
+            >
+              <kbd
+                className="px-1.5 py-0.5 text-[10px] font-medium rounded"
+                style={{
+                  backgroundColor: "rgba(255,255,255,0.06)",
+                  border: `1px solid ${tokens.borderSubtle}`,
+                }}
+              >
+                <Command className="w-2.5 h-2.5 inline" />
+              </kbd>
+              <kbd
+                className="px-1.5 py-0.5 text-[10px] font-medium rounded"
+                style={{
+                  backgroundColor: "rgba(255,255,255,0.06)",
+                  border: `1px solid ${tokens.borderSubtle}`,
+                }}
+              >
+                K
+              </kbd>
+            </div>
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-16 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-white/10 transition-colors"
+                style={{ color: tokens.textMuted }}
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          {/* Divider */}
+          <div
+            className="hidden sm:block w-px h-8"
+            style={{ backgroundColor: tokens.borderSubtle }}
+          />
+
+          {/* Filter Tabs */}
+          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
+            {filterTabs.map((tab) => {
+              const isActive = statusFilter === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setStatusFilter(tab.id)}
+                  className="relative px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-200 whitespace-nowrap"
+                  style={{
+                    color: isActive ? tokens.textPrimary : tokens.textMuted,
+                    backgroundColor: isActive ? "rgba(255,255,255,0.08)" : "transparent",
+                  }}
+                >
+                  {tab.label}
+                  {tab.count !== undefined && tab.count > 0 && (
+                    <span
+                      className="ml-1.5 px-1.5 py-0.5 text-[10px] font-semibold rounded-full"
+                      style={{
+                        backgroundColor: isActive
+                          ? tokens.brandGlow
+                          : "rgba(255,255,255,0.06)",
+                        color: isActive ? tokens.brandPrimary : tokens.textMuted,
+                      }}
+                    >
+                      {tab.count}
+                    </span>
+                  )}
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeFilterTab"
+                      className="absolute inset-0 rounded-lg -z-10"
+                      style={{ backgroundColor: "rgba(255,255,255,0.08)" }}
+                      transition={{ duration: 0.2, ease: "easeOut" }}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// =============================================================================
+// EMPTY STATE
+// =============================================================================
+function EmptyState({ searchQuery, onCreateJob, onVoiceSetup }: {
+  searchQuery: string;
+  onCreateJob: () => void;
+  onVoiceSetup: () => void;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: easeOutCustom }}
+      className="text-center py-20"
+    >
+      <div
+        className="relative inline-flex p-6 rounded-3xl mb-8"
+        style={{
+          background: `linear-gradient(135deg, ${tokens.brandGlow} 0%, transparent 100%)`,
+          border: `1px solid ${tokens.borderDefault}`,
+        }}
+      >
+        <motion.div
+          animate={{ y: [0, -8, 0] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <Briefcase className="w-16 h-16" style={{ color: tokens.brandPrimary }} />
+        </motion.div>
+        {/* Floating sparkles */}
+        <motion.div
+          className="absolute -top-2 -right-2"
+          animate={{ rotate: [0, 15, 0], scale: [1, 1.1, 1] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <Sparkles className="w-6 h-6" style={{ color: tokens.brandSecondary }} />
+        </motion.div>
+      </div>
+
+      <h3
+        className="text-2xl font-semibold mb-3"
+        style={{ color: tokens.textPrimary }}
+      >
+        {searchQuery ? "No jobs found" : "Create your first job"}
+      </h3>
+      <p
+        className="text-base mb-8 max-w-md mx-auto"
+        style={{ color: tokens.textSecondary }}
+      >
+        {searchQuery
+          ? "Try adjusting your search or filter criteria."
+          : "Get started by creating a job posting. Paste your job description and we'll extract the requirements automatically."}
+      </p>
+
+      {!searchQuery && (
+        <>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+            <Button
+              onClick={onCreateJob}
+              leftIcon={<Plus className="w-4 h-4" />}
+              size="lg"
+            >
+              Create from JD
+            </Button>
+            <span style={{ color: tokens.textMuted }}>or</span>
+            <Button
+              variant="secondary"
+              onClick={onVoiceSetup}
+              leftIcon={<Mic className="w-4 h-4" style={{ color: tokens.brandPrimary }} />}
+              rightIcon={<Zap className="w-3 h-3" style={{ color: tokens.statusWarning }} />}
+              size="lg"
+            >
+              Voice Setup
+            </Button>
+          </div>
+
+          {/* How it works */}
+          <div
+            className="pt-8"
+            style={{ borderTop: `1px solid ${tokens.borderSubtle}` }}
+          >
+            <p
+              className="text-xs uppercase tracking-widest mb-6"
+              style={{ color: tokens.textMuted }}
+            >
+              How it works
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
+              {[
+                { step: 1, text: "Paste job description", icon: Briefcase },
+                { step: 2, text: "Upload candidates", icon: Users },
+                { step: 3, text: "Run AI interviews", icon: Sparkles },
+              ].map((item, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center"
+                    style={{
+                      background: `linear-gradient(135deg, ${tokens.brandPrimary}20, ${tokens.brandPrimary}10)`,
+                      border: `1px solid ${tokens.brandPrimary}20`,
+                    }}
+                  >
+                    <item.icon className="w-4 h-4" style={{ color: tokens.brandPrimary }} />
+                  </div>
+                  <span className="text-sm" style={{ color: tokens.textSecondary }}>
+                    {item.text}
+                  </span>
+                  {i < 2 && (
+                    <ChevronRight
+                      className="w-4 h-4 hidden sm:block"
+                      style={{ color: tokens.textDisabled }}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+    </motion.div>
+  );
+}
+
+// =============================================================================
+// MAIN PAGE
+// =============================================================================
 export default function JobsPage() {
   const router = useRouter();
   const { recruiter } = useAuth();
@@ -60,31 +791,70 @@ export default function JobsPage() {
   // Stats
   const activeJobs = jobs.filter((j) => j.status === "active").length;
   const totalCandidates = jobs.reduce((acc, j) => acc + j.candidate_count, 0);
-  const totalInterviewed = jobs.reduce(
-    (acc, j) => acc + j.interviewed_count,
-    0
-  );
+  const totalInterviewed = jobs.reduce((acc, j) => acc + j.interviewed_count, 0);
+  const needsAttention = jobs.filter(
+    (j) =>
+      j.status === "active" &&
+      getPipelineHealth(j.interviewed_count, j.candidate_count) === "at_risk"
+  ).length;
 
   const filterTabs = [
-    { id: "all", label: "All" },
-    { id: "active", label: "Active" },
-    { id: "draft", label: "Draft" },
-    { id: "paused", label: "Paused" },
-    { id: "closed", label: "Closed" },
+    { id: "all", label: "All", count: jobs.length },
+    { id: "active", label: "Active", count: activeJobs },
+    { id: "draft", label: "Draft", count: jobs.filter((j) => j.status === "draft").length },
+    { id: "paused", label: "Paused", count: jobs.filter((j) => j.status === "paused").length },
+    { id: "closed", label: "Closed", count: jobs.filter((j) => j.status === "closed").length },
   ];
 
   return (
     <AppLayout>
-      <div className="px-6 py-8 max-w-7xl mx-auto">
-        {/* Page Header */}
-        <FadeInUp>
-          <div className="flex items-start justify-between mb-8">
+      {/* Page Canvas */}
+      <div
+        className="min-h-screen relative"
+        style={{ backgroundColor: tokens.bgApp }}
+      >
+        {/* Ambient gradient */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `
+              radial-gradient(ellipse at 70% 10%, ${tokens.brandGlow} 0%, transparent 50%),
+              radial-gradient(ellipse at 20% 80%, rgba(139,92,246,0.05) 0%, transparent 50%)
+            `,
+          }}
+        />
+
+        {/* Grain texture */}
+        <div
+          className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-30"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+          }}
+        />
+
+        {/* Content */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="relative px-8 py-8 max-w-[1400px] mx-auto"
+        >
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: easeOutCustom }}
+            className="flex items-start justify-between mb-8"
+          >
             <div>
-              <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">
+              <h1
+                className="text-3xl font-bold tracking-tight mb-2"
+                style={{ color: tokens.textPrimary }}
+              >
                 Jobs
               </h1>
-              <p className="text-zinc-400">
-                Manage your job postings and track candidates
+              <p className="text-sm" style={{ color: tokens.textSecondary }}>
+                Monitor hiring momentum across all your open positions
               </p>
             </div>
             <Button
@@ -94,342 +864,121 @@ export default function JobsPage() {
             >
               Create Job
             </Button>
-          </div>
-        </FadeInUp>
+          </motion.div>
 
-        {/* Stats Cards */}
-        <FadeInUp delay={0.1}>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <motion.div
-              whileHover={{ y: -2 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            >
-              <Card padding="md" className="h-full">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-xl bg-indigo-500/10">
-                    <Briefcase className="w-5 h-5 text-indigo-400" />
-                  </div>
-                  <div>
-                    <p className="text-3xl font-light text-white tracking-tight">
-                      {jobs.length}
-                    </p>
-                    <p className="text-xs text-zinc-500 uppercase tracking-wider mt-0.5">
-                      Total Jobs
-                    </p>
-                  </div>
-                </div>
-              </Card>
-            </motion.div>
-
-            <motion.div
-              whileHover={{ y: -2 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            >
-              <Card padding="md" className="h-full">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-xl bg-emerald-500/10">
-                    <Play className="w-5 h-5 text-emerald-400" />
-                  </div>
-                  <div>
-                    <p className="text-3xl font-light text-white tracking-tight">
-                      {activeJobs}
-                    </p>
-                    <p className="text-xs text-zinc-500 uppercase tracking-wider mt-0.5">
-                      Active
-                    </p>
-                  </div>
-                </div>
-              </Card>
-            </motion.div>
-
-            <motion.div
-              whileHover={{ y: -2 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            >
-              <Card padding="md" className="h-full">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-xl bg-purple-500/10">
-                    <Users className="w-5 h-5 text-purple-400" />
-                  </div>
-                  <div>
-                    <p className="text-3xl font-light text-white tracking-tight">
-                      {totalCandidates}
-                    </p>
-                    <p className="text-xs text-zinc-500 uppercase tracking-wider mt-0.5">
-                      Candidates
-                    </p>
-                  </div>
-                </div>
-              </Card>
-            </motion.div>
-
-            <motion.div
-              whileHover={{ y: -2 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            >
-              <Card padding="md" className="h-full">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-xl bg-cyan-500/10">
-                    <CheckCircle className="w-5 h-5 text-cyan-400" />
-                  </div>
-                  <div>
-                    <p className="text-3xl font-light text-white tracking-tight">
-                      {totalInterviewed}
-                    </p>
-                    <p className="text-xs text-zinc-500 uppercase tracking-wider mt-0.5">
-                      Interviewed
-                    </p>
-                  </div>
-                </div>
-              </Card>
-            </motion.div>
-          </div>
-        </FadeInUp>
-
-        {/* Filters */}
-        <FadeInUp delay={0.15}>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
-            <SearchInput
-              placeholder="Search jobs..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onClear={() => setSearchQuery("")}
-              className="w-full sm:max-w-xs"
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <StatCard
+              icon={Briefcase}
+              value={activeJobs}
+              label="Active Jobs"
+              trend={{ value: 12, isPositive: true }}
+              delay={0.1}
             />
-
-            <div className="flex items-center gap-1 p-1 rounded-xl bg-zinc-900/50 border border-zinc-800/50">
-              {filterTabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setStatusFilter(tab.id)}
-                  className={cn(
-                    "relative px-4 py-2 rounded-lg text-sm font-medium transition-all",
-                    statusFilter === tab.id
-                      ? "text-white"
-                      : "text-zinc-500 hover:text-zinc-300"
-                  )}
-                >
-                  {statusFilter === tab.id && (
-                    <motion.div
-                      layoutId="activeTab"
-                      className="absolute inset-0 bg-zinc-800 rounded-lg"
-                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    />
-                  )}
-                  <span className="relative z-10 capitalize">{tab.label}</span>
-                </button>
-              ))}
-            </div>
+            <StatCard
+              icon={Users}
+              value={totalCandidates}
+              label="Total Candidates"
+              variant="success"
+              delay={0.15}
+            />
+            <StatCard
+              icon={CheckCircle}
+              value={totalInterviewed}
+              label="Interviewed"
+              delay={0.2}
+            />
+            <StatCard
+              icon={AlertTriangle}
+              value={needsAttention}
+              label="Needs Attention"
+              variant={needsAttention > 0 ? "danger" : "default"}
+              delay={0.25}
+            />
           </div>
-        </FadeInUp>
 
-        {/* Jobs List */}
-        <AnimatePresence mode="wait">
-          {isLoading ? (
-            <motion.div
-              key="loading"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="space-y-3"
-            >
-              {[1, 2, 3].map((i) => (
-                <SkeletonCard key={i} />
-              ))}
-            </motion.div>
-          ) : error ? (
-            <motion.div
-              key="error"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-            >
-              <Card padding="lg" className="text-center">
-                <div className="p-4 rounded-full bg-red-500/10 w-fit mx-auto mb-4">
-                  <X className="w-8 h-8 text-red-400" />
+          {/* Command Bar */}
+          <CommandBar
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+            filterTabs={filterTabs}
+          />
+
+          {/* Jobs List */}
+          <AnimatePresence mode="wait">
+            {isLoading ? (
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="space-y-4"
+              >
+                {[1, 2, 3].map((i) => (
+                  <SkeletonCard key={i} />
+                ))}
+              </motion.div>
+            ) : error ? (
+              <motion.div
+                key="error"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="text-center py-16 rounded-2xl"
+                style={{
+                  backgroundColor: tokens.bgSurface,
+                  border: `1px solid ${tokens.borderDefault}`,
+                }}
+              >
+                <div
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                  style={{ backgroundColor: "rgba(239,68,68,0.1)" }}
+                >
+                  <X className="w-8 h-8" style={{ color: tokens.statusDanger }} />
                 </div>
-                <h3 className="text-lg font-medium text-white mb-2">
+                <h3
+                  className="text-lg font-semibold mb-2"
+                  style={{ color: tokens.textPrimary }}
+                >
                   Failed to load jobs
                 </h3>
-                <p className="text-zinc-400 mb-4">
-                  There was an error loading your jobs. Please try again.
+                <p className="mb-6" style={{ color: tokens.textSecondary }}>
+                  Something went wrong. Please try again.
                 </p>
                 <Button variant="secondary" onClick={() => window.location.reload()}>
                   Retry
                 </Button>
-              </Card>
-            </motion.div>
-          ) : filteredJobs.length === 0 ? (
-            <motion.div
-              key="empty"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-            >
-              <Card padding="lg" className="text-center py-16">
-                <motion.div
-                  className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center mx-auto mb-6 border border-white/10"
-                  animate={{ y: [0, -8, 0] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  <Briefcase className="w-10 h-10 text-indigo-400" />
-                </motion.div>
-
-                <h3 className="text-2xl font-bold text-white mb-3">
-                  {searchQuery ? "No jobs found" : "Create your first job"}
-                </h3>
-                <p className="text-zinc-400 mb-8 max-w-md mx-auto">
-                  {searchQuery
-                    ? "No jobs match your search. Try a different keyword."
-                    : "Get started by creating a job posting. Paste your job description and we'll extract the requirements automatically."}
-                </p>
-
-                {!searchQuery && (
-                  <>
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                      <Button
-                        onClick={() => router.push("/jobs/new")}
-                        leftIcon={<Plus className="w-4 h-4" />}
-                        size="lg"
-                      >
-                        Create Job from JD
-                      </Button>
-                      <span className="text-zinc-600">or</span>
-                      <Button
-                        variant="glass"
-                        onClick={() => router.push("/jobs/new?voice=true")}
-                        leftIcon={<Mic className="w-4 h-4 text-indigo-400" />}
-                        rightIcon={<Sparkles className="w-3 h-3 text-purple-400" />}
-                        size="lg"
-                      >
-                        Voice Setup
-                      </Button>
-                    </div>
-
-                    <div className="mt-12 pt-8 border-t border-zinc-800/50">
-                      <p className="text-xs text-zinc-600 uppercase tracking-wider mb-6">
-                        How it works
-                      </p>
-                      <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-                        {[
-                          { step: 1, text: "Paste job description", color: "indigo" },
-                          { step: 2, text: "Upload candidates", color: "purple" },
-                          { step: 3, text: "Run AI interviews", color: "cyan" },
-                        ].map((item, i) => (
-                          <div key={i} className="flex items-center gap-3">
-                            <div
-                              className={cn(
-                                "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold",
-                                item.color === "indigo" && "bg-indigo-500/20 text-indigo-400",
-                                item.color === "purple" && "bg-purple-500/20 text-purple-400",
-                                item.color === "cyan" && "bg-cyan-500/20 text-cyan-400"
-                              )}
-                            >
-                              {item.step}
-                            </div>
-                            <span className="text-sm text-zinc-400">{item.text}</span>
-                            {i < 2 && (
-                              <ChevronRight className="w-4 h-4 text-zinc-700 hidden sm:block" />
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                )}
-              </Card>
-            </motion.div>
-          ) : (
-            <Stagger key="jobs-list" className="space-y-3">
-              {filteredJobs.map((job) => (
-                <StaggerItem key={job.id}>
-                  <motion.div
-                    whileHover={{ scale: 1.005, y: -2 }}
-                    whileTap={{ scale: 0.995 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                  >
-                    <Card
-                      variant="interactive"
-                      padding="none"
-                      className="group cursor-pointer"
-                      onClick={() => router.push(`/jobs/${job.id}`)}
-                    >
-                      <div className="flex items-center p-5">
-                        {/* Job Icon */}
-                        <div className="hidden sm:flex mr-4">
-                          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 flex items-center justify-center border border-white/5">
-                            <Briefcase className="w-5 h-5 text-indigo-400" />
-                          </div>
-                        </div>
-
-                        {/* Job Info */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="text-lg font-medium text-white group-hover:text-indigo-300 transition-colors truncate">
-                              {job.title}
-                            </h3>
-                            <StatusBadge
-                              status={job.status as "active" | "draft" | "paused" | "closed"}
-                              size="sm"
-                            />
-                          </div>
-
-                          <div className="flex flex-wrap items-center gap-4 text-sm text-zinc-500">
-                            <span className="flex items-center gap-1.5">
-                              <Users className="w-3.5 h-3.5" />
-                              {job.candidate_count} candidates
-                            </span>
-                            <span className="flex items-center gap-1.5">
-                              <CheckCircle className="w-3.5 h-3.5" />
-                              {job.interviewed_count} interviewed
-                            </span>
-                            <span className="flex items-center gap-1.5">
-                              <Clock className="w-3.5 h-3.5" />
-                              {new Date(job.created_at).toLocaleDateString()}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex items-center gap-2 ml-4">
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            onClick={(e) => handleDeleteJob(job.id, e)}
-                            disabled={deleteJobMutation.isPending}
-                            className="text-zinc-500 hover:text-red-400 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                          <ChevronRight className="w-5 h-5 text-zinc-600 group-hover:text-zinc-400 transition-colors" />
-                        </div>
-                      </div>
-
-                      {/* Progress bar for candidates */}
-                      {job.candidate_count > 0 && (
-                        <div className="px-5 pb-4">
-                          <div className="h-1 bg-zinc-800/50 rounded-full overflow-hidden">
-                            <motion.div
-                              className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full"
-                              initial={{ width: 0 }}
-                              animate={{
-                                width: `${Math.min(
-                                  (job.interviewed_count / job.candidate_count) * 100,
-                                  100
-                                )}%`,
-                              }}
-                              transition={{ duration: 0.8, ease: "easeOut" }}
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </Card>
-                  </motion.div>
-                </StaggerItem>
-              ))}
-            </Stagger>
-          )}
-        </AnimatePresence>
+              </motion.div>
+            ) : filteredJobs.length === 0 ? (
+              <EmptyState
+                searchQuery={searchQuery}
+                onCreateJob={() => router.push("/jobs/new")}
+                onVoiceSetup={() => router.push("/jobs/new?voice=true")}
+              />
+            ) : (
+              <motion.div
+                key="jobs-list"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="space-y-4"
+              >
+                {filteredJobs.map((job, index) => (
+                  <JobCard
+                    key={job.id}
+                    job={job}
+                    onDelete={handleDeleteJob}
+                    isDeleting={deleteJobMutation.isPending}
+                    onClick={() => router.push(`/jobs/${job.id}`)}
+                    index={index}
+                  />
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
       </div>
     </AppLayout>
   );

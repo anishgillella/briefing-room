@@ -9,7 +9,6 @@ import {
   Briefcase,
   Users,
   ChevronLeft,
-  ChevronRight,
   LogOut,
   BarChart3,
   UserCheck,
@@ -22,10 +21,37 @@ import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { SimpleTooltip } from "@/components/ui/tooltip";
 
+// =============================================================================
+// DESIGN TOKENS - Premium Dark Theme
+// =============================================================================
+const tokens = {
+  // Sidebar specific
+  sidebarBg: "#0A0F1C",
+  sidebarBgSubtle: "#0D1221",
+  sidebarBorder: "rgba(255,255,255,0.06)",
+  sidebarShadow: "4px 0 24px rgba(0,0,0,0.5)",
+
+  // Text
+  textPrimary: "#F1F5F9",
+  textSecondary: "#94A3B8",
+  textMuted: "#64748B",
+
+  // Brand
+  brandPrimary: "#6366F1",
+  brandGlow: "rgba(99,102,241,0.15)",
+  brandGlowStrong: "rgba(99,102,241,0.25)",
+
+  // Interactive
+  hoverBg: "rgba(255,255,255,0.04)",
+  activeBg: "linear-gradient(90deg, rgba(99,102,241,0.15), rgba(99,102,241,0.05))",
+  activeIconBg: "rgba(99,102,241,0.2)",
+};
+
 interface NavItem {
   label: string;
   href: string;
   icon: React.ReactNode;
+  badge?: number;
   children?: { label: string; href: string; icon: React.ReactNode }[];
 }
 
@@ -125,40 +151,79 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
     <motion.aside
       initial={false}
       animate={{ width: isCollapsed ? 72 : 260 }}
-      transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="fixed top-0 left-0 h-full bg-white/80 backdrop-blur-xl border-r border-slate-200 z-40 flex flex-col shadow-sm"
+      transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+      className="fixed top-0 left-0 h-full z-40 flex flex-col"
+      style={{
+        backgroundColor: tokens.sidebarBg,
+        borderRight: `1px solid ${tokens.sidebarBorder}`,
+        boxShadow: tokens.sidebarShadow,
+      }}
     >
-      {/* Logo */}
-      <div className="h-16 flex items-center px-4 border-b border-slate-100">
-        <Link
-          href="/dashboard"
-          className="flex items-center gap-3 group"
-        >
+      {/* Subtle gradient overlay for depth */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: `linear-gradient(180deg, ${tokens.sidebarBgSubtle} 0%, transparent 30%)`,
+        }}
+      />
+
+      {/* Brand Header */}
+      <div
+        className="relative h-16 flex items-center px-4 shrink-0"
+        style={{ borderBottom: `1px solid ${tokens.sidebarBorder}` }}
+      >
+        <Link href="/dashboard" className="flex items-center gap-3 group">
           <motion.div
-            className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 shrink-0"
-            whileHover={{ scale: 1.05 }}
+            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 relative overflow-hidden"
+            style={{
+              background: `linear-gradient(135deg, ${tokens.brandPrimary}20, ${tokens.brandPrimary}10)`,
+              border: `1px solid ${tokens.brandPrimary}30`,
+            }}
+            whileHover={{
+              scale: 1.05,
+              boxShadow: `0 0 20px ${tokens.brandGlow}`,
+            }}
             whileTap={{ scale: 0.95 }}
+            transition={{ duration: 0.2 }}
           >
-            <Sparkles className="w-5 h-5 text-white" />
+            <Sparkles className="w-5 h-5" style={{ color: tokens.brandPrimary }} />
+            {/* Inner glow */}
+            <div
+              className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              style={{
+                background: `radial-gradient(circle at center, ${tokens.brandGlow}, transparent 70%)`,
+              }}
+            />
           </motion.div>
           <AnimatePresence mode="wait">
             {!isCollapsed && (
-              <motion.span
+              <motion.div
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}
-                transition={{ duration: 0.15 }}
-                className="text-base font-semibold text-slate-900 tracking-tight whitespace-nowrap"
+                transition={{ duration: 0.2 }}
+                className="flex flex-col"
               >
-                Briefing Room
-              </motion.span>
+                <span
+                  className="text-base font-semibold tracking-tight whitespace-nowrap"
+                  style={{ color: tokens.textPrimary }}
+                >
+                  Briefing Room
+                </span>
+                <span
+                  className="text-[10px] uppercase tracking-widest"
+                  style={{ color: tokens.textMuted }}
+                >
+                  Hiring Platform
+                </span>
+              </motion.div>
             )}
           </AnimatePresence>
         </Link>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-4 px-3 overflow-y-auto no-scrollbar">
+      <nav className="relative flex-1 py-4 px-3 overflow-y-auto no-scrollbar">
         <ul className="space-y-1">
           {navItems.map((item, index) => {
             const active = isActive(item.href);
@@ -168,40 +233,55 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
 
             const NavContent = (
               <motion.div
-                initial={false}
-                animate={{
-                  backgroundColor: active
-                    ? "rgba(99, 102, 241, 0.1)"
+                className={cn(
+                  "w-full flex items-center gap-3 rounded-xl relative overflow-hidden cursor-pointer",
+                  isCollapsed ? "px-3 py-2.5 justify-center" : "px-3 py-2.5"
+                )}
+                style={{
+                  background: active
+                    ? tokens.activeBg
                     : isHovered
-                    ? "rgba(0, 0, 0, 0.03)"
+                    ? tokens.hoverBg
                     : "transparent",
                 }}
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors relative overflow-hidden",
-                  active ? "text-slate-900" : "text-slate-500"
-                )}
                 onHoverStart={() => setHoveredItem(item.href)}
                 onHoverEnd={() => setHoveredItem(null)}
+                animate={{
+                  x: isHovered && !active ? 2 : 0,
+                }}
+                transition={{ duration: 0.15, ease: "easeOut" }}
               >
-                {/* Active indicator */}
+                {/* Active indicator bar */}
                 {active && (
                   <motion.div
-                    layoutId="activeIndicator"
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-indigo-500"
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    layoutId="activeNavIndicator"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full"
+                    style={{ backgroundColor: tokens.brandPrimary }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
                   />
                 )}
 
                 {/* Icon */}
                 <motion.span
-                  className={cn(
-                    "shrink-0 relative z-10",
-                    active ? "text-indigo-600" : "text-slate-400"
-                  )}
-                  animate={{ scale: isHovered && !active ? 1.1 : 1 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                  className="shrink-0 relative z-10 flex items-center justify-center"
+                  style={{
+                    color: active
+                      ? tokens.brandPrimary
+                      : isHovered
+                      ? tokens.textPrimary
+                      : tokens.textMuted,
+                  }}
                 >
-                  {item.icon}
+                  {active ? (
+                    <span
+                      className="p-1.5 rounded-lg"
+                      style={{ backgroundColor: tokens.activeIconBg }}
+                    >
+                      {item.icon}
+                    </span>
+                  ) : (
+                    item.icon
+                  )}
                 </motion.span>
 
                 {/* Label */}
@@ -212,13 +292,35 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -10 }}
                       transition={{ duration: 0.15, delay: index * 0.02 }}
-                      className="flex-1 text-left text-sm font-medium whitespace-nowrap"
+                      className={cn(
+                        "flex-1 text-left text-sm whitespace-nowrap transition-colors duration-150",
+                        active ? "font-semibold" : "font-medium"
+                      )}
+                      style={{
+                        color: active
+                          ? tokens.textPrimary
+                          : isHovered
+                          ? tokens.textPrimary
+                          : tokens.textSecondary,
+                      }}
                     >
                       {item.label}
                     </motion.span>
                   )}
                 </AnimatePresence>
 
+                {/* Badge */}
+                {item.badge && !isCollapsed && (
+                  <span
+                    className="px-2 py-0.5 text-[10px] font-semibold rounded-full"
+                    style={{
+                      backgroundColor: tokens.brandGlow,
+                      color: tokens.brandPrimary,
+                    }}
+                  >
+                    {item.badge}
+                  </span>
+                )}
               </motion.div>
             );
 
@@ -252,13 +354,23 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
                         </Link>
                         <button
                           onClick={() => toggleExpanded(item.href)}
-                          className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
+                          className="p-2 rounded-lg transition-all duration-150"
+                          style={{ color: tokens.textMuted }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = tokens.hoverBg;
+                            e.currentTarget.style.color = tokens.textPrimary;
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = "transparent";
+                            e.currentTarget.style.color = tokens.textMuted;
+                          }}
                         >
                           <motion.span
                             animate={{ rotate: isExpanded ? 180 : 0 }}
                             transition={{ duration: 0.2 }}
+                            className="block"
                           >
-                            <ChevronDown className="w-4 h-4 text-slate-400" />
+                            <ChevronDown className="w-4 h-4" />
                           </motion.span>
                         </button>
                       </div>
@@ -271,8 +383,9 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: "auto" }}
                           exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="mt-1 ml-4 pl-4 border-l border-slate-200 space-y-1 overflow-hidden"
+                          transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+                          className="mt-1 ml-4 pl-4 space-y-1 overflow-hidden"
+                          style={{ borderLeft: `1px solid ${tokens.sidebarBorder}` }}
                         >
                           {item.children.map((child, childIndex) => {
                             const childActive = pathname === child.href;
@@ -285,19 +398,31 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
                               >
                                 <Link
                                   href={child.href}
-                                  className={cn(
-                                    "flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-sm group",
-                                    childActive
-                                      ? "bg-indigo-50 text-indigo-700"
-                                      : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
-                                  )}
+                                  className="flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-150 text-sm group"
+                                  style={{
+                                    backgroundColor: childActive
+                                      ? tokens.brandGlow
+                                      : "transparent",
+                                    color: childActive
+                                      ? tokens.brandPrimary
+                                      : tokens.textMuted,
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    if (!childActive) {
+                                      e.currentTarget.style.backgroundColor =
+                                        tokens.hoverBg;
+                                      e.currentTarget.style.color = tokens.textPrimary;
+                                    }
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    if (!childActive) {
+                                      e.currentTarget.style.backgroundColor =
+                                        "transparent";
+                                      e.currentTarget.style.color = tokens.textMuted;
+                                    }
+                                  }}
                                 >
-                                  <span
-                                    className={cn(
-                                      "transition-transform group-hover:scale-110",
-                                      childActive ? "text-indigo-600" : ""
-                                    )}
-                                  >
+                                  <span className="transition-transform group-hover:scale-110">
                                     {child.icon}
                                   </span>
                                   <span>{child.label}</span>
@@ -326,18 +451,29 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
         </ul>
       </nav>
 
-      {/* User Section & Toggle */}
-      <div className="border-t border-slate-100 p-3 space-y-2">
+      {/* Footer Section */}
+      <div
+        className="relative p-3 space-y-2 shrink-0"
+        style={{ borderTop: `1px solid ${tokens.sidebarBorder}` }}
+      >
         {/* User Info */}
         {recruiter && (
           <motion.div
             className={cn(
-              "flex items-center gap-3 px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-100",
+              "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors duration-150",
               isCollapsed ? "justify-center" : ""
             )}
-            whileHover={{ backgroundColor: "rgba(241, 245, 249, 1)" }}
+            style={{ backgroundColor: "rgba(255,255,255,0.02)" }}
+            whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
           >
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white text-sm font-semibold shrink-0 shadow-lg shadow-indigo-500/30">
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-semibold shrink-0"
+              style={{
+                background: `linear-gradient(135deg, ${tokens.brandPrimary}30, ${tokens.brandPrimary}15)`,
+                color: tokens.brandPrimary,
+                border: `1px solid ${tokens.brandPrimary}20`,
+              }}
+            >
               {recruiter.name?.charAt(0).toUpperCase() || "U"}
             </div>
             <AnimatePresence mode="wait">
@@ -348,10 +484,16 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
                   exit={{ opacity: 0, x: -10 }}
                   className="flex-1 min-w-0"
                 >
-                  <p className="text-sm font-medium text-slate-900 truncate">
+                  <p
+                    className="text-sm font-medium truncate"
+                    style={{ color: tokens.textPrimary }}
+                  >
                     {recruiter.name}
                   </p>
-                  <p className="text-xs text-slate-500 truncate">
+                  <p
+                    className="text-xs truncate"
+                    style={{ color: tokens.textMuted }}
+                  >
                     {recruiter.email}
                   </p>
                 </motion.div>
@@ -360,13 +502,17 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
           </motion.div>
         )}
 
-        {/* Logout Button */}
+        {/* Sign Out Button */}
         {isCollapsed ? (
           <SimpleTooltip content="Sign out" side="right">
             <motion.button
               onClick={logout}
-              className="w-full flex items-center justify-center gap-3 px-3 py-2.5 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all"
-              whileHover={{ scale: 1.02 }}
+              className="w-full flex items-center justify-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150"
+              style={{ color: tokens.textMuted }}
+              whileHover={{
+                backgroundColor: tokens.hoverBg,
+                color: tokens.textPrimary,
+              }}
               whileTap={{ scale: 0.98 }}
             >
               <LogOut className="w-5 h-5 shrink-0" />
@@ -375,8 +521,12 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
         ) : (
           <motion.button
             onClick={logout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all"
-            whileHover={{ scale: 1.01 }}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150"
+            style={{ color: tokens.textMuted }}
+            whileHover={{
+              backgroundColor: tokens.hoverBg,
+              color: tokens.textPrimary,
+            }}
             whileTap={{ scale: 0.99 }}
           >
             <LogOut className="w-5 h-5 shrink-0" />
@@ -388,15 +538,19 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
         <motion.button
           onClick={() => setIsCollapsed(!isCollapsed)}
           className={cn(
-            "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all",
+            "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150",
             isCollapsed ? "justify-center" : ""
           )}
-          whileHover={{ scale: 1.01 }}
+          style={{ color: tokens.textMuted }}
+          whileHover={{
+            backgroundColor: tokens.hoverBg,
+            color: tokens.textSecondary,
+          }}
           whileTap={{ scale: 0.99 }}
         >
           <motion.span
             animate={{ rotate: isCollapsed ? 180 : 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
           >
             <ChevronLeft className="w-5 h-5 shrink-0" />
           </motion.span>

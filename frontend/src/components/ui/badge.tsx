@@ -14,39 +14,39 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        // Default - Subtle gray
-        default: "bg-zinc-800 text-zinc-300 border border-zinc-700/50",
+        // Default - Subtle gray (light theme)
+        default: "bg-slate-100 text-slate-600 border border-slate-200",
 
-        // Primary - Indigo
-        primary: "bg-indigo-500/15 text-indigo-300 border border-indigo-500/20",
+        // Primary - Teal
+        primary: "bg-teal-50 text-teal-700 border border-teal-200",
 
-        // Secondary - Purple
-        secondary: "bg-purple-500/15 text-purple-300 border border-purple-500/20",
+        // Secondary - Violet
+        secondary: "bg-violet-50 text-violet-700 border border-violet-200",
 
-        // Success - Green
-        success: "bg-emerald-500/15 text-emerald-300 border border-emerald-500/20",
+        // Success - Emerald
+        success: "bg-emerald-50 text-emerald-700 border border-emerald-200",
 
         // Warning - Amber
-        warning: "bg-amber-500/15 text-amber-300 border border-amber-500/20",
+        warning: "bg-amber-50 text-amber-700 border border-amber-200",
 
         // Error/Danger - Red
-        error: "bg-red-500/15 text-red-300 border border-red-500/20",
-        danger: "bg-red-500/15 text-red-300 border border-red-500/20",
+        error: "bg-red-50 text-red-700 border border-red-200",
+        danger: "bg-red-50 text-red-700 border border-red-200",
 
         // Info - Cyan
-        info: "bg-cyan-500/15 text-cyan-300 border border-cyan-500/20",
+        info: "bg-cyan-50 text-cyan-700 border border-cyan-200",
 
         // Outline variants
-        "outline-default": "bg-transparent text-zinc-400 border border-zinc-700",
-        "outline-primary": "bg-transparent text-indigo-400 border border-indigo-500/50",
-        "outline-success": "bg-transparent text-emerald-400 border border-emerald-500/50",
-        "outline-warning": "bg-transparent text-amber-400 border border-amber-500/50",
-        "outline-error": "bg-transparent text-red-400 border border-red-500/50",
+        "outline-default": "bg-transparent text-slate-600 border border-slate-300",
+        "outline-primary": "bg-transparent text-teal-600 border border-teal-400",
+        "outline-success": "bg-transparent text-emerald-600 border border-emerald-400",
+        "outline-warning": "bg-transparent text-amber-600 border border-amber-400",
+        "outline-error": "bg-transparent text-red-600 border border-red-400",
 
         // Solid variants (more prominent)
-        "solid-primary": "bg-indigo-500 text-white border-transparent",
+        "solid-primary": "bg-teal-500 text-white border-transparent",
         "solid-success": "bg-emerald-500 text-white border-transparent",
-        "solid-warning": "bg-amber-500 text-black border-transparent",
+        "solid-warning": "bg-amber-500 text-white border-transparent",
         "solid-error": "bg-red-500 text-white border-transparent",
       },
 
@@ -88,13 +88,13 @@ const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
             className={cn(
               "w-1.5 h-1.5 rounded-full",
               {
-                "bg-zinc-400": variant === "default" || variant === "outline-default",
-                "bg-indigo-400": variant === "primary" || variant === "outline-primary",
-                "bg-purple-400": variant === "secondary",
-                "bg-emerald-400": variant === "success" || variant === "outline-success" || variant === "solid-success",
-                "bg-amber-400": variant === "warning" || variant === "outline-warning" || variant === "solid-warning",
-                "bg-red-400": variant === "error" || variant === "danger" || variant === "outline-error" || variant === "solid-error",
-                "bg-cyan-400": variant === "info",
+                "bg-slate-500": variant === "default" || variant === "outline-default",
+                "bg-teal-500": variant === "primary" || variant === "outline-primary",
+                "bg-violet-500": variant === "secondary",
+                "bg-emerald-500": variant === "success" || variant === "outline-success" || variant === "solid-success",
+                "bg-amber-500": variant === "warning" || variant === "outline-warning" || variant === "solid-warning",
+                "bg-red-500": variant === "error" || variant === "danger" || variant === "outline-error" || variant === "solid-error",
+                "bg-cyan-500": variant === "info",
                 "bg-white": variant === "solid-primary",
               }
             )}

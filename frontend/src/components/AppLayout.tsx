@@ -5,6 +5,14 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import Sidebar from "./Sidebar";
 
+// =============================================================================
+// DESIGN TOKENS - Premium Dark Theme
+// =============================================================================
+const tokens = {
+  bgApp: "#070B14",
+  brandPrimary: "#6366F1",
+};
+
 interface AppLayoutProps {
   children: React.ReactNode;
 }
@@ -55,8 +63,20 @@ export default function AppLayout({ children }: AppLayoutProps) {
   // Show loading while checking auth
   if (isLoading) {
     return (
-      <main className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-teal-200 border-t-teal-600 rounded-full animate-spin" />
+      <main
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundColor: tokens.bgApp }}
+      >
+        <div className="flex flex-col items-center gap-4">
+          <div
+            className="w-10 h-10 border-2 rounded-full animate-spin"
+            style={{
+              borderColor: `${tokens.brandPrimary}20`,
+              borderTopColor: tokens.brandPrimary,
+            }}
+          />
+          <p className="text-sm text-slate-500">Loading...</p>
+        </div>
       </main>
     );
   }
@@ -64,14 +84,39 @@ export default function AppLayout({ children }: AppLayoutProps) {
   // Don't render for unauthenticated users (they'll be redirected)
   if (!isAuthenticated) {
     return (
-      <main className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-teal-200 border-t-teal-600 rounded-full animate-spin" />
+      <main
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundColor: tokens.bgApp }}
+      >
+        <div className="flex flex-col items-center gap-4">
+          <div
+            className="w-10 h-10 border-2 rounded-full animate-spin"
+            style={{
+              borderColor: `${tokens.brandPrimary}20`,
+              borderTopColor: tokens.brandPrimary,
+            }}
+          />
+          <p className="text-sm text-slate-500">Redirecting...</p>
+        </div>
       </main>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className="min-h-screen relative" style={{ backgroundColor: tokens.bgApp }}>
+      {/* Edge vignette - pulls focus toward content */}
+      <div
+        className="fixed inset-0 pointer-events-none z-30"
+        style={{
+          background: `
+            linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 15%),
+            linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 15%),
+            linear-gradient(to right, rgba(0,0,0,0.3) 0%, transparent 10%),
+            linear-gradient(to left, rgba(0,0,0,0.2) 0%, transparent 10%)
+          `,
+        }}
+      />
+
       <Sidebar defaultCollapsed={sidebarCollapsed} />
       <main
         className={`min-h-screen transition-all duration-300 ${
