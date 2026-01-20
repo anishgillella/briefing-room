@@ -5,6 +5,12 @@ import { v4 as uuidv4 } from "uuid";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 // Types
+interface StageCount {
+  stage_key: string;    // e.g., "new", "stage_0", "stage_1", "offer"
+  stage_name: string;   // e.g., "Screen", "Round 1", "Technical", "Offer"
+  count: number;
+}
+
 interface Job {
   id: string;
   title: string;
@@ -21,7 +27,13 @@ interface Job {
   scoring_criteria?: Record<string, unknown>;
   red_flags?: string[];
   company_context?: Record<string, unknown>;
+  // Configurable interview stages
+  interview_stages: string[];  // e.g., ["Round 1", "Round 2", "Round 3"]
+  // Actual candidate counts per stage
+  stage_counts: StageCount[];
 }
+
+export type { Job, StageCount };
 
 interface Candidate {
   id: string;
@@ -210,6 +222,43 @@ export function useUpdateJobStatus() {
 
       if (!response.ok) {
         throw new Error(`Failed to ${action} job`);
+      }
+
+      return response.json();
+    },
+    onSuccess: (_, { jobId }) => {
+      queryClient.invalidateQueries({ queryKey: ["jobs"] });
+      queryClient.invalidateQueries({ queryKey: ["job", jobId] });
+    },
+  });
+}
+
+export function useUpdateJob() {
+  const queryClient = useQueryClient();
+  const getHeaders = useAuthHeaders();
+
+  return useMutation({
+    mutationFn: async ({
+      jobId,
+      data,
+    }: {
+      jobId: string;
+      data: {
+        title?: string;
+        raw_description?: string;
+        status?: string;
+        interview_stages?: string[];
+      };
+    }) => {
+      const response = await fetch(`${API_URL}/api/jobs/${jobId}`, {
+        method: "PATCH",
+        headers: getHeaders(),
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || "Failed to update job");
       }
 
       return response.json();

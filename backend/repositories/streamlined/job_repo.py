@@ -7,13 +7,14 @@ company context, and scoring criteria.
 Phase 4: Organization scoping - All queries filtered by organization_id.
 """
 
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from uuid import UUID
 from datetime import datetime
 
 from models.streamlined.job import (
     Job, JobCreate, JobUpdate, JobStatus,
-    ExtractedRequirements, CompanyContext, ScoringCriteria
+    ExtractedRequirements, CompanyContext, ScoringCriteria,
+    StageCount, DEFAULT_INTERVIEW_STAGES
 )
 from db.client import get_db
 
@@ -78,6 +79,7 @@ class JobRepository:
             job = self._parse_job(job_data)
             job.candidate_count = self._get_candidate_count_sync(job.id)
             job.interviewed_count = self._get_interviewed_count_sync(job.id)
+            job.stage_counts = self._get_stage_counts_sync(job.id, job.interview_stages)
             jobs.append(job)
 
         return jobs
@@ -107,6 +109,7 @@ class JobRepository:
             job = self._parse_job(job_data)
             job.candidate_count = self._get_candidate_count_sync(job.id)
             job.interviewed_count = self._get_interviewed_count_sync(job.id)
+            job.stage_counts = self._get_stage_counts_sync(job.id, job.interview_stages)
             jobs.append(job)
 
         return jobs
@@ -138,6 +141,7 @@ class JobRepository:
         job = self._parse_job(result.data[0])
         job.candidate_count = self._get_candidate_count_sync(job_id)
         job.interviewed_count = self._get_interviewed_count_sync(job_id)
+        job.stage_counts = self._get_stage_counts_sync(job_id, job.interview_stages)
 
         return job
 
@@ -158,12 +162,16 @@ class JobRepository:
         Returns:
             Created Job with generated ID and timestamps
         """
+        # Use provided interview_stages or default
+        interview_stages = job_data.interview_stages if job_data.interview_stages else DEFAULT_INTERVIEW_STAGES.copy()
+
         data = {
             "title": job_data.title,
             "description": job_data.raw_description,
             "status": job_data.status.value if isinstance(job_data.status, JobStatus) else job_data.status,
             "organization_id": str(organization_id),
             "recruiter_id": str(created_by_recruiter_id),
+            "interview_stages": interview_stages,
             "created_at": datetime.utcnow().isoformat(),
             "updated_at": datetime.utcnow().isoformat(),
         }
@@ -316,6 +324,7 @@ class JobRepository:
         job = self._parse_job(result.data[0])
         job.candidate_count = self._get_candidate_count_sync(job_id)
         job.interviewed_count = self._get_interviewed_count_sync(job_id)
+        job.stage_counts = self._get_stage_counts_sync(job_id, job.interview_stages)
 
         return job
 
@@ -381,6 +390,7 @@ class JobRepository:
         job = self._parse_job(result.data[0])
         job.candidate_count = self._get_candidate_count_sync(job_id)
         job.interviewed_count = self._get_interviewed_count_sync(job_id)
+        job.stage_counts = self._get_stage_counts_sync(job_id, job.interview_stages)
 
         return job
 
@@ -475,6 +485,7 @@ class JobRepository:
         # Get candidate counts
         job.candidate_count = self._get_candidate_count_sync(job_id)
         job.interviewed_count = self._get_interviewed_count_sync(job_id)
+        job.stage_counts = self._get_stage_counts_sync(job_id, job.interview_stages)
 
         return job
 
@@ -522,6 +533,7 @@ class JobRepository:
             job = self._parse_job(job_data)
             job.candidate_count = self._get_candidate_count_sync(job.id)
             job.interviewed_count = self._get_interviewed_count_sync(job.id)
+            job.stage_counts = self._get_stage_counts_sync(job.id, job.interview_stages)
             jobs.append(job)
 
         return jobs
@@ -659,6 +671,13 @@ class JobRepository:
         if "recruiter_id" in update_data and update_data["recruiter_id"]:
             update_data["recruiter_id"] = str(update_data["recruiter_id"])
 
+        # interview_stages is already a list of strings, no conversion needed
+        # Just ensure it's not empty if provided
+        if "interview_stages" in update_data:
+            if not update_data["interview_stages"]:
+                # Don't allow empty interview stages, remove from update
+                del update_data["interview_stages"]
+
         return update_data
 
     def _parse_job(self, data: dict) -> Job:
@@ -666,6 +685,12 @@ class JobRepository:
         # Map database columns to model fields
         # Handle deleted_at which may not exist if migration hasn't run
         deleted_at = data.get("deleted_at") if "deleted_at" in data else None
+
+        # Handle interview_stages - use default if not present or null
+        interview_stages = data.get("interview_stages")
+        if interview_stages is None:
+            interview_stages = DEFAULT_INTERVIEW_STAGES.copy()
+
         job_data = {
             "id": data.get("id"),
             "title": data.get("title", ""),
@@ -677,6 +702,7 @@ class JobRepository:
             "deleted_at": deleted_at,
             "is_archived": deleted_at is not None,
             "red_flags": data.get("red_flags", []) or [],
+            "interview_stages": interview_stages,
         }
 
         # Parse nested JSONB fields
@@ -745,6 +771,78 @@ class JobRepository:
         result = self.client.table("candidates")\
             .select("id", count="exact")\
             .eq("job_posting_id", str(job_id))\
-            .in_("pipeline_status", ["round_1", "round_2", "round_3", "decision_pending", "accepted"])\
+            .in_("pipeline_status", ["round_1", "round_2", "round_3", "decision_pending", "accepted",
+                                      "stage_0", "stage_1", "stage_2", "stage_3", "stage_4",
+                                      "stage_5", "stage_6", "stage_7", "stage_8", "stage_9"])\
             .execute()
         return result.count or 0
+
+    def _get_stage_counts_sync(self, job_id: UUID, interview_stages: List[str]) -> List[StageCount]:
+        """
+        Get candidate counts for each pipeline stage.
+
+        Returns counts for:
+        - Screen (new): Candidates not yet moved to any interview stage
+        - Interview stages (stage_0, stage_1, etc.): Based on job's interview_stages
+        - Offer (decision_pending, accepted): Candidates in final stages
+
+        Args:
+            job_id: UUID of the job
+            interview_stages: List of interview stage names for this job
+
+        Returns:
+            List of StageCount objects with actual candidate counts
+        """
+        stage_counts = []
+
+        # 1. Screen stage (candidates with status 'new' or NULL)
+        screen_result = self.client.table("candidates")\
+            .select("id", count="exact")\
+            .eq("job_posting_id", str(job_id))\
+            .or_("pipeline_status.eq.new,pipeline_status.is.null")\
+            .execute()
+        stage_counts.append(StageCount(
+            stage_key="new",
+            stage_name="Screen",
+            count=screen_result.count or 0
+        ))
+
+        # 2. Interview stages (based on job's interview_stages)
+        for i, stage_name in enumerate(interview_stages):
+            # Check both new format (stage_X) and legacy format (round_X)
+            legacy_status = f"round_{i + 1}" if i < 3 else None
+            new_status = f"stage_{i}"
+
+            # Query for candidates in this stage
+            if legacy_status:
+                result = self.client.table("candidates")\
+                    .select("id", count="exact")\
+                    .eq("job_posting_id", str(job_id))\
+                    .or_(f"pipeline_status.eq.{new_status},pipeline_status.eq.{legacy_status}")\
+                    .execute()
+            else:
+                result = self.client.table("candidates")\
+                    .select("id", count="exact")\
+                    .eq("job_posting_id", str(job_id))\
+                    .eq("pipeline_status", new_status)\
+                    .execute()
+
+            stage_counts.append(StageCount(
+                stage_key=new_status,
+                stage_name=stage_name,
+                count=result.count or 0
+            ))
+
+        # 3. Offer stage (decision_pending + accepted)
+        offer_result = self.client.table("candidates")\
+            .select("id", count="exact")\
+            .eq("job_posting_id", str(job_id))\
+            .in_("pipeline_status", ["decision_pending", "accepted"])\
+            .execute()
+        stage_counts.append(StageCount(
+            stage_key="offer",
+            stage_name="Offer",
+            count=offer_result.count or 0
+        ))
+
+        return stage_counts
