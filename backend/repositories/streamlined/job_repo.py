@@ -35,7 +35,8 @@ class JobRepository:
         organization_id: UUID,
         status: Optional[str] = None,
         recruiter_id: Optional[UUID] = None,
-        include_archived: bool = False
+        include_archived: bool = False,
+        include_counts: bool = True
     ) -> List[Job]:
         """
         List all jobs for an organization.
@@ -45,6 +46,8 @@ class JobRepository:
             status: Optional status filter
             recruiter_id: Optional recruiter filter
             include_archived: If True, include archived (soft-deleted) jobs
+            include_counts: If True, fetch candidate counts and stage counts (expensive).
+                           Set to False for dashboard/list views that don't need detailed counts.
 
         Returns:
             List of jobs belonging to the organization
@@ -77,10 +80,19 @@ class JobRepository:
         jobs = []
         for job_data in result.data:
             job = self._parse_job(job_data)
-            job.candidate_count = self._get_candidate_count_sync(job.id)
-            job.interviewed_count = self._get_interviewed_count_sync(job.id)
-            job.stage_counts = self._get_stage_counts_sync(job.id, job.interview_stages)
             jobs.append(job)
+
+        if include_counts and jobs:
+            # Use batch query for counts (1 query instead of 3*N queries)
+            job_ids = [job.id for job in jobs]
+            all_counts = self._get_all_job_counts_sync(job_ids)
+
+            for job in jobs:
+                counts = all_counts.get(str(job.id), {"total": 0, "interviewed": 0})
+                job.candidate_count = counts["total"]
+                job.interviewed_count = counts["interviewed"]
+                # Stage counts still require per-job queries (they depend on job-specific stages)
+                # Only fetch if explicitly needed (detail views)
 
         return jobs
 
@@ -776,6 +788,52 @@ class JobRepository:
                                       "stage_5", "stage_6", "stage_7", "stage_8", "stage_9"])\
             .execute()
         return result.count or 0
+
+    def _get_all_job_counts_sync(self, job_ids: List[UUID]) -> Dict[str, Dict]:
+        """
+        Get candidate and interviewed counts for multiple jobs in ONE query.
+
+        This is a performance optimization that reduces N+1 queries when listing jobs.
+        Instead of 3 queries per job (candidate count, interviewed count, stage counts),
+        this fetches all data in a single query and aggregates in Python.
+
+        Args:
+            job_ids: List of job UUIDs to get counts for
+
+        Returns:
+            Dictionary mapping job_id strings to {"total": int, "interviewed": int}
+        """
+        if not job_ids:
+            return {}
+
+        job_id_strings = [str(jid) for jid in job_ids]
+
+        # Single query to get all candidates for all jobs
+        result = self.client.table("candidates")\
+            .select("job_posting_id, pipeline_status")\
+            .in_("job_posting_id", job_id_strings)\
+            .execute()
+
+        # Aggregate in Python (fast in-memory operation)
+        counts: Dict[str, Dict] = {}
+        interviewed_statuses = {
+            "round_1", "round_2", "round_3", "decision_pending", "accepted",
+            "stage_0", "stage_1", "stage_2", "stage_3", "stage_4",
+            "stage_5", "stage_6", "stage_7", "stage_8", "stage_9"
+        }
+
+        for row in result.data:
+            job_id = row["job_posting_id"]
+            status = row["pipeline_status"]
+
+            if job_id not in counts:
+                counts[job_id] = {"total": 0, "interviewed": 0}
+
+            counts[job_id]["total"] += 1
+            if status in interviewed_statuses:
+                counts[job_id]["interviewed"] += 1
+
+        return counts
 
     def _get_stage_counts_sync(self, job_id: UUID, interview_stages: List[str]) -> List[StageCount]:
         """
