@@ -9,22 +9,22 @@ import AppLayout from "@/components/AppLayout";
 import {
   Users,
   Search,
-  Filter,
   ChevronRight,
   MapPin,
   Building2,
   Briefcase,
   X,
-  User,
   Star,
   GitBranch,
+  Command,
+  TrendingUp,
+  Clock,
+  Sparkles,
+  type LucideIcon,
 } from "lucide-react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { UserAvatar } from "@/components/ui/avatar";
-import { FadeInUp, Stagger, StaggerItem, Spinner } from "@/components/ui/motion";
-import { cn } from "@/lib/utils";
+import { tokens, springConfig, easeOutCustom, getTierConfig, getStatusConfig } from "@/lib/design-tokens";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -39,6 +39,7 @@ interface PersonSummary {
   skills: string[];
   linkedin_url: string | null;
   application_count: number;
+  tier?: string | null;
 }
 
 interface JobOption {
@@ -57,6 +58,870 @@ interface FilterOptions {
   total_persons: number;
 }
 
+// =============================================================================
+// STAT CARD - Premium Design
+// =============================================================================
+function StatCard({
+  icon: Icon,
+  value,
+  label,
+  trend,
+  variant = "default",
+  delay = 0,
+}: {
+  icon: LucideIcon;
+  value: number;
+  label: string;
+  trend?: { value: number; isPositive: boolean };
+  variant?: "default" | "success" | "warning" | "danger";
+  delay?: number;
+}) {
+  const variantStyles = {
+    default: {
+      iconBg: tokens.brandGlow,
+      iconColor: tokens.brandPrimary,
+      glow: "none",
+    },
+    success: {
+      iconBg: "rgba(16,185,129,0.15)",
+      iconColor: tokens.statusSuccess,
+      glow: "none",
+    },
+    warning: {
+      iconBg: "rgba(245,158,11,0.15)",
+      iconColor: tokens.statusWarning,
+      glow: "none",
+    },
+    danger: {
+      iconBg: "rgba(239,68,68,0.1)",
+      iconColor: tokens.statusDanger,
+      glow: "inset 0 0 0 1px rgba(239,68,68,0.2), 0 0 20px rgba(239,68,68,0.1)",
+    },
+  };
+
+  const styles = variantStyles[variant];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay, ease: easeOutCustom }}
+      whileHover={{
+        y: -4,
+        transition: springConfig,
+      }}
+      className="group relative cursor-default"
+    >
+      <div
+        className="relative p-5 rounded-2xl transition-all duration-300"
+        style={{
+          backgroundColor: tokens.bgSurface,
+          border: `1px solid ${tokens.borderDefault}`,
+          boxShadow: styles.glow,
+        }}
+      >
+        {/* Hover glow */}
+        <div
+          className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          style={{
+            background: `radial-gradient(circle at 50% 0%, ${styles.iconColor}10, transparent 70%)`,
+          }}
+        />
+
+        <div className="relative flex items-start justify-between">
+          <div className="flex-1">
+            <p
+              className="text-sm font-medium mb-2"
+              style={{ color: tokens.textMuted }}
+            >
+              {label}
+            </p>
+            <div className="flex items-baseline gap-3">
+              <p
+                className="text-3xl font-semibold tracking-tight tabular-nums"
+                style={{
+                  color: tokens.textPrimary,
+                  fontFamily: "var(--font-mono), monospace",
+                }}
+              >
+                {value}
+              </p>
+              {trend && (
+                <span
+                  className="flex items-center gap-1 text-xs font-medium"
+                  style={{
+                    color: trend.isPositive
+                      ? tokens.statusSuccess
+                      : tokens.statusDanger,
+                  }}
+                >
+                  <TrendingUp
+                    className={`w-3 h-3 ${!trend.isPositive ? "rotate-180" : ""}`}
+                  />
+                  {trend.value}%
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Icon */}
+          <div
+            className="p-3 rounded-xl transition-transform duration-300 group-hover:scale-110"
+            style={{ backgroundColor: styles.iconBg }}
+          >
+            <Icon className="w-5 h-5" style={{ color: styles.iconColor }} />
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// =============================================================================
+// COMMAND BAR
+// =============================================================================
+function CommandBar({
+  searchQuery,
+  setSearchQuery,
+  activeFilterCount,
+  showFilters,
+  setShowFilters,
+}: {
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  activeFilterCount: number;
+  showFilters: boolean;
+  setShowFilters: (show: boolean) => void;
+}) {
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+
+  // Keyboard shortcut for search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        document.getElementById("talent-search")?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.3, ease: easeOutCustom }}
+      className="relative mb-6"
+    >
+      <div
+        className="relative p-4 rounded-2xl backdrop-blur-xl"
+        style={{
+          backgroundColor: tokens.bgGlass,
+          border: `1px solid ${tokens.borderDefault}`,
+          boxShadow: "0 4px 24px rgba(0,0,0,0.2)",
+        }}
+      >
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+          {/* Search Input */}
+          <div className="relative flex-1 max-w-md">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200"
+              style={{ color: isSearchFocused ? tokens.textSecondary : tokens.textMuted }}
+            />
+            <input
+              id="talent-search"
+              type="text"
+              placeholder="Search people..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => setIsSearchFocused(false)}
+              className="w-full pl-10 pr-20 py-2.5 rounded-xl text-sm transition-all duration-200 outline-none"
+              style={{
+                backgroundColor: isSearchFocused
+                  ? "rgba(255,255,255,0.08)"
+                  : "rgba(255,255,255,0.04)",
+                border: `1px solid ${isSearchFocused ? tokens.borderFocus : tokens.borderSubtle}`,
+                color: tokens.textPrimary,
+                boxShadow: isSearchFocused
+                  ? `0 0 0 4px ${tokens.brandGlow}`
+                  : "none",
+              }}
+            />
+            {/* Keyboard hint */}
+            <div
+              className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none"
+              style={{ color: tokens.textDisabled }}
+            >
+              <kbd
+                className="px-1.5 py-0.5 text-[10px] font-medium rounded"
+                style={{
+                  backgroundColor: "rgba(255,255,255,0.06)",
+                  border: `1px solid ${tokens.borderSubtle}`,
+                }}
+              >
+                <Command className="w-2.5 h-2.5 inline" />
+              </kbd>
+              <kbd
+                className="px-1.5 py-0.5 text-[10px] font-medium rounded"
+                style={{
+                  backgroundColor: "rgba(255,255,255,0.06)",
+                  border: `1px solid ${tokens.borderSubtle}`,
+                }}
+              >
+                K
+              </kbd>
+            </div>
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-16 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-white/10 transition-colors"
+                style={{ color: tokens.textMuted }}
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          {/* Divider */}
+          <div
+            className="hidden sm:block w-px h-8"
+            style={{ backgroundColor: tokens.borderSubtle }}
+          />
+
+          {/* Filters Button */}
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200"
+            style={{
+              backgroundColor: showFilters || activeFilterCount > 0
+                ? "rgba(255,255,255,0.08)"
+                : "transparent",
+              color: showFilters || activeFilterCount > 0
+                ? tokens.textPrimary
+                : tokens.textMuted,
+              border: `1px solid ${showFilters ? tokens.borderHover : tokens.borderSubtle}`,
+            }}
+          >
+            <GitBranch className="w-4 h-4" />
+            Filters
+            {activeFilterCount > 0 && (
+              <span
+                className="px-2 py-0.5 text-xs font-semibold rounded-full"
+                style={{
+                  backgroundColor: tokens.brandGlow,
+                  color: tokens.brandPrimary,
+                }}
+              >
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// =============================================================================
+// FILTER PANEL
+// =============================================================================
+function FilterPanel({
+  filterOptions,
+  selectedSkills,
+  toggleSkill,
+  selectedLocation,
+  setSelectedLocation,
+  selectedCompany,
+  setSelectedCompany,
+  selectedJob,
+  setSelectedJob,
+  selectedTier,
+  setSelectedTier,
+  selectedStatus,
+  setSelectedStatus,
+  hasActiveFilters,
+  clearFilters,
+  setPage,
+}: {
+  filterOptions: FilterOptions;
+  selectedSkills: string[];
+  toggleSkill: (skill: string) => void;
+  selectedLocation: string;
+  setSelectedLocation: (loc: string) => void;
+  selectedCompany: string;
+  setSelectedCompany: (company: string) => void;
+  selectedJob: string;
+  setSelectedJob: (job: string) => void;
+  selectedTier: string;
+  setSelectedTier: (tier: string) => void;
+  selectedStatus: string;
+  setSelectedStatus: (status: string) => void;
+  hasActiveFilters: boolean;
+  clearFilters: () => void;
+  setPage: (page: number) => void;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: "auto" }}
+      exit={{ opacity: 0, height: 0 }}
+      transition={{ duration: 0.3, ease: easeOutCustom }}
+      className="mb-6 overflow-hidden"
+    >
+      <div
+        className="p-6 rounded-2xl space-y-6"
+        style={{
+          backgroundColor: tokens.bgSurface,
+          border: `1px solid ${tokens.borderDefault}`,
+        }}
+      >
+        {/* Active Filters */}
+        {hasActiveFilters && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm" style={{ color: tokens.textMuted }}>
+              Active:
+            </span>
+            {selectedSkills.map((skill) => (
+              <motion.button
+                key={skill}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                onClick={() => toggleSkill(skill)}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors"
+                style={{
+                  backgroundColor: tokens.brandGlow,
+                  color: tokens.brandPrimary,
+                  border: `1px solid ${tokens.brandPrimary}30`,
+                }}
+              >
+                {skill}
+                <X className="w-3 h-3" />
+              </motion.button>
+            ))}
+            {selectedLocation && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                onClick={() => { setSelectedLocation(""); setPage(1); }}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium"
+                style={{
+                  backgroundColor: "rgba(16,185,129,0.15)",
+                  color: tokens.statusSuccess,
+                  border: `1px solid ${tokens.statusSuccess}30`,
+                }}
+              >
+                <MapPin className="w-3 h-3" />
+                {selectedLocation}
+                <X className="w-3 h-3" />
+              </motion.button>
+            )}
+            {selectedCompany && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                onClick={() => { setSelectedCompany(""); setPage(1); }}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium"
+                style={{
+                  backgroundColor: "rgba(139,92,246,0.15)",
+                  color: "#A78BFA",
+                  border: "1px solid rgba(139,92,246,0.3)",
+                }}
+              >
+                <Building2 className="w-3 h-3" />
+                {selectedCompany}
+                <X className="w-3 h-3" />
+              </motion.button>
+            )}
+            {selectedJob && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                onClick={() => { setSelectedJob(""); setPage(1); }}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium"
+                style={{
+                  backgroundColor: "rgba(245,158,11,0.15)",
+                  color: tokens.statusWarning,
+                  border: `1px solid ${tokens.statusWarning}30`,
+                }}
+              >
+                <Briefcase className="w-3 h-3" />
+                {filterOptions.jobs.find(j => j.id === selectedJob)?.title || "Job"}
+                <X className="w-3 h-3" />
+              </motion.button>
+            )}
+            {selectedTier && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                onClick={() => { setSelectedTier(""); setPage(1); }}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium"
+                style={{
+                  backgroundColor: getTierConfig(selectedTier).bg,
+                  color: getTierConfig(selectedTier).color,
+                  border: `1px solid ${getTierConfig(selectedTier).color}30`,
+                }}
+              >
+                <Star className="w-3 h-3" />
+                {selectedTier}
+                <X className="w-3 h-3" />
+              </motion.button>
+            )}
+            {selectedStatus && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                onClick={() => { setSelectedStatus(""); setPage(1); }}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium"
+                style={{
+                  backgroundColor: getStatusConfig(selectedStatus).bg,
+                  color: getStatusConfig(selectedStatus).color,
+                  border: `1px solid ${getStatusConfig(selectedStatus).color}30`,
+                }}
+              >
+                <GitBranch className="w-3 h-3" />
+                {selectedStatus.replace(/_/g, " ")}
+                <X className="w-3 h-3" />
+              </motion.button>
+            )}
+            <button
+              onClick={clearFilters}
+              className="text-xs underline ml-2 transition-colors"
+              style={{ color: tokens.textMuted }}
+            >
+              Clear all
+            </button>
+          </div>
+        )}
+
+        {/* Filter Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {/* Location */}
+          <div>
+            <label
+              className="text-xs font-medium mb-2 block"
+              style={{ color: tokens.textMuted }}
+            >
+              Location
+            </label>
+            <select
+              value={selectedLocation}
+              onChange={(e) => { setSelectedLocation(e.target.value); setPage(1); }}
+              className="w-full px-3 py-2.5 rounded-xl text-sm transition-all outline-none"
+              style={{
+                backgroundColor: "rgba(255,255,255,0.04)",
+                border: `1px solid ${tokens.borderDefault}`,
+                color: tokens.textPrimary,
+              }}
+            >
+              <option value="">All Locations</option>
+              {filterOptions.locations.map((loc) => (
+                <option key={loc} value={loc}>{loc}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Company */}
+          <div>
+            <label
+              className="text-xs font-medium mb-2 block"
+              style={{ color: tokens.textMuted }}
+            >
+              Company
+            </label>
+            <select
+              value={selectedCompany}
+              onChange={(e) => { setSelectedCompany(e.target.value); setPage(1); }}
+              className="w-full px-3 py-2.5 rounded-xl text-sm transition-all outline-none"
+              style={{
+                backgroundColor: "rgba(255,255,255,0.04)",
+                border: `1px solid ${tokens.borderDefault}`,
+                color: tokens.textPrimary,
+              }}
+            >
+              <option value="">All Companies</option>
+              {filterOptions.companies.map((company) => (
+                <option key={company} value={company}>{company}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Job */}
+          {filterOptions.jobs.length > 0 && (
+            <div>
+              <label
+                className="text-xs font-medium mb-2 block"
+                style={{ color: tokens.textMuted }}
+              >
+                Job Position
+              </label>
+              <select
+                value={selectedJob}
+                onChange={(e) => { setSelectedJob(e.target.value); setPage(1); }}
+                className="w-full px-3 py-2.5 rounded-xl text-sm transition-all outline-none"
+                style={{
+                  backgroundColor: "rgba(255,255,255,0.04)",
+                  border: `1px solid ${tokens.borderDefault}`,
+                  color: tokens.textPrimary,
+                }}
+              >
+                <option value="">All Jobs</option>
+                {filterOptions.jobs.map((job) => (
+                  <option key={job.id} value={job.id}>
+                    {job.title} ({job.candidate_count})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Tier */}
+          <div>
+            <label
+              className="text-xs font-medium mb-2 block"
+              style={{ color: tokens.textMuted }}
+            >
+              Candidate Tier
+            </label>
+            <select
+              value={selectedTier}
+              onChange={(e) => { setSelectedTier(e.target.value); setPage(1); }}
+              className="w-full px-3 py-2.5 rounded-xl text-sm transition-all outline-none"
+              style={{
+                backgroundColor: "rgba(255,255,255,0.04)",
+                border: `1px solid ${tokens.borderDefault}`,
+                color: tokens.textPrimary,
+              }}
+            >
+              <option value="">All Tiers</option>
+              {filterOptions.tiers.map((tier) => (
+                <option key={tier} value={tier}>{tier}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Pipeline Status */}
+          <div>
+            <label
+              className="text-xs font-medium mb-2 block"
+              style={{ color: tokens.textMuted }}
+            >
+              Pipeline Status
+            </label>
+            <select
+              value={selectedStatus}
+              onChange={(e) => { setSelectedStatus(e.target.value); setPage(1); }}
+              className="w-full px-3 py-2.5 rounded-xl text-sm transition-all outline-none"
+              style={{
+                backgroundColor: "rgba(255,255,255,0.04)",
+                border: `1px solid ${tokens.borderDefault}`,
+                color: tokens.textPrimary,
+              }}
+            >
+              <option value="">All Statuses</option>
+              {filterOptions.pipeline_statuses.map((status) => (
+                <option key={status} value={status}>
+                  {status.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Skills */}
+        <div>
+          <label
+            className="text-xs font-medium mb-3 block"
+            style={{ color: tokens.textMuted }}
+          >
+            Skills
+          </label>
+          <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto pr-2">
+            {filterOptions.skills.slice(0, 30).map((skill) => (
+              <motion.button
+                key={skill}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => toggleSkill(skill)}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+                style={{
+                  backgroundColor: selectedSkills.includes(skill)
+                    ? tokens.brandGlow
+                    : "rgba(255,255,255,0.03)",
+                  color: selectedSkills.includes(skill)
+                    ? tokens.brandPrimary
+                    : tokens.textMuted,
+                  border: `1px solid ${selectedSkills.includes(skill)
+                    ? `${tokens.brandPrimary}50`
+                    : tokens.borderSubtle}`,
+                }}
+              >
+                {skill}
+              </motion.button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// =============================================================================
+// PERSON CARD - Premium Design
+// =============================================================================
+function PersonCard({
+  person,
+  index,
+}: {
+  person: PersonSummary;
+  index: number;
+}) {
+  const tierStyle = getTierConfig(person.tier);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        duration: 0.4,
+        delay: index * 0.04,
+        ease: easeOutCustom,
+      }}
+      whileHover={{ y: -4 }}
+      className="group"
+    >
+      <Link href={`/talent-pool/${person.id}`}>
+        <div
+          className="relative rounded-2xl transition-all duration-300 overflow-hidden cursor-pointer h-full"
+          style={{
+            backgroundColor: tokens.bgCard,
+            border: `1px solid ${tokens.borderDefault}`,
+          }}
+        >
+          {/* Hover gradient overlay */}
+          <div
+            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            style={{
+              background: `linear-gradient(135deg, ${tokens.brandGlow} 0%, transparent 60%)`,
+            }}
+          />
+
+          <div className="relative p-5">
+            {/* Header: Avatar + Name + Tier */}
+            <div className="flex items-start gap-4 mb-4">
+              <UserAvatar name={person.name} size="lg" />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3
+                    className="font-semibold truncate transition-colors group-hover:text-indigo-400"
+                    style={{ color: tokens.textPrimary }}
+                  >
+                    {person.name}
+                  </h3>
+                  {person.tier && (
+                    <span
+                      className="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase shrink-0"
+                      style={{
+                        backgroundColor: tierStyle.bg,
+                        color: tierStyle.color,
+                      }}
+                    >
+                      {tierStyle.label}
+                    </span>
+                  )}
+                </div>
+                {person.headline && (
+                  <p
+                    className="text-sm truncate mt-0.5"
+                    style={{ color: tokens.textSecondary }}
+                  >
+                    {person.headline}
+                  </p>
+                )}
+                {(person.current_title || person.current_company) && (
+                  <p
+                    className="text-xs truncate mt-1"
+                    style={{ color: tokens.textMuted }}
+                  >
+                    {person.current_title}
+                    {person.current_title && person.current_company && " at "}
+                    {person.current_company}
+                  </p>
+                )}
+              </div>
+              <ChevronRight
+                className="w-4 h-4 flex-shrink-0 transition-transform duration-200 group-hover:translate-x-1"
+                style={{ color: tokens.textMuted }}
+              />
+            </div>
+
+            {/* Meta: Location + Applications */}
+            <div className="flex items-center gap-4 mb-4">
+              {person.location && (
+                <span
+                  className="flex items-center gap-1.5 text-xs"
+                  style={{ color: tokens.textMuted }}
+                >
+                  <MapPin className="w-3 h-3" />
+                  {person.location}
+                </span>
+              )}
+              {person.application_count > 0 && (
+                <span
+                  className="flex items-center gap-1.5 text-xs"
+                  style={{ color: tokens.textMuted }}
+                >
+                  <Briefcase className="w-3 h-3" />
+                  {person.application_count} application{person.application_count !== 1 ? "s" : ""}
+                </span>
+              )}
+            </div>
+
+            {/* Skills */}
+            {person.skills && person.skills.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {person.skills.slice(0, 4).map((skill) => (
+                  <span
+                    key={skill}
+                    className="px-2 py-0.5 rounded-md text-[10px] font-medium"
+                    style={{
+                      backgroundColor: "rgba(255,255,255,0.04)",
+                      color: tokens.textSecondary,
+                      border: `1px solid ${tokens.borderSubtle}`,
+                    }}
+                  >
+                    {skill}
+                  </span>
+                ))}
+                {person.skills.length > 4 && (
+                  <span
+                    className="px-2 py-0.5 text-[10px]"
+                    style={{ color: tokens.textDisabled }}
+                  >
+                    +{person.skills.length - 4}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </Link>
+    </motion.div>
+  );
+}
+
+// =============================================================================
+// EMPTY STATE
+// =============================================================================
+function EmptyState({ hasFilters }: { hasFilters: boolean }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: easeOutCustom }}
+      className="text-center py-20"
+    >
+      <div
+        className="relative inline-flex p-6 rounded-3xl mb-8"
+        style={{
+          background: `linear-gradient(135deg, ${tokens.brandGlow} 0%, transparent 100%)`,
+          border: `1px solid ${tokens.borderDefault}`,
+        }}
+      >
+        <motion.div
+          animate={{ y: [0, -8, 0] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <Users className="w-16 h-16" style={{ color: tokens.brandPrimary }} />
+        </motion.div>
+        <motion.div
+          className="absolute -top-2 -right-2"
+          animate={{ rotate: [0, 15, 0], scale: [1, 1.1, 1] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <Sparkles className="w-6 h-6" style={{ color: tokens.brandSecondary }} />
+        </motion.div>
+      </div>
+
+      <h3
+        className="text-2xl font-semibold mb-3"
+        style={{ color: tokens.textPrimary }}
+      >
+        {hasFilters ? "No people found" : "Your talent pool is empty"}
+      </h3>
+      <p
+        className="text-base mb-8 max-w-md mx-auto"
+        style={{ color: tokens.textSecondary }}
+      >
+        {hasFilters
+          ? "Try adjusting your filters or search query to find more candidates."
+          : "Upload candidates to your jobs to start building your talent pool."}
+      </p>
+    </motion.div>
+  );
+}
+
+// =============================================================================
+// LOADING SKELETON
+// =============================================================================
+function LoadingSkeleton() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {[1, 2, 3, 4, 5, 6].map((i) => (
+        <div
+          key={i}
+          className="rounded-2xl p-5 animate-pulse"
+          style={{
+            backgroundColor: tokens.bgCard,
+            border: `1px solid ${tokens.borderDefault}`,
+          }}
+        >
+          <div className="flex items-start gap-4 mb-4">
+            <div
+              className="w-12 h-12 rounded-full"
+              style={{ backgroundColor: tokens.bgSurface }}
+            />
+            <div className="flex-1 space-y-2">
+              <div
+                className="h-4 rounded w-2/3"
+                style={{ backgroundColor: tokens.bgSurface }}
+              />
+              <div
+                className="h-3 rounded w-1/2"
+                style={{ backgroundColor: tokens.bgSurface }}
+              />
+            </div>
+          </div>
+          <div className="flex gap-2 mb-4">
+            <div
+              className="h-3 rounded w-24"
+              style={{ backgroundColor: tokens.bgSurface }}
+            />
+            <div
+              className="h-3 rounded w-20"
+              style={{ backgroundColor: tokens.bgSurface }}
+            />
+          </div>
+          <div className="flex gap-2">
+            {[1, 2, 3].map((j) => (
+              <div
+                key={j}
+                className="h-5 rounded w-16"
+                style={{ backgroundColor: tokens.bgSurface }}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// =============================================================================
+// MAIN PAGE
+// =============================================================================
 export default function TalentPoolPage() {
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading, token } = useAuth();
@@ -117,27 +982,13 @@ export default function TalentPoolPage() {
       params.append("page", page.toString());
       params.append("page_size", "20");
 
-      if (searchQuery) {
-        params.append("query", searchQuery);
-      }
-      if (selectedSkills.length > 0) {
-        params.append("skills", selectedSkills.join(","));
-      }
-      if (selectedLocation) {
-        params.append("location", selectedLocation);
-      }
-      if (selectedCompany) {
-        params.append("company", selectedCompany);
-      }
-      if (selectedJob) {
-        params.append("job_id", selectedJob);
-      }
-      if (selectedTier) {
-        params.append("tier", selectedTier);
-      }
-      if (selectedStatus) {
-        params.append("pipeline_status", selectedStatus);
-      }
+      if (searchQuery) params.append("query", searchQuery);
+      if (selectedSkills.length > 0) params.append("skills", selectedSkills.join(","));
+      if (selectedLocation) params.append("location", selectedLocation);
+      if (selectedCompany) params.append("company", selectedCompany);
+      if (selectedJob) params.append("job_id", selectedJob);
+      if (selectedTier) params.append("tier", selectedTier);
+      if (selectedStatus) params.append("pipeline_status", selectedStatus);
 
       const response = await fetch(`${API_URL}/api/talent-pool?${params.toString()}`, {
         headers: getAuthHeaders(),
@@ -176,8 +1027,7 @@ export default function TalentPoolPage() {
     setPage(1);
   };
 
-  const hasActiveFilters = selectedSkills.length > 0 || selectedLocation || selectedCompany || selectedJob || selectedTier || selectedStatus || searchQuery;
-
+  const hasActiveFilters = Boolean(selectedSkills.length > 0 || selectedLocation || selectedCompany || selectedJob || selectedTier || selectedStatus || searchQuery);
   const activeFilterCount = selectedSkills.length +
     (selectedLocation ? 1 : 0) +
     (selectedCompany ? 1 : 0) +
@@ -185,417 +1035,193 @@ export default function TalentPoolPage() {
     (selectedTier ? 1 : 0) +
     (selectedStatus ? 1 : 0);
 
+  // Stats
+  const topTierCount = 0; // Would need backend support
+  const recentCount = 0; // Would need backend support
+  const withAppsCount = persons.filter(p => p.application_count > 0).length;
+
   return (
     <AppLayout>
-      <div className="px-6 py-8 max-w-7xl mx-auto">
-        {/* Page Title */}
-        <FadeInUp>
-          <div className="flex items-center justify-between mb-8">
+      {/* Page Canvas */}
+      <div
+        className="min-h-screen relative"
+        style={{ backgroundColor: tokens.bgApp }}
+      >
+        {/* Ambient gradient */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `
+              radial-gradient(ellipse at 70% 10%, ${tokens.brandGlow} 0%, transparent 50%),
+              radial-gradient(ellipse at 20% 80%, rgba(139,92,246,0.05) 0%, transparent 50%)
+            `,
+          }}
+        />
+
+        {/* Grain texture */}
+        <div
+          className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-30"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+          }}
+        />
+
+        {/* Content */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="relative px-8 py-8 max-w-[1400px] mx-auto"
+        >
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: easeOutCustom }}
+            className="flex items-start justify-between mb-8"
+          >
             <div>
-              <h2 className="text-3xl font-bold text-white tracking-tight">Talent Pool</h2>
-              <p className="text-zinc-400 text-sm mt-1">
-                {filterOptions?.total_persons || total} people across all jobs
+              <h1
+                className="text-3xl font-bold tracking-tight mb-2"
+                style={{ color: tokens.textPrimary }}
+              >
+                Talent Pool
+              </h1>
+              <p className="text-sm" style={{ color: tokens.textSecondary }}>
+                {filterOptions?.total_persons || total} people across all your job postings
               </p>
             </div>
-          </div>
-        </FadeInUp>
+          </motion.div>
 
-        {/* Search and Filters */}
-        <FadeInUp delay={0.1}>
-          <div className="mb-6 space-y-4">
-            {/* Search Bar */}
-            <div className="flex gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-                <input
-                  type="text"
-                  placeholder="Search by name..."
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setPage(1);
-                  }}
-                  className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                />
-              </div>
-              <Button
-                variant={showFilters || hasActiveFilters ? "secondary" : "ghost"}
-                onClick={() => setShowFilters(!showFilters)}
-                leftIcon={<Filter className="w-4 h-4" />}
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <StatCard
+              icon={Users}
+              value={filterOptions?.total_persons || total}
+              label="Total People"
+              delay={0.1}
+            />
+            <StatCard
+              icon={Star}
+              value={topTierCount}
+              label="Top Tier"
+              variant="success"
+              delay={0.15}
+            />
+            <StatCard
+              icon={Clock}
+              value={recentCount}
+              label="Added This Week"
+              delay={0.2}
+            />
+            <StatCard
+              icon={Briefcase}
+              value={withAppsCount}
+              label="With Applications"
+              delay={0.25}
+            />
+          </div>
+
+          {/* Command Bar */}
+          <CommandBar
+            searchQuery={searchQuery}
+            setSearchQuery={(q) => { setSearchQuery(q); setPage(1); }}
+            activeFilterCount={activeFilterCount}
+            showFilters={showFilters}
+            setShowFilters={setShowFilters}
+          />
+
+          {/* Filter Panel */}
+          <AnimatePresence>
+            {showFilters && filterOptions && (
+              <FilterPanel
+                filterOptions={filterOptions}
+                selectedSkills={selectedSkills}
+                toggleSkill={toggleSkill}
+                selectedLocation={selectedLocation}
+                setSelectedLocation={setSelectedLocation}
+                selectedCompany={selectedCompany}
+                setSelectedCompany={setSelectedCompany}
+                selectedJob={selectedJob}
+                setSelectedJob={setSelectedJob}
+                selectedTier={selectedTier}
+                setSelectedTier={setSelectedTier}
+                selectedStatus={selectedStatus}
+                setSelectedStatus={setSelectedStatus}
+                hasActiveFilters={hasActiveFilters}
+                clearFilters={clearFilters}
+                setPage={setPage}
+              />
+            )}
+          </AnimatePresence>
+
+          {/* Results */}
+          <AnimatePresence mode="wait">
+            {loading ? (
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
               >
-                Filters
-                {hasActiveFilters && (
-                  <span className="ml-2 px-2 py-0.5 bg-indigo-500/30 text-indigo-300 text-xs rounded-full">
-                    {activeFilterCount}
-                  </span>
+                <LoadingSkeleton />
+              </motion.div>
+            ) : persons.length === 0 ? (
+              <EmptyState hasFilters={hasActiveFilters} />
+            ) : (
+              <motion.div
+                key="results"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                {/* Person Cards Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {persons.map((person, index) => (
+                    <PersonCard
+                      key={person.id}
+                      person={person}
+                      index={index}
+                    />
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="flex items-center justify-center gap-4 mt-8"
+                  >
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setPage(Math.max(1, page - 1))}
+                      disabled={page === 1}
+                    >
+                      Previous
+                    </Button>
+                    <span
+                      className="text-sm px-4"
+                      style={{ color: tokens.textMuted }}
+                    >
+                      Page {page} of {totalPages}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setPage(Math.min(totalPages, page + 1))}
+                      disabled={page === totalPages}
+                    >
+                      Next
+                    </Button>
+                  </motion.div>
                 )}
-              </Button>
-            </div>
-
-            {/* Filter Panel */}
-            <AnimatePresence>
-              {showFilters && filterOptions && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <Card padding="lg" className="space-y-6">
-                    {/* Active Filters */}
-                    {hasActiveFilters && (
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm text-zinc-500">Active filters:</span>
-                        {selectedSkills.map((skill) => (
-                          <motion.button
-                            key={skill}
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.8 }}
-                            onClick={() => toggleSkill(skill)}
-                            className="flex items-center gap-1 px-2 py-1 bg-indigo-500/20 border border-indigo-500/30 rounded-lg text-xs text-indigo-400 hover:bg-indigo-500/30 transition-colors"
-                          >
-                            {skill}
-                            <X className="w-3 h-3" />
-                          </motion.button>
-                        ))}
-                        {selectedLocation && (
-                          <motion.button
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            onClick={() => setSelectedLocation("")}
-                            className="flex items-center gap-1 px-2 py-1 bg-emerald-500/20 border border-emerald-500/30 rounded-lg text-xs text-emerald-400 hover:bg-emerald-500/30 transition-colors"
-                          >
-                            <MapPin className="w-3 h-3" />
-                            {selectedLocation}
-                            <X className="w-3 h-3" />
-                          </motion.button>
-                        )}
-                        {selectedCompany && (
-                          <motion.button
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            onClick={() => setSelectedCompany("")}
-                            className="flex items-center gap-1 px-2 py-1 bg-purple-500/20 border border-purple-500/30 rounded-lg text-xs text-purple-400 hover:bg-purple-500/30 transition-colors"
-                          >
-                            <Building2 className="w-3 h-3" />
-                            {selectedCompany}
-                            <X className="w-3 h-3" />
-                          </motion.button>
-                        )}
-                        {selectedJob && (
-                          <motion.button
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            onClick={() => setSelectedJob("")}
-                            className="flex items-center gap-1 px-2 py-1 bg-amber-500/20 border border-amber-500/30 rounded-lg text-xs text-amber-400 hover:bg-amber-500/30 transition-colors"
-                          >
-                            <Briefcase className="w-3 h-3" />
-                            {filterOptions.jobs.find(j => j.id === selectedJob)?.title || "Job"}
-                            <X className="w-3 h-3" />
-                          </motion.button>
-                        )}
-                        {selectedTier && (
-                          <motion.button
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            onClick={() => setSelectedTier("")}
-                            className="flex items-center gap-1 px-2 py-1 bg-yellow-500/20 border border-yellow-500/30 rounded-lg text-xs text-yellow-400 hover:bg-yellow-500/30 transition-colors"
-                          >
-                            <Star className="w-3 h-3" />
-                            {selectedTier}
-                            <X className="w-3 h-3" />
-                          </motion.button>
-                        )}
-                        {selectedStatus && (
-                          <motion.button
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            onClick={() => setSelectedStatus("")}
-                            className="flex items-center gap-1 px-2 py-1 bg-cyan-500/20 border border-cyan-500/30 rounded-lg text-xs text-cyan-400 hover:bg-cyan-500/30 transition-colors"
-                          >
-                            <GitBranch className="w-3 h-3" />
-                            {selectedStatus.replace(/_/g, " ")}
-                            <X className="w-3 h-3" />
-                          </motion.button>
-                        )}
-                        <button
-                          onClick={clearFilters}
-                          className="text-xs text-zinc-500 hover:text-zinc-300 underline ml-2 transition-colors"
-                        >
-                          Clear all
-                        </button>
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      {/* Location Filter */}
-                      <div>
-                        <label className="text-sm text-zinc-400 mb-2 block">Location</label>
-                        <select
-                          value={selectedLocation}
-                          onChange={(e) => {
-                            setSelectedLocation(e.target.value);
-                            setPage(1);
-                          }}
-                          className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                        >
-                          <option value="">All Locations</option>
-                          {filterOptions.locations.map((loc) => (
-                            <option key={loc} value={loc}>
-                              {loc}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* Company Filter */}
-                      <div>
-                        <label className="text-sm text-zinc-400 mb-2 block">Company</label>
-                        <select
-                          value={selectedCompany}
-                          onChange={(e) => {
-                            setSelectedCompany(e.target.value);
-                            setPage(1);
-                          }}
-                          className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                        >
-                          <option value="">All Companies</option>
-                          {filterOptions.companies.map((company) => (
-                            <option key={company} value={company}>
-                              {company}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* Job Filter */}
-                      {filterOptions.jobs && filterOptions.jobs.length > 0 && (
-                        <div>
-                          <label className="text-sm text-zinc-400 mb-2 block">Job Position</label>
-                          <select
-                            value={selectedJob}
-                            onChange={(e) => {
-                              setSelectedJob(e.target.value);
-                              setPage(1);
-                            }}
-                            className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                          >
-                            <option value="">All Jobs</option>
-                            {filterOptions.jobs.map((job) => (
-                              <option key={job.id} value={job.id}>
-                                {job.title} ({job.candidate_count})
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      )}
-
-                      {/* Tier Filter */}
-                      <div>
-                        <label className="text-sm text-zinc-400 mb-2 block">Candidate Tier</label>
-                        <select
-                          value={selectedTier}
-                          onChange={(e) => {
-                            setSelectedTier(e.target.value);
-                            setPage(1);
-                          }}
-                          className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                        >
-                          <option value="">All Tiers</option>
-                          {filterOptions.tiers.map((tier) => (
-                            <option key={tier} value={tier}>
-                              {tier}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* Pipeline Status Filter */}
-                      <div>
-                        <label className="text-sm text-zinc-400 mb-2 block">Pipeline Status</label>
-                        <select
-                          value={selectedStatus}
-                          onChange={(e) => {
-                            setSelectedStatus(e.target.value);
-                            setPage(1);
-                          }}
-                          className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                        >
-                          <option value="">All Statuses</option>
-                          {filterOptions.pipeline_statuses.map((status) => (
-                            <option key={status} value={status}>
-                              {status.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* Skills Filter */}
-                    <div>
-                      <label className="text-sm text-zinc-400 mb-2 block">Skills</label>
-                      <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
-                        {filterOptions.skills.slice(0, 30).map((skill) => (
-                          <motion.button
-                            key={skill}
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => toggleSkill(skill)}
-                            className={cn(
-                              "px-3 py-1.5 rounded-lg text-xs border transition-all",
-                              selectedSkills.includes(skill)
-                                ? "bg-indigo-500/20 border-indigo-500/50 text-indigo-400"
-                                : "bg-white/[0.03] border-white/[0.06] text-zinc-400 hover:border-white/[0.12] hover:text-zinc-300"
-                            )}
-                          >
-                            {skill}
-                          </motion.button>
-                        ))}
-                      </div>
-                    </div>
-                  </Card>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </FadeInUp>
-
-        {/* Results */}
-        <AnimatePresence mode="wait">
-          {loading ? (
-            <motion.div
-              key="loading"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex items-center justify-center py-20"
-            >
-              <Spinner size="lg" />
-            </motion.div>
-          ) : persons.length === 0 ? (
-            <FadeInUp key="empty">
-              <Card padding="xl" className="text-center">
-                <motion.div
-                  className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 flex items-center justify-center mx-auto mb-6 border border-white/5"
-                  animate={{ y: [0, -8, 0] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  <Users className="w-10 h-10 text-indigo-400" />
-                </motion.div>
-                <h3 className="text-xl font-semibold text-white mb-2">No people found</h3>
-                <p className="text-zinc-500 text-sm">
-                  {hasActiveFilters
-                    ? "Try adjusting your filters or search query"
-                    : "Upload candidates to jobs to populate the talent pool"}
-                </p>
-              </Card>
-            </FadeInUp>
-          ) : (
-            <motion.div
-              key="results"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              {/* Person Cards */}
-              <Stagger className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {persons.map((person) => (
-                  <StaggerItem key={person.id}>
-                    <Link href={`/talent-pool/${person.id}`}>
-                      <motion.div
-                        whileHover={{ y: -4, scale: 1.01 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                      >
-                        <Card
-                          padding="md"
-                          className="h-full group cursor-pointer"
-                        >
-                          <div className="flex items-start gap-4">
-                            <UserAvatar name={person.name} size="lg" />
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-medium text-white truncate group-hover:text-indigo-400 transition-colors">
-                                {person.name}
-                              </h3>
-                              {person.headline && (
-                                <p className="text-sm text-zinc-500 truncate mt-0.5">{person.headline}</p>
-                              )}
-                              {(person.current_title || person.current_company) && (
-                                <p className="text-xs text-zinc-600 truncate mt-1">
-                                  {person.current_title}
-                                  {person.current_title && person.current_company && " at "}
-                                  {person.current_company}
-                                </p>
-                              )}
-                            </div>
-                            <ChevronRight className="w-4 h-4 text-zinc-600 group-hover:text-zinc-400 flex-shrink-0 transition-colors" />
-                          </div>
-
-                          {/* Location and Applications */}
-                          <div className="flex items-center gap-4 mt-4 text-xs text-zinc-500">
-                            {person.location && (
-                              <span className="flex items-center gap-1">
-                                <MapPin className="w-3 h-3" />
-                                {person.location}
-                              </span>
-                            )}
-                            {person.application_count > 0 && (
-                              <span className="flex items-center gap-1">
-                                <Briefcase className="w-3 h-3" />
-                                {person.application_count} application{person.application_count !== 1 ? "s" : ""}
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Skills */}
-                          {person.skills && person.skills.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-3">
-                              {person.skills.slice(0, 4).map((skill) => (
-                                <Badge key={skill} variant="secondary" size="sm">
-                                  {skill}
-                                </Badge>
-                              ))}
-                              {person.skills.length > 4 && (
-                                <span className="px-2 py-0.5 text-[10px] text-zinc-500">
-                                  +{person.skills.length - 4} more
-                                </span>
-                              )}
-                            </div>
-                          )}
-                        </Card>
-                      </motion.div>
-                    </Link>
-                  </StaggerItem>
-                ))}
-              </Stagger>
-
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <FadeInUp delay={0.2} className="flex items-center justify-center gap-2 mt-8">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setPage(Math.max(1, page - 1))}
-                    disabled={page === 1}
-                  >
-                    Previous
-                  </Button>
-                  <span className="text-sm text-zinc-500 px-4">
-                    Page {page} of {totalPages}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setPage(Math.min(totalPages, page + 1))}
-                    disabled={page === totalPages}
-                  >
-                    Next
-                  </Button>
-                </FadeInUp>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
       </div>
     </AppLayout>
   );

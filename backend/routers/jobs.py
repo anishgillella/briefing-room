@@ -121,6 +121,7 @@ async def extract_requirements(
 async def list_jobs(
     status: Optional[str] = None,
     recruiter_id: Optional[str] = None,
+    include_counts: bool = True,
     current_user: CurrentUser = Depends(get_current_user),
 ) -> List[Job]:
     """
@@ -129,6 +130,8 @@ async def list_jobs(
     Args:
         status: Optional filter - one of 'draft', 'active', 'paused', 'closed'
         recruiter_id: Optional filter - UUID of the recruiter
+        include_counts: If True (default), include candidate counts and stage counts.
+                       Set to False for faster loading when counts aren't needed.
 
     Returns:
         List of jobs with candidate counts (scoped to organization)
@@ -139,7 +142,8 @@ async def list_jobs(
     jobs = repo.list_all_for_org_sync(
         organization_id=current_user.organization_id,
         status=status,
-        recruiter_id=recruiter_uuid
+        recruiter_id=recruiter_uuid,
+        include_counts=include_counts
     )
     return jobs
 

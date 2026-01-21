@@ -395,3 +395,115 @@ async def get_person_applications(
         "applications": applications,
         "total": len(applications),
     }
+
+
+# =============================================================================
+# Global Talent Profile Response Model
+# =============================================================================
+
+class GlobalTalentProfile(BaseModel):
+    """Aggregated performance profile across all job applications."""
+    person_id: str
+    person_name: str
+    total_applications: int
+    average_score: Optional[float] = None
+    highest_score: Optional[int] = None
+    lowest_score: Optional[int] = None
+    status_breakdown: Dict[str, int] = {}
+    applications: List[Dict[str, Any]] = []
+
+
+@router.get("/{person_id}/global-profile", response_model=GlobalTalentProfile)
+async def get_global_talent_profile(
+    person_id: UUID,
+    current_user: CurrentUser = Depends(get_current_user),
+) -> GlobalTalentProfile:
+    """
+    Get aggregated performance profile for a person across all job applications.
+
+    Returns:
+    - Total applications count
+    - Average, highest, and lowest scores
+    - Status breakdown (count per pipeline status)
+    - List of applications sorted by score (descending)
+    """
+    person_repo = get_person_repo()
+    candidate_repo = CandidateRepository()
+
+    # Verify person exists
+    person = person_repo.get_by_id_sync(person_id)
+    if not person:
+        raise HTTPException(status_code=404, detail="Person not found")
+
+    # Get all candidates for this person
+    candidates = []
+    try:
+        if hasattr(candidate_repo, 'list_by_person_sync'):
+            candidates = candidate_repo.list_by_person_sync(person_id)
+    except Exception as e:
+        logger.warning(f"Failed to get candidates for person {person_id}: {e}")
+
+    if not candidates:
+        return GlobalTalentProfile(
+            person_id=str(person_id),
+            person_name=person.name,
+            total_applications=0,
+            average_score=None,
+            highest_score=None,
+            lowest_score=None,
+            status_breakdown={},
+            applications=[],
+        )
+
+    # Collect scores and build status breakdown
+    scores = []
+    status_breakdown: Dict[str, int] = {}
+    applications_list = []
+
+    for c in candidates:
+        # Get score (combined_score or ranking_score)
+        score = c.combined_score if c.combined_score is not None else None
+        if score is not None:
+            scores.append(score)
+
+        # Get status for breakdown
+        status = None
+        if c.pipeline_status:
+            status = c.pipeline_status.value if hasattr(c.pipeline_status, 'value') else str(c.pipeline_status)
+        elif c.interview_status:
+            status = c.interview_status.value if hasattr(c.interview_status, 'value') else str(c.interview_status)
+
+        if status:
+            status_breakdown[status] = status_breakdown.get(status, 0) + 1
+
+        # Build application entry
+        applications_list.append({
+            "job_id": str(c.job_id) if c.job_id else None,
+            "job_title": c.job_title if hasattr(c, 'job_title') else None,
+            "score": score,
+            "status": status or "unknown",
+        })
+
+    # Sort applications by score (descending), None scores at the end
+    applications_list.sort(key=lambda x: (x["score"] is None, -(x["score"] or 0)))
+
+    # Calculate aggregated scores
+    average_score = None
+    highest_score = None
+    lowest_score = None
+
+    if scores:
+        average_score = sum(scores) / len(scores)
+        highest_score = int(max(scores))
+        lowest_score = int(min(scores))
+
+    return GlobalTalentProfile(
+        person_id=str(person_id),
+        person_name=person.name,
+        total_applications=len(candidates),
+        average_score=round(average_score, 1) if average_score is not None else None,
+        highest_score=highest_score,
+        lowest_score=lowest_score,
+        status_breakdown=status_breakdown,
+        applications=applications_list,
+    )

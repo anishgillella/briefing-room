@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import Vapi from "@vapi-ai/web";
 import {
   ArrowLeft,
@@ -24,6 +24,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FadeInUp, Spinner } from "@/components/ui/motion";
 import { cn } from "@/lib/utils";
+import { tokens, springConfig, easeOutCustom } from "@/lib/design-tokens";
 
 const API_URL = "http://localhost:8000";
 
@@ -31,6 +32,7 @@ export default function CandidateDetailPage() {
   const params = useParams();
   const router = useRouter();
   const candidateId = params.id as string;
+  const prefersReducedMotion = useReducedMotion();
 
   const [candidate, setCandidate] = useState<Candidate | null>(null);
   const [prebrief, setPrebrief] = useState<PreBrief | null>(null);
@@ -41,6 +43,15 @@ export default function CandidateDetailPage() {
   const [selectedInterviewer, setSelectedInterviewer] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"profile" | "history" | "analytics">("profile");
   const [backUrl, setBackUrl] = useState("/");
+
+  // Animation variants
+  const fadeIn = prefersReducedMotion
+    ? { initial: {}, animate: {}, exit: {} }
+    : {
+        initial: { opacity: 0, y: 10 },
+        animate: { opacity: 1, y: 0 },
+        exit: { opacity: 0, y: -10 },
+      };
 
   // Get back URL (rankings session) on mount
   useEffect(() => {
@@ -287,10 +298,13 @@ Be concise and helpful. The recruiter has limited time before the interview.`,
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: tokens.bgApp }}
+      >
         <div className="text-center">
           <Spinner size="lg" className="mx-auto mb-4" />
-          <p className="text-zinc-400">Loading candidate profile...</p>
+          <p style={{ color: tokens.textMuted }}>Loading candidate profile...</p>
         </div>
       </div>
     );
@@ -298,18 +312,27 @@ Be concise and helpful. The recruiter has limited time before the interview.`,
 
   if (error || !candidate) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-white">
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: tokens.bgApp, color: tokens.textPrimary }}
+      >
         <FadeInUp>
           <Card padding="lg" className="text-center max-w-md">
             <motion.div
-              className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto mb-4 border border-red-500/20"
-              animate={{ scale: [1, 1.05, 1] }}
+              className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+              style={{
+                background: "rgba(239,68,68,0.1)",
+                border: "1px solid rgba(239,68,68,0.2)",
+              }}
+              animate={prefersReducedMotion ? {} : { scale: [1, 1.05, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
             >
-              <AlertTriangle className="w-8 h-8 text-red-400" />
+              <AlertTriangle className="w-8 h-8" style={{ color: tokens.statusDanger }} />
             </motion.div>
             <h1 className="text-xl font-semibold mb-2">Candidate Not Found</h1>
-            <p className="text-zinc-400 mb-6">{error}</p>
+            <p style={{ color: tokens.textMuted }} className="mb-6">
+              {error}
+            </p>
             <Button
               variant="primary"
               onClick={() => (window.history.length > 1 ? router.back() : router.push("/"))}
@@ -329,14 +352,33 @@ Be concise and helpful. The recruiter has limited time before the interview.`,
   ] as const;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen" style={{ background: tokens.bgApp, color: tokens.textPrimary }}>
+      {/* Ambient Background */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div
+          className="absolute top-0 left-1/4 w-[800px] h-[800px] rounded-full blur-[120px] opacity-30"
+          style={{ background: tokens.brandGlow }}
+        />
+        <div
+          className="absolute bottom-0 right-1/4 w-[600px] h-[600px] rounded-full blur-[100px] opacity-20"
+          style={{ background: "rgba(139,92,246,0.15)" }}
+        />
+      </div>
+
       {/* Header */}
-      <header className="border-b border-white/[0.06] bg-zinc-950/80 backdrop-blur-xl sticky top-0 z-50">
+      <header
+        className="backdrop-blur-xl sticky top-0 z-50"
+        style={{
+          borderBottom: `1px solid ${tokens.borderSubtle}`,
+          background: "rgba(7,11,20,0.8)",
+        }}
+      >
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <motion.button
             onClick={() => router.push(backUrl)}
-            className="flex items-center gap-2 text-zinc-400 hover:text-white transition group"
-            whileHover={{ x: -2 }}
+            className="flex items-center gap-2 transition group"
+            style={{ color: tokens.textMuted }}
+            whileHover={prefersReducedMotion ? {} : { x: -2, color: tokens.textPrimary }}
           >
             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
             Back to Rankings
@@ -346,17 +388,24 @@ Be concise and helpful. The recruiter has limited time before the interview.`,
             <AnimatePresence>
               {isVoiceActive && (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
+                  initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-indigo-500/20 border border-indigo-500/30 rounded-full"
+                  exit={prefersReducedMotion ? {} : { opacity: 0, scale: 0.9 }}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-full"
+                  style={{
+                    background: tokens.brandGlow,
+                    border: `1px solid ${tokens.brandPrimary}40`,
+                  }}
                 >
                   <motion.div
-                    className="w-2 h-2 bg-indigo-400 rounded-full"
-                    animate={{ opacity: [1, 0.4, 1] }}
+                    className="w-2 h-2 rounded-full"
+                    style={{ background: tokens.brandSecondary }}
+                    animate={prefersReducedMotion ? {} : { opacity: [1, 0.4, 1] }}
                     transition={{ duration: 1.5, repeat: Infinity }}
                   />
-                  <span className="text-sm text-indigo-300">AI Listening...</span>
+                  <span className="text-sm" style={{ color: tokens.brandSecondary }}>
+                    AI Listening...
+                  </span>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -419,24 +468,31 @@ Be concise and helpful. The recruiter has limited time before the interview.`,
       </header>
 
       {/* Tab Navigation */}
-      <div className="max-w-7xl mx-auto px-6 pt-6">
-        <div className="flex gap-1 bg-white/[0.03] p-1 rounded-xl w-fit border border-white/[0.06]">
+      <div className="max-w-7xl mx-auto px-6 pt-6 relative z-10">
+        <div
+          className="flex gap-1 p-1 rounded-xl w-fit"
+          style={{
+            background: "rgba(255,255,255,0.03)",
+            border: `1px solid ${tokens.borderSubtle}`,
+          }}
+        >
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "px-6 py-2 rounded-lg text-sm font-medium transition-all relative",
-                activeTab === tab.id
-                  ? "text-white"
-                  : "text-zinc-400 hover:text-white hover:bg-white/[0.05]"
+                "px-6 py-2 rounded-lg text-sm font-medium transition-all relative"
               )}
+              style={{
+                color: activeTab === tab.id ? tokens.textPrimary : tokens.textMuted,
+              }}
             >
               {activeTab === tab.id && (
                 <motion.div
                   layoutId="activeTab"
-                  className="absolute inset-0 bg-indigo-600 rounded-lg shadow-lg"
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  className="absolute inset-0 rounded-lg shadow-lg"
+                  style={{ background: tokens.brandPrimary }}
+                  transition={springConfig}
                 />
               )}
               <span className="relative z-10">{tab.label}</span>
@@ -450,10 +506,8 @@ Be concise and helpful. The recruiter has limited time before the interview.`,
         {activeTab === "profile" && (
           <motion.div
             key="profile"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
+            {...fadeIn}
+            transition={{ duration: 0.2, ease: easeOutCustom }}
           >
             <CandidateProfile
               candidate={candidate}
@@ -468,11 +522,9 @@ Be concise and helpful. The recruiter has limited time before the interview.`,
         {activeTab === "history" && (
           <motion.div
             key="history"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className="max-w-7xl mx-auto px-6 py-6"
+            {...fadeIn}
+            transition={{ duration: 0.2, ease: easeOutCustom }}
+            className="max-w-7xl mx-auto px-6 py-6 relative z-10"
           >
             <InterviewHistory
               candidateId={candidateId}
@@ -486,11 +538,9 @@ Be concise and helpful. The recruiter has limited time before the interview.`,
         {activeTab === "analytics" && (
           <motion.div
             key="analytics"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className="max-w-7xl mx-auto px-6 py-6"
+            {...fadeIn}
+            transition={{ duration: 0.2, ease: easeOutCustom }}
+            className="max-w-7xl mx-auto px-6 py-6 relative z-10"
           >
             <CandidateAnalytics candidateId={candidateId} candidateName={candidate.name} />
           </motion.div>
@@ -501,23 +551,33 @@ Be concise and helpful. The recruiter has limited time before the interview.`,
       <AnimatePresence>
         {(isVoiceActive || voiceTranscript.length > 0) && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            initial={prefersReducedMotion ? {} : { opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            className="fixed bottom-6 right-6 w-96 max-h-[400px] bg-zinc-900/95 backdrop-blur-xl border border-indigo-500/30 rounded-2xl shadow-2xl shadow-indigo-500/10 overflow-hidden z-50"
+            exit={prefersReducedMotion ? {} : { opacity: 0, y: 20, scale: 0.95 }}
+            transition={springConfig}
+            className="fixed bottom-6 right-6 w-96 max-h-[400px] backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden z-50"
+            style={{
+              background: "rgba(15,23,42,0.95)",
+              border: `1px solid ${tokens.brandPrimary}40`,
+              boxShadow: `0 25px 50px -12px ${tokens.brandGlow}`,
+            }}
           >
-            <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
+            <div
+              className="p-4 flex items-center justify-between"
+              style={{ borderBottom: `1px solid ${tokens.borderSubtle}` }}
+            >
               <div className="flex items-center gap-3">
                 <motion.div
-                  className={cn(
-                    "w-3 h-3 rounded-full",
-                    isVoiceActive ? "bg-indigo-400" : "bg-zinc-500"
-                  )}
-                  animate={isVoiceActive ? { opacity: [1, 0.4, 1] } : {}}
+                  className={cn("w-3 h-3 rounded-full")}
+                  style={{
+                    background: isVoiceActive ? tokens.brandSecondary : tokens.textDisabled,
+                  }}
+                  animate={isVoiceActive && !prefersReducedMotion ? { opacity: [1, 0.4, 1] } : {}}
                   transition={{ duration: 1.5, repeat: Infinity }}
                 />
-                <span className="font-semibold text-white">Voice Assistant</span>
+                <span className="font-semibold" style={{ color: tokens.textPrimary }}>
+                  Voice Assistant
+                </span>
               </div>
               <div className="flex gap-2">
                 {isVoiceActive && (
@@ -534,38 +594,39 @@ Be concise and helpful. The recruiter has limited time before the interview.`,
             </div>
             <div className="p-4 max-h-[320px] overflow-y-auto space-y-2">
               {voiceTranscript.length === 0 && !isVoiceActive && (
-                <p className="text-zinc-500 text-sm text-center py-4">
+                <p className="text-sm text-center py-4" style={{ color: tokens.textDisabled }}>
                   Click &quot;Ask AI&quot; to start voice assistant
                 </p>
               )}
               {voiceTranscript.map((line, i) => (
                 <motion.div
                   key={i}
-                  initial={{ opacity: 0, x: -10 }}
+                  initial={prefersReducedMotion ? {} : { opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.05 }}
-                  className={cn(
-                    "text-sm",
-                    line.startsWith("AI:")
-                      ? "text-indigo-300"
+                  className="text-sm"
+                  style={{
+                    color: line.startsWith("AI:")
+                      ? tokens.brandSecondary
                       : line.startsWith("You:")
-                      ? "text-white"
+                      ? tokens.textPrimary
                       : line.includes("connected")
-                      ? "text-emerald-400"
+                      ? tokens.statusSuccess
                       : line.includes("disconnected")
-                      ? "text-amber-400"
+                      ? tokens.statusWarning
                       : line.includes("Error")
-                      ? "text-red-400"
-                      : "text-zinc-400"
-                  )}
+                      ? tokens.statusDanger
+                      : tokens.textMuted,
+                  }}
                 >
                   {line}
                 </motion.div>
               ))}
               {isVoiceActive && (
                 <motion.div
-                  className="flex items-center gap-2 text-indigo-400 text-sm"
-                  animate={{ opacity: [1, 0.5, 1] }}
+                  className="flex items-center gap-2 text-sm"
+                  style={{ color: tokens.brandSecondary }}
+                  animate={prefersReducedMotion ? {} : { opacity: [1, 0.5, 1] }}
                   transition={{ duration: 1.5, repeat: Infinity }}
                 >
                   <Mic className="w-4 h-4" />
@@ -576,6 +637,14 @@ Be concise and helpful. The recruiter has limited time before the interview.`,
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Grain texture overlay */}
+      <div
+        className="fixed inset-0 pointer-events-none z-[100] opacity-[0.015]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+        }}
+      />
     </div>
   );
 }

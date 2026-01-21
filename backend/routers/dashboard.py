@@ -139,8 +139,8 @@ async def get_dashboard_stats(
     interview_repo = get_interview_repo()
     analytics_repo = get_analytics_repo()
 
-    # Get all jobs for the user's organization
-    all_jobs = job_repo.list_all_for_org_sync(current_user.organization_id)
+    # Get all jobs for the user's organization (skip expensive counts - we fetch them below)
+    all_jobs = job_repo.list_all_for_org_sync(current_user.organization_id, include_counts=False)
     active_jobs = [j for j in all_jobs if j.status == "active"]
 
     # Count candidates and interviews across all jobs
@@ -216,8 +216,8 @@ async def get_jobs_summary(
     candidate_repo = get_candidate_repo()
     analytics_repo = get_analytics_repo()
 
-    # Get jobs for the user's organization
-    all_jobs = job_repo.list_all_for_org_sync(current_user.organization_id)
+    # Get jobs for the user's organization (skip counts for list, fetch per-job below)
+    all_jobs = job_repo.list_all_for_org_sync(current_user.organization_id, include_counts=False)
 
     # Filter by status if provided
     if status:
@@ -294,8 +294,8 @@ async def get_pipeline_stats(
         "no_hire": 0,
     }
 
-    # Get all jobs for the user's organization
-    all_jobs = job_repo.list_all_for_org_sync(current_user.organization_id)
+    # Get all jobs for the user's organization (skip expensive counts)
+    all_jobs = job_repo.list_all_for_org_sync(current_user.organization_id, include_counts=False)
 
     for job in all_jobs:
         try:
@@ -363,34 +363,41 @@ async def get_recent_activity(
     activities: List[ActivityItem] = []
     cutoff_date = datetime.utcnow() - timedelta(days=days)
 
-    # Get all jobs for the user's organization
-    all_jobs = job_repo.list_all_for_org_sync(current_user.organization_id)
+    # Get all jobs for the user's organization (skip expensive counts)
+    all_jobs = job_repo.list_all_for_org_sync(current_user.organization_id, include_counts=False)
 
+    # Build job lookup map
+    job_map = {str(job.id): job for job in all_jobs}
+    job_ids = [job.id for job in all_jobs]
+
+    # Fetch all interviews in a single query (much faster than N queries)
+    try:
+        all_raw_interviews = interview_repo.list_by_job_ids_sync(job_ids, limit=500)
+    except Exception:
+        all_raw_interviews = []
+
+    # Filter by date and pair with job
     all_interviews = []
-    for job in all_jobs:
-        try:
-            job_interviews = interview_repo.list_by_job_sync(job.id)
-            for interview in job_interviews:
-                # Filter by date if available
-                if interview.ended_at:
-                    ended_at = interview.ended_at
-                    if hasattr(ended_at, 'replace'):
-                        # Remove timezone info for comparison
-                        if ended_at.tzinfo:
-                            ended_at = ended_at.replace(tzinfo=None)
-                    if ended_at >= cutoff_date:
-                        all_interviews.append((interview, job))
-                elif interview.created_at:
-                    created_at = interview.created_at
-                    if hasattr(created_at, 'replace'):
-                        if created_at.tzinfo:
-                            created_at = created_at.replace(tzinfo=None)
-                    if created_at >= cutoff_date:
-                        all_interviews.append((interview, job))
-        except Exception:
+    for interview in all_raw_interviews:
+        job = job_map.get(str(interview.job_posting_id))
+        if not job:
             continue
 
-    # Sort by date (most recent first)
+        # Filter by date if available
+        if interview.ended_at:
+            ended_at = interview.ended_at
+            if hasattr(ended_at, 'replace') and ended_at.tzinfo:
+                ended_at = ended_at.replace(tzinfo=None)
+            if ended_at >= cutoff_date:
+                all_interviews.append((interview, job))
+        elif interview.created_at:
+            created_at = interview.created_at
+            if hasattr(created_at, 'replace') and created_at.tzinfo:
+                created_at = created_at.replace(tzinfo=None)
+            if created_at >= cutoff_date:
+                all_interviews.append((interview, job))
+
+    # Sort by date (most recent first) - already sorted from query but re-sort for consistency
     all_interviews.sort(
         key=lambda x: x[0].ended_at or x[0].created_at or datetime.min,
         reverse=True
@@ -466,8 +473,8 @@ async def get_top_candidates(
 
     top_candidates: List[TopCandidate] = []
 
-    # Get organization's job IDs for filtering
-    org_jobs = job_repo.list_all_for_org_sync(current_user.organization_id)
+    # Get organization's job IDs for filtering (skip expensive counts)
+    org_jobs = job_repo.list_all_for_org_sync(current_user.organization_id, include_counts=False)
     org_job_ids = {str(j.id) for j in org_jobs}
 
     # Get all analytics (we'll filter by org below)
