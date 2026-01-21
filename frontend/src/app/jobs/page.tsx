@@ -26,7 +26,13 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SkeletonCard } from "@/components/ui/skeleton";
-import { tokens, springConfig, easeOutCustom } from "@/lib/design-tokens";
+import {
+  tokens,
+  springConfig,
+  easeOutCustom,
+  statCardVariants,
+  statusBadgeConfig,
+} from "@/lib/design-tokens";
 
 // =============================================================================
 // PIPELINE HEALTH
@@ -59,30 +65,7 @@ function StatCard({
   variant?: "default" | "success" | "warning" | "danger";
   delay?: number;
 }) {
-  const variantStyles = {
-    default: {
-      iconBg: tokens.brandGlow,
-      iconColor: tokens.brandPrimary,
-      glow: "none",
-    },
-    success: {
-      iconBg: "rgba(16,185,129,0.15)",
-      iconColor: tokens.statusSuccess,
-      glow: "none",
-    },
-    warning: {
-      iconBg: "rgba(245,158,11,0.15)",
-      iconColor: tokens.statusWarning,
-      glow: "none",
-    },
-    danger: {
-      iconBg: "rgba(239,68,68,0.1)",
-      iconColor: tokens.statusDanger,
-      glow: "inset 0 0 0 1px rgba(239,68,68,0.2), 0 0 20px rgba(239,68,68,0.1)",
-    },
-  };
-
-  const styles = variantStyles[variant];
+  const styles = statCardVariants[variant];
 
   return (
     <motion.div
@@ -165,30 +148,7 @@ function StatCard({
 // STATUS BADGE
 // =============================================================================
 function StatusBadge({ status }: { status: string }) {
-  const config: Record<string, { bg: string; text: string; dot: string }> = {
-    active: {
-      bg: "rgba(16,185,129,0.1)",
-      text: tokens.statusSuccess,
-      dot: tokens.statusSuccess,
-    },
-    draft: {
-      bg: "rgba(100,116,139,0.1)",
-      text: tokens.textMuted,
-      dot: tokens.textMuted,
-    },
-    paused: {
-      bg: "rgba(245,158,11,0.1)",
-      text: tokens.statusWarning,
-      dot: tokens.statusWarning,
-    },
-    closed: {
-      bg: "rgba(100,116,139,0.1)",
-      text: tokens.textDisabled,
-      dot: tokens.textDisabled,
-    },
-  };
-
-  const style = config[status] || config.draft;
+  const style = statusBadgeConfig[status] || statusBadgeConfig.draft;
 
   return (
     <span

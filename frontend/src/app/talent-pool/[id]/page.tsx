@@ -3,11 +3,12 @@
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import AppLayout from "@/components/AppLayout";
 import {
   ArrowLeft,
+  User,
   Mail,
   Phone,
   MapPin,
@@ -18,17 +19,25 @@ import {
   ChevronRight,
   Clock,
   Star,
-  Target,
   TrendingUp,
-  Activity,
   Award,
-  User,
-  Sparkles,
+  Target,
+  BarChart3,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/avatar";
-import { tokens, springConfig, easeOutCustom, getTierConfig, getStatusConfig } from "@/lib/design-tokens";
+import { SkeletonCard } from "@/components/ui/skeleton";
+import {
+  tokens,
+  springConfig,
+  easeOutCustom,
+  statCardVariants,
+  getScoreColor,
+  getStatusBadgeStyle,
+  ambientGradient,
+  grainTexture,
+} from "@/lib/design-tokens";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -54,8 +63,7 @@ interface Application {
   job_title: string | null;
   pipeline_status: string | null;
   interview_status: string | null;
-  ranking_score: number | null;
-  combined_score?: number | null;
+  combined_score: number | null;
   created_at: string | null;
 }
 
@@ -88,16 +96,11 @@ interface GlobalTalentProfile {
   highest_score: number | null;
   lowest_score: number | null;
   status_breakdown: Record<string, number>;
-  applications: Array<{
-    job_id: string;
-    job_title: string;
-    score: number | null;
-    status: string;
-  }>;
+  applications: Application[];
 }
 
 // =============================================================================
-// SCORE RING - Circular Progress
+// SCORE RING - Circular Progress for Score Display
 // =============================================================================
 function ScoreRing({
   score,
@@ -110,72 +113,54 @@ function ScoreRing({
   strokeWidth?: number;
   label?: string;
 }) {
+  const shouldReduceMotion = useReducedMotion();
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
-  const percent = score !== null ? Math.min(100, Math.max(0, score)) : 0;
-  const offset = circumference - (percent / 100) * circumference;
-
-  const getColor = (score: number | null) => {
-    if (score === null) return tokens.textDisabled;
-    if (score >= 80) return tokens.statusSuccess;
-    if (score >= 60) return tokens.brandPrimary;
-    if (score >= 40) return tokens.statusWarning;
-    return tokens.statusDanger;
-  };
-
-  const color = getColor(score);
+  const percentage = score !== null ? (score / 100) * circumference : 0;
+  const color = getScoreColor(score);
 
   return (
     <div className="flex flex-col items-center">
       <div className="relative" style={{ width: size, height: size }}>
-        <svg
-          className="transform -rotate-90"
-          width={size}
-          height={size}
-        >
-          {/* Background circle */}
+        {/* Background circle */}
+        <svg width={size} height={size} className="transform -rotate-90">
           <circle
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            fill="none"
-            stroke={tokens.borderDefault}
+            stroke={tokens.borderSubtle}
             strokeWidth={strokeWidth}
-          />
-          {/* Progress circle */}
-          <motion.circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
             fill="none"
-            stroke={color}
-            strokeWidth={strokeWidth}
-            strokeLinecap="round"
-            initial={{ strokeDasharray: circumference, strokeDashoffset: circumference }}
-            animate={{ strokeDashoffset: offset }}
-            transition={{ duration: 1, ease: "easeOut", delay: 0.3 }}
-            style={{
-              filter: `drop-shadow(0 0 8px ${color}40)`,
-            }}
           />
+          {score !== null && (
+            <motion.circle
+              cx={size / 2}
+              cy={size / 2}
+              r={radius}
+              stroke={color}
+              strokeWidth={strokeWidth}
+              fill="none"
+              strokeLinecap="round"
+              initial={{ strokeDasharray: circumference, strokeDashoffset: circumference }}
+              animate={{ strokeDashoffset: circumference - percentage }}
+              transition={!shouldReduceMotion ? { duration: 1, ease: easeOutCustom } : { duration: 0 }}
+            />
+          )}
         </svg>
-        {/* Center text */}
+        {/* Score text */}
         <div className="absolute inset-0 flex items-center justify-center">
           <span
             className="text-xl font-bold tabular-nums"
-            style={{ color: score !== null ? tokens.textPrimary : tokens.textDisabled }}
+            style={{ color: score !== null ? color : tokens.textMuted }}
           >
-            {score !== null ? Math.round(score) : "—"}
+            {score !== null ? score : "—"}
           </span>
         </div>
       </div>
       {label && (
-        <span
-          className="text-xs font-medium mt-2"
-          style={{ color: tokens.textMuted }}
-        >
+        <p className="text-xs mt-2" style={{ color: tokens.textMuted }}>
           {label}
-        </span>
+        </p>
       )}
     </div>
   );
@@ -184,59 +169,55 @@ function ScoreRing({
 // =============================================================================
 // STATUS BREAKDOWN BAR
 // =============================================================================
-function StatusBreakdownBar({
-  breakdown,
-}: {
-  breakdown: Record<string, number>;
-}) {
-  const total = Object.values(breakdown).reduce((acc, v) => acc + v, 0);
+function StatusBreakdownBar({ breakdown }: { breakdown: Record<string, number> }) {
+  const total = Object.values(breakdown).reduce((a, b) => a + b, 0);
   if (total === 0) return null;
 
-  const segments = Object.entries(breakdown)
-    .filter(([_, count]) => count > 0)
-    .map(([status, count]) => ({
-      status,
-      count,
-      percent: (count / total) * 100,
-      config: getStatusConfig(status),
-    }));
+  const statusColors: Record<string, string> = {
+    new: tokens.statusInfo,
+    round_1: tokens.brandPrimary,
+    round_2: tokens.brandSecondary,
+    round_3: "#A78BFA",
+    decision_pending: tokens.statusWarning,
+    accepted: tokens.statusSuccess,
+    rejected: tokens.statusDanger,
+  };
 
   return (
-    <div className="space-y-3">
-      {/* Bar */}
-      <div
-        className="h-2 rounded-full overflow-hidden flex"
-        style={{ backgroundColor: tokens.bgSurface }}
-      >
-        {segments.map((seg, i) => (
-          <motion.div
-            key={seg.status}
-            initial={{ width: 0 }}
-            animate={{ width: `${seg.percent}%` }}
-            transition={{ duration: 0.5, delay: 0.3 + i * 0.1 }}
-            className="h-full"
-            style={{ backgroundColor: seg.config.color }}
-          />
-        ))}
+    <div className="space-y-2">
+      <div className="flex items-center justify-between text-xs" style={{ color: tokens.textMuted }}>
+        <span>Pipeline Distribution</span>
+        <span>{total} applications</span>
       </div>
-      {/* Legend */}
-      <div className="flex flex-wrap gap-3">
-        {segments.map((seg) => (
-          <div key={seg.status} className="flex items-center gap-2">
-            <div
-              className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: seg.config.color }}
+      <div className="flex h-2 rounded-full overflow-hidden" style={{ backgroundColor: tokens.borderSubtle }}>
+        {Object.entries(breakdown).map(([status, count]) => {
+          const width = (count / total) * 100;
+          if (width === 0) return null;
+          return (
+            <motion.div
+              key={status}
+              initial={{ width: 0 }}
+              animate={{ width: `${width}%` }}
+              transition={{ duration: 0.5, ease: easeOutCustom }}
+              style={{ backgroundColor: statusColors[status] || tokens.textMuted }}
+              title={`${status.replace(/_/g, " ")}: ${count}`}
             />
-            <span className="text-xs" style={{ color: tokens.textMuted }}>
-              {seg.status.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
-            </span>
+          );
+        })}
+      </div>
+      <div className="flex flex-wrap gap-2 mt-2">
+        {Object.entries(breakdown).map(([status, count]) => (
+          <span
+            key={status}
+            className="flex items-center gap-1.5 text-[11px]"
+            style={{ color: tokens.textSecondary }}
+          >
             <span
-              className="text-xs font-semibold"
-              style={{ color: tokens.textSecondary }}
-            >
-              {seg.count}
-            </span>
-          </div>
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: statusColors[status] || tokens.textMuted }}
+            />
+            {status.replace(/_/g, " ")}: {count}
+          </span>
         ))}
       </div>
     </div>
@@ -244,16 +225,199 @@ function StatusBreakdownBar({
 }
 
 // =============================================================================
+// GLOBAL PERFORMANCE SECTION
+// =============================================================================
+function GlobalPerformanceSection({ profile }: { profile: GlobalTalentProfile | null }) {
+  if (!profile) {
+    return (
+      <div
+        className="p-6 rounded-2xl"
+        style={{
+          backgroundColor: tokens.bgCard,
+          border: `1px solid ${tokens.borderDefault}`,
+        }}
+      >
+        <div className="flex items-center gap-3 mb-4">
+          <div
+            className="p-2 rounded-xl"
+            style={{ backgroundColor: tokens.brandGlow }}
+          >
+            <BarChart3 className="w-5 h-5" style={{ color: tokens.brandPrimary }} />
+          </div>
+          <h3 className="text-lg font-semibold" style={{ color: tokens.textPrimary }}>
+            Global Performance
+          </h3>
+        </div>
+        <p className="text-sm" style={{ color: tokens.textMuted }}>
+          No interview data available yet.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.1, ease: easeOutCustom }}
+      className="p-6 rounded-2xl"
+      style={{
+        backgroundColor: tokens.bgCard,
+        border: `1px solid ${tokens.borderDefault}`,
+      }}
+    >
+      <div className="flex items-center gap-3 mb-6">
+        <div
+          className="p-2 rounded-xl"
+          style={{ backgroundColor: tokens.brandGlow }}
+        >
+          <BarChart3 className="w-5 h-5" style={{ color: tokens.brandPrimary }} />
+        </div>
+        <h3 className="text-lg font-semibold" style={{ color: tokens.textPrimary }}>
+          Global Performance
+        </h3>
+      </div>
+
+      {/* Score Rings */}
+      <div className="grid grid-cols-3 gap-6 mb-6">
+        <ScoreRing score={profile.average_score} label="Average" />
+        <ScoreRing score={profile.highest_score} label="Highest" />
+        <ScoreRing score={profile.lowest_score} label="Lowest" />
+      </div>
+
+      {/* Stats Row */}
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <div
+          className="p-4 rounded-xl text-center"
+          style={{ backgroundColor: "rgba(255,255,255,0.03)" }}
+        >
+          <p className="text-2xl font-bold tabular-nums" style={{ color: tokens.textPrimary }}>
+            {profile.total_applications}
+          </p>
+          <p className="text-xs" style={{ color: tokens.textMuted }}>
+            Total Applications
+          </p>
+        </div>
+        <div
+          className="p-4 rounded-xl text-center"
+          style={{ backgroundColor: "rgba(255,255,255,0.03)" }}
+        >
+          <p className="text-2xl font-bold tabular-nums" style={{ color: tokens.textPrimary }}>
+            {Object.keys(profile.status_breakdown).length}
+          </p>
+          <p className="text-xs" style={{ color: tokens.textMuted }}>
+            Pipeline Stages
+          </p>
+        </div>
+      </div>
+
+      {/* Status Breakdown */}
+      <StatusBreakdownBar breakdown={profile.status_breakdown} />
+    </motion.div>
+  );
+}
+
+// =============================================================================
+// APPLICATION CARD
+// =============================================================================
+function ApplicationCard({
+  application,
+  index,
+}: {
+  application: Application;
+  index: number;
+}) {
+  const statusStyle = getStatusBadgeStyle(application.pipeline_status);
+  const scoreColor = getScoreColor(application.combined_score);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.3, delay: index * 0.05, ease: easeOutCustom }}
+    >
+      <Link href={application.job_id ? `/jobs/${application.job_id}` : "#"}>
+        <motion.div
+          whileHover={{ x: 4 }}
+          transition={springConfig}
+          className="flex items-center justify-between p-4 rounded-xl cursor-pointer group"
+          style={{
+            backgroundColor: "rgba(255,255,255,0.03)",
+            border: `1px solid ${tokens.borderSubtle}`,
+          }}
+        >
+          <div className="flex-1 min-w-0">
+            <h4
+              className="font-medium truncate group-hover:text-indigo-400 transition-colors"
+              style={{ color: tokens.textPrimary }}
+            >
+              {application.job_title || "Unknown Job"}
+            </h4>
+            <div className="flex items-center gap-3 mt-1.5">
+              <span
+                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium"
+                style={{
+                  backgroundColor: statusStyle.bg,
+                  color: statusStyle.text,
+                }}
+              >
+                <span
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={{ backgroundColor: statusStyle.dot }}
+                />
+                {(application.pipeline_status || "new").replace(/_/g, " ")}
+              </span>
+              {application.combined_score !== null && (
+                <span
+                  className="flex items-center gap-1 text-xs font-medium"
+                  style={{ color: scoreColor }}
+                >
+                  <Star className="w-3 h-3" />
+                  {application.combined_score}%
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Score Bar */}
+          {application.combined_score !== null && (
+            <div className="w-24 mr-4">
+              <div
+                className="h-1.5 rounded-full overflow-hidden"
+                style={{ backgroundColor: tokens.borderSubtle }}
+              >
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${application.combined_score}%` }}
+                  transition={{ duration: 0.5, ease: easeOutCustom }}
+                  className="h-full rounded-full"
+                  style={{ backgroundColor: scoreColor }}
+                />
+              </div>
+            </div>
+          )}
+
+          <ChevronRight
+            className="w-4 h-4 shrink-0 transition-all duration-200 group-hover:translate-x-1"
+            style={{ color: tokens.textMuted }}
+          />
+        </motion.div>
+      </Link>
+    </motion.div>
+  );
+}
+
+// =============================================================================
 // SECTION CARD
 // =============================================================================
 function SectionCard({
-  title,
   icon: Icon,
+  title,
   children,
   delay = 0,
 }: {
-  title: string;
   icon: LucideIcon;
+  title: string;
   children: React.ReactNode;
   delay?: number;
 }) {
@@ -262,95 +426,25 @@ function SectionCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay, ease: easeOutCustom }}
+      className="p-6 rounded-2xl"
+      style={{
+        backgroundColor: tokens.bgCard,
+        border: `1px solid ${tokens.borderDefault}`,
+      }}
     >
-      <div
-        className="rounded-2xl p-6"
-        style={{
-          backgroundColor: tokens.bgCard,
-          border: `1px solid ${tokens.borderDefault}`,
-        }}
-      >
-        <div className="flex items-center gap-3 mb-5">
-          <div
-            className="p-2 rounded-lg"
-            style={{ backgroundColor: tokens.brandGlow }}
-          >
-            <Icon className="w-4 h-4" style={{ color: tokens.brandPrimary }} />
-          </div>
-          <h3
-            className="text-sm font-semibold uppercase tracking-wide"
-            style={{ color: tokens.textMuted }}
-          >
-            {title}
-          </h3>
-        </div>
-        {children}
-      </div>
-    </motion.div>
-  );
-}
-
-// =============================================================================
-// LOADING STATE
-// =============================================================================
-function LoadingState() {
-  return (
-    <div
-      className="min-h-screen flex items-center justify-center"
-      style={{ backgroundColor: tokens.bgApp }}
-    >
-      <div className="flex flex-col items-center gap-4">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-        >
-          <Activity className="w-8 h-8" style={{ color: tokens.brandPrimary }} />
-        </motion.div>
-        <span style={{ color: tokens.textMuted }}>Loading profile...</span>
-      </div>
-    </div>
-  );
-}
-
-// =============================================================================
-// NOT FOUND STATE
-// =============================================================================
-function NotFoundState() {
-  const router = useRouter();
-
-  return (
-    <div
-      className="min-h-screen flex items-center justify-center"
-      style={{ backgroundColor: tokens.bgApp }}
-    >
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center"
-      >
+      <div className="flex items-center gap-3 mb-4">
         <div
-          className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6"
-          style={{
-            backgroundColor: tokens.bgCard,
-            border: `1px solid ${tokens.borderDefault}`,
-          }}
+          className="p-2 rounded-xl"
+          style={{ backgroundColor: tokens.brandGlow }}
         >
-          <User className="w-10 h-10" style={{ color: tokens.textMuted }} />
+          <Icon className="w-4 h-4" style={{ color: tokens.brandPrimary }} />
         </div>
-        <h3
-          className="text-xl font-semibold mb-2"
-          style={{ color: tokens.textPrimary }}
-        >
-          Person not found
+        <h3 className="text-sm font-medium" style={{ color: tokens.textSecondary }}>
+          {title}
         </h3>
-        <p className="mb-6" style={{ color: tokens.textSecondary }}>
-          This profile doesn't exist or has been removed.
-        </p>
-        <Button onClick={() => router.push("/talent-pool")}>
-          Back to Talent Pool
-        </Button>
-      </motion.div>
-    </div>
+      </div>
+      {children}
+    </motion.div>
   );
 }
 
@@ -361,6 +455,7 @@ export default function PersonDetailPage({ params }: { params: Promise<{ id: str
   const resolvedParams = use(params);
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading, token } = useAuth();
+  const shouldReduceMotion = useReducedMotion();
 
   const [person, setPerson] = useState<PersonDetail | null>(null);
   const [globalProfile, setGlobalProfile] = useState<GlobalTalentProfile | null>(null);
@@ -400,7 +495,7 @@ export default function PersonDetailPage({ params }: { params: Promise<{ id: str
       } else if (response.status === 401) {
         router.push("/login");
       } else if (response.status === 404) {
-        setPerson(null);
+        router.push("/talent-pool");
       }
     } catch (error) {
       console.error("Failed to fetch person:", error);
@@ -424,19 +519,54 @@ export default function PersonDetailPage({ params }: { params: Promise<{ id: str
     }
   };
 
-  if (authLoading || loading) {
-    return <LoadingState />;
+  if (authLoading || (!isAuthenticated && !authLoading)) {
+    return (
+      <AppLayout>
+        <div
+          className="min-h-screen flex items-center justify-center"
+          style={{ backgroundColor: tokens.bgApp }}
+        >
+          <SkeletonCard />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (loading) {
+    return (
+      <AppLayout>
+        <div
+          className="min-h-screen flex items-center justify-center"
+          style={{ backgroundColor: tokens.bgApp }}
+        >
+          <SkeletonCard />
+        </div>
+      </AppLayout>
+    );
   }
 
   if (!person) {
-    return <NotFoundState />;
+    return (
+      <AppLayout>
+        <div
+          className="min-h-screen flex items-center justify-center"
+          style={{ backgroundColor: tokens.bgApp }}
+        >
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center"
+          >
+            <User className="w-16 h-16 mx-auto mb-4" style={{ color: tokens.textMuted }} />
+            <p className="mb-4" style={{ color: tokens.textSecondary }}>Person not found</p>
+            <Button variant="ghost" onClick={() => router.push("/talent-pool")}>
+              Back to Talent Pool
+            </Button>
+          </motion.div>
+        </div>
+      </AppLayout>
+    );
   }
-
-  // Calculate stats from global profile or applications
-  const avgScore = globalProfile?.average_score ?? null;
-  const highScore = globalProfile?.highest_score ?? null;
-  const totalApps = globalProfile?.total_applications ?? person.applications?.length ?? 0;
-  const statusBreakdown = globalProfile?.status_breakdown ?? {};
 
   return (
     <AppLayout>
@@ -448,20 +578,13 @@ export default function PersonDetailPage({ params }: { params: Promise<{ id: str
         {/* Ambient gradient */}
         <div
           className="absolute inset-0 pointer-events-none"
-          style={{
-            background: `
-              radial-gradient(ellipse at 70% 10%, ${tokens.brandGlow} 0%, transparent 50%),
-              radial-gradient(ellipse at 20% 80%, rgba(139,92,246,0.05) 0%, transparent 50%)
-            `,
-          }}
+          style={{ background: ambientGradient }}
         />
 
         {/* Grain texture */}
         <div
           className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-30"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-          }}
+          style={{ backgroundImage: grainTexture }}
         />
 
         {/* Content */}
@@ -479,245 +602,158 @@ export default function PersonDetailPage({ params }: { params: Promise<{ id: str
             className="mb-6"
           >
             <Link href="/talent-pool">
-              <Button variant="ghost" size="sm" leftIcon={<ArrowLeft className="w-4 h-4" />}>
+              <Button
+                variant="ghost"
+                size="sm"
+                leftIcon={<ArrowLeft className="w-4 h-4" />}
+              >
                 Back to Talent Pool
               </Button>
             </Link>
           </motion.div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column - Profile */}
-            <div className="lg:col-span-1 space-y-6">
-              {/* Profile Hero Card */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, ease: easeOutCustom }}
-              >
-                <div
-                  className="rounded-2xl p-6 overflow-hidden relative"
-                  style={{
-                    backgroundColor: tokens.bgCard,
-                    border: `1px solid ${tokens.borderDefault}`,
-                  }}
+          {/* Profile Hero Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: easeOutCustom }}
+            className="p-8 rounded-3xl mb-8"
+            style={{
+              backgroundColor: tokens.bgSurface,
+              border: `1px solid ${tokens.borderDefault}`,
+            }}
+          >
+            <div className="flex flex-col md:flex-row items-start gap-6">
+              {/* Avatar */}
+              <UserAvatar name={person.name} size="xl" />
+
+              {/* Info */}
+              <div className="flex-1">
+                <h1
+                  className="text-3xl font-bold tracking-tight mb-2"
+                  style={{ color: tokens.textPrimary }}
                 >
-                  {/* Gradient accent */}
-                  <div
-                    className="absolute top-0 left-0 right-0 h-24 opacity-50"
-                    style={{
-                      background: `linear-gradient(180deg, ${tokens.brandGlow} 0%, transparent 100%)`,
-                    }}
-                  />
+                  {person.name}
+                </h1>
+                {person.headline && (
+                  <p className="text-lg mb-4" style={{ color: tokens.textSecondary }}>
+                    {person.headline}
+                  </p>
+                )}
 
-                  <div className="relative">
-                    {/* Avatar + Name */}
-                    <div className="flex items-start gap-4 mb-6">
-                      <UserAvatar name={person.name} size="xl" />
-                      <div className="flex-1 min-w-0">
-                        <h1
-                          className="text-xl font-bold truncate"
-                          style={{ color: tokens.textPrimary }}
-                        >
-                          {person.name}
-                        </h1>
-                        {person.headline && (
-                          <p
-                            className="text-sm mt-1"
-                            style={{ color: tokens.textSecondary }}
-                          >
-                            {person.headline}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Contact Info */}
-                    <div className="space-y-3 mb-6">
-                      {person.email && (
-                        <a
-                          href={`mailto:${person.email}`}
-                          className="flex items-center gap-3 text-sm transition-colors hover:text-indigo-400"
-                          style={{ color: tokens.textSecondary }}
-                        >
-                          <Mail className="w-4 h-4" style={{ color: tokens.textMuted }} />
-                          {person.email}
-                        </a>
-                      )}
-                      {person.phone && (
-                        <div
-                          className="flex items-center gap-3 text-sm"
-                          style={{ color: tokens.textSecondary }}
-                        >
-                          <Phone className="w-4 h-4" style={{ color: tokens.textMuted }} />
-                          {person.phone}
-                        </div>
-                      )}
-                      {person.location && (
-                        <div
-                          className="flex items-center gap-3 text-sm"
-                          style={{ color: tokens.textSecondary }}
-                        >
-                          <MapPin className="w-4 h-4" style={{ color: tokens.textMuted }} />
-                          {person.location}
-                        </div>
-                      )}
-                      {person.current_company && (
-                        <div
-                          className="flex items-center gap-3 text-sm"
-                          style={{ color: tokens.textSecondary }}
-                        >
-                          <Building2 className="w-4 h-4" style={{ color: tokens.textMuted }} />
-                          {person.current_title && `${person.current_title} at `}
-                          {person.current_company}
-                        </div>
-                      )}
-                      {person.years_experience && (
-                        <div
-                          className="flex items-center gap-3 text-sm"
-                          style={{ color: tokens.textSecondary }}
-                        >
-                          <Clock className="w-4 h-4" style={{ color: tokens.textMuted }} />
-                          {person.years_experience} years experience
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Links */}
-                    {(person.linkedin_url || person.resume_url) && (
-                      <div
-                        className="flex gap-3 pt-5"
-                        style={{ borderTop: `1px solid ${tokens.borderSubtle}` }}
-                      >
-                        {person.linkedin_url && (
-                          <a
-                            href={person.linkedin_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <Button variant="secondary" size="sm" leftIcon={<ExternalLink className="w-3 h-3" />}>
-                              LinkedIn
-                            </Button>
-                          </a>
-                        )}
-                        {person.resume_url && (
-                          <a
-                            href={person.resume_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <Button variant="ghost" size="sm" leftIcon={<ExternalLink className="w-3 h-3" />}>
-                              Resume
-                            </Button>
-                          </a>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                {/* Contact Row */}
+                <div className="flex flex-wrap items-center gap-4 mb-4">
+                  {person.email && (
+                    <a
+                      href={`mailto:${person.email}`}
+                      className="flex items-center gap-2 text-sm transition-colors hover:text-indigo-400"
+                      style={{ color: tokens.textSecondary }}
+                    >
+                      <Mail className="w-4 h-4" />
+                      {person.email}
+                    </a>
+                  )}
+                  {person.phone && (
+                    <span
+                      className="flex items-center gap-2 text-sm"
+                      style={{ color: tokens.textSecondary }}
+                    >
+                      <Phone className="w-4 h-4" />
+                      {person.phone}
+                    </span>
+                  )}
+                  {person.location && (
+                    <span
+                      className="flex items-center gap-2 text-sm"
+                      style={{ color: tokens.textSecondary }}
+                    >
+                      <MapPin className="w-4 h-4" />
+                      {person.location}
+                    </span>
+                  )}
                 </div>
-              </motion.div>
 
-              {/* Skills */}
-              {person.skills && person.skills.length > 0 && (
-                <SectionCard title="Skills" icon={Sparkles} delay={0.1}>
-                  <div className="flex flex-wrap gap-2">
-                    {person.skills.map((skill, index) => (
-                      <motion.span
-                        key={skill}
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.15 + index * 0.02 }}
-                        className="px-3 py-1.5 rounded-lg text-xs font-medium"
-                        style={{
-                          backgroundColor: tokens.brandGlow,
-                          color: tokens.brandPrimary,
-                          border: `1px solid ${tokens.brandPrimary}30`,
-                        }}
-                      >
-                        {skill}
-                      </motion.span>
-                    ))}
-                  </div>
-                </SectionCard>
-              )}
-            </div>
+                {/* Key Stats */}
+                <div className="flex flex-wrap items-center gap-4">
+                  {person.current_company && (
+                    <span
+                      className="flex items-center gap-2 text-sm"
+                      style={{ color: tokens.textMuted }}
+                    >
+                      <Building2 className="w-4 h-4" />
+                      {person.current_title && `${person.current_title} at `}
+                      {person.current_company}
+                    </span>
+                  )}
+                  {person.years_experience && (
+                    <span
+                      className="flex items-center gap-2 text-sm"
+                      style={{ color: tokens.textMuted }}
+                    >
+                      <Clock className="w-4 h-4" />
+                      {person.years_experience} years exp
+                    </span>
+                  )}
+                  {person.applications.length > 0 && (
+                    <span
+                      className="flex items-center gap-2 text-sm"
+                      style={{ color: tokens.textMuted }}
+                    >
+                      <Briefcase className="w-4 h-4" />
+                      {person.applications.length} application{person.applications.length !== 1 ? "s" : ""}
+                    </span>
+                  )}
+                </div>
 
-            {/* Right Column - Details */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Global Performance Section */}
-              {totalApps > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.1, ease: easeOutCustom }}
-                >
-                  <div
-                    className="rounded-2xl p-6"
-                    style={{
-                      backgroundColor: tokens.bgCard,
-                      border: `1px solid ${tokens.borderDefault}`,
-                    }}
-                  >
-                    <div className="flex items-center gap-3 mb-6">
-                      <div
-                        className="p-2 rounded-lg"
-                        style={{ backgroundColor: "rgba(16,185,129,0.15)" }}
+                {/* Links */}
+                {(person.linkedin_url || person.resume_url) && (
+                  <div className="flex gap-3 mt-6">
+                    {person.linkedin_url && (
+                      <a
+                        href={person.linkedin_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
                       >
-                        <Activity className="w-4 h-4" style={{ color: tokens.statusSuccess }} />
-                      </div>
-                      <h3
-                        className="text-sm font-semibold uppercase tracking-wide"
-                        style={{ color: tokens.textMuted }}
-                      >
-                        Global Performance
-                      </h3>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
-                      {/* Score Rings */}
-                      <div className="flex justify-center">
-                        <ScoreRing score={avgScore} label="Average Score" />
-                      </div>
-                      <div className="flex justify-center">
-                        <ScoreRing score={highScore} label="Highest Score" />
-                      </div>
-                      <div className="flex flex-col items-center justify-center">
-                        <div
-                          className="text-4xl font-bold tabular-nums"
-                          style={{ color: tokens.textPrimary }}
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          leftIcon={<ExternalLink className="w-3 h-3" />}
                         >
-                          {totalApps}
-                        </div>
-                        <span
-                          className="text-xs font-medium mt-2"
-                          style={{ color: tokens.textMuted }}
-                        >
-                          Total Applications
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Status Breakdown */}
-                    {Object.keys(statusBreakdown).length > 0 && (
-                      <div
-                        className="pt-6"
-                        style={{ borderTop: `1px solid ${tokens.borderSubtle}` }}
+                          LinkedIn
+                        </Button>
+                      </a>
+                    )}
+                    {person.resume_url && (
+                      <a
+                        href={person.resume_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
                       >
-                        <h4
-                          className="text-xs font-medium uppercase tracking-wide mb-4"
-                          style={{ color: tokens.textMuted }}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          leftIcon={<ExternalLink className="w-3 h-3" />}
                         >
-                          Pipeline Distribution
-                        </h4>
-                        <StatusBreakdownBar breakdown={statusBreakdown} />
-                      </div>
+                          Resume
+                        </Button>
+                      </a>
                     )}
                   </div>
-                </motion.div>
-              )}
+                )}
+              </div>
+            </div>
+          </motion.div>
 
-              {/* Summary */}
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Column */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Global Performance */}
+              <GlobalPerformanceSection profile={globalProfile} />
+
+              {/* About */}
               {person.summary && (
-                <SectionCard title="About" icon={User} delay={0.15}>
+                <SectionCard icon={User} title="About" delay={0.15}>
                   <p
                     className="text-sm leading-relaxed whitespace-pre-wrap"
                     style={{ color: tokens.textSecondary }}
@@ -729,7 +765,7 @@ export default function PersonDetailPage({ params }: { params: Promise<{ id: str
 
               {/* Work History */}
               {person.work_history && person.work_history.length > 0 && (
-                <SectionCard title="Work Experience" icon={Briefcase} delay={0.2}>
+                <SectionCard icon={Briefcase} title="Work Experience" delay={0.2}>
                   <div className="space-y-4">
                     {person.work_history.map((job, index) => (
                       <motion.div
@@ -737,23 +773,18 @@ export default function PersonDetailPage({ params }: { params: Promise<{ id: str
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.25 + index * 0.05 }}
-                        className="relative pl-5"
+                        className="pl-4"
                         style={{
-                          borderLeft: `2px solid ${job.is_current ? tokens.brandPrimary : tokens.borderDefault}`,
+                          borderLeft: `2px solid ${job.is_current ? tokens.brandPrimary : tokens.borderSubtle}`,
                         }}
                       >
                         <div className="flex items-start justify-between">
                           <div>
-                            <div className="flex items-center gap-2">
-                              <h4
-                                className="font-medium"
-                                style={{ color: tokens.textPrimary }}
-                              >
-                                {job.title || "Position"}
-                              </h4>
+                            <h4 className="font-medium" style={{ color: tokens.textPrimary }}>
+                              {job.title || "Position"}
                               {job.is_current && (
                                 <span
-                                  className="px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                                  className="ml-2 px-2 py-0.5 rounded-full text-[10px] font-medium"
                                   style={{
                                     backgroundColor: tokens.brandGlow,
                                     color: tokens.brandPrimary,
@@ -762,19 +793,13 @@ export default function PersonDetailPage({ params }: { params: Promise<{ id: str
                                   Current
                                 </span>
                               )}
-                            </div>
-                            <p
-                              className="text-sm"
-                              style={{ color: tokens.textSecondary }}
-                            >
+                            </h4>
+                            <p className="text-sm" style={{ color: tokens.textSecondary }}>
                               {job.company || "Company"}
                             </p>
                           </div>
                           {(job.start_date || job.end_date) && (
-                            <span
-                              className="text-xs shrink-0"
-                              style={{ color: tokens.textMuted }}
-                            >
+                            <span className="text-xs" style={{ color: tokens.textMuted }}>
                               {job.start_date || "?"} - {job.is_current ? "Present" : job.end_date || "?"}
                             </span>
                           )}
@@ -787,7 +812,7 @@ export default function PersonDetailPage({ params }: { params: Promise<{ id: str
 
               {/* Education */}
               {person.education && person.education.length > 0 && (
-                <SectionCard title="Education" icon={GraduationCap} delay={0.25}>
+                <SectionCard icon={GraduationCap} title="Education" delay={0.25}>
                   <div className="space-y-4">
                     {person.education.map((edu, index) => (
                       <motion.div
@@ -795,33 +820,22 @@ export default function PersonDetailPage({ params }: { params: Promise<{ id: str
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.3 + index * 0.05 }}
-                        className="relative pl-5"
-                        style={{
-                          borderLeft: `2px solid ${tokens.borderDefault}`,
-                        }}
+                        className="pl-4"
+                        style={{ borderLeft: `2px solid ${tokens.borderSubtle}` }}
                       >
                         <div className="flex items-start justify-between">
                           <div>
-                            <h4
-                              className="font-medium"
-                              style={{ color: tokens.textPrimary }}
-                            >
+                            <h4 className="font-medium" style={{ color: tokens.textPrimary }}>
                               {edu.school || "School"}
                             </h4>
-                            <p
-                              className="text-sm"
-                              style={{ color: tokens.textSecondary }}
-                            >
+                            <p className="text-sm" style={{ color: tokens.textSecondary }}>
                               {edu.degree}
                               {edu.degree && edu.field_of_study && " in "}
                               {edu.field_of_study}
                             </p>
                           </div>
                           {(edu.start_date || edu.end_date) && (
-                            <span
-                              className="text-xs shrink-0"
-                              style={{ color: tokens.textMuted }}
-                            >
+                            <span className="text-xs" style={{ color: tokens.textMuted }}>
                               {edu.start_date || "?"} - {edu.end_date || "?"}
                             </span>
                           )}
@@ -831,128 +845,69 @@ export default function PersonDetailPage({ params }: { params: Promise<{ id: str
                   </div>
                 </SectionCard>
               )}
+            </div>
 
-              {/* Job Applications */}
-              {person.applications && person.applications.length > 0 && (
-                <SectionCard title={`Job Applications (${person.applications.length})`} icon={Target} delay={0.3}>
-                  <div className="space-y-3">
-                    {person.applications.map((app, index) => {
-                      const score = app.combined_score ?? app.ranking_score;
-                      const statusConfig = getStatusConfig(app.interview_status || app.pipeline_status);
-
-                      return (
-                        <motion.div
-                          key={app.candidate_id}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.35 + index * 0.05 }}
-                        >
-                          <Link href={app.job_id ? `/jobs/${app.job_id}` : "#"}>
-                            <div
-                              className="flex items-center justify-between p-4 rounded-xl transition-all duration-200 cursor-pointer group"
-                              style={{
-                                backgroundColor: "rgba(255,255,255,0.02)",
-                                border: `1px solid ${tokens.borderDefault}`,
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.05)";
-                                e.currentTarget.style.borderColor = tokens.borderHover;
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.02)";
-                                e.currentTarget.style.borderColor = tokens.borderDefault;
-                              }}
-                            >
-                              <div className="flex-1 min-w-0">
-                                <h4
-                                  className="font-medium truncate transition-colors group-hover:text-indigo-400"
-                                  style={{ color: tokens.textPrimary }}
-                                >
-                                  {app.job_title || "Unknown Job"}
-                                </h4>
-                                <div className="flex items-center gap-3 mt-2">
-                                  {/* Status Badge */}
-                                  <span
-                                    className="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase"
-                                    style={{
-                                      backgroundColor: statusConfig.bg,
-                                      color: statusConfig.color,
-                                    }}
-                                  >
-                                    {(app.interview_status || app.pipeline_status || "pending").replace(/_/g, " ")}
-                                  </span>
-                                  {/* Score */}
-                                  {score !== null && (
-                                    <span
-                                      className="flex items-center gap-1 text-xs"
-                                      style={{ color: tokens.textMuted }}
-                                    >
-                                      <Star className="w-3 h-3" />
-                                      {Math.round(score)}%
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-
-                              {/* Score Bar */}
-                              {score !== null && (
-                                <div className="w-24 ml-4">
-                                  <div
-                                    className="h-1.5 rounded-full overflow-hidden"
-                                    style={{ backgroundColor: tokens.bgSurface }}
-                                  >
-                                    <motion.div
-                                      initial={{ width: 0 }}
-                                      animate={{ width: `${Math.min(100, score)}%` }}
-                                      transition={{ duration: 0.5, delay: 0.4 + index * 0.05 }}
-                                      className="h-full rounded-full"
-                                      style={{
-                                        backgroundColor: score >= 80
-                                          ? tokens.statusSuccess
-                                          : score >= 60
-                                            ? tokens.brandPrimary
-                                            : score >= 40
-                                              ? tokens.statusWarning
-                                              : tokens.statusDanger,
-                                      }}
-                                    />
-                                  </div>
-                                </div>
-                              )}
-
-                              <ChevronRight
-                                className="w-4 h-4 ml-3 flex-shrink-0 transition-transform group-hover:translate-x-1"
-                                style={{ color: tokens.textMuted }}
-                              />
-                            </div>
-                          </Link>
-                        </motion.div>
-                      );
-                    })}
+            {/* Right Column */}
+            <div className="space-y-6">
+              {/* Skills */}
+              {person.skills && person.skills.length > 0 && (
+                <SectionCard icon={Award} title="Skills" delay={0.15}>
+                  <div className="flex flex-wrap gap-2">
+                    {person.skills.map((skill, index) => (
+                      <motion.span
+                        key={skill}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.2 + index * 0.02 }}
+                        className="px-3 py-1.5 rounded-lg text-xs font-medium"
+                        style={{
+                          backgroundColor: tokens.brandGlow,
+                          color: tokens.brandSecondary,
+                          border: `1px solid ${tokens.brandPrimary}30`,
+                        }}
+                      >
+                        {skill}
+                      </motion.span>
+                    ))}
                   </div>
                 </SectionCard>
               )}
 
-              {/* Empty State */}
+              {/* Applications */}
+              {person.applications && person.applications.length > 0 && (
+                <SectionCard icon={Target} title={`Applications (${person.applications.length})`} delay={0.2}>
+                  <div className="space-y-3">
+                    {person.applications.map((app, index) => (
+                      <ApplicationCard key={app.candidate_id} application={app} index={index} />
+                    ))}
+                  </div>
+                </SectionCard>
+              )}
+
+              {/* Empty state */}
               {!person.summary &&
                 (!person.work_history || person.work_history.length === 0) &&
                 (!person.education || person.education.length === 0) &&
+                (!person.skills || person.skills.length === 0) &&
                 (!person.applications || person.applications.length === 0) && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.15 }}
-                    className="text-center py-16"
+                    className="p-8 rounded-2xl text-center"
+                    style={{
+                      backgroundColor: tokens.bgCard,
+                      border: `1px solid ${tokens.borderDefault}`,
+                    }}
                   >
-                    <div
+                    <motion.div
+                      animate={!shouldReduceMotion ? { y: [0, -4, 0] } : {}}
+                      transition={{ duration: 2, repeat: Infinity }}
                       className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
-                      style={{
-                        backgroundColor: tokens.bgCard,
-                        border: `1px solid ${tokens.borderDefault}`,
-                      }}
+                      style={{ backgroundColor: tokens.brandGlow }}
                     >
-                      <User className="w-8 h-8" style={{ color: tokens.textMuted }} />
-                    </div>
+                      <User className="w-8 h-8" style={{ color: tokens.brandPrimary }} />
+                    </motion.div>
                     <p style={{ color: tokens.textMuted }}>
                       No additional profile information available
                     </p>
