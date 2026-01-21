@@ -24,6 +24,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FadeInUp, Spinner } from "@/components/ui/motion";
 import { cn } from "@/lib/utils";
+import { tokens, springConfig } from "@/lib/design-tokens";
 
 const API_URL = "http://localhost:8000";
 
@@ -287,10 +288,10 @@ Be concise and helpful. The recruiter has limited time before the interview.`,
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: tokens.bgApp }}>
         <div className="text-center">
           <Spinner size="lg" className="mx-auto mb-4" />
-          <p className="text-zinc-400">Loading candidate profile...</p>
+          <p style={{ color: tokens.textMuted }}>Loading candidate profile...</p>
         </div>
       </div>
     );
@@ -298,25 +299,35 @@ Be concise and helpful. The recruiter has limited time before the interview.`,
 
   if (error || !candidate) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-white">
+      <div className="min-h-screen flex items-center justify-center text-white" style={{ backgroundColor: tokens.bgApp }}>
         <FadeInUp>
-          <Card padding="lg" className="text-center max-w-md">
+          <div
+            className="text-center max-w-md p-8 rounded-2xl border"
+            style={{
+              backgroundColor: tokens.bgCard,
+              borderColor: tokens.borderSubtle,
+            }}
+          >
             <motion.div
-              className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto mb-4 border border-red-500/20"
+              className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+              style={{
+                backgroundColor: `${tokens.statusDanger}15`,
+                border: `1px solid ${tokens.statusDanger}30`,
+              }}
               animate={{ scale: [1, 1.05, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
             >
-              <AlertTriangle className="w-8 h-8 text-red-400" />
+              <AlertTriangle className="w-8 h-8" style={{ color: tokens.statusDanger }} />
             </motion.div>
-            <h1 className="text-xl font-semibold mb-2">Candidate Not Found</h1>
-            <p className="text-zinc-400 mb-6">{error}</p>
+            <h1 className="text-xl font-semibold mb-2 text-white">Candidate Not Found</h1>
+            <p className="mb-6" style={{ color: tokens.textMuted }}>{error}</p>
             <Button
               variant="primary"
               onClick={() => (window.history.length > 1 ? router.back() : router.push("/"))}
             >
               Go Back
             </Button>
-          </Card>
+          </div>
         </FadeInUp>
       </div>
     );
@@ -329,14 +340,41 @@ Be concise and helpful. The recruiter has limited time before the interview.`,
   ] as const;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen text-white" style={{ backgroundColor: tokens.bgApp }}>
+      {/* Ambient Background */}
+      <div
+        className="fixed inset-0 pointer-events-none"
+        style={{
+          background: `
+            radial-gradient(ellipse 80% 50% at 50% -20%, ${tokens.brandPrimary}15, transparent),
+            radial-gradient(ellipse 60% 40% at 100% 0%, ${tokens.brandSecondary}10, transparent),
+            ${tokens.bgApp}
+          `,
+        }}
+      />
+
+      {/* Grain Texture */}
+      <div
+        className="fixed inset-0 pointer-events-none opacity-[0.015]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+        }}
+      />
+
       {/* Header */}
-      <header className="border-b border-white/[0.06] bg-zinc-950/80 backdrop-blur-xl sticky top-0 z-50">
+      <header
+        className="border-b backdrop-blur-xl sticky top-0 z-50 relative"
+        style={{
+          borderColor: tokens.borderSubtle,
+          backgroundColor: `${tokens.bgApp}cc`,
+        }}
+      >
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <motion.button
             onClick={() => router.push(backUrl)}
-            className="flex items-center gap-2 text-zinc-400 hover:text-white transition group"
-            whileHover={{ x: -2 }}
+            className="flex items-center gap-2 transition group"
+            style={{ color: tokens.textMuted }}
+            whileHover={{ x: -2, color: tokens.textPrimary }}
           >
             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
             Back to Rankings
@@ -419,8 +457,14 @@ Be concise and helpful. The recruiter has limited time before the interview.`,
       </header>
 
       {/* Tab Navigation */}
-      <div className="max-w-7xl mx-auto px-6 pt-6">
-        <div className="flex gap-1 bg-white/[0.03] p-1 rounded-xl w-fit border border-white/[0.06]">
+      <div className="max-w-7xl mx-auto px-6 pt-6 relative">
+        <div
+          className="flex gap-1 p-1 rounded-xl w-fit border"
+          style={{
+            backgroundColor: tokens.bgSurface,
+            borderColor: tokens.borderSubtle,
+          }}
+        >
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -429,14 +473,18 @@ Be concise and helpful. The recruiter has limited time before the interview.`,
                 "px-6 py-2 rounded-lg text-sm font-medium transition-all relative",
                 activeTab === tab.id
                   ? "text-white"
-                  : "text-zinc-400 hover:text-white hover:bg-white/[0.05]"
+                  : "hover:bg-white/[0.05]"
               )}
+              style={{
+                color: activeTab === tab.id ? tokens.textPrimary : tokens.textMuted,
+              }}
             >
               {activeTab === tab.id && (
                 <motion.div
                   layoutId="activeTab"
-                  className="absolute inset-0 bg-indigo-600 rounded-lg shadow-lg"
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  className="absolute inset-0 rounded-lg shadow-lg"
+                  style={{ backgroundColor: tokens.brandPrimary }}
+                  transition={springConfig}
                 />
               )}
               <span className="relative z-10">{tab.label}</span>
@@ -504,10 +552,18 @@ Be concise and helpful. The recruiter has limited time before the interview.`,
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            className="fixed bottom-6 right-6 w-96 max-h-[400px] bg-zinc-900/95 backdrop-blur-xl border border-indigo-500/30 rounded-2xl shadow-2xl shadow-indigo-500/10 overflow-hidden z-50"
+            transition={springConfig}
+            className="fixed bottom-6 right-6 w-96 max-h-[400px] backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden z-50"
+            style={{
+              backgroundColor: `${tokens.bgCard}f5`,
+              border: `1px solid ${tokens.brandPrimary}30`,
+              boxShadow: `0 25px 50px -12px ${tokens.brandPrimary}20`,
+            }}
           >
-            <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
+            <div
+              className="p-4 flex items-center justify-between"
+              style={{ borderBottom: `1px solid ${tokens.borderSubtle}` }}
+            >
               <div className="flex items-center gap-3">
                 <motion.div
                   className={cn(

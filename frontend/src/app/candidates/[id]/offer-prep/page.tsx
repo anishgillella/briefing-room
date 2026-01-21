@@ -28,6 +28,8 @@ import {
     RefreshCw,
 } from "lucide-react";
 import VoiceSession, { VoiceSessionRef } from "@/components/voice-ingest/VoiceSession";
+import { tokens, springConfig } from "@/lib/design-tokens";
+import { motion, AnimatePresence } from "framer-motion";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const VAPI_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY || "";
@@ -319,29 +321,59 @@ export default function OfferPrepPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
-                <div className="text-center">
-                    <Loader2 className="w-10 h-10 text-purple-400 animate-spin mx-auto mb-4" />
-                    <p className="text-white/60">Loading offer preparation context...</p>
-                </div>
+            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: tokens.bgApp }}>
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="text-center"
+                >
+                    <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    >
+                        <Loader2 className="w-10 h-10 mx-auto mb-4" style={{ color: tokens.brandPrimary }} />
+                    </motion.div>
+                    <p style={{ color: tokens.textMuted }}>Loading offer preparation context...</p>
+                </motion.div>
             </div>
         );
     }
 
     if (error || !context) {
         return (
-            <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center text-white">
-                <div className="text-center">
-                    <AlertTriangle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-                    <h1 className="text-xl font-bold mb-2">Failed to Load</h1>
-                    <p className="text-white/60 mb-4">{error}</p>
+            <div className="min-h-screen flex items-center justify-center text-white" style={{ backgroundColor: tokens.bgApp }}>
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={springConfig}
+                    className="text-center p-8 rounded-2xl border"
+                    style={{
+                        backgroundColor: tokens.bgCard,
+                        borderColor: tokens.borderSubtle,
+                    }}
+                >
+                    <div
+                        className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                        style={{
+                            backgroundColor: `${tokens.statusDanger}15`,
+                            border: `1px solid ${tokens.statusDanger}30`,
+                        }}
+                    >
+                        <AlertTriangle className="w-8 h-8" style={{ color: tokens.statusDanger }} />
+                    </div>
+                    <h1 className="text-xl font-semibold mb-2">Failed to Load</h1>
+                    <p className="mb-4" style={{ color: tokens.textMuted }}>{error}</p>
                     <button
                         onClick={() => router.back()}
-                        className="px-4 py-2 bg-purple-600 rounded-lg hover:bg-purple-700 transition"
+                        className="px-4 py-2 rounded-xl font-medium transition-all hover:scale-105"
+                        style={{
+                            backgroundColor: tokens.brandPrimary,
+                            color: "white",
+                        }}
                     >
                         Go Back
                     </button>
-                </div>
+                </motion.div>
             </div>
         );
     }
@@ -349,17 +381,45 @@ export default function OfferPrepPage() {
     const { candidate, market_data, ready_for_coaching } = context;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950/20 to-slate-950 text-white">
+        <div className="min-h-screen text-white" style={{ backgroundColor: tokens.bgApp }}>
+            {/* Ambient Background */}
+            <div
+                className="fixed inset-0 pointer-events-none"
+                style={{
+                    background: `
+                        radial-gradient(ellipse 80% 50% at 50% -20%, ${tokens.brandPrimary}15, transparent),
+                        radial-gradient(ellipse 60% 40% at 100% 0%, ${tokens.brandSecondary}10, transparent),
+                        ${tokens.bgApp}
+                    `,
+                }}
+            />
+
+            {/* Grain Texture */}
+            <div
+                className="fixed inset-0 pointer-events-none opacity-[0.015]"
+                style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+                }}
+            />
+
             {/* Header */}
-            <header className="border-b border-white/10 bg-black/40 backdrop-blur-xl sticky top-0 z-50">
+            <header
+                className="border-b backdrop-blur-xl sticky top-0 z-50 relative"
+                style={{
+                    borderColor: tokens.borderSubtle,
+                    backgroundColor: `${tokens.bgApp}cc`,
+                }}
+            >
                 <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-                    <button
+                    <motion.button
                         onClick={() => router.back()}
-                        className="flex items-center gap-2 text-white/60 hover:text-white transition group"
+                        className="flex items-center gap-2 transition group"
+                        style={{ color: tokens.textMuted }}
+                        whileHover={{ x: -2 }}
                     >
                         <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
                         Back to Candidate
-                    </button>
+                    </motion.button>
 
                     <div className="flex items-center gap-4">
                         {/* Close Probability Badge */}
@@ -384,13 +444,18 @@ export default function OfferPrepPage() {
             </header>
 
             {/* Main Content */}
-            <main className="max-w-7xl mx-auto px-6 py-8">
+            <main className="max-w-7xl mx-auto px-6 py-8 relative">
                 {/* Page Title */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-white mb-2">
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={springConfig}
+                    className="mb-8"
+                >
+                    <h1 className="text-3xl font-light tracking-tight text-white mb-2">
                         Offer Preparation
                     </h1>
-                    <div className="flex items-center gap-4 text-white/60">
+                    <div className="flex items-center gap-4" style={{ color: tokens.textMuted }}>
                         <span className="flex items-center gap-2">
                             <Users className="w-4 h-4" />
                             {candidate.candidate_name}
@@ -408,58 +473,88 @@ export default function OfferPrepPage() {
                             </span>
                         )}
                     </div>
-                </div>
+                </motion.div>
 
                 {/* Not Ready Warning */}
-                {!ready_for_coaching && (
-                    <div className="mb-8 p-6 rounded-2xl bg-yellow-500/10 border border-yellow-500/20">
-                        <div className="flex items-start gap-4">
-                            <AlertCircle className="w-6 h-6 text-yellow-400 flex-shrink-0 mt-0.5" />
-                            <div>
-                                <h3 className="font-semibold text-yellow-300 mb-1">
-                                    Interviews Not Complete
-                                </h3>
-                                <p className="text-yellow-200/70 text-sm">
-                                    {candidate.interviews_completed}/3 interviews completed. Complete all
-                                    interview rounds to get full coaching preparation.
-                                </p>
+                <AnimatePresence>
+                    {!ready_for_coaching && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={springConfig}
+                            className="mb-8 p-6 rounded-2xl"
+                            style={{
+                                backgroundColor: `${tokens.statusWarning}10`,
+                                border: `1px solid ${tokens.statusWarning}30`,
+                            }}
+                        >
+                            <div className="flex items-start gap-4">
+                                <AlertCircle className="w-6 h-6 flex-shrink-0 mt-0.5" style={{ color: tokens.statusWarning }} />
+                                <div>
+                                    <h3 className="font-semibold mb-1" style={{ color: tokens.statusWarning }}>
+                                        Interviews Not Complete
+                                    </h3>
+                                    <p className="text-sm" style={{ color: `${tokens.statusWarning}99` }}>
+                                        {candidate.interviews_completed}/3 interviews completed. Complete all
+                                        interview rounds to get full coaching preparation.
+                                    </p>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                )}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Left Column - Candidate Intelligence */}
                     <div className="lg:col-span-2 space-y-6">
                         {/* Interview Summary Card */}
-                        <div className="glass-panel rounded-3xl p-6 border border-white/10">
-                            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                                <MessageSquare className="w-5 h-5 text-purple-400" />
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ ...springConfig, delay: 0.1 }}
+                            className="rounded-2xl p-6 border"
+                            style={{
+                                backgroundColor: tokens.bgCard,
+                                borderColor: tokens.borderSubtle,
+                            }}
+                        >
+                            <h2 className="text-lg font-medium text-white mb-4 flex items-center gap-2">
+                                <MessageSquare className="w-5 h-5" style={{ color: tokens.brandPrimary }} />
                                 Interview Summary
                             </h2>
 
                             <div className="grid grid-cols-3 gap-4 mb-6">
-                                <div className="bg-white/5 rounded-xl p-4 text-center">
-                                    <div className="text-3xl font-bold text-purple-400">
+                                <div
+                                    className="rounded-xl p-4 text-center"
+                                    style={{ backgroundColor: tokens.bgSurface }}
+                                >
+                                    <div className="text-3xl font-light" style={{ color: tokens.brandPrimary }}>
                                         {candidate.interviews_completed}
                                     </div>
-                                    <div className="text-xs text-white/40 uppercase tracking-wider mt-1">
+                                    <div className="text-xs uppercase tracking-wider mt-1" style={{ color: tokens.textMuted }}>
                                         Rounds Complete
                                     </div>
                                 </div>
-                                <div className="bg-white/5 rounded-xl p-4 text-center">
-                                    <div className="text-3xl font-bold text-blue-400">
+                                <div
+                                    className="rounded-xl p-4 text-center"
+                                    style={{ backgroundColor: tokens.bgSurface }}
+                                >
+                                    <div className="text-3xl font-light" style={{ color: tokens.brandSecondary }}>
                                         {candidate.average_interview_score || "—"}
                                     </div>
-                                    <div className="text-xs text-white/40 uppercase tracking-wider mt-1">
+                                    <div className="text-xs uppercase tracking-wider mt-1" style={{ color: tokens.textMuted }}>
                                         Avg Score
                                     </div>
                                 </div>
-                                <div className="bg-white/5 rounded-xl p-4 text-center">
-                                    <div className="text-3xl font-bold text-green-400">
+                                <div
+                                    className="rounded-xl p-4 text-center"
+                                    style={{ backgroundColor: tokens.bgSurface }}
+                                >
+                                    <div className="text-3xl font-light" style={{ color: tokens.statusSuccess }}>
                                         {candidate.total_transcript_turns}
                                     </div>
-                                    <div className="text-xs text-white/40 uppercase tracking-wider mt-1">
+                                    <div className="text-xs uppercase tracking-wider mt-1" style={{ color: tokens.textMuted }}>
                                         Transcript Turns
                                     </div>
                                 </div>
@@ -467,34 +562,53 @@ export default function OfferPrepPage() {
 
                             {candidate.recommendation && (
                                 <div
-                                    className={`p-4 rounded-xl ${
-                                        candidate.recommendation === "Strong Hire"
-                                            ? "bg-green-500/10 border border-green-500/20"
-                                            : candidate.recommendation === "Hire"
-                                            ? "bg-blue-500/10 border border-blue-500/20"
-                                            : "bg-red-500/10 border border-red-500/20"
-                                    }`}
-                                >
-                                    <span className="text-sm text-white/60">Recommendation: </span>
-                                    <span
-                                        className={`font-semibold ${
+                                    className="p-4 rounded-xl border"
+                                    style={{
+                                        backgroundColor:
                                             candidate.recommendation === "Strong Hire"
-                                                ? "text-green-400"
+                                                ? `${tokens.statusSuccess}10`
                                                 : candidate.recommendation === "Hire"
-                                                ? "text-blue-400"
-                                                : "text-red-400"
-                                        }`}
+                                                ? `${tokens.brandSecondary}10`
+                                                : `${tokens.statusDanger}10`,
+                                        borderColor:
+                                            candidate.recommendation === "Strong Hire"
+                                                ? `${tokens.statusSuccess}30`
+                                                : candidate.recommendation === "Hire"
+                                                ? `${tokens.brandSecondary}30`
+                                                : `${tokens.statusDanger}30`,
+                                    }}
+                                >
+                                    <span className="text-sm" style={{ color: tokens.textMuted }}>Recommendation: </span>
+                                    <span
+                                        className="font-semibold"
+                                        style={{
+                                            color:
+                                                candidate.recommendation === "Strong Hire"
+                                                    ? tokens.statusSuccess
+                                                    : candidate.recommendation === "Hire"
+                                                    ? tokens.brandSecondary
+                                                    : tokens.statusDanger,
+                                        }}
                                     >
                                         {candidate.recommendation}
                                     </span>
                                 </div>
                             )}
-                        </div>
+                        </motion.div>
 
                         {/* Candidate Priorities */}
-                        <div className="glass-panel rounded-3xl p-6 border border-white/10">
-                            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                                <Target className="w-5 h-5 text-cyan-400" />
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ ...springConfig, delay: 0.15 }}
+                            className="rounded-2xl p-6 border"
+                            style={{
+                                backgroundColor: tokens.bgCard,
+                                borderColor: tokens.borderSubtle,
+                            }}
+                        >
+                            <h2 className="text-lg font-medium text-white mb-4 flex items-center gap-2">
+                                <Target className="w-5 h-5" style={{ color: tokens.brandSecondary }} />
                                 What They Value
                             </h2>
 
@@ -503,118 +617,171 @@ export default function OfferPrepPage() {
                                     {candidate.priorities.map((priority, i) => (
                                         <div
                                             key={i}
-                                            className={`p-4 rounded-xl border ${
-                                                priority.importance === "high"
-                                                    ? "bg-purple-500/10 border-purple-500/20"
-                                                    : priority.importance === "medium"
-                                                    ? "bg-blue-500/10 border-blue-500/20"
-                                                    : "bg-white/5 border-white/10"
-                                            }`}
+                                            className="p-4 rounded-xl border"
+                                            style={{
+                                                backgroundColor:
+                                                    priority.importance === "high"
+                                                        ? `${tokens.brandPrimary}10`
+                                                        : priority.importance === "medium"
+                                                        ? `${tokens.brandSecondary}10`
+                                                        : tokens.bgSurface,
+                                                borderColor:
+                                                    priority.importance === "high"
+                                                        ? `${tokens.brandPrimary}30`
+                                                        : priority.importance === "medium"
+                                                        ? `${tokens.brandSecondary}30`
+                                                        : tokens.borderSubtle,
+                                            }}
                                         >
                                             <div className="font-medium text-white mb-1">
                                                 {priority.name}
                                             </div>
-                                            <div className="text-xs text-white/40 uppercase">
+                                            <div className="text-xs uppercase" style={{ color: tokens.textMuted }}>
                                                 {priority.importance} Priority
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             ) : (
-                                <div className="text-center py-8 text-white/40">
+                                <div className="text-center py-8" style={{ color: tokens.textMuted }}>
                                     <Target className="w-8 h-8 mx-auto mb-2 opacity-50" />
                                     <p>Priorities will be extracted during coaching session</p>
                                 </div>
                             )}
-                        </div>
+                        </motion.div>
 
                         {/* Key Quotes */}
-                        <div className="glass-panel rounded-3xl p-6 border border-white/10">
-                            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                                <Quote className="w-5 h-5 text-amber-400" />
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ ...springConfig, delay: 0.2 }}
+                            className="rounded-2xl p-6 border"
+                            style={{
+                                backgroundColor: tokens.bgCard,
+                                borderColor: tokens.borderSubtle,
+                            }}
+                        >
+                            <h2 className="text-lg font-medium text-white mb-4 flex items-center gap-2">
+                                <Quote className="w-5 h-5" style={{ color: tokens.statusWarning }} />
                                 Key Quotes from Interviews
                             </h2>
 
                             {candidate.key_quotes.length > 0 ? (
                                 <div className="space-y-4">
                                     {candidate.key_quotes.map((quote, i) => (
-                                        <div
+                                        <motion.div
                                             key={i}
-                                            className="p-4 bg-white/5 rounded-xl border-l-4 border-amber-500/50"
+                                            initial={{ opacity: 0, x: -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ ...springConfig, delay: 0.25 + i * 0.05 }}
+                                            className="p-4 rounded-xl border-l-4"
+                                            style={{
+                                                backgroundColor: tokens.bgSurface,
+                                                borderColor: `${tokens.statusWarning}60`,
+                                            }}
                                         >
                                             <p className="text-white/90 italic">"{quote.text}"</p>
-                                            <p className="text-xs text-white/40 mt-2">
+                                            <p className="text-xs mt-2" style={{ color: tokens.textMuted }}>
                                                 — {quote.round}
                                                 {quote.context && ` • ${quote.context}`}
                                             </p>
-                                        </div>
+                                        </motion.div>
                                     ))}
                                 </div>
                             ) : (
-                                <div className="text-center py-8 text-white/40">
+                                <div className="text-center py-8" style={{ color: tokens.textMuted }}>
                                     <Quote className="w-8 h-8 mx-auto mb-2 opacity-50" />
                                     <p>Key quotes will be extracted during coaching session</p>
                                 </div>
                             )}
-                        </div>
+                        </motion.div>
 
                         {/* Risk Factors */}
-                        {candidate.risk_factors.length > 0 && (
-                            <div className="glass-panel rounded-3xl p-6 border border-red-500/20 bg-red-500/5">
-                                <h2 className="text-lg font-semibold text-red-300 mb-4 flex items-center gap-2">
-                                    <AlertTriangle className="w-5 h-5" />
-                                    Risk Factors
-                                </h2>
-                                <div className="space-y-3">
-                                    {candidate.risk_factors.map((risk, i) => (
-                                        <div
-                                            key={i}
-                                            className="flex items-start gap-3 p-3 bg-red-500/10 rounded-lg"
-                                        >
-                                            <AlertCircle
-                                                className={`w-4 h-4 mt-0.5 ${
-                                                    risk.severity === "high"
-                                                        ? "text-red-400"
-                                                        : "text-orange-400"
-                                                }`}
-                                            />
-                                            <span className="text-white/80">{risk.description}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+                        <AnimatePresence>
+                            {candidate.risk_factors.length > 0 && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ ...springConfig, delay: 0.25 }}
+                                    className="rounded-2xl p-6 border"
+                                    style={{
+                                        backgroundColor: `${tokens.statusDanger}08`,
+                                        borderColor: `${tokens.statusDanger}30`,
+                                    }}
+                                >
+                                    <h2 className="text-lg font-medium mb-4 flex items-center gap-2" style={{ color: tokens.statusDanger }}>
+                                        <AlertTriangle className="w-5 h-5" />
+                                        Risk Factors
+                                    </h2>
+                                    <div className="space-y-3">
+                                        {candidate.risk_factors.map((risk, i) => (
+                                            <motion.div
+                                                key={i}
+                                                initial={{ opacity: 0, x: -10 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{ ...springConfig, delay: 0.3 + i * 0.05 }}
+                                                className="flex items-start gap-3 p-3 rounded-xl"
+                                                style={{ backgroundColor: `${tokens.statusDanger}10` }}
+                                            >
+                                                <AlertCircle
+                                                    className="w-4 h-4 mt-0.5 flex-shrink-0"
+                                                    style={{
+                                                        color: risk.severity === "high"
+                                                            ? tokens.statusDanger
+                                                            : tokens.statusWarning
+                                                    }}
+                                                />
+                                                <span className="text-white/80">{risk.description}</span>
+                                            </motion.div>
+                                        ))}
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
 
                     {/* Right Column - Market Data & Offer */}
                     <div className="space-y-6">
                         {/* Market Positioning */}
-                        <div className="glass-panel rounded-3xl p-6 border border-white/10">
-                            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                                <TrendingUp className="w-5 h-5 text-green-400" />
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ ...springConfig, delay: 0.2 }}
+                            className="rounded-2xl p-6 border"
+                            style={{
+                                backgroundColor: tokens.bgCard,
+                                borderColor: tokens.borderSubtle,
+                            }}
+                        >
+                            <h2 className="text-lg font-medium text-white mb-4 flex items-center gap-2">
+                                <TrendingUp className="w-5 h-5" style={{ color: tokens.statusSuccess }} />
                                 Market Positioning
                             </h2>
 
                             {market_data ? (
                                 <div className="space-y-4">
-                                    <div className="flex items-center gap-2 text-sm text-white/60 mb-4">
+                                    <div className="flex items-center gap-2 text-sm mb-4" style={{ color: tokens.textMuted }}>
                                         <Briefcase className="w-4 h-4" />
                                         {market_data.role_title}
-                                        <span className="text-white/30">•</span>
+                                        <span style={{ color: tokens.textMuted }}>•</span>
                                         <MapPin className="w-4 h-4" />
                                         {market_data.location}
                                     </div>
 
                                     {/* Salary Range Bar */}
                                     <div>
-                                        <div className="flex justify-between text-xs text-white/40 mb-1">
+                                        <div className="flex justify-between text-xs mb-1" style={{ color: tokens.textMuted }}>
                                             <span>{formatCurrency(market_data.salary_min)}</span>
                                             <span>{formatCurrency(market_data.salary_max)}</span>
                                         </div>
-                                        <div className="h-3 bg-white/10 rounded-full overflow-hidden">
-                                            <div
-                                                className="h-full bg-gradient-to-r from-purple-500 to-cyan-500"
-                                                style={{
+                                        <div
+                                            className="h-3 rounded-full overflow-hidden"
+                                            style={{ backgroundColor: tokens.bgSurface }}
+                                        >
+                                            <motion.div
+                                                initial={{ width: 0 }}
+                                                animate={{
                                                     width: market_data.salary_median
                                                         ? `${
                                                               ((market_data.salary_median -
@@ -625,10 +792,15 @@ export default function OfferPrepPage() {
                                                           }%`
                                                         : "50%",
                                                 }}
+                                                transition={{ ...springConfig, delay: 0.4 }}
+                                                className="h-full"
+                                                style={{
+                                                    background: `linear-gradient(to right, ${tokens.brandPrimary}, ${tokens.brandSecondary})`,
+                                                }}
                                             />
                                         </div>
                                         <div className="text-center mt-2">
-                                            <span className="text-xs text-white/40">Median: </span>
+                                            <span className="text-xs" style={{ color: tokens.textMuted }}>Median: </span>
                                             <span className="text-sm font-semibold text-white">
                                                 {formatCurrency(market_data.salary_median)}
                                             </span>
@@ -636,8 +808,11 @@ export default function OfferPrepPage() {
                                     </div>
 
                                     {/* Equity Benchmark */}
-                                    <div className="p-4 bg-white/5 rounded-xl">
-                                        <div className="text-xs text-white/40 uppercase tracking-wider mb-1">
+                                    <div
+                                        className="p-4 rounded-xl"
+                                        style={{ backgroundColor: tokens.bgSurface }}
+                                    >
+                                        <div className="text-xs uppercase tracking-wider mb-1" style={{ color: tokens.textMuted }}>
                                             Typical Equity
                                         </div>
                                         <div className="text-xl font-semibold text-white">
@@ -646,7 +821,7 @@ export default function OfferPrepPage() {
                                                 : "N/A"}
                                         </div>
                                         {market_data.vesting_standard && (
-                                            <div className="text-xs text-white/40 mt-1">
+                                            <div className="text-xs mt-1" style={{ color: tokens.textMuted }}>
                                                 {market_data.vesting_standard}
                                             </div>
                                         )}
@@ -655,34 +830,45 @@ export default function OfferPrepPage() {
                                     {/* Market Trend */}
                                     {market_data.market_trend && (
                                         <div
-                                            className={`p-3 rounded-lg text-sm ${
-                                                market_data.market_trend === "rising"
-                                                    ? "bg-green-500/10 text-green-400"
-                                                    : market_data.market_trend === "declining"
-                                                    ? "bg-red-500/10 text-red-400"
-                                                    : "bg-white/5 text-white/60"
-                                            }`}
+                                            className="p-3 rounded-xl text-sm"
+                                            style={{
+                                                backgroundColor:
+                                                    market_data.market_trend === "rising"
+                                                        ? `${tokens.statusSuccess}10`
+                                                        : market_data.market_trend === "declining"
+                                                        ? `${tokens.statusDanger}10`
+                                                        : tokens.bgSurface,
+                                                color:
+                                                    market_data.market_trend === "rising"
+                                                        ? tokens.statusSuccess
+                                                        : market_data.market_trend === "declining"
+                                                        ? tokens.statusDanger
+                                                        : tokens.textMuted,
+                                            }}
                                         >
                                             Market trend: {market_data.market_trend}
                                         </div>
                                     )}
 
                                     {market_data.confidence_level && (
-                                        <div className="text-xs text-white/30 text-center">
+                                        <div className="text-xs text-center" style={{ color: tokens.textMuted }}>
                                             Data confidence: {market_data.confidence_level}
                                         </div>
                                     )}
                                 </div>
                             ) : (
-                                <div className="text-center py-8 text-white/40">
+                                <div className="text-center py-8" style={{ color: tokens.textMuted }}>
                                     <BarChart3 className="w-8 h-8 mx-auto mb-2 opacity-50" />
                                     <p>Market data unavailable</p>
                                 </div>
                             )}
 
                             {/* Company Info for Market Research */}
-                            <div className="mt-4 pt-4 border-t border-white/10">
-                                <div className="text-xs text-white/40 uppercase tracking-wider mb-3">
+                            <div
+                                className="mt-4 pt-4"
+                                style={{ borderTop: `1px solid ${tokens.borderSubtle}` }}
+                            >
+                                <div className="text-xs uppercase tracking-wider mb-3" style={{ color: tokens.textMuted }}>
                                     Enhance Market Data
                                 </div>
                                 <div className="space-y-3">
@@ -691,19 +877,32 @@ export default function OfferPrepPage() {
                                         placeholder="Company Name (e.g., Acme Inc)"
                                         value={companyName}
                                         onChange={(e) => setCompanyName(e.target.value)}
-                                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-purple-500/50"
+                                        className="w-full rounded-xl px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none transition-colors"
+                                        style={{
+                                            backgroundColor: tokens.bgSurface,
+                                            border: `1px solid ${tokens.borderSubtle}`,
+                                        }}
                                     />
                                     <input
                                         type="text"
                                         placeholder="Company Website (e.g., https://acme.com)"
                                         value={companyWebsite}
                                         onChange={(e) => setCompanyWebsite(e.target.value)}
-                                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-purple-500/50"
+                                        className="w-full rounded-xl px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none transition-colors"
+                                        style={{
+                                            backgroundColor: tokens.bgSurface,
+                                            border: `1px solid ${tokens.borderSubtle}`,
+                                        }}
                                     />
                                     <button
                                         onClick={refreshMarketData}
                                         disabled={refreshingMarketData}
-                                        className="w-full flex items-center justify-center gap-2 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 rounded-lg px-4 py-2 text-sm text-purple-300 transition-colors disabled:opacity-50"
+                                        className="w-full flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm transition-all hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100"
+                                        style={{
+                                            backgroundColor: `${tokens.brandPrimary}20`,
+                                            border: `1px solid ${tokens.brandPrimary}30`,
+                                            color: tokens.brandPrimary,
+                                        }}
                                     >
                                         {refreshingMarketData ? (
                                             <>
@@ -719,22 +918,31 @@ export default function OfferPrepPage() {
                                     </button>
                                 </div>
                             </div>
-                        </div>
+                        </motion.div>
 
                         {/* Your Offer */}
-                        <div className="glass-panel rounded-3xl p-6 border border-purple-500/20 bg-purple-500/5">
-                            <h2 className="text-lg font-semibold text-purple-300 mb-4 flex items-center gap-2">
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ ...springConfig, delay: 0.25 }}
+                            className="rounded-2xl p-6 border"
+                            style={{
+                                backgroundColor: `${tokens.brandPrimary}08`,
+                                borderColor: `${tokens.brandPrimary}30`,
+                            }}
+                        >
+                            <h2 className="text-lg font-medium mb-4 flex items-center gap-2" style={{ color: tokens.brandPrimary }}>
                                 <DollarSign className="w-5 h-5" />
                                 Your Offer
                             </h2>
 
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-xs text-white/40 uppercase tracking-wider mb-2">
+                                    <label className="block text-xs uppercase tracking-wider mb-2" style={{ color: tokens.textMuted }}>
                                         Base Salary
                                     </label>
                                     <div className="relative">
-                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40">
+                                        <span className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: tokens.textMuted }}>
                                             $
                                         </span>
                                         <input
@@ -746,13 +954,17 @@ export default function OfferPrepPage() {
                                                     base_salary: parseInt(e.target.value) || 0,
                                                 })
                                             }
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pl-8 text-white focus:outline-none focus:border-purple-500/50"
+                                            className="w-full rounded-xl px-4 py-3 pl-8 text-white focus:outline-none transition-colors"
+                                            style={{
+                                                backgroundColor: tokens.bgSurface,
+                                                border: `1px solid ${tokens.borderSubtle}`,
+                                            }}
                                         />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs text-white/40 uppercase tracking-wider mb-2">
+                                    <label className="block text-xs uppercase tracking-wider mb-2" style={{ color: tokens.textMuted }}>
                                         Equity (%)
                                     </label>
                                     <input
@@ -766,12 +978,16 @@ export default function OfferPrepPage() {
                                             })
                                         }
                                         placeholder="0.15"
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500/50"
+                                        className="w-full rounded-xl px-4 py-3 text-white focus:outline-none transition-colors"
+                                        style={{
+                                            backgroundColor: tokens.bgSurface,
+                                            border: `1px solid ${tokens.borderSubtle}`,
+                                        }}
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs text-white/40 uppercase tracking-wider mb-2">
+                                    <label className="block text-xs uppercase tracking-wider mb-2" style={{ color: tokens.textMuted }}>
                                         Target Bonus (%)
                                     </label>
                                     <input
@@ -784,21 +1000,36 @@ export default function OfferPrepPage() {
                                             })
                                         }
                                         placeholder="15"
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500/50"
+                                        className="w-full rounded-xl px-4 py-3 text-white focus:outline-none transition-colors"
+                                        style={{
+                                            backgroundColor: tokens.bgSurface,
+                                            border: `1px solid ${tokens.borderSubtle}`,
+                                        }}
                                     />
                                 </div>
                             </div>
-                        </div>
+                        </motion.div>
 
                         {/* Start Coaching CTA */}
-                        <button
+                        <motion.button
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ ...springConfig, delay: 0.3 }}
                             onClick={startCoachingSession}
                             disabled={!ready_for_coaching || preparingCoaching}
-                            className={`w-full py-5 rounded-2xl font-semibold text-lg flex items-center justify-center gap-3 transition-all ${
-                                ready_for_coaching && !preparingCoaching
-                                    ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:shadow-[0_0_40px_rgba(168,85,247,0.4)] hover:scale-[1.02]"
-                                    : "bg-white/5 text-white/40 cursor-not-allowed"
-                            }`}
+                            className="w-full py-5 rounded-2xl font-semibold text-lg flex items-center justify-center gap-3 transition-all"
+                            style={{
+                                background: ready_for_coaching && !preparingCoaching
+                                    ? `linear-gradient(to right, ${tokens.brandPrimary}, ${tokens.brandSecondary})`
+                                    : tokens.bgSurface,
+                                color: ready_for_coaching && !preparingCoaching ? "white" : tokens.textMuted,
+                                cursor: ready_for_coaching && !preparingCoaching ? "pointer" : "not-allowed",
+                                boxShadow: ready_for_coaching && !preparingCoaching
+                                    ? `0 0 40px ${tokens.brandPrimary}30`
+                                    : "none",
+                            }}
+                            whileHover={ready_for_coaching && !preparingCoaching ? { scale: 1.02 } : {}}
+                            whileTap={ready_for_coaching && !preparingCoaching ? { scale: 0.98 } : {}}
                         >
                             {preparingCoaching ? (
                                 <>
@@ -812,9 +1043,9 @@ export default function OfferPrepPage() {
                                     <ChevronRight className="w-5 h-5" />
                                 </>
                             )}
-                        </button>
+                        </motion.button>
 
-                        <p className="text-center text-xs text-white/30">
+                        <p className="text-center text-xs" style={{ color: tokens.textMuted }}>
                             ~12 min personalized coaching call
                         </p>
                     </div>
@@ -822,323 +1053,519 @@ export default function OfferPrepPage() {
             </main>
 
             {/* Coaching Session Modal */}
-            {showCoachingModal && coachingVariables && (
-                <div className="fixed inset-0 bg-black/95 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-[#0A0A0A] rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-hidden border border-white/10 shadow-2xl flex flex-col">
-                        {/* Modal Header */}
-                        <div className="border-b border-white/10 px-8 py-5 flex items-center justify-between flex-shrink-0">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                                    <Mic className="w-6 h-6 text-white" />
+            <AnimatePresence>
+                {showCoachingModal && coachingVariables && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                        style={{ backgroundColor: `${tokens.bgApp}f5` }}
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            transition={springConfig}
+                            className="rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col"
+                            style={{
+                                backgroundColor: tokens.bgCard,
+                                border: `1px solid ${tokens.borderSubtle}`,
+                            }}
+                        >
+                            {/* Modal Header */}
+                            <div
+                                className="px-8 py-5 flex items-center justify-between flex-shrink-0"
+                                style={{ borderBottom: `1px solid ${tokens.borderSubtle}` }}
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div
+                                        className="w-12 h-12 rounded-full flex items-center justify-center"
+                                        style={{
+                                            background: `linear-gradient(to right, ${tokens.brandPrimary}, ${tokens.brandSecondary})`,
+                                        }}
+                                    >
+                                        <Mic className="w-6 h-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-semibold text-white">
+                                            Coaching Session
+                                        </h3>
+                                        <p className="text-sm" style={{ color: tokens.textMuted }}>
+                                            Preparing offer for {candidate.candidate_name}
+                                        </p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h3 className="text-xl font-semibold text-white">
-                                        Coaching Session
-                                    </h3>
-                                    <p className="text-sm text-white/40">
-                                        Preparing offer for {candidate.candidate_name}
-                                    </p>
+                                <button
+                                    onClick={handleCoachingEnd}
+                                    className="p-3 rounded-xl transition-colors flex items-center gap-2"
+                                    style={{
+                                        backgroundColor: `${tokens.statusDanger}10`,
+                                        border: `1px solid ${tokens.statusDanger}20`,
+                                        color: tokens.statusDanger,
+                                    }}
+                                >
+                                    <PhoneOff className="w-5 h-5" />
+                                    End Session
+                                </button>
+                            </div>
+
+                            {/* Voice Session */}
+                            <div className="flex-1 p-8 overflow-hidden">
+                                <div className="h-full flex flex-col">
+                                    <VoiceSession
+                                        vapiPublicKey={VAPI_PUBLIC_KEY}
+                                        assistantConfig={{
+                                            assistantId: VAPI_COACHING_ASSISTANT_ID,
+                                            assistantOverrides: {
+                                                variableValues: coachingVariables,
+                                            },
+                                        }}
+                                        sessionId={`coaching-${candidateId}-${Date.now()}`}
+                                        onEnd={handleCoachingEnd}
+                                        onTranscript={handleCoachingTranscript}
+                                        ref={voiceSessionRef}
+                                    />
+
+                                    {/* Live Transcript (optional) */}
+                                    {coachingTranscript.length > 0 && (
+                                        <div
+                                            className="mt-6 max-h-48 overflow-y-auto pt-4"
+                                            style={{ borderTop: `1px solid ${tokens.borderSubtle}` }}
+                                        >
+                                            <h4 className="text-xs uppercase tracking-wider mb-3" style={{ color: tokens.textMuted }}>
+                                                Live Transcript
+                                            </h4>
+                                            <div className="space-y-2">
+                                                {coachingTranscript.slice(-5).map((item, i) => (
+                                                    <div
+                                                        key={i}
+                                                        className="text-sm"
+                                                        style={{
+                                                            color: item.role === "agent"
+                                                                ? tokens.brandPrimary
+                                                                : tokens.textSecondary
+                                                        }}
+                                                    >
+                                                        <span className="font-medium">
+                                                            {item.role === "agent" ? "Coach: " : "You: "}
+                                                        </span>
+                                                        {item.text}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
-                            <button
-                                onClick={handleCoachingEnd}
-                                className="p-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 transition-colors flex items-center gap-2"
+
+                            {/* Context Panel */}
+                            <div
+                                className="px-8 py-4 flex-shrink-0"
+                                style={{
+                                    borderTop: `1px solid ${tokens.borderSubtle}`,
+                                    backgroundColor: tokens.bgSurface,
+                                }}
                             >
-                                <PhoneOff className="w-5 h-5" />
-                                End Session
-                            </button>
-                        </div>
+                                <div className="flex gap-6 text-xs" style={{ color: tokens.textMuted }}>
+                                    <span>
+                                        <strong style={{ color: tokens.textSecondary }}>Candidate:</strong>{" "}
+                                        {coachingVariables.candidate_name}
+                                    </span>
+                                    <span>
+                                        <strong style={{ color: tokens.textSecondary }}>Offer:</strong>{" "}
+                                        {coachingVariables.offer_base}
+                                    </span>
+                                    <span>
+                                        <strong style={{ color: tokens.textSecondary }}>Equity:</strong>{" "}
+                                        {coachingVariables.offer_equity}
+                                    </span>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-                        {/* Voice Session */}
-                        <div className="flex-1 p-8 overflow-hidden">
-                            <div className="h-full flex flex-col">
-                                <VoiceSession
-                                    vapiPublicKey={VAPI_PUBLIC_KEY}
-                                    assistantConfig={{
-                                        assistantId: VAPI_COACHING_ASSISTANT_ID,
-                                        assistantOverrides: {
-                                            variableValues: coachingVariables,
-                                        },
-                                    }}
-                                    sessionId={`coaching-${candidateId}-${Date.now()}`}
-                                    onEnd={handleCoachingEnd}
-                                    onTranscript={handleCoachingTranscript}
-                                    ref={voiceSessionRef}
-                                />
+            {/* Generating Summary Indicator */}
+            <AnimatePresence>
+                {generatingSummary && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 backdrop-blur-sm z-50 flex items-center justify-center"
+                        style={{ backgroundColor: `${tokens.bgApp}e6` }}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={springConfig}
+                            className="text-center"
+                        >
+                            <motion.div
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                            >
+                                <Loader2 className="w-12 h-12 mx-auto mb-4" style={{ color: tokens.brandPrimary }} />
+                            </motion.div>
+                            <h3 className="text-xl font-semibold text-white mb-2">
+                                Generating Your Offer Script
+                            </h3>
+                            <p style={{ color: tokens.textMuted }}>
+                                Analyzing coaching session and creating personalized recommendations...
+                            </p>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-                                {/* Live Transcript (optional) */}
-                                {coachingTranscript.length > 0 && (
-                                    <div className="mt-6 max-h-48 overflow-y-auto border-t border-white/10 pt-4">
-                                        <h4 className="text-xs text-white/40 uppercase tracking-wider mb-3">
-                                            Live Transcript
+            {/* Coaching Summary Modal */}
+            <AnimatePresence>
+                {showSummary && coachingSummary && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 backdrop-blur-sm z-50 flex items-start justify-center p-4 pt-16 overflow-y-auto"
+                        style={{ backgroundColor: `${tokens.bgApp}f5` }}
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            transition={springConfig}
+                            className="rounded-3xl max-w-4xl w-full shadow-2xl mb-8"
+                            style={{
+                                backgroundColor: tokens.bgCard,
+                                border: `1px solid ${tokens.borderSubtle}`,
+                            }}
+                        >
+                            {/* Modal Header */}
+                            <div
+                                className="px-8 py-5 flex items-center justify-between rounded-t-3xl"
+                                style={{
+                                    borderBottom: `1px solid ${tokens.borderSubtle}`,
+                                    backgroundColor: tokens.bgCard,
+                                }}
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div
+                                        className="w-12 h-12 rounded-full flex items-center justify-center"
+                                        style={{ backgroundColor: `${tokens.statusSuccess}20` }}
+                                    >
+                                        <CheckCircle className="w-6 h-6" style={{ color: tokens.statusSuccess }} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-semibold text-white">
+                                            Coaching Complete
+                                        </h3>
+                                        <p className="text-sm" style={{ color: tokens.textMuted }}>
+                                            Your personalized offer script is ready
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setShowSummary(false)}
+                                    className="p-2 rounded-lg transition-colors hover:bg-white/10"
+                                >
+                                    <X className="w-5 h-5" style={{ color: tokens.textMuted }} />
+                                </button>
+                            </div>
+
+                            {/* Summary Content */}
+                            <div className="p-8 space-y-8">
+                                {/* Offer Script */}
+                                {coachingSummary.offer_script && (
+                                    <div
+                                        className="rounded-2xl p-6"
+                                        style={{
+                                            backgroundColor: `${tokens.brandPrimary}08`,
+                                            border: `1px solid ${tokens.brandPrimary}30`,
+                                        }}
+                                    >
+                                        <div className="flex items-center justify-between mb-4">
+                                            <h4 className="text-lg font-semibold flex items-center gap-2" style={{ color: tokens.brandPrimary }}>
+                                                <FileText className="w-5 h-5" />
+                                                Your Offer Script
+                                            </h4>
+                                            <button
+                                                onClick={() => {
+                                                    const script = `Opening:\n${coachingSummary.offer_script.opening}\n\nEquity Explanation:\n${coachingSummary.offer_script.equity_explanation}\n\n${coachingSummary.offer_script.competitor_handling ? `Competitor Handling:\n${coachingSummary.offer_script.competitor_handling}\n\n` : ''}Closing:\n${coachingSummary.offer_script.closing}`;
+                                                    navigator.clipboard.writeText(script);
+                                                }}
+                                                className="px-3 py-1.5 rounded-lg text-sm flex items-center gap-2 transition-colors hover:bg-white/10"
+                                                style={{
+                                                    backgroundColor: tokens.bgSurface,
+                                                    border: `1px solid ${tokens.borderSubtle}`,
+                                                    color: tokens.textSecondary,
+                                                }}
+                                            >
+                                                <Copy className="w-4 h-4" />
+                                                Copy Script
+                                            </button>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <div>
+                                                <h5 className="text-xs uppercase tracking-wider mb-2" style={{ color: tokens.textMuted }}>Opening</h5>
+                                                <p
+                                                    className="rounded-xl p-4 border-l-4"
+                                                    style={{
+                                                        backgroundColor: tokens.bgSurface,
+                                                        borderColor: `${tokens.brandPrimary}60`,
+                                                        color: tokens.textSecondary,
+                                                    }}
+                                                >
+                                                    {coachingSummary.offer_script.opening}
+                                                </p>
+                                            </div>
+
+                                            <div>
+                                                <h5 className="text-xs uppercase tracking-wider mb-2" style={{ color: tokens.textMuted }}>Equity Explanation</h5>
+                                                <p
+                                                    className="rounded-xl p-4 border-l-4"
+                                                    style={{
+                                                        backgroundColor: tokens.bgSurface,
+                                                        borderColor: `${tokens.brandSecondary}60`,
+                                                        color: tokens.textSecondary,
+                                                    }}
+                                                >
+                                                    {coachingSummary.offer_script.equity_explanation}
+                                                </p>
+                                            </div>
+
+                                            {coachingSummary.offer_script.competitor_handling && (
+                                                <div>
+                                                    <h5 className="text-xs uppercase tracking-wider mb-2" style={{ color: tokens.textMuted }}>Handling Competition</h5>
+                                                    <p
+                                                        className="rounded-xl p-4 border-l-4"
+                                                        style={{
+                                                            backgroundColor: tokens.bgSurface,
+                                                            borderColor: `${tokens.statusWarning}60`,
+                                                            color: tokens.textSecondary,
+                                                        }}
+                                                    >
+                                                        {coachingSummary.offer_script.competitor_handling}
+                                                    </p>
+                                                </div>
+                                            )}
+
+                                            <div>
+                                                <h5 className="text-xs uppercase tracking-wider mb-2" style={{ color: tokens.textMuted }}>Closing</h5>
+                                                <p
+                                                    className="rounded-xl p-4 border-l-4"
+                                                    style={{
+                                                        backgroundColor: tokens.bgSurface,
+                                                        borderColor: `${tokens.statusSuccess}60`,
+                                                        color: tokens.textSecondary,
+                                                    }}
+                                                >
+                                                    {coachingSummary.offer_script.closing}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Key Reminders */}
+                                {coachingSummary.key_reminders && coachingSummary.key_reminders.length > 0 && (
+                                    <div
+                                        className="rounded-2xl p-6"
+                                        style={{
+                                            backgroundColor: `${tokens.brandSecondary}08`,
+                                            border: `1px solid ${tokens.brandSecondary}30`,
+                                        }}
+                                    >
+                                        <h4 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: tokens.brandSecondary }}>
+                                            <Sparkles className="w-5 h-5" />
+                                            Key Reminders
                                         </h4>
-                                        <div className="space-y-2">
-                                            {coachingTranscript.slice(-5).map((item, i) => (
+                                        <ul className="space-y-3">
+                                            {coachingSummary.key_reminders.map((reminder: string, i: number) => (
+                                                <li key={i} className="flex items-start gap-3">
+                                                    <div
+                                                        className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                                                        style={{ backgroundColor: `${tokens.brandSecondary}20` }}
+                                                    >
+                                                        <span className="text-xs font-bold" style={{ color: tokens.brandSecondary }}>{i + 1}</span>
+                                                    </div>
+                                                    <span style={{ color: tokens.textSecondary }}>{reminder}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+
+                                {/* Objection Responses */}
+                                {coachingSummary.objection_responses && coachingSummary.objection_responses.length > 0 && (
+                                    <div
+                                        className="rounded-2xl p-6"
+                                        style={{
+                                            backgroundColor: `${tokens.statusWarning}08`,
+                                            border: `1px solid ${tokens.statusWarning}30`,
+                                        }}
+                                    >
+                                        <h4 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: tokens.statusWarning }}>
+                                            <MessageSquare className="w-5 h-5" />
+                                            Objection Responses
+                                        </h4>
+                                        <div className="space-y-4">
+                                            {coachingSummary.objection_responses.map((obj: any, i: number) => (
                                                 <div
                                                     key={i}
-                                                    className={`text-sm ${
-                                                        item.role === "agent"
-                                                            ? "text-purple-300"
-                                                            : "text-white/70"
-                                                    }`}
+                                                    className="rounded-xl p-4"
+                                                    style={{ backgroundColor: tokens.bgSurface }}
                                                 >
-                                                    <span className="font-medium">
-                                                        {item.role === "agent" ? "Coach: " : "You: "}
-                                                    </span>
-                                                    {item.text}
+                                                    <div className="font-medium mb-2" style={{ color: tokens.statusWarning }}>
+                                                        "{obj.objection}"
+                                                    </div>
+                                                    <div
+                                                        className="pl-4 border-l-2"
+                                                        style={{
+                                                            borderColor: `${tokens.statusWarning}30`,
+                                                            color: tokens.textSecondary,
+                                                        }}
+                                                    >
+                                                        {obj.response}
+                                                    </div>
+                                                    {obj.notes && (
+                                                        <div className="text-sm mt-2 italic" style={{ color: tokens.textMuted }}>
+                                                            Note: {obj.notes}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             ))}
                                         </div>
                                     </div>
                                 )}
-                            </div>
-                        </div>
 
-                        {/* Context Panel */}
-                        <div className="border-t border-white/10 px-8 py-4 bg-white/5 flex-shrink-0">
-                            <div className="flex gap-6 text-xs text-white/40">
-                                <span>
-                                    <strong className="text-white/60">Candidate:</strong>{" "}
-                                    {coachingVariables.candidate_name}
-                                </span>
-                                <span>
-                                    <strong className="text-white/60">Offer:</strong>{" "}
-                                    {coachingVariables.offer_base}
-                                </span>
-                                <span>
-                                    <strong className="text-white/60">Equity:</strong>{" "}
-                                    {coachingVariables.offer_equity}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Generating Summary Indicator */}
-            {generatingSummary && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center">
-                    <div className="text-center">
-                        <Loader2 className="w-12 h-12 text-purple-400 animate-spin mx-auto mb-4" />
-                        <h3 className="text-xl font-semibold text-white mb-2">
-                            Generating Your Offer Script
-                        </h3>
-                        <p className="text-white/50">
-                            Analyzing coaching session and creating personalized recommendations...
-                        </p>
-                    </div>
-                </div>
-            )}
-
-            {/* Coaching Summary Modal */}
-            {showSummary && coachingSummary && (
-                <div className="fixed inset-0 bg-black/95 backdrop-blur-sm z-50 flex items-start justify-center p-4 pt-16 overflow-y-auto">
-                    <div className="bg-[#0A0A0A] rounded-3xl max-w-4xl w-full border border-white/10 shadow-2xl mb-8">
-                        {/* Modal Header */}
-                        <div className="border-b border-white/10 px-8 py-5 flex items-center justify-between bg-[#0A0A0A] rounded-t-3xl">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center">
-                                    <CheckCircle className="w-6 h-6 text-green-400" />
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-semibold text-white">
-                                        Coaching Complete
-                                    </h3>
-                                    <p className="text-sm text-white/40">
-                                        Your personalized offer script is ready
-                                    </p>
-                                </div>
-                            </div>
-                            <button
-                                onClick={() => setShowSummary(false)}
-                                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
-                            >
-                                <X className="w-5 h-5 text-white/60" />
-                            </button>
-                        </div>
-
-                        {/* Summary Content */}
-                        <div className="p-8 space-y-8">
-                            {/* Offer Script */}
-                            {coachingSummary.offer_script && (
-                                <div className="glass-panel rounded-2xl p-6 border border-purple-500/20 bg-purple-500/5">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h4 className="text-lg font-semibold text-purple-300 flex items-center gap-2">
-                                            <FileText className="w-5 h-5" />
-                                            Your Offer Script
-                                        </h4>
-                                        <button
-                                            onClick={() => {
-                                                const script = `Opening:\n${coachingSummary.offer_script.opening}\n\nEquity Explanation:\n${coachingSummary.offer_script.equity_explanation}\n\n${coachingSummary.offer_script.competitor_handling ? `Competitor Handling:\n${coachingSummary.offer_script.competitor_handling}\n\n` : ''}Closing:\n${coachingSummary.offer_script.closing}`;
-                                                navigator.clipboard.writeText(script);
+                                {/* Strategy Tips */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {coachingSummary.lead_with && (
+                                        <div
+                                            className="rounded-xl p-4"
+                                            style={{
+                                                backgroundColor: tokens.bgSurface,
+                                                border: `1px solid ${tokens.statusSuccess}30`,
                                             }}
-                                            className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-sm text-white/70 flex items-center gap-2 transition-colors"
                                         >
-                                            <Copy className="w-4 h-4" />
-                                            Copy Script
-                                        </button>
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        <div>
-                                            <h5 className="text-xs text-white/40 uppercase tracking-wider mb-2">Opening</h5>
-                                            <p className="text-white/90 bg-black/30 rounded-xl p-4 border-l-4 border-purple-500/50">
-                                                {coachingSummary.offer_script.opening}
-                                            </p>
+                                            <h5 className="text-xs uppercase tracking-wider mb-2" style={{ color: tokens.statusSuccess }}>Lead With</h5>
+                                            <p style={{ color: tokens.textSecondary }}>{coachingSummary.lead_with}</p>
                                         </div>
+                                    )}
 
-                                        <div>
-                                            <h5 className="text-xs text-white/40 uppercase tracking-wider mb-2">Equity Explanation</h5>
-                                            <p className="text-white/90 bg-black/30 rounded-xl p-4 border-l-4 border-blue-500/50">
-                                                {coachingSummary.offer_script.equity_explanation}
-                                            </p>
+                                    {coachingSummary.negotiation_boundaries && (
+                                        <div
+                                            className="rounded-xl p-4"
+                                            style={{
+                                                backgroundColor: tokens.bgSurface,
+                                                border: `1px solid ${tokens.brandSecondary}30`,
+                                            }}
+                                        >
+                                            <h5 className="text-xs uppercase tracking-wider mb-2" style={{ color: tokens.brandSecondary }}>Negotiation Room</h5>
+                                            <p style={{ color: tokens.textSecondary }}>{coachingSummary.negotiation_boundaries}</p>
                                         </div>
+                                    )}
+                                </div>
 
-                                        {coachingSummary.offer_script.competitor_handling && (
-                                            <div>
-                                                <h5 className="text-xs text-white/40 uppercase tracking-wider mb-2">Handling Competition</h5>
-                                                <p className="text-white/90 bg-black/30 rounded-xl p-4 border-l-4 border-amber-500/50">
-                                                    {coachingSummary.offer_script.competitor_handling}
-                                                </p>
-                                            </div>
-                                        )}
-
-                                        <div>
-                                            <h5 className="text-xs text-white/40 uppercase tracking-wider mb-2">Closing</h5>
-                                            <p className="text-white/90 bg-black/30 rounded-xl p-4 border-l-4 border-green-500/50">
-                                                {coachingSummary.offer_script.closing}
-                                            </p>
+                                {/* Avoid */}
+                                {coachingSummary.avoid && coachingSummary.avoid.length > 0 && (
+                                    <div
+                                        className="rounded-xl p-4"
+                                        style={{
+                                            backgroundColor: `${tokens.statusDanger}08`,
+                                            border: `1px solid ${tokens.statusDanger}30`,
+                                        }}
+                                    >
+                                        <h5 className="text-xs uppercase tracking-wider mb-2 flex items-center gap-2" style={{ color: tokens.statusDanger }}>
+                                            <AlertTriangle className="w-4 h-4" />
+                                            Avoid
+                                        </h5>
+                                        <div className="flex flex-wrap gap-2">
+                                            {coachingSummary.avoid.map((item: string, i: number) => (
+                                                <span
+                                                    key={i}
+                                                    className="px-3 py-1 rounded-lg text-sm"
+                                                    style={{
+                                                        backgroundColor: `${tokens.statusDanger}10`,
+                                                        border: `1px solid ${tokens.statusDanger}20`,
+                                                        color: tokens.statusDanger,
+                                                    }}
+                                                >
+                                                    {item}
+                                                </span>
+                                            ))}
                                         </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Key Reminders */}
-                            {coachingSummary.key_reminders && coachingSummary.key_reminders.length > 0 && (
-                                <div className="glass-panel rounded-2xl p-6 border border-cyan-500/20 bg-cyan-500/5">
-                                    <h4 className="text-lg font-semibold text-cyan-300 mb-4 flex items-center gap-2">
-                                        <Sparkles className="w-5 h-5" />
-                                        Key Reminders
-                                    </h4>
-                                    <ul className="space-y-3">
-                                        {coachingSummary.key_reminders.map((reminder: string, i: number) => (
-                                            <li key={i} className="flex items-start gap-3">
-                                                <div className="w-6 h-6 rounded-full bg-cyan-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                                    <span className="text-cyan-400 text-xs font-bold">{i + 1}</span>
-                                                </div>
-                                                <span className="text-white/80">{reminder}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
-
-                            {/* Objection Responses */}
-                            {coachingSummary.objection_responses && coachingSummary.objection_responses.length > 0 && (
-                                <div className="glass-panel rounded-2xl p-6 border border-amber-500/20 bg-amber-500/5">
-                                    <h4 className="text-lg font-semibold text-amber-300 mb-4 flex items-center gap-2">
-                                        <MessageSquare className="w-5 h-5" />
-                                        Objection Responses
-                                    </h4>
-                                    <div className="space-y-4">
-                                        {coachingSummary.objection_responses.map((obj: any, i: number) => (
-                                            <div key={i} className="bg-black/30 rounded-xl p-4">
-                                                <div className="text-amber-300 font-medium mb-2">
-                                                    "{obj.objection}"
-                                                </div>
-                                                <div className="text-white/80 pl-4 border-l-2 border-amber-500/30">
-                                                    {obj.response}
-                                                </div>
-                                                {obj.notes && (
-                                                    <div className="text-white/40 text-sm mt-2 italic">
-                                                        Note: {obj.notes}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Strategy Tips */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {coachingSummary.lead_with && (
-                                    <div className="glass-panel rounded-xl p-4 border border-green-500/20">
-                                        <h5 className="text-xs text-green-400 uppercase tracking-wider mb-2">Lead With</h5>
-                                        <p className="text-white/80">{coachingSummary.lead_with}</p>
-                                    </div>
-                                )}
-
-                                {coachingSummary.negotiation_boundaries && (
-                                    <div className="glass-panel rounded-xl p-4 border border-blue-500/20">
-                                        <h5 className="text-xs text-blue-400 uppercase tracking-wider mb-2">Negotiation Room</h5>
-                                        <p className="text-white/80">{coachingSummary.negotiation_boundaries}</p>
                                     </div>
                                 )}
                             </div>
 
-                            {/* Avoid */}
-                            {coachingSummary.avoid && coachingSummary.avoid.length > 0 && (
-                                <div className="glass-panel rounded-xl p-4 border border-red-500/20 bg-red-500/5">
-                                    <h5 className="text-xs text-red-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                                        <AlertTriangle className="w-4 h-4" />
-                                        Avoid
-                                    </h5>
-                                    <div className="flex flex-wrap gap-2">
-                                        {coachingSummary.avoid.map((item: string, i: number) => (
-                                            <span key={i} className="px-3 py-1 bg-red-500/10 text-red-300 rounded-lg text-sm border border-red-500/20">
-                                                {item}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Footer Actions */}
-                        <div className="border-t border-white/10 px-8 py-5 flex items-center justify-between">
-                            <button
-                                onClick={() => {
-                                    setShowSummary(false);
-                                    startCoachingSession();
-                                }}
-                                className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 flex items-center gap-2 transition-colors"
+                            {/* Footer Actions */}
+                            <div
+                                className="px-8 py-5 flex items-center justify-between"
+                                style={{ borderTop: `1px solid ${tokens.borderSubtle}` }}
                             >
-                                <RefreshCw className="w-4 h-4" />
-                                Redo Coaching
-                            </button>
+                                <button
+                                    onClick={() => {
+                                        setShowSummary(false);
+                                        startCoachingSession();
+                                    }}
+                                    className="px-4 py-2 rounded-xl flex items-center gap-2 transition-colors hover:bg-white/10"
+                                    style={{
+                                        backgroundColor: tokens.bgSurface,
+                                        border: `1px solid ${tokens.borderSubtle}`,
+                                        color: tokens.textSecondary,
+                                    }}
+                                >
+                                    <RefreshCw className="w-4 h-4" />
+                                    Redo Coaching
+                                </button>
 
-                            <button
-                                onClick={() => setShowSummary(false)}
-                                className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold hover:opacity-90 transition-all"
-                            >
-                                Done
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+                                <motion.button
+                                    onClick={() => setShowSummary(false)}
+                                    className="px-6 py-3 rounded-xl text-white font-semibold transition-all"
+                                    style={{
+                                        background: `linear-gradient(to right, ${tokens.brandPrimary}, ${tokens.brandSecondary})`,
+                                    }}
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                >
+                                    Done
+                                </motion.button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Show Summary Card if exists */}
-            {coachingSummary && !showSummary && (
-                <div className="fixed bottom-6 right-6 z-40">
-                    <button
-                        onClick={() => setShowSummary(true)}
-                        className="px-4 py-3 rounded-xl bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 text-green-300 flex items-center gap-3 shadow-lg transition-all hover:scale-105"
+            <AnimatePresence>
+                {coachingSummary && !showSummary && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                        transition={springConfig}
+                        className="fixed bottom-6 right-6 z-40"
                     >
-                        <FileText className="w-5 h-5" />
-                        <span className="font-medium">View Offer Script</span>
-                    </button>
-                </div>
-            )}
-
-            {/* Custom Scrollbar Styles */}
-            <style jsx global>{`
-                .glass-panel {
-                    background: rgba(255, 255, 255, 0.03);
-                    backdrop-filter: blur(20px);
-                }
-            `}</style>
+                        <motion.button
+                            onClick={() => setShowSummary(true)}
+                            className="px-4 py-3 rounded-xl flex items-center gap-3 shadow-lg transition-all"
+                            style={{
+                                backgroundColor: `${tokens.statusSuccess}20`,
+                                border: `1px solid ${tokens.statusSuccess}30`,
+                                color: tokens.statusSuccess,
+                            }}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                        >
+                            <FileText className="w-5 h-5" />
+                            <span className="font-medium">View Offer Script</span>
+                        </motion.button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

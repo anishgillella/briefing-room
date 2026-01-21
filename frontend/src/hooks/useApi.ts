@@ -533,3 +533,50 @@ export function useInterviewers() {
     staleTime: 60000, // 1 minute - interviewers don't change often
   });
 }
+
+// ============================================
+// TALENT POOL HOOKS
+// ============================================
+
+interface GlobalTalentProfile {
+  person_id: string;
+  person_name: string;
+  total_applications: number;
+  average_score: number | null;
+  highest_score: number | null;
+  lowest_score: number | null;
+  status_breakdown: Record<string, number>;
+  applications: Array<{
+    candidate_id: string;
+    job_id: string | null;
+    job_title: string | null;
+    score: number | null;
+    pipeline_status: string;
+    interview_status: string | null;
+    created_at: string | null;
+  }>;
+}
+
+export type { GlobalTalentProfile };
+
+export function useGlobalTalentProfile(personId: string | undefined) {
+  const getHeaders = useAuthHeaders();
+
+  return useQuery({
+    queryKey: ["globalTalentProfile", personId],
+    queryFn: async (): Promise<GlobalTalentProfile> => {
+      const response = await fetch(
+        `${API_URL}/api/talent-pool/${personId}/global-profile`,
+        { headers: getHeaders() }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch global talent profile");
+      }
+
+      return response.json();
+    },
+    enabled: !!personId,
+    staleTime: 30000,
+  });
+}

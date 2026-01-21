@@ -133,39 +133,59 @@ async def get_dashboard_stats(
     Get high-level dashboard statistics for the authenticated user's organization.
 
     Returns counts of jobs, candidates, interviews, and analytics summaries.
+
+    Optimized: Uses batch count queries instead of N+1 pattern.
     """
     job_repo = get_job_repo()
     candidate_repo = get_candidate_repo()
     interview_repo = get_interview_repo()
     analytics_repo = get_analytics_repo()
 
-    # Get all jobs for the user's organization
-    all_jobs = job_repo.list_all_for_org_sync(current_user.organization_id)
-    active_jobs = [j for j in all_jobs if j.status == "active"]
+    # Get job counts efficiently (no N+1)
+    job_counts = job_repo.count_for_org_sync(current_user.organization_id)
 
-    # Count candidates and interviews across all jobs
+    # Get candidate counts using optimized batch queries
     total_candidates = 0
     interviewed_candidates = 0
     completed_interviews = 0
 
-    for job in all_jobs:
-        try:
-            candidates = candidate_repo.list_by_job_sync(job.id)
-            total_candidates += len(candidates)
+    try:
+        # Use batch counting method if available
+        if hasattr(candidate_repo, 'count_for_org_sync'):
+            candidate_counts = candidate_repo.count_for_org_sync(current_user.organization_id)
+            total_candidates = candidate_counts.get('total', 0)
+            interviewed_candidates = candidate_counts.get('interviewed', 0)
+        else:
+            # Fallback: Get jobs without counts, then batch fetch candidate counts
+            all_jobs = job_repo.list_all_for_org_sync(
+                current_user.organization_id,
+                include_counts=False
+            )
 
-            for candidate in candidates:
-                if candidate.interview_status in ["completed", "in_progress"]:
-                    interviewed_candidates += 1
-
-                # Count completed interviews for this candidate
+            for job in all_jobs:
                 try:
-                    interviews = interview_repo.list_by_candidate_sync(candidate.id)
-                    completed_interviews += len([i for i in interviews if i.status.value == "completed"])
+                    candidates = candidate_repo.list_by_job_sync(job.id)
+                    total_candidates += len(candidates)
+                    for candidate in candidates:
+                        if candidate.interview_status in ["completed", "in_progress"]:
+                            interviewed_candidates += 1
                 except Exception:
                     pass
-        except Exception:
-            # Skip jobs with data issues
-            pass
+    except Exception:
+        pass
+
+    # Count completed interviews
+    try:
+        if hasattr(interview_repo, 'count_completed_for_org_sync'):
+            completed_interviews = interview_repo.count_completed_for_org_sync(
+                current_user.organization_id
+            )
+        else:
+            # Fallback to list method
+            interviews = interview_repo.list_for_org_sync(current_user.organization_id)
+            completed_interviews = len([i for i in interviews if hasattr(i.status, 'value') and i.status.value == "completed"])
+    except Exception:
+        pass
 
     # Get analytics summaries
     strong_hires = 0
@@ -188,8 +208,8 @@ async def get_dashboard_stats(
     avg_score = round(total_score / score_count, 1) if score_count > 0 else 0.0
 
     return DashboardStats(
-        active_jobs=len(active_jobs),
-        total_jobs=len(all_jobs),
+        active_jobs=job_counts.get("active", 0),
+        total_jobs=job_counts.get("total", 0),
         total_candidates=total_candidates,
         interviewed_candidates=interviewed_candidates,
         pending_candidates=total_candidates - interviewed_candidates,
@@ -208,16 +228,23 @@ async def get_jobs_summary(
     """
     Get summary of jobs for dashboard display (organization-scoped).
 
+    Optimized: Uses batch queries and includes counts from job listing.
+
     Args:
         limit: Maximum number of jobs to return (default 5)
         status: Filter by job status (active, paused, closed)
     """
     job_repo = get_job_repo()
-    candidate_repo = get_candidate_repo()
     analytics_repo = get_analytics_repo()
 
-    # Get jobs for the user's organization
-    all_jobs = job_repo.list_all_for_org_sync(current_user.organization_id)
+    # Get job counts efficiently for totals
+    job_counts = job_repo.count_for_org_sync(current_user.organization_id)
+
+    # Get jobs for the user's organization (with counts already included)
+    all_jobs = job_repo.list_all_for_org_sync(
+        current_user.organization_id,
+        include_counts=True
+    )
 
     # Filter by status if provided
     if status:
@@ -230,17 +257,11 @@ async def get_jobs_summary(
 
     summaries = []
     for job in filtered_jobs[:limit]:
-        # Get candidate stats
-        candidate_count = 0
-        interviewed_count = 0
-        try:
-            candidates = candidate_repo.list_by_job_sync(job.id)
-            candidate_count = len(candidates)
-            interviewed_count = len([c for c in candidates if c.interview_status in ["completed", "in_progress"]])
-        except Exception:
-            pass
+        # Use counts already included in job from batch query
+        candidate_count = job.candidate_count or 0
+        interviewed_count = job.interviewed_count or 0
 
-        # Get average score from analytics
+        # Get average score from analytics (still per-job for now)
         avg_score = None
         try:
             job_analytics = analytics_repo.list_by_job_sync(job.id)
@@ -261,12 +282,10 @@ async def get_jobs_summary(
             created_at=job.created_at.isoformat() if job.created_at else None,
         ))
 
-    active_count = len([j for j in all_jobs if j.status == "active"])
-
     return JobsSummaryResponse(
         jobs=summaries,
-        total_active=active_count,
-        total_all=len(all_jobs),
+        total_active=job_counts.get("active", 0),
+        total_all=job_counts.get("total", 0),
     )
 
 

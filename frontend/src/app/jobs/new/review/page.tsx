@@ -174,7 +174,7 @@ function CategoryCard({
   borderColor,
 }: {
   title: string;
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   items: string[];
   onUpdate: (index: number, newValue: string) => void;
   onRemove: (index: number) => void;

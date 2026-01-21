@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import AppLayout from "@/components/AppLayout";
 import {
@@ -18,6 +19,7 @@ import {
   Filter,
   Briefcase,
   ChevronRight,
+  ChevronDown,
   X,
   Play,
   XCircle,
@@ -28,8 +30,21 @@ import {
   Loader2,
   Star,
   TrendingUp,
+  Command,
+  Zap,
+  AlertCircle,
+  CalendarCheck,
+  CalendarX,
+  ArrowRight,
+  User,
+  Eye,
 } from "lucide-react";
 import StartInterviewModal from "@/components/StartInterviewModal";
+import { tokens, springConfig, easeOutCustom } from "@/lib/design-tokens";
+
+// =============================================================================
+// TYPES & INTERFACES
+// =============================================================================
 
 interface Interviewer {
   id: string;
@@ -42,46 +57,1226 @@ interface Job {
   title: string;
 }
 
-const STATUS_OPTIONS = [
-  { value: "", label: "All Statuses" },
-  { value: "scheduled", label: "Scheduled" },
-  { value: "in_progress", label: "In Progress" },
-  { value: "completed", label: "Completed" },
-  { value: "cancelled", label: "Cancelled" },
+interface Interview {
+  id: string;
+  candidate_id: string;
+  candidate_name?: string;
+  interviewer_name?: string;
+  job_title?: string;
+  job_id?: string;
+  stage?: string;
+  status: string;
+  scheduled_at?: string;
+  timezone?: string;
+  duration_minutes?: number;
+  notes?: string;
+  cancel_reason?: string;
+  scores?: {
+    has_completed_interviews: boolean;
+    round_1: number | null;
+    round_2: number | null;
+    round_3: number | null;
+    cumulative: number | null;
+  };
+}
+
+// Grouped candidate with all their interview rounds
+interface GroupedCandidate {
+  candidate_id: string;
+  candidate_name: string;
+  job_title: string;
+  job_id?: string;
+  interviews: Interview[];
+  rounds: {
+    round_1: Interview | null;
+    round_2: Interview | null;
+    round_3: Interview | null;
+  };
+  scores: {
+    round_1: number | null;
+    round_2: number | null;
+    round_3: number | null;
+    average: number | null;
+  };
+  nextInterview: Interview | null;
+  overallStatus: "not_started" | "in_progress" | "completed" | "cancelled";
+}
+
+// =============================================================================
+// CONSTANTS
+// =============================================================================
+
+const STATUS_TABS = [
+  { value: "", label: "All", icon: Calendar },
+  { value: "scheduled", label: "Scheduled", icon: Clock },
+  { value: "in_progress", label: "In Progress", icon: Play },
+  { value: "completed", label: "Completed", icon: CheckCircle },
+  { value: "cancelled", label: "Cancelled", icon: XCircle },
 ];
 
-const STATUS_COLORS: Record<
-  string,
-  { bg: string; text: string; border: string }
-> = {
+const STATUS_STYLES: Record<string, { bg: string; text: string; border: string; dot: string }> = {
   scheduled: {
-    bg: "bg-blue-500/20",
+    bg: "bg-blue-500/10",
     text: "text-blue-400",
-    border: "border-blue-500/30",
+    border: "border-blue-500/20",
+    dot: "bg-blue-400",
   },
   in_progress: {
-    bg: "bg-yellow-500/20",
-    text: "text-yellow-400",
-    border: "border-yellow-500/30",
+    bg: "bg-amber-500/10",
+    text: "text-amber-400",
+    border: "border-amber-500/20",
+    dot: "bg-amber-400",
+  },
+  active: {
+    bg: "bg-amber-500/10",
+    text: "text-amber-400",
+    border: "border-amber-500/20",
+    dot: "bg-amber-400",
   },
   completed: {
-    bg: "bg-green-500/20",
-    text: "text-green-400",
-    border: "border-green-500/30",
+    bg: "bg-emerald-500/10",
+    text: "text-emerald-400",
+    border: "border-emerald-500/20",
+    dot: "bg-emerald-400",
   },
   cancelled: {
-    bg: "bg-red-500/20",
+    bg: "bg-red-500/10",
     text: "text-red-400",
-    border: "border-red-500/30",
+    border: "border-red-500/20",
+    dot: "bg-red-400",
   },
 };
 
 const STATUS_ICONS: Record<string, React.ReactNode> = {
   scheduled: <Clock className="w-3 h-3" />,
   in_progress: <Play className="w-3 h-3" />,
+  active: <Play className="w-3 h-3" />,
   completed: <CheckCircle className="w-3 h-3" />,
   cancelled: <XCircle className="w-3 h-3" />,
 };
+
+// =============================================================================
+// HELPER FUNCTIONS
+// =============================================================================
+
+function getScoreColor(score: number | null | undefined): string {
+  if (score === null || score === undefined) return tokens.textMuted;
+  if (score >= 80) return tokens.statusSuccess;
+  if (score >= 60) return tokens.statusWarning;
+  return tokens.statusDanger;
+}
+
+function isToday(date: Date): boolean {
+  const today = new Date();
+  return (
+    date.getDate() === today.getDate() &&
+    date.getMonth() === today.getMonth() &&
+    date.getFullYear() === today.getFullYear()
+  );
+}
+
+function isThisWeek(date: Date): boolean {
+  const today = new Date();
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - today.getDay());
+  startOfWeek.setHours(0, 0, 0, 0);
+
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + 7);
+
+  return date >= startOfWeek && date < endOfWeek;
+}
+
+function parseRoundFromStage(stage?: string): number | null {
+  if (!stage) return null;
+  const stageLower = stage.toLowerCase();
+  if (stageLower.includes("round_1") || stageLower.includes("round 1") || stageLower === "r1") return 1;
+  if (stageLower.includes("round_2") || stageLower.includes("round 2") || stageLower === "r2") return 2;
+  if (stageLower.includes("round_3") || stageLower.includes("round 3") || stageLower === "r3") return 3;
+  // Try to extract number from stage_X format
+  const match = stage.match(/stage_?(\d+)/i) || stage.match(/round_?(\d+)/i);
+  if (match) {
+    const num = parseInt(match[1], 10);
+    if (num >= 1 && num <= 3) return num;
+  }
+  return null;
+}
+
+function groupInterviewsByCandidate(interviews: Interview[]): GroupedCandidate[] {
+  const candidateMap = new Map<string, GroupedCandidate>();
+
+  interviews.forEach((interview) => {
+    const candidateId = interview.candidate_id;
+    if (!candidateId) return;
+
+    if (!candidateMap.has(candidateId)) {
+      candidateMap.set(candidateId, {
+        candidate_id: candidateId,
+        candidate_name: interview.candidate_name || "Unknown Candidate",
+        job_title: interview.job_title || "",
+        job_id: interview.job_id,
+        interviews: [],
+        rounds: { round_1: null, round_2: null, round_3: null },
+        scores: { round_1: null, round_2: null, round_3: null, average: null },
+        nextInterview: null,
+        overallStatus: "not_started",
+      });
+    }
+
+    const group = candidateMap.get(candidateId)!;
+    group.interviews.push(interview);
+
+    // Assign to round slot
+    const roundNum = parseRoundFromStage(interview.stage);
+    if (roundNum === 1) group.rounds.round_1 = interview;
+    else if (roundNum === 2) group.rounds.round_2 = interview;
+    else if (roundNum === 3) group.rounds.round_3 = interview;
+
+    // Extract scores
+    if (interview.scores) {
+      if (interview.scores.round_1 !== null) group.scores.round_1 = interview.scores.round_1;
+      if (interview.scores.round_2 !== null) group.scores.round_2 = interview.scores.round_2;
+      if (interview.scores.round_3 !== null) group.scores.round_3 = interview.scores.round_3;
+    }
+  });
+
+  // Post-process each group
+  candidateMap.forEach((group) => {
+    // Calculate average score
+    const validScores = [group.scores.round_1, group.scores.round_2, group.scores.round_3].filter(
+      (s): s is number => s !== null
+    );
+    group.scores.average = validScores.length > 0
+      ? Math.round(validScores.reduce((a, b) => a + b, 0) / validScores.length)
+      : null;
+
+    // Find next upcoming interview
+    const upcomingInterviews = group.interviews
+      .filter((i) => i.status === "scheduled" && i.scheduled_at)
+      .sort((a, b) => new Date(a.scheduled_at!).getTime() - new Date(b.scheduled_at!).getTime());
+    group.nextInterview = upcomingInterviews[0] || null;
+
+    // Determine overall status
+    const hasCompleted = group.interviews.some((i) => i.status === "completed");
+    const hasScheduled = group.interviews.some((i) => i.status === "scheduled");
+    const hasInProgress = group.interviews.some((i) => i.status === "in_progress" || i.status === "active");
+    const allCancelled = group.interviews.every((i) => i.status === "cancelled");
+
+    if (allCancelled) {
+      group.overallStatus = "cancelled";
+    } else if (hasInProgress) {
+      group.overallStatus = "in_progress";
+    } else if (hasCompleted && !hasScheduled) {
+      group.overallStatus = "completed";
+    } else if (hasCompleted || hasScheduled) {
+      group.overallStatus = "in_progress";
+    } else {
+      group.overallStatus = "not_started";
+    }
+  });
+
+  // Sort by next interview date, then by name
+  return Array.from(candidateMap.values()).sort((a, b) => {
+    // Prioritize candidates with upcoming interviews
+    if (a.nextInterview && !b.nextInterview) return -1;
+    if (!a.nextInterview && b.nextInterview) return 1;
+    if (a.nextInterview && b.nextInterview) {
+      return new Date(a.nextInterview.scheduled_at!).getTime() -
+             new Date(b.nextInterview.scheduled_at!).getTime();
+    }
+    return a.candidate_name.localeCompare(b.candidate_name);
+  });
+}
+
+// =============================================================================
+// STAT CARD COMPONENT
+// =============================================================================
+
+interface StatCardProps {
+  label: string;
+  value: number;
+  icon: React.ReactNode;
+  color: string;
+  delay?: number;
+}
+
+function StatCard({ label, value, icon, color, delay = 0 }: StatCardProps) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ ...springConfig, delay }}
+      className="relative overflow-hidden rounded-2xl border"
+      style={{
+        backgroundColor: tokens.bgCard,
+        borderColor: tokens.borderSubtle,
+      }}
+    >
+      {/* Subtle glow effect */}
+      <div
+        className="absolute -top-12 -right-12 w-32 h-32 rounded-full opacity-20 blur-3xl"
+        style={{ backgroundColor: color }}
+      />
+
+      <div className="relative p-5">
+        <div className="flex items-center justify-between mb-3">
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center"
+            style={{ backgroundColor: `${color}15` }}
+          >
+            <div style={{ color }}>{icon}</div>
+          </div>
+        </div>
+        <div className="text-3xl font-light tracking-tight text-white mb-1">
+          {value}
+        </div>
+        <div className="text-sm" style={{ color: tokens.textMuted }}>
+          {label}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// =============================================================================
+// COMMAND BAR COMPONENT
+// =============================================================================
+
+interface CommandBarProps {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+}
+
+function CommandBar({ value, onChange, placeholder }: CommandBarProps) {
+  const [isFocused, setIsFocused] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        document.getElementById("interview-search")?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={springConfig}
+      className={`relative rounded-2xl border transition-all duration-300 ${
+        isFocused ? "ring-2 ring-indigo-500/20" : ""
+      }`}
+      style={{
+        backgroundColor: tokens.bgSurface,
+        borderColor: isFocused ? tokens.brandPrimary + "40" : tokens.borderSubtle,
+      }}
+    >
+      <div className="flex items-center px-4 py-3">
+        <Search className="w-5 h-5 mr-3" style={{ color: tokens.textMuted }} />
+        <input
+          id="interview-search"
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          placeholder={placeholder || "Search interviews..."}
+          className="flex-1 bg-transparent text-white placeholder:text-white/30 focus:outline-none text-sm"
+        />
+        <div
+          className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-lg text-xs"
+          style={{
+            backgroundColor: tokens.bgCard,
+            color: tokens.textMuted,
+          }}
+        >
+          <Command className="w-3 h-3" />
+          <span>K</span>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// =============================================================================
+// INTERVIEW CARD COMPONENT
+// =============================================================================
+
+interface InterviewCardProps {
+  interview: Interview;
+  onStart: () => void;
+  onCancel: () => void;
+  onClick: () => void;
+  index: number;
+}
+
+function InterviewCard({ interview, onStart, onCancel, onClick, index }: InterviewCardProps) {
+  const statusStyle = STATUS_STYLES[interview.status] || STATUS_STYLES.scheduled;
+  const canStart =
+    (interview.status === "scheduled" ||
+      interview.status === "active" ||
+      interview.status === "in_progress") &&
+    interview.candidate_id;
+  const isUpcoming = interview.status === "scheduled" && interview.scheduled_at;
+  const scheduledDate = interview.scheduled_at ? new Date(interview.scheduled_at) : null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ ...springConfig, delay: index * 0.03 }}
+      onClick={onClick}
+      className="group relative rounded-2xl border cursor-pointer transition-all duration-300 hover:border-white/20"
+      style={{
+        backgroundColor: tokens.bgCard,
+        borderColor: tokens.borderSubtle,
+      }}
+    >
+      {/* Hover glow */}
+      <div
+        className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+        style={{
+          background: `radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), ${tokens.brandPrimary}08, transparent 40%)`,
+        }}
+      />
+
+      <div className="relative p-5">
+        <div className="flex items-start justify-between gap-4">
+          {/* Left: Interview Details */}
+          <div className="flex-1 min-w-0">
+            {/* Status & Stage Badges */}
+            <div className="flex items-center gap-2 mb-3">
+              <span
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border}`}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dot}`} />
+                {interview.status.replace("_", " ")}
+              </span>
+              {interview.stage && (
+                <span
+                  className="px-2.5 py-1 rounded-lg text-xs border"
+                  style={{
+                    backgroundColor: tokens.bgSurface,
+                    borderColor: tokens.borderSubtle,
+                    color: tokens.textSecondary,
+                  }}
+                >
+                  {interview.stage.replace("_", " ")}
+                </span>
+              )}
+              {scheduledDate && isToday(scheduledDate) && (
+                <span className="px-2.5 py-1 rounded-lg text-xs bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+                  Today
+                </span>
+              )}
+            </div>
+
+            {/* Candidate Name */}
+            <h3 className="text-lg font-medium text-white mb-2 group-hover:text-indigo-300 transition-colors">
+              {interview.candidate_name || "Unknown Candidate"}
+            </h3>
+
+            {/* Meta Info */}
+            <div className="flex flex-wrap items-center gap-4 text-sm" style={{ color: tokens.textMuted }}>
+              {interview.job_title && (
+                <span className="flex items-center gap-1.5">
+                  <Briefcase className="w-3.5 h-3.5" />
+                  {interview.job_title}
+                </span>
+              )}
+              {interview.interviewer_name && (
+                <span className="flex items-center gap-1.5">
+                  <UserCheck className="w-3.5 h-3.5" />
+                  {interview.interviewer_name}
+                </span>
+              )}
+              {interview.duration_minutes && (
+                <span className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" />
+                  {interview.duration_minutes} min
+                </span>
+              )}
+            </div>
+
+            {/* Scheduled Time */}
+            {scheduledDate && (
+              <div className="flex items-center gap-2 mt-3 text-sm">
+                <Calendar className="w-4 h-4" style={{ color: tokens.textMuted }} />
+                <span style={{ color: tokens.textSecondary }}>
+                  {formatDateTime(interview.scheduled_at!, interview.timezone)}
+                </span>
+              </div>
+            )}
+
+            {/* Notes */}
+            {interview.notes && (
+              <p className="text-sm mt-2 line-clamp-1" style={{ color: tokens.textMuted }}>
+                {interview.notes}
+              </p>
+            )}
+
+            {/* Cancel Reason */}
+            {interview.cancel_reason && (
+              <p className="text-sm mt-2" style={{ color: `${tokens.statusDanger}90` }}>
+                Cancelled: {interview.cancel_reason}
+              </p>
+            )}
+
+            {/* Scores Display */}
+            {interview.scores && (
+              <div
+                className="mt-4 pt-4 border-t"
+                style={{ borderColor: tokens.borderSubtle }}
+              >
+                {interview.scores.has_completed_interviews ? (
+                  <div className="flex items-center gap-4 text-sm">
+                    <div className="flex items-center gap-1.5">
+                      <Star className="w-3.5 h-3.5" style={{ color: tokens.statusWarning }} />
+                      <span style={{ color: tokens.textMuted }}>Scores:</span>
+                    </div>
+                    {interview.scores.round_1 !== null && (
+                      <span className="font-medium" style={{ color: getScoreColor(interview.scores.round_1) }}>
+                        R1: {interview.scores.round_1}
+                      </span>
+                    )}
+                    {interview.scores.round_2 !== null && (
+                      <span className="font-medium" style={{ color: getScoreColor(interview.scores.round_2) }}>
+                        R2: {interview.scores.round_2}
+                      </span>
+                    )}
+                    {interview.scores.round_3 !== null && (
+                      <span className="font-medium" style={{ color: getScoreColor(interview.scores.round_3) }}>
+                        R3: {interview.scores.round_3}
+                      </span>
+                    )}
+                    {interview.scores.cumulative !== null && (
+                      <span className="flex items-center gap-1">
+                        <TrendingUp className="w-3.5 h-3.5" style={{ color: tokens.brandPrimary }} />
+                        <span className="font-semibold" style={{ color: getScoreColor(interview.scores.cumulative) }}>
+                          {interview.scores.cumulative}
+                        </span>
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-sm" style={{ color: tokens.textMuted }}>
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>Interviews pending</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Right: Actions */}
+          <div className="flex items-center gap-2 shrink-0">
+            {canStart && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onStart();
+                }}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-105"
+                style={{
+                  backgroundColor: `${tokens.brandPrimary}20`,
+                  border: `1px solid ${tokens.brandPrimary}30`,
+                  color: tokens.brandPrimary,
+                }}
+              >
+                <Video className="w-4 h-4" />
+                {interview.status === "scheduled" ? "Start" : "Join"}
+              </button>
+            )}
+            {isUpcoming && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCancel();
+                }}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm transition-all duration-200 hover:scale-105"
+                style={{
+                  backgroundColor: `${tokens.statusDanger}10`,
+                  border: `1px solid ${tokens.statusDanger}20`,
+                  color: tokens.statusDanger,
+                }}
+              >
+                <XCircle className="w-4 h-4" />
+                Cancel
+              </button>
+            )}
+            {interview.status === "completed" && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClick();
+                }}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm transition-colors"
+                style={{
+                  backgroundColor: tokens.bgSurface,
+                  border: `1px solid ${tokens.borderSubtle}`,
+                  color: tokens.textSecondary,
+                }}
+              >
+                View Details
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// =============================================================================
+// ROUND BADGE COMPONENT (for timeline)
+// =============================================================================
+
+interface RoundBadgeProps {
+  round: number;
+  interview: Interview | null;
+  score: number | null;
+  onStart?: () => void;
+  onCancel?: () => void;
+}
+
+function RoundBadge({ round, interview, score, onStart, onCancel }: RoundBadgeProps) {
+  const getStatus = () => {
+    if (!interview) return "pending";
+    if (interview.status === "completed") return "completed";
+    if (interview.status === "cancelled") return "cancelled";
+    if (interview.status === "in_progress" || interview.status === "active") return "active";
+    if (interview.status === "scheduled") {
+      if (interview.scheduled_at && isToday(new Date(interview.scheduled_at))) return "today";
+      return "scheduled";
+    }
+    return "pending";
+  };
+
+  const status = getStatus();
+
+  const statusStyles: Record<string, { bg: string; border: string; text: string; glow?: string }> = {
+    completed: {
+      bg: `${tokens.statusSuccess}15`,
+      border: `${tokens.statusSuccess}40`,
+      text: tokens.statusSuccess,
+      glow: `0 0 20px ${tokens.statusSuccess}30`,
+    },
+    today: {
+      bg: `${tokens.brandPrimary}20`,
+      border: tokens.brandPrimary,
+      text: tokens.brandPrimary,
+      glow: `0 0 20px ${tokens.brandPrimary}40`,
+    },
+    active: {
+      bg: `${tokens.statusWarning}15`,
+      border: `${tokens.statusWarning}60`,
+      text: tokens.statusWarning,
+      glow: `0 0 20px ${tokens.statusWarning}30`,
+    },
+    scheduled: {
+      bg: `${tokens.brandSecondary}10`,
+      border: `${tokens.brandSecondary}40`,
+      text: tokens.brandSecondary,
+    },
+    cancelled: {
+      bg: `${tokens.statusDanger}10`,
+      border: `${tokens.statusDanger}30`,
+      text: tokens.statusDanger,
+    },
+    pending: {
+      bg: tokens.bgSurface,
+      border: tokens.borderSubtle,
+      text: tokens.textMuted,
+    },
+  };
+
+  const style = statusStyles[status];
+  const canStart = interview && (interview.status === "scheduled" || interview.status === "active" || interview.status === "in_progress");
+  const canCancel = interview && interview.status === "scheduled";
+
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ ...springConfig, delay: round * 0.1 }}
+        className="relative group"
+      >
+        <div
+          className="w-20 h-20 rounded-2xl flex flex-col items-center justify-center border-2 transition-all cursor-default"
+          style={{
+            backgroundColor: style.bg,
+            borderColor: style.border,
+            boxShadow: style.glow,
+          }}
+        >
+          <span className="text-xs font-medium mb-0.5" style={{ color: style.text }}>
+            R{round}
+          </span>
+          {score !== null ? (
+            <span className="text-xl font-semibold" style={{ color: getScoreColor(score) }}>
+              {score}
+            </span>
+          ) : status === "completed" ? (
+            <CheckCircle className="w-5 h-5" style={{ color: tokens.statusSuccess }} />
+          ) : status === "today" || status === "active" ? (
+            <Play className="w-5 h-5" style={{ color: style.text }} />
+          ) : status === "cancelled" ? (
+            <XCircle className="w-5 h-5" style={{ color: tokens.statusDanger }} />
+          ) : status === "scheduled" ? (
+            <Clock className="w-5 h-5" style={{ color: style.text }} />
+          ) : (
+            <span className="text-lg" style={{ color: tokens.textMuted }}>—</span>
+          )}
+        </div>
+
+        {/* Status Label */}
+        <div className="text-center mt-1">
+          <span className="text-[10px] uppercase tracking-wider font-medium" style={{ color: style.text }}>
+            {status === "today" ? "Today" : status === "active" ? "Live" : status.charAt(0).toUpperCase() + status.slice(1)}
+          </span>
+        </div>
+
+        {/* Action buttons on hover */}
+        {(canStart || canCancel) && (
+          <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            {canStart && onStart && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onStart(); }}
+                className="p-1.5 rounded-lg transition-colors"
+                style={{
+                  backgroundColor: `${tokens.brandPrimary}20`,
+                  border: `1px solid ${tokens.brandPrimary}30`,
+                }}
+              >
+                <Video className="w-3 h-3" style={{ color: tokens.brandPrimary }} />
+              </button>
+            )}
+            {canCancel && onCancel && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onCancel(); }}
+                className="p-1.5 rounded-lg transition-colors"
+                style={{
+                  backgroundColor: `${tokens.statusDanger}10`,
+                  border: `1px solid ${tokens.statusDanger}20`,
+                }}
+              >
+                <X className="w-3 h-3" style={{ color: tokens.statusDanger }} />
+              </button>
+            )}
+          </div>
+        )}
+      </motion.div>
+    </div>
+  );
+}
+
+// =============================================================================
+// CANDIDATE INTERVIEW CARD COMPONENT (Grouped View)
+// =============================================================================
+
+interface CandidateInterviewCardProps {
+  group: GroupedCandidate;
+  onViewProfile: () => void;
+  onStartInterview: (interview: Interview) => void;
+  onCancelInterview: (interviewId: string) => void;
+  index: number;
+}
+
+function CandidateInterviewCard({
+  group,
+  onViewProfile,
+  onStartInterview,
+  onCancelInterview,
+  index,
+}: CandidateInterviewCardProps) {
+  const overallStatusStyles: Record<string, { bg: string; text: string; label: string }> = {
+    not_started: {
+      bg: tokens.bgSurface,
+      text: tokens.textMuted,
+      label: "Not Started",
+    },
+    in_progress: {
+      bg: `${tokens.brandPrimary}15`,
+      text: tokens.brandPrimary,
+      label: "In Progress",
+    },
+    completed: {
+      bg: `${tokens.statusSuccess}15`,
+      text: tokens.statusSuccess,
+      label: "Completed",
+    },
+    cancelled: {
+      bg: `${tokens.statusDanger}10`,
+      text: tokens.statusDanger,
+      label: "Cancelled",
+    },
+  };
+
+  const statusStyle = overallStatusStyles[group.overallStatus];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ ...springConfig, delay: index * 0.05 }}
+      onClick={onViewProfile}
+      className="group relative rounded-2xl border cursor-pointer transition-all duration-300 hover:border-white/20"
+      style={{
+        backgroundColor: tokens.bgCard,
+        borderColor: tokens.borderSubtle,
+      }}
+    >
+      {/* Hover glow */}
+      <div
+        className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+        style={{
+          background: `radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), ${tokens.brandPrimary}08, transparent 40%)`,
+        }}
+      />
+
+      <div className="relative p-6">
+        {/* Header: Candidate Info + Overall Status + Average Score */}
+        <div className="flex items-start justify-between gap-4 mb-6">
+          <div className="flex-1 min-w-0">
+            {/* Candidate Name */}
+            <h3 className="text-xl font-medium text-white mb-1 group-hover:text-indigo-300 transition-colors flex items-center gap-2">
+              <User className="w-5 h-5" style={{ color: tokens.textMuted }} />
+              {group.candidate_name}
+            </h3>
+
+            {/* Job Title */}
+            <div className="flex items-center gap-3 text-sm" style={{ color: tokens.textMuted }}>
+              <span className="flex items-center gap-1.5">
+                <Briefcase className="w-3.5 h-3.5" />
+                {group.job_title || "No job assigned"}
+              </span>
+
+              {/* Overall Status Badge */}
+              <span
+                className="px-2.5 py-1 rounded-lg text-xs font-medium"
+                style={{
+                  backgroundColor: statusStyle.bg,
+                  color: statusStyle.text,
+                }}
+              >
+                {statusStyle.label}
+              </span>
+            </div>
+
+            {/* Next Interview Info */}
+            {group.nextInterview && (
+              <div className="flex items-center gap-2 mt-3 text-sm">
+                <Calendar className="w-4 h-4" style={{ color: tokens.textMuted }} />
+                <span style={{ color: tokens.textSecondary }}>
+                  Next: {formatDateTime(group.nextInterview.scheduled_at!, group.nextInterview.timezone)}
+                </span>
+                {group.nextInterview.scheduled_at && isToday(new Date(group.nextInterview.scheduled_at)) && (
+                  <span className="px-2 py-0.5 rounded text-xs bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+                    Today
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Average Score */}
+          <div className="text-right shrink-0">
+            {group.scores.average !== null ? (
+              <div>
+                <div className="text-xs uppercase tracking-wider mb-1" style={{ color: tokens.textMuted }}>
+                  Average
+                </div>
+                <div
+                  className="text-3xl font-light"
+                  style={{ color: getScoreColor(group.scores.average) }}
+                >
+                  {group.scores.average}
+                </div>
+              </div>
+            ) : (
+              <div>
+                <div className="text-xs uppercase tracking-wider mb-1" style={{ color: tokens.textMuted }}>
+                  Rounds
+                </div>
+                <div className="text-2xl font-light" style={{ color: tokens.textMuted }}>
+                  {group.interviews.filter((i) => i.status === "completed").length}/3
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Interview Timeline */}
+        <div
+          className="relative py-6 px-4 rounded-xl"
+          style={{ backgroundColor: tokens.bgSurface }}
+        >
+          {/* Connecting Line */}
+          <div
+            className="absolute top-1/2 left-[60px] right-[60px] h-[2px] -translate-y-1/2"
+            style={{ backgroundColor: tokens.borderSubtle }}
+          />
+
+          {/* Progress Line */}
+          <motion.div
+            className="absolute top-1/2 left-[60px] h-[2px] -translate-y-1/2"
+            initial={{ width: 0 }}
+            animate={{
+              width: `${Math.max(
+                0,
+                (group.interviews.filter((i) => i.status === "completed").length / 3) * 100
+              )}%`,
+            }}
+            transition={{ ...springConfig, delay: 0.3 }}
+            style={{
+              background: `linear-gradient(to right, ${tokens.statusSuccess}, ${tokens.brandPrimary})`,
+              maxWidth: "calc(100% - 120px)",
+            }}
+          />
+
+          {/* Round Badges */}
+          <div className="relative flex justify-between items-center">
+            <RoundBadge
+              round={1}
+              interview={group.rounds.round_1}
+              score={group.scores.round_1}
+              onStart={group.rounds.round_1 ? () => onStartInterview(group.rounds.round_1!) : undefined}
+              onCancel={group.rounds.round_1 ? () => onCancelInterview(group.rounds.round_1!.id) : undefined}
+            />
+
+            <ArrowRight className="w-5 h-5 -mx-2" style={{ color: tokens.borderSubtle }} />
+
+            <RoundBadge
+              round={2}
+              interview={group.rounds.round_2}
+              score={group.scores.round_2}
+              onStart={group.rounds.round_2 ? () => onStartInterview(group.rounds.round_2!) : undefined}
+              onCancel={group.rounds.round_2 ? () => onCancelInterview(group.rounds.round_2!.id) : undefined}
+            />
+
+            <ArrowRight className="w-5 h-5 -mx-2" style={{ color: tokens.borderSubtle }} />
+
+            <RoundBadge
+              round={3}
+              interview={group.rounds.round_3}
+              score={group.scores.round_3}
+              onStart={group.rounds.round_3 ? () => onStartInterview(group.rounds.round_3!) : undefined}
+              onCancel={group.rounds.round_3 ? () => onCancelInterview(group.rounds.round_3!.id) : undefined}
+            />
+          </div>
+        </div>
+
+        {/* Footer Actions */}
+        <div className="flex items-center justify-between mt-4 pt-4 border-t" style={{ borderColor: tokens.borderSubtle }}>
+          <div className="flex items-center gap-2 text-sm" style={{ color: tokens.textMuted }}>
+            <span>{group.interviews.length} interview{group.interviews.length !== 1 ? "s" : ""} total</span>
+          </div>
+
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewProfile();
+            }}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm transition-colors"
+            style={{
+              backgroundColor: tokens.bgSurface,
+              border: `1px solid ${tokens.borderSubtle}`,
+              color: tokens.textSecondary,
+            }}
+          >
+            <Eye className="w-4 h-4" />
+            View Profile
+            <ChevronRight className="w-4 h-4" />
+          </motion.button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// =============================================================================
+// FILTER PANEL COMPONENT
+// =============================================================================
+
+interface FilterPanelProps {
+  isOpen: boolean;
+  selectedInterviewer: string;
+  setSelectedInterviewer: (value: string) => void;
+  selectedJob: string;
+  setSelectedJob: (value: string) => void;
+  dateFrom: string;
+  setDateFrom: (value: string) => void;
+  dateTo: string;
+  setDateTo: (value: string) => void;
+  interviewers: Interviewer[];
+  jobs: Job[];
+  onClear: () => void;
+  activeFilterCount: number;
+}
+
+function FilterPanel({
+  isOpen,
+  selectedInterviewer,
+  setSelectedInterviewer,
+  selectedJob,
+  setSelectedJob,
+  dateFrom,
+  setDateFrom,
+  dateTo,
+  setDateTo,
+  interviewers,
+  jobs,
+  onClear,
+  activeFilterCount,
+}: FilterPanelProps) {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={springConfig}
+          className="overflow-hidden"
+        >
+          <div
+            className="rounded-2xl border p-6 mt-4"
+            style={{
+              backgroundColor: tokens.bgCard,
+              borderColor: tokens.borderSubtle,
+            }}
+          >
+            {/* Active Filters */}
+            {activeFilterCount > 0 && (
+              <div className="flex items-center gap-2 flex-wrap mb-4 pb-4 border-b" style={{ borderColor: tokens.borderSubtle }}>
+                <span className="text-sm" style={{ color: tokens.textMuted }}>
+                  Active filters:
+                </span>
+                {selectedInterviewer && (
+                  <button
+                    onClick={() => setSelectedInterviewer("")}
+                    className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs"
+                    style={{
+                      backgroundColor: `${tokens.brandSecondary}15`,
+                      border: `1px solid ${tokens.brandSecondary}30`,
+                      color: tokens.brandSecondary,
+                    }}
+                  >
+                    <UserCheck className="w-3 h-3" />
+                    {interviewers.find((i) => i.id === selectedInterviewer)?.name || "Interviewer"}
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+                {selectedJob && (
+                  <button
+                    onClick={() => setSelectedJob("")}
+                    className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs"
+                    style={{
+                      backgroundColor: `${tokens.statusWarning}15`,
+                      border: `1px solid ${tokens.statusWarning}30`,
+                      color: tokens.statusWarning,
+                    }}
+                  >
+                    <Briefcase className="w-3 h-3" />
+                    {jobs.find((j) => j.id === selectedJob)?.title || "Job"}
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+                {dateFrom && (
+                  <button
+                    onClick={() => setDateFrom("")}
+                    className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs"
+                    style={{
+                      backgroundColor: `${tokens.statusSuccess}15`,
+                      border: `1px solid ${tokens.statusSuccess}30`,
+                      color: tokens.statusSuccess,
+                    }}
+                  >
+                    <Calendar className="w-3 h-3" />
+                    From: {dateFrom}
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+                {dateTo && (
+                  <button
+                    onClick={() => setDateTo("")}
+                    className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs"
+                    style={{
+                      backgroundColor: `${tokens.statusSuccess}15`,
+                      border: `1px solid ${tokens.statusSuccess}30`,
+                      color: tokens.statusSuccess,
+                    }}
+                  >
+                    <Calendar className="w-3 h-3" />
+                    To: {dateTo}
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+                <button
+                  onClick={onClear}
+                  className="text-xs underline ml-2"
+                  style={{ color: tokens.textMuted }}
+                >
+                  Clear all
+                </button>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Interviewer Filter */}
+              <div>
+                <label className="text-sm mb-2 block" style={{ color: tokens.textSecondary }}>
+                  Interviewer
+                </label>
+                <select
+                  value={selectedInterviewer}
+                  onChange={(e) => setSelectedInterviewer(e.target.value)}
+                  className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  style={{
+                    backgroundColor: tokens.bgSurface,
+                    border: `1px solid ${tokens.borderSubtle}`,
+                    color: tokens.textPrimary,
+                  }}
+                >
+                  <option value="">All Interviewers</option>
+                  {interviewers.map((interviewer) => (
+                    <option key={interviewer.id} value={interviewer.id}>
+                      {interviewer.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Job Filter */}
+              <div>
+                <label className="text-sm mb-2 block" style={{ color: tokens.textSecondary }}>
+                  Job Position
+                </label>
+                <select
+                  value={selectedJob}
+                  onChange={(e) => setSelectedJob(e.target.value)}
+                  className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  style={{
+                    backgroundColor: tokens.bgSurface,
+                    border: `1px solid ${tokens.borderSubtle}`,
+                    color: tokens.textPrimary,
+                  }}
+                >
+                  <option value="">All Jobs</option>
+                  {jobs.map((job) => (
+                    <option key={job.id} value={job.id}>
+                      {job.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Date From */}
+              <div>
+                <label className="text-sm mb-2 block" style={{ color: tokens.textSecondary }}>
+                  From Date
+                </label>
+                <input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  style={{
+                    backgroundColor: tokens.bgSurface,
+                    border: `1px solid ${tokens.borderSubtle}`,
+                    color: tokens.textPrimary,
+                  }}
+                />
+              </div>
+
+              {/* Date To */}
+              <div>
+                <label className="text-sm mb-2 block" style={{ color: tokens.textSecondary }}>
+                  To Date
+                </label>
+                <input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  style={{
+                    backgroundColor: tokens.bgSurface,
+                    border: `1px solid ${tokens.borderSubtle}`,
+                    color: tokens.textPrimary,
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+// =============================================================================
+// EMPTY STATE COMPONENT
+// =============================================================================
+
+function EmptyState({ hasFilters }: { hasFilters: boolean }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={springConfig}
+      className="rounded-3xl border p-12 text-center"
+      style={{
+        backgroundColor: tokens.bgCard,
+        borderColor: tokens.borderSubtle,
+      }}
+    >
+      <div
+        className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6"
+        style={{ backgroundColor: tokens.bgSurface }}
+      >
+        <Calendar className="w-10 h-10" style={{ color: tokens.textMuted }} />
+      </div>
+      <h3 className="text-xl font-light text-white mb-2">No interviews found</h3>
+      <p className="text-sm max-w-sm mx-auto" style={{ color: tokens.textMuted }}>
+        {hasFilters
+          ? "Try adjusting your filters to see more results"
+          : "Schedule interviews with candidates to see them here"}
+      </p>
+    </motion.div>
+  );
+}
+
+// =============================================================================
+// LOADING STATE COMPONENT
+// =============================================================================
+
+function LoadingState() {
+  return (
+    <div className="flex flex-col items-center justify-center py-20">
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+      >
+        <Loader2 className="w-8 h-8" style={{ color: tokens.brandPrimary }} />
+      </motion.div>
+      <p className="mt-4 text-sm" style={{ color: tokens.textMuted }}>
+        Loading interviews...
+      </p>
+    </div>
+  );
+}
+
+// =============================================================================
+// MAIN COMPONENT
+// =============================================================================
 
 export default function InterviewsPage() {
   const router = useRouter();
@@ -110,7 +1305,7 @@ export default function InterviewsPage() {
     jobTitle: string;
   } | null>(null);
 
-  // React Query hooks - automatic deduplication & caching
+  // React Query hooks
   const {
     data: interviews = [],
     isLoading,
@@ -127,6 +1322,30 @@ export default function InterviewsPage() {
   const { data: jobs = [] } = useJobs(recruiter?.id);
 
   const cancelInterviewMutation = useCancelInterview();
+
+  // Calculate stats
+  const stats = useMemo(() => {
+    const today = new Date();
+    const todayInterviews = (interviews as Interview[]).filter(
+      (i) => i.scheduled_at && isToday(new Date(i.scheduled_at)) && i.status === "scheduled"
+    );
+    const thisWeekInterviews = (interviews as Interview[]).filter(
+      (i) => i.scheduled_at && isThisWeek(new Date(i.scheduled_at)) && i.status === "scheduled"
+    );
+    const completedInterviews = (interviews as Interview[]).filter(
+      (i) => i.status === "completed"
+    );
+    const cancelledInterviews = (interviews as Interview[]).filter(
+      (i) => i.status === "cancelled"
+    );
+
+    return {
+      today: todayInterviews.length,
+      thisWeek: thisWeekInterviews.length,
+      completed: completedInterviews.length,
+      cancelled: cancelledInterviews.length,
+    };
+  }, [interviews]);
 
   const handleCancelInterview = async () => {
     if (!cancellingId) return;
@@ -153,504 +1372,356 @@ export default function InterviewsPage() {
   };
 
   const hasActiveFilters =
-    selectedStatus || selectedInterviewer || selectedJob || dateFrom || dateTo;
+    selectedInterviewer || selectedJob || dateFrom || dateTo;
 
   const activeFilterCount =
-    (selectedStatus ? 1 : 0) +
     (selectedInterviewer ? 1 : 0) +
     (selectedJob ? 1 : 0) +
     (dateFrom ? 1 : 0) +
     (dateTo ? 1 : 0);
 
   // Filter interviews by search query (client-side)
-  const filteredInterviews = interviews.filter((interview: any) => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    return (
-      interview.candidate_name?.toLowerCase().includes(query) ||
-      interview.interviewer_name?.toLowerCase().includes(query) ||
-      interview.job_title?.toLowerCase().includes(query) ||
-      interview.stage?.toLowerCase().includes(query)
-    );
-  });
+  const filteredInterviews = useMemo(() => {
+    return (interviews as Interview[]).filter((interview) => {
+      if (!searchQuery) return true;
+      const query = searchQuery.toLowerCase();
+      return (
+        interview.candidate_name?.toLowerCase().includes(query) ||
+        interview.interviewer_name?.toLowerCase().includes(query) ||
+        interview.job_title?.toLowerCase().includes(query) ||
+        interview.stage?.toLowerCase().includes(query)
+      );
+    });
+  }, [interviews, searchQuery]);
 
-  const getStatusStyle = (status: string) => {
-    return STATUS_COLORS[status] || STATUS_COLORS.scheduled;
-  };
+  // Count by status for tabs
+  const statusCounts = useMemo(() => {
+    const counts: Record<string, number> = { "": filteredInterviews.length };
+    filteredInterviews.forEach((i) => {
+      counts[i.status] = (counts[i.status] || 0) + 1;
+    });
+    return counts;
+  }, [filteredInterviews]);
 
-  const getScoreColor = (score: number | null | undefined) => {
-    if (score === null || score === undefined) return "text-white/40";
-    if (score >= 80) return "text-green-400";
-    if (score >= 60) return "text-yellow-400";
-    return "text-red-400";
-  };
+  // Filter by status tab
+  const displayedInterviews = useMemo(() => {
+    if (!selectedStatus) return filteredInterviews;
+    return filteredInterviews.filter((i) => i.status === selectedStatus);
+  }, [filteredInterviews, selectedStatus]);
+
+  // Group interviews by candidate for the new grouped view
+  const groupedCandidates = useMemo(() => {
+    return groupInterviewsByCandidate(displayedInterviews);
+  }, [displayedInterviews]);
+
+  // Calculate unique candidate count for header
+  const uniqueCandidateCount = groupedCandidates.length;
 
   return (
     <AppLayout>
-      <div className="px-6 py-8 max-w-7xl mx-auto">
-        {/* Page Title */}
-        <div className="flex items-center justify-between mb-8">
+      {/* Ambient Background */}
+      <div
+        className="fixed inset-0 pointer-events-none"
+        style={{
+          background: `
+            radial-gradient(ellipse 80% 50% at 50% -20%, ${tokens.brandPrimary}15, transparent),
+            radial-gradient(ellipse 60% 40% at 100% 0%, ${tokens.brandSecondary}10, transparent),
+            ${tokens.bgApp}
+          `,
+        }}
+      />
+
+      {/* Grain Texture */}
+      <div
+        className="fixed inset-0 pointer-events-none opacity-[0.015]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+        }}
+      />
+
+      <div className="relative px-6 py-8 max-w-7xl mx-auto">
+        {/* Page Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={springConfig}
+          className="flex items-center justify-between mb-8"
+        >
           <div>
-            <h2 className="text-2xl font-light tracking-wide">Interviews</h2>
-            <p className="text-white/50 text-sm mt-1">
-              {filteredInterviews.length} interview
-              {filteredInterviews.length !== 1 ? "s" : ""}
+            <h1 className="text-3xl font-light tracking-tight text-white mb-1">
+              Interviews
+            </h1>
+            <p style={{ color: tokens.textMuted }}>
+              {uniqueCandidateCount} candidate{uniqueCandidateCount !== 1 ? "s" : ""} • {filteredInterviews.length} interview{filteredInterviews.length !== 1 ? "s" : ""}
             </p>
           </div>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => refetch()}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm transition-colors"
+            style={{
+              backgroundColor: tokens.bgCard,
+              border: `1px solid ${tokens.borderSubtle}`,
+              color: tokens.textSecondary,
+            }}
+          >
+            <RefreshCw className="w-4 h-4" />
+            Refresh
+          </motion.button>
+        </motion.div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <StatCard
+            label="Scheduled Today"
+            value={stats.today}
+            icon={<Zap className="w-5 h-5" />}
+            color={tokens.brandPrimary}
+            delay={0}
+          />
+          <StatCard
+            label="This Week"
+            value={stats.thisWeek}
+            icon={<CalendarCheck className="w-5 h-5" />}
+            color={tokens.brandSecondary}
+            delay={0.05}
+          />
+          <StatCard
+            label="Completed"
+            value={stats.completed}
+            icon={<CheckCircle className="w-5 h-5" />}
+            color={tokens.statusSuccess}
+            delay={0.1}
+          />
+          <StatCard
+            label="Cancelled"
+            value={stats.cancelled}
+            icon={<CalendarX className="w-5 h-5" />}
+            color={tokens.statusDanger}
+            delay={0.15}
+          />
         </div>
 
         {/* Search and Filters */}
-        <div className="mb-6 space-y-4">
-          {/* Search Bar */}
+        <div className="mb-6">
           <div className="flex gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-              <input
-                type="text"
-                placeholder="Search by candidate, interviewer, or job..."
+            <div className="flex-1">
+              <CommandBar
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:border-white/30 placeholder:text-white/30"
+                onChange={setSearchQuery}
+                placeholder="Search by candidate, interviewer, or job..."
               />
             </div>
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 px-4 py-3 rounded-xl border transition-colors ${
+              className={`flex items-center gap-2 px-4 py-3 rounded-xl border transition-all ${
                 showFilters || hasActiveFilters
-                  ? "bg-white/10 border-white/30 text-white"
-                  : "bg-white/5 border-white/10 text-white/60 hover:border-white/20"
+                  ? "ring-2 ring-indigo-500/20"
+                  : ""
               }`}
+              style={{
+                backgroundColor: showFilters || hasActiveFilters ? tokens.bgCard : tokens.bgSurface,
+                borderColor: showFilters || hasActiveFilters ? tokens.brandPrimary + "40" : tokens.borderSubtle,
+                color: showFilters || hasActiveFilters ? tokens.textPrimary : tokens.textSecondary,
+              }}
             >
               <Filter className="w-4 h-4" />
               Filters
               {hasActiveFilters && (
-                <span className="bg-white/20 text-white text-xs px-2 py-0.5 rounded-full">
+                <span
+                  className="px-2 py-0.5 rounded-full text-xs"
+                  style={{
+                    backgroundColor: tokens.brandPrimary + "20",
+                    color: tokens.brandPrimary,
+                  }}
+                >
                   {activeFilterCount}
                 </span>
               )}
-            </button>
-            <button
-              onClick={() => refetch()}
-              className="flex items-center gap-2 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white/60 hover:border-white/20 hover:text-white transition-colors"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Refresh
-            </button>
+              <ChevronDown
+                className={`w-4 h-4 transition-transform ${showFilters ? "rotate-180" : ""}`}
+              />
+            </motion.button>
           </div>
 
-          {/* Filter Panel */}
-          {showFilters && (
-            <div className="glass-panel rounded-2xl p-6 space-y-6">
-              {/* Active Filters */}
-              {hasActiveFilters && (
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm text-white/50">Active filters:</span>
-                  {selectedStatus && (
-                    <button
-                      onClick={() => setSelectedStatus("")}
-                      className="flex items-center gap-1 px-2 py-1 bg-blue-500/20 border border-blue-500/30 rounded-lg text-xs text-blue-400"
-                    >
-                      {
-                        STATUS_OPTIONS.find((s) => s.value === selectedStatus)
-                          ?.label
-                      }
-                      <X className="w-3 h-3" />
-                    </button>
-                  )}
-                  {selectedInterviewer && (
-                    <button
-                      onClick={() => setSelectedInterviewer("")}
-                      className="flex items-center gap-1 px-2 py-1 bg-purple-500/20 border border-purple-500/30 rounded-lg text-xs text-purple-400"
-                    >
-                      <UserCheck className="w-3 h-3" />
-                      {(interviewers as Interviewer[]).find(
-                        (i) => i.id === selectedInterviewer
-                      )?.name || "Interviewer"}
-                      <X className="w-3 h-3" />
-                    </button>
-                  )}
-                  {selectedJob && (
-                    <button
-                      onClick={() => setSelectedJob("")}
-                      className="flex items-center gap-1 px-2 py-1 bg-orange-500/20 border border-orange-500/30 rounded-lg text-xs text-orange-400"
-                    >
-                      <Briefcase className="w-3 h-3" />
-                      {(jobs as Job[]).find((j) => j.id === selectedJob)
-                        ?.title || "Job"}
-                      <X className="w-3 h-3" />
-                    </button>
-                  )}
-                  {dateFrom && (
-                    <button
-                      onClick={() => setDateFrom("")}
-                      className="flex items-center gap-1 px-2 py-1 bg-green-500/20 border border-green-500/30 rounded-lg text-xs text-green-400"
-                    >
-                      <Calendar className="w-3 h-3" />
-                      From: {dateFrom}
-                      <X className="w-3 h-3" />
-                    </button>
-                  )}
-                  {dateTo && (
-                    <button
-                      onClick={() => setDateTo("")}
-                      className="flex items-center gap-1 px-2 py-1 bg-green-500/20 border border-green-500/30 rounded-lg text-xs text-green-400"
-                    >
-                      <Calendar className="w-3 h-3" />
-                      To: {dateTo}
-                      <X className="w-3 h-3" />
-                    </button>
-                  )}
-                  <button
-                    onClick={clearFilters}
-                    className="text-xs text-white/40 hover:text-white/60 underline ml-2"
-                  >
-                    Clear all
-                  </button>
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Status Filter */}
-                <div>
-                  <label className="text-sm text-white/60 mb-2 block">
-                    Status
-                  </label>
-                  <select
-                    value={selectedStatus}
-                    onChange={(e) => setSelectedStatus(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-white/30"
-                  >
-                    {STATUS_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Interviewer Filter */}
-                <div>
-                  <label className="text-sm text-white/60 mb-2 block">
-                    Interviewer
-                  </label>
-                  <select
-                    value={selectedInterviewer}
-                    onChange={(e) => setSelectedInterviewer(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-white/30"
-                  >
-                    <option value="">All Interviewers</option>
-                    {(interviewers as Interviewer[]).map((interviewer) => (
-                      <option key={interviewer.id} value={interviewer.id}>
-                        {interviewer.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Job Filter */}
-                <div>
-                  <label className="text-sm text-white/60 mb-2 block">
-                    Job Position
-                  </label>
-                  <select
-                    value={selectedJob}
-                    onChange={(e) => setSelectedJob(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-white/30"
-                  >
-                    <option value="">All Jobs</option>
-                    {(jobs as Job[]).map((job) => (
-                      <option key={job.id} value={job.id}>
-                        {job.title}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Date From */}
-                <div>
-                  <label className="text-sm text-white/60 mb-2 block">
-                    From Date
-                  </label>
-                  <input
-                    type="date"
-                    value={dateFrom}
-                    onChange={(e) => setDateFrom(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-white/30"
-                  />
-                </div>
-
-                {/* Date To */}
-                <div>
-                  <label className="text-sm text-white/60 mb-2 block">
-                    To Date
-                  </label>
-                  <input
-                    type="date"
-                    value={dateTo}
-                    onChange={(e) => setDateTo(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-white/30"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
+          <FilterPanel
+            isOpen={showFilters}
+            selectedInterviewer={selectedInterviewer}
+            setSelectedInterviewer={setSelectedInterviewer}
+            selectedJob={selectedJob}
+            setSelectedJob={setSelectedJob}
+            dateFrom={dateFrom}
+            setDateFrom={setDateFrom}
+            dateTo={dateTo}
+            setDateTo={setDateTo}
+            interviewers={interviewers as Interviewer[]}
+            jobs={jobs as Job[]}
+            onClear={clearFilters}
+            activeFilterCount={activeFilterCount}
+          />
         </div>
 
-        {/* Results */}
+        {/* Status Tabs */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ ...springConfig, delay: 0.1 }}
+          className="flex items-center gap-2 mb-6 overflow-x-auto pb-2"
+        >
+          {STATUS_TABS.map((tab) => {
+            const Icon = tab.icon;
+            const count = statusCounts[tab.value] || 0;
+            const isActive = selectedStatus === tab.value;
+
+            return (
+              <button
+                key={tab.value}
+                onClick={() => setSelectedStatus(tab.value)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${
+                  isActive ? "ring-2 ring-indigo-500/20" : ""
+                }`}
+                style={{
+                  backgroundColor: isActive ? tokens.bgCard : "transparent",
+                  border: `1px solid ${isActive ? tokens.brandPrimary + "40" : tokens.borderSubtle}`,
+                  color: isActive ? tokens.textPrimary : tokens.textMuted,
+                }}
+              >
+                <Icon className="w-4 h-4" />
+                {tab.label}
+                <span
+                  className="px-1.5 py-0.5 rounded text-xs"
+                  style={{
+                    backgroundColor: isActive ? tokens.brandPrimary + "20" : tokens.bgSurface,
+                    color: isActive ? tokens.brandPrimary : tokens.textMuted,
+                  }}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </motion.div>
+
+        {/* Results - Candidate-Centric Grouped View */}
         {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
-          </div>
-        ) : filteredInterviews.length === 0 ? (
-          <div className="glass-panel rounded-3xl p-12 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-6">
-              <Calendar className="w-8 h-8 text-white/20" />
-            </div>
-            <h3 className="text-xl font-light mb-2">No interviews found</h3>
-            <p className="text-white/50 text-sm">
-              {hasActiveFilters
-                ? "Try adjusting your filters"
-                : "Schedule interviews with candidates to see them here"}
-            </p>
-          </div>
+          <LoadingState />
+        ) : groupedCandidates.length === 0 ? (
+          <EmptyState hasFilters={!!hasActiveFilters || !!selectedStatus} />
         ) : (
           <div className="space-y-4">
-            {filteredInterviews.map((interview: any) => {
-              const statusStyle = getStatusStyle(interview.status);
-              // Show Start button for scheduled or active/in_progress interviews
-              const canStart =
-                (interview.status === "scheduled" || interview.status === "active" || interview.status === "in_progress") &&
-                interview.candidate_id;
-              const isUpcoming =
-                interview.status === "scheduled" && interview.scheduled_at;
-              const scheduledDate = interview.scheduled_at
-                ? new Date(interview.scheduled_at)
-                : null;
-
-              return (
-                <div
-                  key={interview.id}
-                  onClick={() => router.push(`/candidates/${interview.candidate_id}`)}
-                  className="glass-panel rounded-2xl p-5 hover:bg-white/[0.08] transition-all cursor-pointer"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    {/* Left: Interview Details */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-2">
-                        {/* Status Badge */}
-                        <span
-                          className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs ${statusStyle.bg} ${statusStyle.text} border ${statusStyle.border}`}
-                        >
-                          {STATUS_ICONS[interview.status]}
-                          {interview.status.replace("_", " ")}
-                        </span>
-                        {/* Stage Badge */}
-                        <span className="px-2 py-1 bg-white/5 border border-white/10 rounded-lg text-xs text-white/60">
-                          {interview.stage?.replace("_", " ") || "Interview"}
-                        </span>
-                      </div>
-
-                      {/* Candidate Name */}
-                      <h3 className="font-medium text-white text-lg mb-1">
-                        {interview.candidate_name || "Unknown Candidate"}
-                      </h3>
-
-                      {/* Meta Info */}
-                      <div className="flex items-center gap-4 text-sm text-white/50">
-                        {interview.job_title && (
-                          <span className="flex items-center gap-1">
-                            <Briefcase className="w-3.5 h-3.5" />
-                            {interview.job_title}
-                          </span>
-                        )}
-                        {interview.interviewer_name && (
-                          <span className="flex items-center gap-1">
-                            <UserCheck className="w-3.5 h-3.5" />
-                            {interview.interviewer_name}
-                          </span>
-                        )}
-                        {interview.duration_minutes && (
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3.5 h-3.5" />
-                            {interview.duration_minutes} min
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Scheduled Time */}
-                      {scheduledDate && (
-                        <div className="flex items-center gap-2 mt-3 text-sm">
-                          <Calendar className="w-4 h-4 text-white/40" />
-                          <span className="text-white/70">
-                            {formatDateTime(
-                              interview.scheduled_at!,
-                              interview.timezone
-                            )}
-                          </span>
-                        </div>
-                      )}
-
-                      {/* Notes */}
-                      {interview.notes && (
-                        <p className="text-sm text-white/40 mt-2 line-clamp-1">
-                          {interview.notes}
-                        </p>
-                      )}
-
-                      {/* Cancel Reason */}
-                      {interview.cancel_reason && (
-                        <p className="text-sm text-red-400/70 mt-2">
-                          Cancelled: {interview.cancel_reason}
-                        </p>
-                      )}
-
-                      {/* Scores Display */}
-                      {interview.scores && (
-                        <div className="mt-3 pt-3 border-t border-white/5">
-                          {interview.scores.has_completed_interviews ? (
-                            <div className="flex items-center gap-4 text-sm">
-                              <div className="flex items-center gap-1.5">
-                                <Star className="w-3.5 h-3.5 text-yellow-400" />
-                                <span className="text-white/40">Scores:</span>
-                              </div>
-                              {interview.scores.round_1 !== null && (
-                                <span className={`font-medium ${getScoreColor(interview.scores.round_1)}`}>
-                                  R1: {interview.scores.round_1}
-                                </span>
-                              )}
-                              {interview.scores.round_2 !== null && (
-                                <span className={`font-medium ${getScoreColor(interview.scores.round_2)}`}>
-                                  R2: {interview.scores.round_2}
-                                </span>
-                              )}
-                              {interview.scores.round_3 !== null && (
-                                <span className={`font-medium ${getScoreColor(interview.scores.round_3)}`}>
-                                  R3: {interview.scores.round_3}
-                                </span>
-                              )}
-                              {interview.scores.cumulative !== null && (
-                                <span className="flex items-center gap-1 text-white/70">
-                                  <TrendingUp className="w-3.5 h-3.5 text-indigo-400" />
-                                  <span className={`font-semibold ${getScoreColor(interview.scores.cumulative)}`}>
-                                    {interview.scores.cumulative}
-                                  </span>
-                                </span>
-                              )}
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2 text-sm text-white/30">
-                              <Clock className="w-3.5 h-3.5" />
-                              <span>Interviews pending</span>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Right: Actions */}
-                    <div className="flex items-center gap-2 shrink-0">
-                      {/* Start button for scheduled, active, or in_progress interviews */}
-                      {canStart && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedInterviewForStart({
-                              candidateId: interview.candidate_id,
-                              candidateName: interview.candidate_name || "Unknown Candidate",
-                              jobTitle: interview.job_title || "",
-                            });
-                            setStartModalOpen(true);
-                          }}
-                          className="flex items-center gap-2 px-4 py-2 bg-indigo-500/20 border border-indigo-500/30 rounded-xl text-sm text-indigo-400 hover:bg-indigo-500/30 transition-colors"
-                        >
-                          <Video className="w-4 h-4" />
-                          {interview.status === "scheduled" ? "Start" : "Join"}
-                        </button>
-                      )}
-                      {/* Cancel button only for scheduled interviews */}
-                      {isUpcoming && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setCancellingId(interview.id);
-                            setCancelModalOpen(true);
-                          }}
-                          className="flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400 hover:bg-red-500/20 transition-colors"
-                        >
-                          <XCircle className="w-4 h-4" />
-                          Cancel
-                        </button>
-                      )}
-                      {interview.status === "completed" && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            router.push(`/candidates/${interview.candidate_id}`);
-                          }}
-                          className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm text-white/60 hover:bg-white/10 transition-colors"
-                        >
-                          View Details
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            <AnimatePresence mode="popLayout">
+              {groupedCandidates.map((group, index) => (
+                <CandidateInterviewCard
+                  key={group.candidate_id}
+                  group={group}
+                  index={index}
+                  onViewProfile={() => router.push(`/candidates/${group.candidate_id}`)}
+                  onStartInterview={(interview) => {
+                    setSelectedInterviewForStart({
+                      candidateId: interview.candidate_id,
+                      candidateName: interview.candidate_name || "Unknown Candidate",
+                      jobTitle: interview.job_title || "",
+                    });
+                    setStartModalOpen(true);
+                  }}
+                  onCancelInterview={(interviewId) => {
+                    setCancellingId(interviewId);
+                    setCancelModalOpen(true);
+                  }}
+                />
+              ))}
+            </AnimatePresence>
           </div>
         )}
       </div>
 
       {/* Cancel Modal */}
-      {cancelModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="glass-panel rounded-2xl p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-medium text-white mb-4">
-              Cancel Interview
-            </h3>
-            <p className="text-white/60 text-sm mb-4">
-              Are you sure you want to cancel this interview? This action cannot
-              be undone.
-            </p>
-            <div className="mb-4">
-              <label className="text-sm text-white/60 mb-2 block">
-                Reason (optional)
-              </label>
-              <textarea
-                value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                placeholder="Enter cancellation reason..."
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-white/30 placeholder:text-white/30 resize-none"
-                rows={3}
-              />
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  setCancelModalOpen(false);
-                  setCancellingId(null);
-                  setCancelReason("");
-                }}
-                className="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm text-white/60 hover:bg-white/10 transition-colors"
-              >
-                Keep Interview
-              </button>
-              <button
-                onClick={handleCancelInterview}
-                disabled={cancelInterviewMutation.isPending}
-                className="flex-1 px-4 py-2 bg-red-500/20 border border-red-500/30 rounded-xl text-sm text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-50"
-              >
-                {cancelInterviewMutation.isPending
-                  ? "Cancelling..."
-                  : "Cancel Interview"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {cancelModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={springConfig}
+              className="rounded-2xl border p-6 max-w-md w-full mx-4"
+              style={{
+                backgroundColor: tokens.bgCard,
+                borderColor: tokens.borderSubtle,
+              }}
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center"
+                  style={{ backgroundColor: `${tokens.statusDanger}15` }}
+                >
+                  <AlertCircle className="w-5 h-5" style={{ color: tokens.statusDanger }} />
+                </div>
+                <h3 className="text-lg font-medium text-white">Cancel Interview</h3>
+              </div>
+              <p className="text-sm mb-4" style={{ color: tokens.textMuted }}>
+                Are you sure you want to cancel this interview? This action cannot be undone.
+              </p>
+              <div className="mb-4">
+                <label className="text-sm mb-2 block" style={{ color: tokens.textSecondary }}>
+                  Reason (optional)
+                </label>
+                <textarea
+                  value={cancelReason}
+                  onChange={(e) => setCancelReason(e.target.value)}
+                  placeholder="Enter cancellation reason..."
+                  className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 placeholder:text-white/30 resize-none"
+                  style={{
+                    backgroundColor: tokens.bgSurface,
+                    border: `1px solid ${tokens.borderSubtle}`,
+                    color: tokens.textPrimary,
+                  }}
+                  rows={3}
+                />
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setCancelModalOpen(false);
+                    setCancellingId(null);
+                    setCancelReason("");
+                  }}
+                  className="flex-1 px-4 py-2.5 rounded-xl text-sm transition-colors"
+                  style={{
+                    backgroundColor: tokens.bgSurface,
+                    border: `1px solid ${tokens.borderSubtle}`,
+                    color: tokens.textSecondary,
+                  }}
+                >
+                  Keep Interview
+                </button>
+                <button
+                  onClick={handleCancelInterview}
+                  disabled={cancelInterviewMutation.isPending}
+                  className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
+                  style={{
+                    backgroundColor: `${tokens.statusDanger}20`,
+                    border: `1px solid ${tokens.statusDanger}30`,
+                    color: tokens.statusDanger,
+                  }}
+                >
+                  {cancelInterviewMutation.isPending ? "Cancelling..." : "Cancel Interview"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Start Interview Modal - Role Selection */}
+      {/* Start Interview Modal */}
       <StartInterviewModal
         isOpen={startModalOpen}
         onClose={() => {

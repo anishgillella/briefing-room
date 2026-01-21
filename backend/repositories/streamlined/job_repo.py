@@ -30,12 +30,65 @@ class JobRepository:
     # Organization-Scoped Methods (Phase 4)
     # =========================================================================
 
+    def count_for_org_sync(
+        self,
+        organization_id: UUID,
+        status: Optional[str] = None,
+        include_archived: bool = False
+    ) -> Dict[str, int]:
+        """
+        Get job counts for an organization efficiently (no N+1 queries).
+
+        Args:
+            organization_id: UUID of the organization
+            status: Optional status filter
+            include_archived: If True, include archived jobs in count
+
+        Returns:
+            Dict with 'total', 'active', 'draft', 'closed', 'paused' counts
+        """
+        query = self.client.table(self.table)\
+            .select("id, status")\
+            .eq("organization_id", str(organization_id))
+
+        if status:
+            query = query.eq("status", status)
+
+        # Try to exclude archived jobs if the column exists
+        try:
+            if not include_archived:
+                query = query.is_("deleted_at", "null")
+            result = query.execute()
+        except Exception as e:
+            if "deleted_at" in str(e):
+                result = query.execute()
+            else:
+                raise e
+
+        # Count by status
+        counts = {
+            "total": 0,
+            "active": 0,
+            "draft": 0,
+            "closed": 0,
+            "paused": 0,
+        }
+
+        for row in result.data:
+            counts["total"] += 1
+            job_status = row.get("status", "draft")
+            if job_status in counts:
+                counts[job_status] += 1
+
+        return counts
+
     def list_all_for_org_sync(
         self,
         organization_id: UUID,
         status: Optional[str] = None,
         recruiter_id: Optional[UUID] = None,
-        include_archived: bool = False
+        include_archived: bool = False,
+        include_counts: bool = True
     ) -> List[Job]:
         """
         List all jobs for an organization.
@@ -45,6 +98,7 @@ class JobRepository:
             status: Optional status filter
             recruiter_id: Optional recruiter filter
             include_archived: If True, include archived (soft-deleted) jobs
+            include_counts: If True, include candidate/interviewed counts (can be slow)
 
         Returns:
             List of jobs belonging to the organization
@@ -77,10 +131,20 @@ class JobRepository:
         jobs = []
         for job_data in result.data:
             job = self._parse_job(job_data)
-            job.candidate_count = self._get_candidate_count_sync(job.id)
-            job.interviewed_count = self._get_interviewed_count_sync(job.id)
-            job.stage_counts = self._get_stage_counts_sync(job.id, job.interview_stages)
             jobs.append(job)
+
+        # Batch fetch counts to avoid N+1 queries
+        if include_counts and jobs:
+            job_ids = [job.id for job in jobs]
+            counts_map = self._get_batch_candidate_counts_sync(job_ids)
+            interviewed_map = self._get_batch_interviewed_counts_sync(job_ids)
+
+            for job in jobs:
+                job.candidate_count = counts_map.get(str(job.id), 0)
+                job.interviewed_count = interviewed_map.get(str(job.id), 0)
+                # Stage counts still need per-job queries due to custom stages
+                # but this is acceptable as it's O(n) not O(3n)
+                job.stage_counts = self._get_stage_counts_sync(job.id, job.interview_stages)
 
         return jobs
 
@@ -756,6 +820,73 @@ class JobRepository:
             .eq("job_posting_id", str(job_id))\
             .execute()
         return result.count or 0
+
+    def _get_batch_candidate_counts_sync(self, job_ids: List[UUID]) -> Dict[str, int]:
+        """
+        Get candidate counts for multiple jobs in a single query.
+
+        Args:
+            job_ids: List of job UUIDs
+
+        Returns:
+            Dict mapping job_id string to candidate count
+        """
+        if not job_ids:
+            return {}
+
+        job_id_strs = [str(jid) for jid in job_ids]
+
+        # Query all candidates for these jobs and group by job_posting_id
+        result = self.client.table("candidates")\
+            .select("job_posting_id")\
+            .in_("job_posting_id", job_id_strs)\
+            .execute()
+
+        # Count candidates per job
+        counts: Dict[str, int] = {jid: 0 for jid in job_id_strs}
+        for row in result.data:
+            job_id = row.get("job_posting_id")
+            if job_id:
+                counts[job_id] = counts.get(job_id, 0) + 1
+
+        return counts
+
+    def _get_batch_interviewed_counts_sync(self, job_ids: List[UUID]) -> Dict[str, int]:
+        """
+        Get interviewed candidate counts for multiple jobs in a single query.
+
+        Args:
+            job_ids: List of job UUIDs
+
+        Returns:
+            Dict mapping job_id string to interviewed count
+        """
+        if not job_ids:
+            return {}
+
+        job_id_strs = [str(jid) for jid in job_ids]
+
+        # Query all interviewed candidates for these jobs
+        interviewed_statuses = [
+            "round_1", "round_2", "round_3", "decision_pending", "accepted",
+            "stage_0", "stage_1", "stage_2", "stage_3", "stage_4",
+            "stage_5", "stage_6", "stage_7", "stage_8", "stage_9"
+        ]
+
+        result = self.client.table("candidates")\
+            .select("job_posting_id")\
+            .in_("job_posting_id", job_id_strs)\
+            .in_("pipeline_status", interviewed_statuses)\
+            .execute()
+
+        # Count interviewed candidates per job
+        counts: Dict[str, int] = {jid: 0 for jid in job_id_strs}
+        for row in result.data:
+            job_id = row.get("job_posting_id")
+            if job_id:
+                counts[job_id] = counts.get(job_id, 0) + 1
+
+        return counts
 
     async def _get_interviewed_count(self, job_id: UUID) -> int:
         """Get count of interviewed candidates for a job."""
