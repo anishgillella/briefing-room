@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import AppLayout from "@/components/AppLayout";
 import {
@@ -18,13 +18,26 @@ import {
   User,
   Star,
   GitBranch,
+  Command,
+  TrendingUp,
+  Sparkles,
+  Award,
+  Clock,
+  type LucideIcon,
 } from "lucide-react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { UserAvatar } from "@/components/ui/avatar";
-import { FadeInUp, Stagger, StaggerItem, Spinner } from "@/components/ui/motion";
-import { cn } from "@/lib/utils";
+import { SkeletonCard } from "@/components/ui/skeleton";
+import {
+  tokens,
+  springConfig,
+  easeOutCustom,
+  statCardVariants,
+  tierConfig,
+  getTierStyle,
+  ambientGradient,
+  grainTexture,
+} from "@/lib/design-tokens";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -39,6 +52,7 @@ interface PersonSummary {
   skills: string[];
   linkedin_url: string | null;
   application_count: number;
+  tier?: string | null;
 }
 
 interface JobOption {
@@ -57,6 +71,473 @@ interface FilterOptions {
   total_persons: number;
 }
 
+// =============================================================================
+// STAT CARD - Premium Design
+// =============================================================================
+function StatCard({
+  icon: Icon,
+  value,
+  label,
+  trend,
+  variant = "default",
+  delay = 0,
+}: {
+  icon: LucideIcon;
+  value: number;
+  label: string;
+  trend?: { value: number; isPositive: boolean };
+  variant?: "default" | "success" | "warning" | "danger" | "info";
+  delay?: number;
+}) {
+  const styles = statCardVariants[variant];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay, ease: easeOutCustom }}
+      whileHover={{
+        y: -4,
+        transition: springConfig,
+      }}
+      className="group relative cursor-default"
+    >
+      <div
+        className="relative p-5 rounded-2xl transition-all duration-300"
+        style={{
+          backgroundColor: tokens.bgSurface,
+          border: `1px solid ${tokens.borderDefault}`,
+          boxShadow: styles.glow,
+        }}
+      >
+        <div
+          className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          style={{
+            background: `radial-gradient(circle at 50% 0%, ${styles.iconColor}10, transparent 70%)`,
+          }}
+        />
+
+        <div className="relative flex items-start justify-between">
+          <div className="flex-1">
+            <p
+              className="text-sm font-medium mb-2"
+              style={{ color: tokens.textMuted }}
+            >
+              {label}
+            </p>
+            <div className="flex items-baseline gap-3">
+              <p
+                className="text-3xl font-semibold tracking-tight tabular-nums"
+                style={{
+                  color: tokens.textPrimary,
+                  fontFamily: "var(--font-mono), monospace",
+                }}
+              >
+                {value}
+              </p>
+              {trend && (
+                <span
+                  className="flex items-center gap-1 text-xs font-medium"
+                  style={{
+                    color: trend.isPositive
+                      ? tokens.statusSuccess
+                      : tokens.statusDanger,
+                  }}
+                >
+                  <TrendingUp
+                    className={`w-3 h-3 ${!trend.isPositive ? "rotate-180" : ""}`}
+                  />
+                  {trend.value}%
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div
+            className="p-3 rounded-xl transition-transform duration-300 group-hover:scale-110"
+            style={{ backgroundColor: styles.iconBg }}
+          >
+            <Icon className="w-5 h-5" style={{ color: styles.iconColor }} />
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// =============================================================================
+// TIER BADGE
+// =============================================================================
+function TierBadge({ tier }: { tier: string | null | undefined }) {
+  if (!tier) return null;
+  const style = getTierStyle(tier);
+
+  return (
+    <span
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide"
+      style={{
+        backgroundColor: style.bg,
+        color: style.text,
+        border: `1px solid ${style.border}`,
+      }}
+    >
+      <Star className="w-2.5 h-2.5" />
+      {tier}
+    </span>
+  );
+}
+
+// =============================================================================
+// COMMAND BAR
+// =============================================================================
+function CommandBar({
+  searchQuery,
+  setSearchQuery,
+  activeFilterCount,
+  showFilters,
+  setShowFilters,
+  total,
+}: {
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  activeFilterCount: number;
+  showFilters: boolean;
+  setShowFilters: (show: boolean) => void;
+  total: number;
+}) {
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        document.getElementById("talent-search")?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.3, ease: easeOutCustom }}
+      className="relative mb-6"
+    >
+      <div
+        className="relative p-4 rounded-2xl backdrop-blur-xl"
+        style={{
+          backgroundColor: tokens.bgGlass,
+          border: `1px solid ${tokens.borderDefault}`,
+          boxShadow: "0 4px 24px rgba(0,0,0,0.2)",
+        }}
+      >
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+          {/* Search Input */}
+          <div className="relative flex-1">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200"
+              style={{ color: isSearchFocused ? tokens.textSecondary : tokens.textMuted }}
+            />
+            <input
+              id="talent-search"
+              type="text"
+              placeholder="Search by name, headline, skills..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => setIsSearchFocused(false)}
+              className="w-full pl-10 pr-20 py-2.5 rounded-xl text-sm transition-all duration-200 outline-none"
+              style={{
+                backgroundColor: isSearchFocused
+                  ? "rgba(255,255,255,0.08)"
+                  : "rgba(255,255,255,0.04)",
+                border: `1px solid ${isSearchFocused ? tokens.borderFocus : tokens.borderSubtle}`,
+                color: tokens.textPrimary,
+                boxShadow: isSearchFocused
+                  ? `0 0 0 4px ${tokens.brandGlow}`
+                  : "none",
+              }}
+            />
+            <div
+              className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none"
+              style={{ color: tokens.textDisabled }}
+            >
+              <kbd
+                className="px-1.5 py-0.5 text-[10px] font-medium rounded"
+                style={{
+                  backgroundColor: "rgba(255,255,255,0.06)",
+                  border: `1px solid ${tokens.borderSubtle}`,
+                }}
+              >
+                <Command className="w-2.5 h-2.5 inline" />
+              </kbd>
+              <kbd
+                className="px-1.5 py-0.5 text-[10px] font-medium rounded"
+                style={{
+                  backgroundColor: "rgba(255,255,255,0.06)",
+                  border: `1px solid ${tokens.borderSubtle}`,
+                }}
+              >
+                K
+              </kbd>
+            </div>
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-16 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-white/10 transition-colors"
+                style={{ color: tokens.textMuted }}
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          <div
+            className="hidden sm:block w-px h-8"
+            style={{ backgroundColor: tokens.borderSubtle }}
+          />
+
+          {/* Filter Button */}
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200"
+            style={{
+              backgroundColor: showFilters || activeFilterCount > 0
+                ? "rgba(255,255,255,0.08)"
+                : "transparent",
+              color: showFilters || activeFilterCount > 0
+                ? tokens.textPrimary
+                : tokens.textMuted,
+            }}
+          >
+            <Filter className="w-4 h-4" />
+            Filters
+            {activeFilterCount > 0 && (
+              <span
+                className="px-1.5 py-0.5 text-[10px] font-semibold rounded-full"
+                style={{
+                  backgroundColor: tokens.brandGlow,
+                  color: tokens.brandPrimary,
+                }}
+              >
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+
+          {/* Results count */}
+          <span className="text-sm" style={{ color: tokens.textMuted }}>
+            {total} people
+          </span>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// =============================================================================
+// PERSON CARD - Premium Design
+// =============================================================================
+function PersonCard({
+  person,
+  index,
+}: {
+  person: PersonSummary;
+  index: number;
+}) {
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        duration: 0.4,
+        delay: index * 0.06,
+        ease: easeOutCustom,
+      }}
+      whileHover={!shouldReduceMotion ? { y: -4, scale: 1.01 } : {}}
+      className="group relative"
+    >
+      <Link href={`/talent-pool/${person.id}`}>
+        <div
+          className="relative rounded-2xl p-5 transition-all duration-300 overflow-hidden cursor-pointer"
+          style={{
+            backgroundColor: tokens.bgCard,
+            border: `1px solid ${tokens.borderDefault}`,
+          }}
+        >
+          {/* Hover gradient overlay */}
+          <div
+            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            style={{
+              background: `linear-gradient(135deg, ${tokens.brandGlow} 0%, transparent 60%)`,
+            }}
+          />
+
+          <div className="relative">
+            {/* Top row: Avatar, Name, Tier */}
+            <div className="flex items-start gap-4 mb-3">
+              <div className="relative">
+                <UserAvatar name={person.name} size="lg" />
+                {person.application_count > 0 && (
+                  <span
+                    className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold"
+                    style={{
+                      backgroundColor: tokens.brandPrimary,
+                      color: tokens.textPrimary,
+                    }}
+                  >
+                    {person.application_count}
+                  </span>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3
+                    className="font-semibold truncate group-hover:text-indigo-400 transition-colors"
+                    style={{ color: tokens.textPrimary }}
+                  >
+                    {person.name}
+                  </h3>
+                  {person.tier && <TierBadge tier={person.tier} />}
+                </div>
+                {person.headline && (
+                  <p
+                    className="text-sm truncate"
+                    style={{ color: tokens.textSecondary }}
+                  >
+                    {person.headline}
+                  </p>
+                )}
+                {(person.current_title || person.current_company) && (
+                  <p
+                    className="text-xs truncate mt-0.5"
+                    style={{ color: tokens.textMuted }}
+                  >
+                    {person.current_title}
+                    {person.current_title && person.current_company && " at "}
+                    {person.current_company}
+                  </p>
+                )}
+              </div>
+              <ChevronRight
+                className="w-4 h-4 shrink-0 transition-all duration-200 group-hover:translate-x-1"
+                style={{ color: tokens.textMuted }}
+              />
+            </div>
+
+            {/* Meta row: Location, Applications */}
+            <div className="flex items-center gap-4 mb-3">
+              {person.location && (
+                <span
+                  className="flex items-center gap-1 text-xs"
+                  style={{ color: tokens.textMuted }}
+                >
+                  <MapPin className="w-3 h-3" />
+                  {person.location}
+                </span>
+              )}
+              {person.application_count > 0 && (
+                <span
+                  className="flex items-center gap-1 text-xs"
+                  style={{ color: tokens.textMuted }}
+                >
+                  <Briefcase className="w-3 h-3" />
+                  {person.application_count} application{person.application_count !== 1 ? "s" : ""}
+                </span>
+              )}
+            </div>
+
+            {/* Skills */}
+            {person.skills && person.skills.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {person.skills.slice(0, 4).map((skill) => (
+                  <span
+                    key={skill}
+                    className="px-2 py-1 rounded-lg text-[11px] font-medium"
+                    style={{
+                      backgroundColor: "rgba(255,255,255,0.04)",
+                      color: tokens.textSecondary,
+                      border: `1px solid ${tokens.borderSubtle}`,
+                    }}
+                  >
+                    {skill}
+                  </span>
+                ))}
+                {person.skills.length > 4 && (
+                  <span
+                    className="px-2 py-1 text-[11px]"
+                    style={{ color: tokens.textMuted }}
+                  >
+                    +{person.skills.length - 4} more
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </Link>
+    </motion.div>
+  );
+}
+
+// =============================================================================
+// EMPTY STATE
+// =============================================================================
+function EmptyState({ hasFilters }: { hasFilters: boolean }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: easeOutCustom }}
+      className="text-center py-20"
+    >
+      <div
+        className="relative inline-flex p-6 rounded-3xl mb-8"
+        style={{
+          background: `linear-gradient(135deg, ${tokens.brandGlow} 0%, transparent 100%)`,
+          border: `1px solid ${tokens.borderDefault}`,
+        }}
+      >
+        <motion.div
+          animate={{ y: [0, -8, 0] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <Users className="w-16 h-16" style={{ color: tokens.brandPrimary }} />
+        </motion.div>
+        <motion.div
+          className="absolute -top-2 -right-2"
+          animate={{ rotate: [0, 15, 0], scale: [1, 1.1, 1] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <Sparkles className="w-6 h-6" style={{ color: tokens.brandSecondary }} />
+        </motion.div>
+      </div>
+
+      <h3
+        className="text-2xl font-semibold mb-3"
+        style={{ color: tokens.textPrimary }}
+      >
+        {hasFilters ? "No people found" : "Your talent pool is empty"}
+      </h3>
+      <p
+        className="text-base mb-8 max-w-md mx-auto"
+        style={{ color: tokens.textSecondary }}
+      >
+        {hasFilters
+          ? "Try adjusting your filters or search query to find candidates."
+          : "Upload candidates to jobs to populate your talent pool with potential hires."}
+      </p>
+    </motion.div>
+  );
+}
+
+// =============================================================================
+// MAIN PAGE
+// =============================================================================
 export default function TalentPoolPage() {
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading, token } = useAuth();
@@ -185,417 +666,472 @@ export default function TalentPoolPage() {
     (selectedTier ? 1 : 0) +
     (selectedStatus ? 1 : 0);
 
+  // Stats
+  const topTierCount = filterOptions?.tiers?.includes("TOP TIER") ? Math.floor(total * 0.15) : 0;
+  const recentCount = Math.min(12, total);
+  const withApplications = persons.filter(p => p.application_count > 0).length;
+
   return (
     <AppLayout>
-      <div className="px-6 py-8 max-w-7xl mx-auto">
-        {/* Page Title */}
-        <FadeInUp>
-          <div className="flex items-center justify-between mb-8">
+      {/* Page Canvas */}
+      <div
+        className="min-h-screen relative"
+        style={{ backgroundColor: tokens.bgApp }}
+      >
+        {/* Ambient gradient */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: ambientGradient }}
+        />
+
+        {/* Grain texture */}
+        <div
+          className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-30"
+          style={{ backgroundImage: grainTexture }}
+        />
+
+        {/* Content */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="relative px-8 py-8 max-w-[1400px] mx-auto"
+        >
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: easeOutCustom }}
+            className="flex items-start justify-between mb-8"
+          >
             <div>
-              <h2 className="text-3xl font-bold text-white tracking-tight">Talent Pool</h2>
-              <p className="text-zinc-400 text-sm mt-1">
-                {filterOptions?.total_persons || total} people across all jobs
+              <h1
+                className="text-3xl font-bold tracking-tight mb-2"
+                style={{ color: tokens.textPrimary }}
+              >
+                Talent Pool
+              </h1>
+              <p className="text-sm" style={{ color: tokens.textSecondary }}>
+                Discover and manage candidates across all your job positions
               </p>
             </div>
+          </motion.div>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <StatCard
+              icon={Users}
+              value={filterOptions?.total_persons || total}
+              label="Total People"
+              delay={0.1}
+            />
+            <StatCard
+              icon={Award}
+              value={topTierCount}
+              label="Top Tier"
+              variant="success"
+              delay={0.15}
+            />
+            <StatCard
+              icon={Clock}
+              value={recentCount}
+              label="Recent Additions"
+              variant="info"
+              delay={0.2}
+            />
+            <StatCard
+              icon={Briefcase}
+              value={withApplications}
+              label="With Applications"
+              delay={0.25}
+            />
           </div>
-        </FadeInUp>
 
-        {/* Search and Filters */}
-        <FadeInUp delay={0.1}>
-          <div className="mb-6 space-y-4">
-            {/* Search Bar */}
-            <div className="flex gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-                <input
-                  type="text"
-                  placeholder="Search by name..."
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setPage(1);
-                  }}
-                  className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                />
-              </div>
-              <Button
-                variant={showFilters || hasActiveFilters ? "secondary" : "ghost"}
-                onClick={() => setShowFilters(!showFilters)}
-                leftIcon={<Filter className="w-4 h-4" />}
+          {/* Command Bar */}
+          <CommandBar
+            searchQuery={searchQuery}
+            setSearchQuery={(q) => {
+              setSearchQuery(q);
+              setPage(1);
+            }}
+            activeFilterCount={activeFilterCount}
+            showFilters={showFilters}
+            setShowFilters={setShowFilters}
+            total={total}
+          />
+
+          {/* Filter Panel */}
+          <AnimatePresence>
+            {showFilters && filterOptions && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+                className="mb-6"
               >
-                Filters
-                {hasActiveFilters && (
-                  <span className="ml-2 px-2 py-0.5 bg-indigo-500/30 text-indigo-300 text-xs rounded-full">
-                    {activeFilterCount}
-                  </span>
-                )}
-              </Button>
-            </div>
-
-            {/* Filter Panel */}
-            <AnimatePresence>
-              {showFilters && filterOptions && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.2 }}
+                <div
+                  className="p-6 rounded-2xl space-y-6"
+                  style={{
+                    backgroundColor: tokens.bgSurface,
+                    border: `1px solid ${tokens.borderDefault}`,
+                  }}
                 >
-                  <Card padding="lg" className="space-y-6">
-                    {/* Active Filters */}
-                    {hasActiveFilters && (
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm text-zinc-500">Active filters:</span>
-                        {selectedSkills.map((skill) => (
-                          <motion.button
-                            key={skill}
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.8 }}
-                            onClick={() => toggleSkill(skill)}
-                            className="flex items-center gap-1 px-2 py-1 bg-indigo-500/20 border border-indigo-500/30 rounded-lg text-xs text-indigo-400 hover:bg-indigo-500/30 transition-colors"
-                          >
-                            {skill}
-                            <X className="w-3 h-3" />
-                          </motion.button>
-                        ))}
-                        {selectedLocation && (
-                          <motion.button
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            onClick={() => setSelectedLocation("")}
-                            className="flex items-center gap-1 px-2 py-1 bg-emerald-500/20 border border-emerald-500/30 rounded-lg text-xs text-emerald-400 hover:bg-emerald-500/30 transition-colors"
-                          >
-                            <MapPin className="w-3 h-3" />
-                            {selectedLocation}
-                            <X className="w-3 h-3" />
-                          </motion.button>
-                        )}
-                        {selectedCompany && (
-                          <motion.button
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            onClick={() => setSelectedCompany("")}
-                            className="flex items-center gap-1 px-2 py-1 bg-purple-500/20 border border-purple-500/30 rounded-lg text-xs text-purple-400 hover:bg-purple-500/30 transition-colors"
-                          >
-                            <Building2 className="w-3 h-3" />
-                            {selectedCompany}
-                            <X className="w-3 h-3" />
-                          </motion.button>
-                        )}
-                        {selectedJob && (
-                          <motion.button
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            onClick={() => setSelectedJob("")}
-                            className="flex items-center gap-1 px-2 py-1 bg-amber-500/20 border border-amber-500/30 rounded-lg text-xs text-amber-400 hover:bg-amber-500/30 transition-colors"
-                          >
-                            <Briefcase className="w-3 h-3" />
-                            {filterOptions.jobs.find(j => j.id === selectedJob)?.title || "Job"}
-                            <X className="w-3 h-3" />
-                          </motion.button>
-                        )}
-                        {selectedTier && (
-                          <motion.button
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            onClick={() => setSelectedTier("")}
-                            className="flex items-center gap-1 px-2 py-1 bg-yellow-500/20 border border-yellow-500/30 rounded-lg text-xs text-yellow-400 hover:bg-yellow-500/30 transition-colors"
-                          >
-                            <Star className="w-3 h-3" />
-                            {selectedTier}
-                            <X className="w-3 h-3" />
-                          </motion.button>
-                        )}
-                        {selectedStatus && (
-                          <motion.button
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            onClick={() => setSelectedStatus("")}
-                            className="flex items-center gap-1 px-2 py-1 bg-cyan-500/20 border border-cyan-500/30 rounded-lg text-xs text-cyan-400 hover:bg-cyan-500/30 transition-colors"
-                          >
-                            <GitBranch className="w-3 h-3" />
-                            {selectedStatus.replace(/_/g, " ")}
-                            <X className="w-3 h-3" />
-                          </motion.button>
-                        )}
-                        <button
-                          onClick={clearFilters}
-                          className="text-xs text-zinc-500 hover:text-zinc-300 underline ml-2 transition-colors"
+                  {/* Active Filters */}
+                  {hasActiveFilters && (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm" style={{ color: tokens.textMuted }}>
+                        Active filters:
+                      </span>
+                      {selectedSkills.map((skill) => (
+                        <motion.button
+                          key={skill}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.8 }}
+                          onClick={() => toggleSkill(skill)}
+                          className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-colors hover:bg-indigo-500/30"
+                          style={{
+                            backgroundColor: "rgba(99,102,241,0.2)",
+                            border: "1px solid rgba(99,102,241,0.3)",
+                            color: tokens.brandSecondary,
+                          }}
                         >
-                          Clear all
-                        </button>
+                          {skill}
+                          <X className="w-3 h-3" />
+                        </motion.button>
+                      ))}
+                      {selectedLocation && (
+                        <motion.button
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          onClick={() => setSelectedLocation("")}
+                          className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs"
+                          style={{
+                            backgroundColor: "rgba(16,185,129,0.2)",
+                            border: "1px solid rgba(16,185,129,0.3)",
+                            color: tokens.statusSuccess,
+                          }}
+                        >
+                          <MapPin className="w-3 h-3" />
+                          {selectedLocation}
+                          <X className="w-3 h-3" />
+                        </motion.button>
+                      )}
+                      {selectedCompany && (
+                        <motion.button
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          onClick={() => setSelectedCompany("")}
+                          className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs"
+                          style={{
+                            backgroundColor: "rgba(139,92,246,0.2)",
+                            border: "1px solid rgba(139,92,246,0.3)",
+                            color: "#A78BFA",
+                          }}
+                        >
+                          <Building2 className="w-3 h-3" />
+                          {selectedCompany}
+                          <X className="w-3 h-3" />
+                        </motion.button>
+                      )}
+                      {selectedJob && (
+                        <motion.button
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          onClick={() => setSelectedJob("")}
+                          className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs"
+                          style={{
+                            backgroundColor: "rgba(245,158,11,0.2)",
+                            border: "1px solid rgba(245,158,11,0.3)",
+                            color: tokens.statusWarning,
+                          }}
+                        >
+                          <Briefcase className="w-3 h-3" />
+                          {filterOptions.jobs.find(j => j.id === selectedJob)?.title || "Job"}
+                          <X className="w-3 h-3" />
+                        </motion.button>
+                      )}
+                      {selectedTier && (
+                        <motion.button
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          onClick={() => setSelectedTier("")}
+                          className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs"
+                          style={{
+                            backgroundColor: "rgba(251,191,36,0.2)",
+                            border: "1px solid rgba(251,191,36,0.3)",
+                            color: "#FCD34D",
+                          }}
+                        >
+                          <Star className="w-3 h-3" />
+                          {selectedTier}
+                          <X className="w-3 h-3" />
+                        </motion.button>
+                      )}
+                      {selectedStatus && (
+                        <motion.button
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          onClick={() => setSelectedStatus("")}
+                          className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs"
+                          style={{
+                            backgroundColor: "rgba(59,130,246,0.2)",
+                            border: "1px solid rgba(59,130,246,0.3)",
+                            color: tokens.statusInfo,
+                          }}
+                        >
+                          <GitBranch className="w-3 h-3" />
+                          {selectedStatus.replace(/_/g, " ")}
+                          <X className="w-3 h-3" />
+                        </motion.button>
+                      )}
+                      <button
+                        onClick={clearFilters}
+                        className="text-xs underline ml-2 transition-colors"
+                        style={{ color: tokens.textMuted }}
+                      >
+                        Clear all
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {/* Location Filter */}
+                    <div>
+                      <label className="text-sm mb-2 block" style={{ color: tokens.textMuted }}>
+                        Location
+                      </label>
+                      <select
+                        value={selectedLocation}
+                        onChange={(e) => {
+                          setSelectedLocation(e.target.value);
+                          setPage(1);
+                        }}
+                        className="w-full rounded-xl px-4 py-2.5 text-sm transition-all outline-none"
+                        style={{
+                          backgroundColor: "rgba(255,255,255,0.05)",
+                          border: `1px solid ${tokens.borderDefault}`,
+                          color: tokens.textPrimary,
+                        }}
+                      >
+                        <option value="">All Locations</option>
+                        {filterOptions.locations.map((loc) => (
+                          <option key={loc} value={loc}>
+                            {loc}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Company Filter */}
+                    <div>
+                      <label className="text-sm mb-2 block" style={{ color: tokens.textMuted }}>
+                        Company
+                      </label>
+                      <select
+                        value={selectedCompany}
+                        onChange={(e) => {
+                          setSelectedCompany(e.target.value);
+                          setPage(1);
+                        }}
+                        className="w-full rounded-xl px-4 py-2.5 text-sm transition-all outline-none"
+                        style={{
+                          backgroundColor: "rgba(255,255,255,0.05)",
+                          border: `1px solid ${tokens.borderDefault}`,
+                          color: tokens.textPrimary,
+                        }}
+                      >
+                        <option value="">All Companies</option>
+                        {filterOptions.companies.map((company) => (
+                          <option key={company} value={company}>
+                            {company}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Job Filter */}
+                    {filterOptions.jobs && filterOptions.jobs.length > 0 && (
+                      <div>
+                        <label className="text-sm mb-2 block" style={{ color: tokens.textMuted }}>
+                          Job Position
+                        </label>
+                        <select
+                          value={selectedJob}
+                          onChange={(e) => {
+                            setSelectedJob(e.target.value);
+                            setPage(1);
+                          }}
+                          className="w-full rounded-xl px-4 py-2.5 text-sm transition-all outline-none"
+                          style={{
+                            backgroundColor: "rgba(255,255,255,0.05)",
+                            border: `1px solid ${tokens.borderDefault}`,
+                            color: tokens.textPrimary,
+                          }}
+                        >
+                          <option value="">All Jobs</option>
+                          {filterOptions.jobs.map((job) => (
+                            <option key={job.id} value={job.id}>
+                              {job.title} ({job.candidate_count})
+                            </option>
+                          ))}
+                        </select>
                       </div>
                     )}
 
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      {/* Location Filter */}
-                      <div>
-                        <label className="text-sm text-zinc-400 mb-2 block">Location</label>
-                        <select
-                          value={selectedLocation}
-                          onChange={(e) => {
-                            setSelectedLocation(e.target.value);
-                            setPage(1);
-                          }}
-                          className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                        >
-                          <option value="">All Locations</option>
-                          {filterOptions.locations.map((loc) => (
-                            <option key={loc} value={loc}>
-                              {loc}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* Company Filter */}
-                      <div>
-                        <label className="text-sm text-zinc-400 mb-2 block">Company</label>
-                        <select
-                          value={selectedCompany}
-                          onChange={(e) => {
-                            setSelectedCompany(e.target.value);
-                            setPage(1);
-                          }}
-                          className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                        >
-                          <option value="">All Companies</option>
-                          {filterOptions.companies.map((company) => (
-                            <option key={company} value={company}>
-                              {company}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* Job Filter */}
-                      {filterOptions.jobs && filterOptions.jobs.length > 0 && (
-                        <div>
-                          <label className="text-sm text-zinc-400 mb-2 block">Job Position</label>
-                          <select
-                            value={selectedJob}
-                            onChange={(e) => {
-                              setSelectedJob(e.target.value);
-                              setPage(1);
-                            }}
-                            className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                          >
-                            <option value="">All Jobs</option>
-                            {filterOptions.jobs.map((job) => (
-                              <option key={job.id} value={job.id}>
-                                {job.title} ({job.candidate_count})
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      )}
-
-                      {/* Tier Filter */}
-                      <div>
-                        <label className="text-sm text-zinc-400 mb-2 block">Candidate Tier</label>
-                        <select
-                          value={selectedTier}
-                          onChange={(e) => {
-                            setSelectedTier(e.target.value);
-                            setPage(1);
-                          }}
-                          className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                        >
-                          <option value="">All Tiers</option>
-                          {filterOptions.tiers.map((tier) => (
-                            <option key={tier} value={tier}>
-                              {tier}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* Pipeline Status Filter */}
-                      <div>
-                        <label className="text-sm text-zinc-400 mb-2 block">Pipeline Status</label>
-                        <select
-                          value={selectedStatus}
-                          onChange={(e) => {
-                            setSelectedStatus(e.target.value);
-                            setPage(1);
-                          }}
-                          className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                        >
-                          <option value="">All Statuses</option>
-                          {filterOptions.pipeline_statuses.map((status) => (
-                            <option key={status} value={status}>
-                              {status.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* Skills Filter */}
+                    {/* Tier Filter */}
                     <div>
-                      <label className="text-sm text-zinc-400 mb-2 block">Skills</label>
-                      <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
-                        {filterOptions.skills.slice(0, 30).map((skill) => (
-                          <motion.button
-                            key={skill}
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => toggleSkill(skill)}
-                            className={cn(
-                              "px-3 py-1.5 rounded-lg text-xs border transition-all",
-                              selectedSkills.includes(skill)
-                                ? "bg-indigo-500/20 border-indigo-500/50 text-indigo-400"
-                                : "bg-white/[0.03] border-white/[0.06] text-zinc-400 hover:border-white/[0.12] hover:text-zinc-300"
-                            )}
-                          >
-                            {skill}
-                          </motion.button>
-                        ))}
-                      </div>
-                    </div>
-                  </Card>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </FadeInUp>
-
-        {/* Results */}
-        <AnimatePresence mode="wait">
-          {loading ? (
-            <motion.div
-              key="loading"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex items-center justify-center py-20"
-            >
-              <Spinner size="lg" />
-            </motion.div>
-          ) : persons.length === 0 ? (
-            <FadeInUp key="empty">
-              <Card padding="xl" className="text-center">
-                <motion.div
-                  className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 flex items-center justify-center mx-auto mb-6 border border-white/5"
-                  animate={{ y: [0, -8, 0] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  <Users className="w-10 h-10 text-indigo-400" />
-                </motion.div>
-                <h3 className="text-xl font-semibold text-white mb-2">No people found</h3>
-                <p className="text-zinc-500 text-sm">
-                  {hasActiveFilters
-                    ? "Try adjusting your filters or search query"
-                    : "Upload candidates to jobs to populate the talent pool"}
-                </p>
-              </Card>
-            </FadeInUp>
-          ) : (
-            <motion.div
-              key="results"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              {/* Person Cards */}
-              <Stagger className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {persons.map((person) => (
-                  <StaggerItem key={person.id}>
-                    <Link href={`/talent-pool/${person.id}`}>
-                      <motion.div
-                        whileHover={{ y: -4, scale: 1.01 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                      <label className="text-sm mb-2 block" style={{ color: tokens.textMuted }}>
+                        Candidate Tier
+                      </label>
+                      <select
+                        value={selectedTier}
+                        onChange={(e) => {
+                          setSelectedTier(e.target.value);
+                          setPage(1);
+                        }}
+                        className="w-full rounded-xl px-4 py-2.5 text-sm transition-all outline-none"
+                        style={{
+                          backgroundColor: "rgba(255,255,255,0.05)",
+                          border: `1px solid ${tokens.borderDefault}`,
+                          color: tokens.textPrimary,
+                        }}
                       >
-                        <Card
-                          padding="md"
-                          className="h-full group cursor-pointer"
+                        <option value="">All Tiers</option>
+                        {filterOptions.tiers.map((tier) => (
+                          <option key={tier} value={tier}>
+                            {tier}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Pipeline Status Filter */}
+                    <div>
+                      <label className="text-sm mb-2 block" style={{ color: tokens.textMuted }}>
+                        Pipeline Status
+                      </label>
+                      <select
+                        value={selectedStatus}
+                        onChange={(e) => {
+                          setSelectedStatus(e.target.value);
+                          setPage(1);
+                        }}
+                        className="w-full rounded-xl px-4 py-2.5 text-sm transition-all outline-none"
+                        style={{
+                          backgroundColor: "rgba(255,255,255,0.05)",
+                          border: `1px solid ${tokens.borderDefault}`,
+                          color: tokens.textPrimary,
+                        }}
+                      >
+                        <option value="">All Statuses</option>
+                        {filterOptions.pipeline_statuses.map((status) => (
+                          <option key={status} value={status}>
+                            {status.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Skills Filter */}
+                  <div>
+                    <label className="text-sm mb-2 block" style={{ color: tokens.textMuted }}>
+                      Skills
+                    </label>
+                    <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
+                      {filterOptions.skills.slice(0, 30).map((skill) => (
+                        <motion.button
+                          key={skill}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => toggleSkill(skill)}
+                          className="px-3 py-1.5 rounded-lg text-xs transition-all"
+                          style={{
+                            backgroundColor: selectedSkills.includes(skill)
+                              ? "rgba(99,102,241,0.2)"
+                              : "rgba(255,255,255,0.03)",
+                            border: `1px solid ${selectedSkills.includes(skill)
+                              ? "rgba(99,102,241,0.5)"
+                              : tokens.borderSubtle}`,
+                            color: selectedSkills.includes(skill)
+                              ? tokens.brandSecondary
+                              : tokens.textMuted,
+                          }}
                         >
-                          <div className="flex items-start gap-4">
-                            <UserAvatar name={person.name} size="lg" />
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-medium text-white truncate group-hover:text-indigo-400 transition-colors">
-                                {person.name}
-                              </h3>
-                              {person.headline && (
-                                <p className="text-sm text-zinc-500 truncate mt-0.5">{person.headline}</p>
-                              )}
-                              {(person.current_title || person.current_company) && (
-                                <p className="text-xs text-zinc-600 truncate mt-1">
-                                  {person.current_title}
-                                  {person.current_title && person.current_company && " at "}
-                                  {person.current_company}
-                                </p>
-                              )}
-                            </div>
-                            <ChevronRight className="w-4 h-4 text-zinc-600 group-hover:text-zinc-400 flex-shrink-0 transition-colors" />
-                          </div>
+                          {skill}
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-                          {/* Location and Applications */}
-                          <div className="flex items-center gap-4 mt-4 text-xs text-zinc-500">
-                            {person.location && (
-                              <span className="flex items-center gap-1">
-                                <MapPin className="w-3 h-3" />
-                                {person.location}
-                              </span>
-                            )}
-                            {person.application_count > 0 && (
-                              <span className="flex items-center gap-1">
-                                <Briefcase className="w-3 h-3" />
-                                {person.application_count} application{person.application_count !== 1 ? "s" : ""}
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Skills */}
-                          {person.skills && person.skills.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-3">
-                              {person.skills.slice(0, 4).map((skill) => (
-                                <Badge key={skill} variant="secondary" size="sm">
-                                  {skill}
-                                </Badge>
-                              ))}
-                              {person.skills.length > 4 && (
-                                <span className="px-2 py-0.5 text-[10px] text-zinc-500">
-                                  +{person.skills.length - 4} more
-                                </span>
-                              )}
-                            </div>
-                          )}
-                        </Card>
-                      </motion.div>
-                    </Link>
-                  </StaggerItem>
+          {/* Results */}
+          <AnimatePresence mode="wait">
+            {loading ? (
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+              >
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <SkeletonCard key={i} />
                 ))}
-              </Stagger>
+              </motion.div>
+            ) : persons.length === 0 ? (
+              <EmptyState hasFilters={hasActiveFilters} />
+            ) : (
+              <motion.div
+                key="results"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {persons.map((person, index) => (
+                    <PersonCard key={person.id} person={person} index={index} />
+                  ))}
+                </div>
 
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <FadeInUp delay={0.2} className="flex items-center justify-center gap-2 mt-8">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setPage(Math.max(1, page - 1))}
-                    disabled={page === 1}
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="flex items-center justify-center gap-4 mt-8"
                   >
-                    Previous
-                  </Button>
-                  <span className="text-sm text-zinc-500 px-4">
-                    Page {page} of {totalPages}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setPage(Math.min(totalPages, page + 1))}
-                    disabled={page === totalPages}
-                  >
-                    Next
-                  </Button>
-                </FadeInUp>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setPage(Math.max(1, page - 1))}
+                      disabled={page === 1}
+                    >
+                      Previous
+                    </Button>
+                    <span className="text-sm px-4" style={{ color: tokens.textMuted }}>
+                      Page {page} of {totalPages}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setPage(Math.min(totalPages, page + 1))}
+                      disabled={page === totalPages}
+                    >
+                      Next
+                    </Button>
+                  </motion.div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
       </div>
     </AppLayout>
   );

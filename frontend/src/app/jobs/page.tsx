@@ -26,53 +26,13 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SkeletonCard } from "@/components/ui/skeleton";
-
-// =============================================================================
-// DESIGN TOKENS - Premium Dark Theme
-// =============================================================================
-const tokens = {
-  // Backgrounds
-  bgApp: "#070B14",
-  bgSurface: "#0C1322",
-  bgSurfaceHover: "#111827",
-  bgCard: "#0F172A",
-  bgCardHover: "#1E293B",
-  bgGlass: "rgba(15, 23, 42, 0.8)",
-
-  // Borders
-  borderSubtle: "rgba(255,255,255,0.06)",
-  borderDefault: "rgba(255,255,255,0.08)",
-  borderHover: "rgba(255,255,255,0.12)",
-  borderFocus: "rgba(99,102,241,0.5)",
-
-  // Text
-  textPrimary: "#F8FAFC",
-  textSecondary: "#94A3B8",
-  textMuted: "#64748B",
-  textDisabled: "#475569",
-
-  // Brand
-  brandPrimary: "#6366F1",
-  brandSecondary: "#818CF8",
-  brandGlow: "rgba(99,102,241,0.15)",
-  brandGlowStrong: "rgba(99,102,241,0.3)",
-
-  // Status
-  statusSuccess: "#10B981",
-  statusWarning: "#F59E0B",
-  statusDanger: "#EF4444",
-  statusInfo: "#3B82F6",
-
-  // Gradients
-  gradientPrimary: "linear-gradient(135deg, #6366F1, #8B5CF6)",
-  gradientSuccess: "linear-gradient(135deg, #10B981, #34D399)",
-  gradientWarning: "linear-gradient(135deg, #F59E0B, #FBBF24)",
-  gradientDanger: "linear-gradient(135deg, #EF4444, #F87171)",
-};
-
-// Animation configs
-const springConfig = { type: "spring", stiffness: 300, damping: 30 };
-const easeOutCustom: [number, number, number, number] = [0.16, 1, 0.3, 1];
+import {
+  tokens,
+  springConfig,
+  easeOutCustom,
+  statCardVariants,
+  statusBadgeConfig,
+} from "@/lib/design-tokens";
 
 // =============================================================================
 // PIPELINE HEALTH
@@ -105,30 +65,7 @@ function StatCard({
   variant?: "default" | "success" | "warning" | "danger";
   delay?: number;
 }) {
-  const variantStyles = {
-    default: {
-      iconBg: tokens.brandGlow,
-      iconColor: tokens.brandPrimary,
-      glow: "none",
-    },
-    success: {
-      iconBg: "rgba(16,185,129,0.15)",
-      iconColor: tokens.statusSuccess,
-      glow: "none",
-    },
-    warning: {
-      iconBg: "rgba(245,158,11,0.15)",
-      iconColor: tokens.statusWarning,
-      glow: "none",
-    },
-    danger: {
-      iconBg: "rgba(239,68,68,0.1)",
-      iconColor: tokens.statusDanger,
-      glow: "inset 0 0 0 1px rgba(239,68,68,0.2), 0 0 20px rgba(239,68,68,0.1)",
-    },
-  };
-
-  const styles = variantStyles[variant];
+  const styles = statCardVariants[variant];
 
   return (
     <motion.div
@@ -211,30 +148,7 @@ function StatCard({
 // STATUS BADGE
 // =============================================================================
 function StatusBadge({ status }: { status: string }) {
-  const config: Record<string, { bg: string; text: string; dot: string }> = {
-    active: {
-      bg: "rgba(16,185,129,0.1)",
-      text: tokens.statusSuccess,
-      dot: tokens.statusSuccess,
-    },
-    draft: {
-      bg: "rgba(100,116,139,0.1)",
-      text: tokens.textMuted,
-      dot: tokens.textMuted,
-    },
-    paused: {
-      bg: "rgba(245,158,11,0.1)",
-      text: tokens.statusWarning,
-      dot: tokens.statusWarning,
-    },
-    closed: {
-      bg: "rgba(100,116,139,0.1)",
-      text: tokens.textDisabled,
-      dot: tokens.textDisabled,
-    },
-  };
-
-  const style = config[status] || config.draft;
+  const style = statusBadgeConfig[status] || statusBadgeConfig.draft;
 
   return (
     <span
