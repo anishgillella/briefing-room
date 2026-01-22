@@ -398,19 +398,19 @@ async def get_person_applications(
 
 
 # =============================================================================
-# Global Talent Profile Endpoint
+# Global Talent Profile - Aggregated Performance Across All Applications
 # =============================================================================
 
 class GlobalTalentProfile(BaseModel):
-    """Aggregated performance data for a person across all applications."""
+    """Aggregated performance data for a person across all job applications."""
     person_id: str
     person_name: str
     total_applications: int
     average_score: Optional[float] = None
     highest_score: Optional[int] = None
     lowest_score: Optional[int] = None
-    status_breakdown: Dict[str, int] = {}
-    applications: List[Dict[str, Any]] = []
+    status_breakdown: Dict[str, int] = {}  # {"new": 2, "round_1": 1, etc.}
+    applications: List[Dict[str, Any]] = []  # Detailed list sorted by score
 
 
 @router.get("/{person_id}/global-profile", response_model=GlobalTalentProfile)
@@ -421,8 +421,8 @@ async def get_global_talent_profile(
     """
     Get global performance profile for a person across all job applications.
 
-    Aggregates scores, calculates averages, and provides status breakdown
-    across all applications for comprehensive candidate evaluation.
+    Aggregates scores, status breakdown, and provides a comprehensive view
+    of the candidate's performance across all positions they've applied to.
     """
     person_repo = get_person_repo()
     candidate_repo = CandidateRepository()
@@ -433,56 +433,63 @@ async def get_global_talent_profile(
         raise HTTPException(status_code=404, detail="Person not found")
 
     # Get all candidates for this person
-    applications = []
-    scores = []
-    status_breakdown: Dict[str, int] = {}
-
+    candidates = []
     try:
         if hasattr(candidate_repo, 'list_by_person_sync'):
             candidates = candidate_repo.list_by_person_sync(person_id)
-            for c in candidates:
-                # Get pipeline status
-                pipeline_status = None
-                if c.pipeline_status:
-                    pipeline_status = c.pipeline_status.value if hasattr(c.pipeline_status, 'value') else str(c.pipeline_status)
-
-                # Count status breakdown
-                if pipeline_status:
-                    status_breakdown[pipeline_status] = status_breakdown.get(pipeline_status, 0) + 1
-
-                # Collect scores
-                if c.combined_score is not None:
-                    scores.append(c.combined_score)
-
-                applications.append({
-                    "candidate_id": str(c.id),
-                    "job_id": str(c.job_id) if c.job_id else None,
-                    "job_title": c.job_title if hasattr(c, 'job_title') else None,
-                    "pipeline_status": pipeline_status,
-                    "interview_status": c.interview_status.value if hasattr(c.interview_status, 'value') else str(c.interview_status) if c.interview_status else None,
-                    "combined_score": c.combined_score,
-                    "created_at": c.created_at.isoformat() if c.created_at else None,
-                })
     except Exception as e:
-        logger.warning(f"Failed to get applications for person {person_id}: {e}")
+        logger.warning(f"Failed to get candidates for person {person_id}: {e}")
 
-    # Sort applications by score descending (nulls last)
-    applications.sort(key=lambda x: (x["combined_score"] is None, -(x["combined_score"] or 0)))
+    # Aggregate scores
+    scores = [c.combined_score for c in candidates if c.combined_score is not None]
 
-    # Calculate aggregations
+
     average_score = None
     highest_score = None
     lowest_score = None
 
     if scores:
         average_score = round(sum(scores) / len(scores), 1)
-        highest_score = max(scores)
-        lowest_score = min(scores)
+        highest_score = int(max(scores))
+        lowest_score = int(min(scores))
+
+    # Build status breakdown
+    status_breakdown: Dict[str, int] = {}
+    for c in candidates:
+        status = c.pipeline_status
+        if hasattr(status, 'value'):
+            status = status.value
+        status = str(status) if status else "new"
+        status_breakdown[status] = status_breakdown.get(status, 0) + 1
+
+    # Build applications list sorted by score descending
+    applications = []
+    for c in candidates:
+        pipeline_status = c.pipeline_status
+        if hasattr(pipeline_status, 'value'):
+            pipeline_status = pipeline_status.value
+
+        interview_status = c.interview_status
+        if hasattr(interview_status, 'value'):
+            interview_status = interview_status.value
+
+        applications.append({
+            "candidate_id": str(c.id),
+            "job_id": str(c.job_id) if c.job_id else None,
+            "job_title": c.job_title if hasattr(c, 'job_title') else None,
+            "score": c.combined_score,
+            "pipeline_status": str(pipeline_status) if pipeline_status else "new",
+            "interview_status": str(interview_status) if interview_status else None,
+            "created_at": c.created_at.isoformat() if c.created_at else None,
+        })
+
+    # Sort by score descending (None values at end)
+    applications.sort(key=lambda x: (x["score"] is None, -(x["score"] or 0)))
 
     return GlobalTalentProfile(
         person_id=str(person_id),
         person_name=person.name,
-        total_applications=len(applications),
+        total_applications=len(candidates),
         average_score=average_score,
         highest_score=highest_score,
         lowest_score=lowest_score,

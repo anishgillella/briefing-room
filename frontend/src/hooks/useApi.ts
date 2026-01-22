@@ -547,12 +547,17 @@ interface GlobalTalentProfile {
   lowest_score: number | null;
   status_breakdown: Record<string, number>;
   applications: Array<{
+    candidate_id: string;
     job_id: string | null;
     job_title: string | null;
     score: number | null;
-    status: string;
+    pipeline_status: string;
+    interview_status: string | null;
+    created_at: string | null;
   }>;
 }
+
+export type { GlobalTalentProfile };
 
 export function useGlobalTalentProfile(personId: string | undefined) {
   const getHeaders = useAuthHeaders();
@@ -572,6 +577,6 @@ export function useGlobalTalentProfile(personId: string | undefined) {
       return response.json();
     },
     enabled: !!personId,
-    staleTime: 30000, // 30 seconds
+    staleTime: 30000,
   });
 }

@@ -49,6 +49,7 @@ import TranscriptTab from "@/components/TranscriptTab";
 import RoleSelector, { InterviewRole } from "@/components/RoleSelector";
 import { Candidate, PreBrief } from "@/types";
 import { getSelectedInterviewerId, triggerInterviewAnalysis } from "@/lib/interviewerApi";
+import { tokens } from "@/lib/design-tokens";
 
 const API_URL = "http://localhost:8000";
 

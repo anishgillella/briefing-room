@@ -29,7 +29,6 @@ import {
   Check,
   ChevronRight,
   Zap,
-  type LucideIcon,
 } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -175,7 +174,7 @@ function CategoryCard({
   borderColor,
 }: {
   title: string;
-  icon: LucideIcon;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   items: string[];
   onUpdate: (index: number, newValue: string) => void;
   onRemove: (index: number) => void;
