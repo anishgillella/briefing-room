@@ -443,6 +443,7 @@ async def get_global_talent_profile(
     # Aggregate scores
     scores = [c.combined_score for c in candidates if c.combined_score is not None]
 
+
     average_score = None
     highest_score = None
     lowest_score = None

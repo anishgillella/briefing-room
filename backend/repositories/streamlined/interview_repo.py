@@ -143,6 +143,31 @@ class InterviewRepository:
 
         return [self._parse_interview_with_joins(i) for i in result.data]
 
+    def list_by_job_ids_sync(self, job_ids: List[UUID], limit: int = 100) -> List[Interview]:
+        """
+        Fetch interviews for multiple jobs in a single query.
+
+        Args:
+            job_ids: List of job UUIDs to fetch interviews for
+            limit: Maximum number of interviews to return
+
+        Returns:
+            List of interviews sorted by created_at desc
+        """
+        if not job_ids:
+            return []
+
+        job_id_strings = [str(jid) for jid in job_ids]
+
+        result = self.client.table(self.table)\
+            .select("*, candidates!fk_interviews_candidate(name), job_postings(title)")\
+            .in_("job_posting_id", job_id_strings)\
+            .order("created_at", desc=True)\
+            .limit(limit)\
+            .execute()
+
+        return [self._parse_interview_with_joins(i) for i in result.data]
+
     async def update(
         self,
         interview_id: UUID,
