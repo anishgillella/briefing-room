@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import {
   TrendingUp,
   AlertTriangle,
@@ -11,6 +10,8 @@ import {
   Users,
   Shield,
   Lightbulb,
+  UserCheck,
+  Loader2,
 } from "lucide-react";
 import {
   getInterviewerAnalytics,
@@ -18,9 +19,179 @@ import {
   InterviewerAnalyticsResponse,
 } from "@/lib/interviewerApi";
 import InterviewerSelector from "./InterviewerSelector";
-import { Card } from "@/components/ui/card";
-import { FadeInUp, Spinner } from "@/components/ui/motion";
-import { cn } from "@/lib/utils";
+import { tokens } from "@/lib/design-tokens";
+
+// =============================================================================
+// STAT CARD COMPONENT
+// =============================================================================
+
+interface StatCardProps {
+  icon: React.ReactNode;
+  value: number;
+  label: string;
+  color: string;
+  maxValue?: number;
+  inverted?: boolean;
+  note?: string;
+}
+
+function StatCard({ icon, value, label, color, maxValue = 100, inverted = false, note }: StatCardProps) {
+  const getScoreColor = (score: number, inv: boolean) => {
+    if (inv) {
+      if (score <= 20) return tokens.statusSuccess;
+      if (score <= 50) return tokens.statusWarning;
+      return tokens.statusDanger;
+    }
+    if (score >= 80) return tokens.statusSuccess;
+    if (score >= 60) return tokens.statusWarning;
+    return tokens.statusDanger;
+  };
+
+  const scoreColor = getScoreColor(value, inverted);
+
+  return (
+    <div
+      className="relative overflow-hidden rounded-2xl border group"
+      style={{
+        backgroundColor: tokens.bgCard,
+        borderColor: `${scoreColor}30`,
+      }}
+    >
+      <div
+        className="absolute -top-12 -right-12 w-32 h-32 rounded-full opacity-20 blur-3xl"
+        style={{ backgroundColor: scoreColor }}
+      />
+
+      <div className="relative p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <div style={{ color: tokens.textMuted }}>{icon}</div>
+          <span className="text-xs uppercase tracking-wider" style={{ color: tokens.textMuted }}>
+            {label}
+          </span>
+        </div>
+        <div className="text-3xl font-light" style={{ color: scoreColor }}>
+          {value.toFixed(0)}
+          <span className="text-lg ml-1" style={{ color: tokens.textMuted }}>/{maxValue}</span>
+        </div>
+        {note && (
+          <div className="mt-2 text-xs flex items-center gap-1" style={{ color: tokens.statusSuccess }}>
+            <CheckCircle className="w-3 h-3" />
+            {note}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// =============================================================================
+// SECTION CARD COMPONENT
+// =============================================================================
+
+interface SectionCardProps {
+  title: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+  variant?: "default" | "warning" | "danger" | "success";
+}
+
+function SectionCard({ title, icon, children, variant = "default" }: SectionCardProps) {
+  const colors = {
+    default: { border: tokens.borderSubtle, accent: tokens.brandPrimary },
+    warning: { border: `${tokens.statusWarning}50`, accent: tokens.statusWarning },
+    danger: { border: `${tokens.statusDanger}50`, accent: tokens.statusDanger },
+    success: { border: `${tokens.statusSuccess}50`, accent: tokens.statusSuccess },
+  };
+
+  const colorSet = colors[variant];
+
+  return (
+    <div
+      className="rounded-2xl border"
+      style={{
+        backgroundColor: tokens.bgCard,
+        borderColor: tokens.borderSubtle,
+        borderLeftWidth: variant !== "default" ? "4px" : "1px",
+        borderLeftColor: variant !== "default" ? colorSet.accent : tokens.borderSubtle,
+      }}
+    >
+      <div
+        className="flex items-center justify-between px-5 py-4 border-b"
+        style={{ borderColor: tokens.borderSubtle }}
+      >
+        <h3 className="text-lg font-medium text-white flex items-center gap-2">
+          <span style={{ color: colorSet.accent }}>{icon}</span>
+          {title}
+        </h3>
+      </div>
+      <div className="p-5">{children}</div>
+    </div>
+  );
+}
+
+// =============================================================================
+// CIRCULAR PROGRESS COMPONENT
+// =============================================================================
+
+function CircularProgress({ value, label, color }: { value: number; label: string; color: string }) {
+  const percentage = Math.min(100, Math.max(0, value));
+  const strokeDasharray = (percentage / 100) * 251.2;
+
+  return (
+    <div className="text-center">
+      <div className="relative w-24 h-24 mx-auto mb-3">
+        <svg className="w-24 h-24 transform -rotate-90">
+          <circle
+            cx="48"
+            cy="48"
+            r="40"
+            strokeWidth="8"
+            fill="none"
+            style={{ stroke: tokens.bgSurface }}
+          />
+          <circle
+            cx="48"
+            cy="48"
+            r="40"
+            strokeWidth="8"
+            fill="none"
+            strokeLinecap="round"
+            style={{
+              stroke: color,
+              strokeDasharray: `${strokeDasharray} 251.2`,
+              transition: "stroke-dasharray 1s ease-out",
+            }}
+          />
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-xl font-light text-white">{value}</span>
+        </div>
+      </div>
+      <div className="text-sm capitalize" style={{ color: tokens.textMuted }}>
+        {label.replace("_", " ")}
+      </div>
+    </div>
+  );
+}
+
+// =============================================================================
+// LOADING STATE COMPONENT
+// =============================================================================
+
+function LoadingState() {
+  return (
+    <div className="flex flex-col items-center justify-center py-20">
+      <Loader2 className="w-8 h-8 animate-spin" style={{ color: tokens.brandPrimary }} />
+      <p className="mt-4 text-sm" style={{ color: tokens.textMuted }}>
+        Loading interviewer analytics...
+      </p>
+    </div>
+  );
+}
+
+// =============================================================================
+// MAIN COMPONENT
+// =============================================================================
 
 export default function InterviewerDashboard() {
   const [data, setData] = useState<InterviewerAnalyticsResponse | null>(null);
@@ -56,307 +227,231 @@ export default function InterviewerDashboard() {
     loadAnalytics(id);
   };
 
-  const getScoreColor = (score: number, inverted: boolean = false) => {
-    if (inverted) {
-      if (score <= 20) return "text-emerald-400";
-      if (score <= 50) return "text-amber-400";
-      return "text-red-400";
-    }
-    if (score >= 80) return "text-emerald-400";
-    if (score >= 60) return "text-amber-400";
-    return "text-red-400";
-  };
-
-  const getScoreBg = (score: number, inverted: boolean = false) => {
-    if (inverted) {
-      if (score <= 20) return "bg-emerald-500/10 border-emerald-500/20";
-      if (score <= 50) return "bg-amber-500/10 border-amber-500/20";
-      return "bg-red-500/10 border-red-500/20";
-    }
-    if (score >= 80) return "bg-emerald-500/10 border-emerald-500/20";
-    if (score >= 60) return "bg-amber-500/10 border-amber-500/20";
-    return "bg-red-500/10 border-red-500/20";
-  };
-
   const getCircleColor = (score: number) => {
-    if (score >= 70) return "stroke-emerald-500";
-    if (score >= 50) return "stroke-amber-500";
-    return "stroke-red-500";
+    if (score >= 70) return tokens.statusSuccess;
+    if (score >= 50) return tokens.statusWarning;
+    return tokens.statusDanger;
   };
 
   const scoreMetrics = [
-    { key: "avg_question_quality", label: "Question Quality", icon: MessageSquare },
-    { key: "avg_topic_coverage", label: "Topic Coverage", icon: Target },
-    { key: "avg_consistency", label: "Consistency", icon: TrendingUp },
-    { key: "avg_bias_score", label: "Bias Score", icon: Shield, inverted: true },
-    { key: "avg_candidate_experience", label: "Candidate Exp", icon: Users },
+    { key: "avg_question_quality", label: "Question Quality", icon: <MessageSquare className="w-4 h-4" /> },
+    { key: "avg_topic_coverage", label: "Topic Coverage", icon: <Target className="w-4 h-4" /> },
+    { key: "avg_consistency", label: "Consistency", icon: <TrendingUp className="w-4 h-4" /> },
+    { key: "avg_bias_score", label: "Bias Score", icon: <Shield className="w-4 h-4" />, inverted: true },
+    { key: "avg_candidate_experience", label: "Candidate Exp", icon: <Users className="w-4 h-4" /> },
   ];
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Spinner size="lg" />
-      </div>
-    );
+    return <LoadingState />;
   }
 
   return (
     <div className="space-y-8">
+      {/* Ambient Background */}
+      <div
+        className="fixed inset-0 pointer-events-none -z-10"
+        style={{
+          background: `
+            radial-gradient(ellipse 80% 50% at 50% -20%, ${tokens.brandPrimary}15, transparent),
+            radial-gradient(ellipse 60% 40% at 100% 0%, ${tokens.brandSecondary}10, transparent),
+            ${tokens.bgApp}
+          `,
+        }}
+      />
+
       {/* Header */}
-      <FadeInUp>
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-white tracking-tight">
-              Interviewer Analytics
-            </h1>
-            <p className="text-zinc-400 mt-1">
-              Performance insights and quality metrics
-            </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <div
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium mb-3"
+            style={{
+              backgroundColor: `${tokens.brandPrimary}15`,
+              border: `1px solid ${tokens.brandPrimary}30`,
+              color: tokens.brandPrimary,
+            }}
+          >
+            <UserCheck className="w-3.5 h-3.5" />
+            Performance Analytics
           </div>
-          <InterviewerSelector onInterviewerChange={handleInterviewerChange} />
+          <h1 className="text-3xl font-light tracking-tight text-white mb-2">
+            Interviewer Dashboard
+          </h1>
+          <p style={{ color: tokens.textMuted }}>
+            Performance insights and quality metrics
+          </p>
         </div>
-      </FadeInUp>
+        <InterviewerSelector onInterviewerChange={handleInterviewerChange} />
+      </div>
 
+      {/* No Interviewer Selected */}
       {!interviewerId && (
-        <FadeInUp delay={0.1}>
-          <Card variant="glass" padding="lg" className="text-center py-16">
-            <motion.div
-              className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center mx-auto mb-6 border border-white/10"
-              animate={{ y: [0, -8, 0] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <Users className="w-10 h-10 text-indigo-400" />
-            </motion.div>
-            <h2 className="text-2xl font-bold text-white mb-3">
-              Select an Interviewer
-            </h2>
-            <p className="text-zinc-400 max-w-md mx-auto">
-              Choose an interviewer from the dropdown above to view their analytics.
-            </p>
-          </Card>
-        </FadeInUp>
+        <div
+          className="rounded-2xl border text-center py-16"
+          style={{
+            backgroundColor: tokens.bgCard,
+            borderColor: tokens.borderSubtle,
+          }}
+        >
+          <div
+            className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6"
+            style={{
+              background: `linear-gradient(135deg, ${tokens.brandPrimary}20, ${tokens.brandSecondary}20)`,
+              border: `1px solid ${tokens.borderSubtle}`,
+            }}
+          >
+            <Users className="w-10 h-10" style={{ color: tokens.brandPrimary }} />
+          </div>
+          <h2 className="text-2xl font-light text-white mb-3">
+            Select an Interviewer
+          </h2>
+          <p style={{ color: tokens.textMuted }}>
+            Choose an interviewer from the dropdown above to view their analytics.
+          </p>
+        </div>
       )}
 
+      {/* Error State */}
       {error && (
-        <FadeInUp delay={0.1}>
-          <Card variant="glass" padding="lg" className="bg-red-500/5 border-red-500/20">
-            <p className="text-red-400">{error}</p>
-          </Card>
-        </FadeInUp>
+        <div
+          className="rounded-2xl border p-8"
+          style={{
+            backgroundColor: tokens.statusDangerBg,
+            borderColor: `${tokens.statusDanger}30`,
+          }}
+        >
+          <p style={{ color: tokens.statusDanger }}>{error}</p>
+        </div>
       )}
 
+      {/* Data Display */}
       {data && (
         <>
           {data.aggregated.total_interviews === 0 ? (
-            <FadeInUp delay={0.1}>
-              <Card variant="glass" padding="lg" className="text-center py-16">
-                <motion.div
-                  className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500/10 to-cyan-500/10 flex items-center justify-center mx-auto mb-6 border border-white/10"
-                  animate={{ y: [0, -8, 0] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  <MessageSquare className="w-10 h-10 text-purple-400" />
-                </motion.div>
-                <h2 className="text-2xl font-bold text-white mb-3">
-                  No Analytics Yet
-                </h2>
-                <p className="text-zinc-400 max-w-md mx-auto">
-                  Complete interviews with this interviewer to see analytics.
-                </p>
-              </Card>
-            </FadeInUp>
+            <div
+              className="rounded-2xl border text-center py-16"
+              style={{
+                backgroundColor: tokens.bgCard,
+                borderColor: tokens.borderSubtle,
+              }}
+            >
+              <div
+                className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6"
+                style={{
+                  background: `linear-gradient(135deg, ${tokens.brandPrimary}20, ${tokens.brandSecondary}20)`,
+                  border: `1px solid ${tokens.borderSubtle}`,
+                }}
+              >
+                <MessageSquare className="w-10 h-10" style={{ color: tokens.brandPrimary }} />
+              </div>
+              <h2 className="text-2xl font-light text-white mb-3">
+                No Analytics Yet
+              </h2>
+              <p style={{ color: tokens.textMuted }}>
+                Complete interviews with this interviewer to see analytics.
+              </p>
+            </div>
           ) : (
             <>
               {/* Score Cards */}
-              <FadeInUp delay={0.1}>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                  {scoreMetrics.map((metric) => {
-                    const value = data.aggregated[
-                      metric.key as keyof typeof data.aggregated
-                    ] as number;
-                    const inverted = metric.inverted || false;
-                    return (
-                      <motion.div
-                        key={metric.key}
-                        whileHover={{ y: -4, scale: 1.02 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                      >
-                        <Card
-                          padding="md"
-                          className={cn("border", getScoreBg(value, inverted))}
-                        >
-                          <div className="flex items-center gap-2 mb-3">
-                            <metric.icon className="w-4 h-4 text-zinc-500" />
-                            <span className="text-xs text-zinc-500 uppercase tracking-wider">
-                              {metric.label}
-                            </span>
-                          </div>
-                          <div
-                            className={cn(
-                              "text-3xl font-light",
-                              getScoreColor(value, inverted)
-                            )}
-                          >
-                            {value.toFixed(0)}
-                            <span className="text-lg text-zinc-600">/100</span>
-                          </div>
-                          {inverted && value <= 20 && (
-                            <div className="mt-2 text-xs text-emerald-400 flex items-center gap-1">
-                              <CheckCircle className="w-3 h-3" /> Low bias detected
-                            </div>
-                          )}
-                        </Card>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              </FadeInUp>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                {scoreMetrics.map((metric) => {
+                  const value = data.aggregated[metric.key as keyof typeof data.aggregated] as number;
+                  const inverted = metric.inverted || false;
+                  return (
+                    <StatCard
+                      key={metric.key}
+                      icon={metric.icon}
+                      value={value}
+                      label={metric.label}
+                      color={tokens.brandPrimary}
+                      inverted={inverted}
+                      note={inverted && value <= 20 ? "Low bias detected" : undefined}
+                    />
+                  );
+                })}
+              </div>
 
               {/* Topic Coverage Breakdown */}
-              <FadeInUp delay={0.15}>
-                <Card padding="lg">
-                  <h2 className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-6">
-                    Topic Coverage Breakdown
-                  </h2>
-                  <div className="grid grid-cols-4 gap-6">
-                    {Object.entries(data.aggregated.topic_breakdown).map(
-                      ([topic, score]) => (
-                        <motion.div
-                          key={topic}
-                          className="text-center"
-                          whileHover={{ scale: 1.05 }}
-                          transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                        >
-                          <div className="relative w-24 h-24 mx-auto mb-3">
-                            <svg className="w-24 h-24 transform -rotate-90">
-                              <circle
-                                cx="48"
-                                cy="48"
-                                r="40"
-                                strokeWidth="8"
-                                fill="none"
-                                className="stroke-zinc-800"
-                              />
-                              <motion.circle
-                                cx="48"
-                                cy="48"
-                                r="40"
-                                strokeWidth="8"
-                                fill="none"
-                                strokeLinecap="round"
-                                className={getCircleColor(score)}
-                                initial={{ strokeDasharray: "0 251.2" }}
-                                animate={{
-                                  strokeDasharray: `${(score / 100) * 251.2} 251.2`,
-                                }}
-                                transition={{ duration: 1, ease: "easeOut" }}
-                              />
-                            </svg>
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <span className="text-xl font-light text-white">
-                                {score}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="text-sm text-zinc-400 capitalize">
-                            {topic.replace("_", " ")}
-                          </div>
-                        </motion.div>
-                      )
-                    )}
-                  </div>
-                </Card>
-              </FadeInUp>
+              <SectionCard title="Topic Coverage Breakdown" icon={<Target className="w-5 h-5" />}>
+                <div className="grid grid-cols-4 gap-6">
+                  {Object.entries(data.aggregated.topic_breakdown).map(([topic, score]) => (
+                    <CircularProgress
+                      key={topic}
+                      value={score}
+                      label={topic}
+                      color={getCircleColor(score)}
+                    />
+                  ))}
+                </div>
+              </SectionCard>
 
-              {/* Recommendations / Suggestions */}
+              {/* Improvement Areas */}
               {data.aggregated.common_suggestions.length > 0 && (
-                <FadeInUp delay={0.2}>
-                  <Card
-                    padding="lg"
-                    className="border-l-4 border-l-amber-500/50"
-                  >
-                    <h2 className="text-amber-400 font-semibold mb-6 flex items-center gap-2 text-lg">
-                      <Lightbulb className="w-5 h-5" />
-                      Common Improvement Areas
-                    </h2>
-                    <div className="space-y-4">
-                      {data.aggregated.common_suggestions.map((suggestion, i) => (
-                        <motion.div
-                          key={i}
-                          className="flex items-start gap-4 text-zinc-300"
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.1 * i }}
+                <SectionCard
+                  title="Common Improvement Areas"
+                  icon={<Lightbulb className="w-5 h-5" />}
+                  variant="warning"
+                >
+                  <div className="space-y-4">
+                    {data.aggregated.common_suggestions.map((suggestion, i) => (
+                      <div key={i} className="flex items-start gap-4">
+                        <div
+                          className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                          style={{ backgroundColor: `${tokens.statusWarning}20` }}
                         >
-                          <div className="w-6 h-6 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <span className="text-amber-400 text-xs font-bold">
-                              {i + 1}
-                            </span>
-                          </div>
-                          <p className="leading-relaxed">{suggestion}</p>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </Card>
-                </FadeInUp>
+                          <span className="text-xs font-bold" style={{ color: tokens.statusWarning }}>
+                            {i + 1}
+                          </span>
+                        </div>
+                        <p className="leading-relaxed" style={{ color: tokens.textSecondary }}>
+                          {suggestion}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </SectionCard>
               )}
 
               {/* Bias Flags */}
               {data.aggregated.bias_flags.length > 0 && (
-                <FadeInUp delay={0.25}>
-                  <Card
-                    padding="lg"
-                    className="border-l-4 border-l-red-500/50"
-                  >
-                    <h2 className="text-red-400 font-semibold mb-6 flex items-center gap-2 text-lg">
-                      <AlertTriangle className="w-5 h-5" />
-                      Bias Indicators Detected
-                    </h2>
-                    <div className="space-y-2">
-                      {data.aggregated.bias_flags.map((flag, i) => (
-                        <motion.div
-                          key={i}
-                          className="flex items-center gap-3 text-zinc-400"
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.05 * i }}
-                        >
-                          <div className="w-2 h-2 rounded-full bg-red-500" />
-                          <span>{flag}</span>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </Card>
-                </FadeInUp>
+                <SectionCard
+                  title="Bias Indicators Detected"
+                  icon={<AlertTriangle className="w-5 h-5" />}
+                  variant="danger"
+                >
+                  <div className="space-y-2">
+                    {data.aggregated.bias_flags.map((flag, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <div
+                          className="w-2 h-2 rounded-full"
+                          style={{ backgroundColor: tokens.statusDanger }}
+                        />
+                        <span style={{ color: tokens.textMuted }}>{flag}</span>
+                      </div>
+                    ))}
+                  </div>
+                </SectionCard>
               )}
 
-              {/* No issues state */}
+              {/* Excellent Performance */}
               {data.aggregated.common_suggestions.length === 0 &&
                 data.aggregated.bias_flags.length === 0 && (
-                  <FadeInUp delay={0.2}>
-                    <Card
-                      padding="lg"
-                      className="border-l-4 border-l-emerald-500/50"
-                    >
-                      <h2 className="text-emerald-400 font-semibold mb-2 flex items-center gap-2 text-lg">
-                        <CheckCircle className="w-5 h-5" />
-                        Excellent Performance
-                      </h2>
-                      <p className="text-zinc-400">
-                        No significant improvement areas or bias indicators
-                        detected. Keep up the great work!
-                      </p>
-                    </Card>
-                  </FadeInUp>
+                  <SectionCard
+                    title="Excellent Performance"
+                    icon={<CheckCircle className="w-5 h-5" />}
+                    variant="success"
+                  >
+                    <p style={{ color: tokens.textMuted }}>
+                      No significant improvement areas or bias indicators detected. Keep up the great work!
+                    </p>
+                  </SectionCard>
                 )}
 
               {/* Interview Count */}
-              <FadeInUp delay={0.3}>
-                <p className="text-center text-zinc-600 text-sm">
-                  Based on {data.aggregated.total_interviews} analyzed interview
-                  {data.aggregated.total_interviews !== 1 ? "s" : ""}
-                </p>
-              </FadeInUp>
+              <p className="text-center text-sm" style={{ color: tokens.textMuted }}>
+                Based on {data.aggregated.total_interviews} analyzed interview
+                {data.aggregated.total_interviews !== 1 ? "s" : ""}
+              </p>
             </>
           )}
         </>

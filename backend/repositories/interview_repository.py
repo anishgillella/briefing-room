@@ -70,6 +70,39 @@ class InterviewRepository:
         except Exception as e:
             logger.error(f"Error getting candidate interviews: {e}")
             return []
+
+    def get_candidate_interviews_batch(
+        self,
+        candidate_ids: List[str],
+    ) -> dict:
+        """
+        Get all interviews for multiple candidates in a SINGLE query.
+        
+        Returns a dict mapping candidate_id -> list of interviews with analytics.
+        This avoids N+1 queries when fetching scores for multiple candidates.
+        """
+        if not candidate_ids:
+            return {}
+            
+        try:
+            result = self._get_db().table(self.table_name)\
+                .select("*, analytics(*), transcripts(*)")\
+                .in_("candidate_id", candidate_ids)\
+                .order("stage")\
+                .execute()
+            
+            # Group by candidate_id
+            interviews_by_candidate: dict = {}
+            for interview in (result.data or []):
+                cid = interview.get("candidate_id")
+                if cid not in interviews_by_candidate:
+                    interviews_by_candidate[cid] = []
+                interviews_by_candidate[cid].append(interview)
+            
+            return interviews_by_candidate
+        except Exception as e:
+            logger.error(f"Error batch fetching candidate interviews: {e}")
+            return {}
     
     def get_completed_stages(
         self, 

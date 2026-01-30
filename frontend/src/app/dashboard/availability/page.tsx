@@ -1,12 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import AppLayout from "@/components/AppLayout";
 import {
-  ArrowLeft,
   Calendar,
   Clock,
   Plus,
@@ -29,7 +26,6 @@ import {
   updateInterviewerSettings,
   AvailabilityWeekly,
   AvailabilityOverride,
-  InterviewerSettings,
   DAY_LABELS,
   TIMEZONES,
   formatTime,
@@ -37,15 +33,77 @@ import {
   addDays,
 } from "@/lib/schedulingApi";
 import { getInterviewers, getSelectedInterviewerId, Interviewer } from "@/lib/interviewerApi";
+import { tokens } from "@/lib/design-tokens";
+
+// =============================================================================
+// SECTION CARD COMPONENT
+// =============================================================================
+
+interface SectionCardProps {
+  title: string;
+  subtitle?: string;
+  icon: React.ReactNode;
+  iconBgColor: string;
+  children: React.ReactNode;
+  className?: string;
+}
+
+function SectionCard({ title, subtitle, icon, iconBgColor, children, className = "" }: SectionCardProps) {
+  return (
+    <div
+      className={`rounded-2xl border ${className}`}
+      style={{
+        backgroundColor: tokens.bgCard,
+        borderColor: tokens.borderSubtle,
+      }}
+    >
+      <div
+        className="flex items-center gap-3 px-5 py-4 border-b"
+        style={{ borderColor: tokens.borderSubtle }}
+      >
+        <div
+          className="w-10 h-10 rounded-xl flex items-center justify-center"
+          style={{ backgroundColor: iconBgColor }}
+        >
+          {icon}
+        </div>
+        <div>
+          <h2 className="text-lg font-medium text-white">{title}</h2>
+          {subtitle && (
+            <p className="text-xs" style={{ color: tokens.textMuted }}>{subtitle}</p>
+          )}
+        </div>
+      </div>
+      <div className="p-5">{children}</div>
+    </div>
+  );
+}
+
+// =============================================================================
+// LOADING STATE
+// =============================================================================
+
+function LoadingState() {
+  return (
+    <div className="flex flex-col items-center justify-center py-20">
+      <Loader2 className="w-8 h-8 animate-spin" style={{ color: tokens.brandPrimary }} />
+      <p className="mt-4 text-sm" style={{ color: tokens.textMuted }}>
+        Loading availability settings...
+      </p>
+    </div>
+  );
+}
+
+// =============================================================================
+// MAIN COMPONENT
+// =============================================================================
 
 export default function AvailabilitySettingsPage() {
-  const router = useRouter();
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   // State
   const [interviewers, setInterviewers] = useState<Interviewer[]>([]);
   const [selectedInterviewer, setSelectedInterviewer] = useState<Interviewer | null>(null);
-  const [settings, setSettings] = useState<InterviewerSettings | null>(null);
   const [weeklySlots, setWeeklySlots] = useState<AvailabilityWeekly[]>([]);
   const [overrides, setOverrides] = useState<AvailabilityOverride[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,7 +112,7 @@ export default function AvailabilitySettingsPage() {
   const [success, setSuccess] = useState<string | null>(null);
 
   // Form state for adding slots
-  const [newSlotDay, setNewSlotDay] = useState(1); // Monday
+  const [newSlotDay, setNewSlotDay] = useState(1);
   const [newSlotStart, setNewSlotStart] = useState("09:00");
   const [newSlotEnd, setNewSlotEnd] = useState("17:00");
 
@@ -69,8 +127,6 @@ export default function AvailabilitySettingsPage() {
   const [editTimezone, setEditTimezone] = useState("America/New_York");
   const [editDuration, setEditDuration] = useState(45);
   const [editMaxPerDay, setEditMaxPerDay] = useState(5);
-
-  // Auth redirect is handled by AppLayout
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -89,7 +145,6 @@ export default function AvailabilitySettingsPage() {
       const data = await getInterviewers();
       setInterviewers(data);
 
-      // Auto-select saved interviewer
       const savedId = getSelectedInterviewerId();
       if (savedId) {
         const saved = data.find((i) => i.id === savedId);
@@ -119,11 +174,8 @@ export default function AvailabilitySettingsPage() {
         ),
       ]);
 
-      setSettings(settingsData);
       setWeeklySlots(weeklyData);
       setOverrides(overridesData);
-
-      // Update form with settings
       setEditTimezone(settingsData.timezone);
       setEditDuration(settingsData.default_interview_duration_minutes);
       setEditMaxPerDay(settingsData.max_interviews_per_day);
@@ -229,7 +281,6 @@ export default function AvailabilitySettingsPage() {
     }
   };
 
-  // Group weekly slots by day
   const slotsByDay = weeklySlots.reduce((acc, slot) => {
     const day = slot.day_of_week;
     if (!acc[day]) acc[day] = [];
@@ -237,306 +288,391 @@ export default function AvailabilitySettingsPage() {
     return acc;
   }, {} as Record<number, AvailabilityWeekly[]>);
 
+  const inputStyle = {
+    backgroundColor: tokens.bgSurface,
+    borderColor: tokens.borderSubtle,
+    color: tokens.textPrimary,
+  };
+
   return (
     <AppLayout>
       <div className="px-6 py-8 max-w-5xl mx-auto">
-        {/* Page Header */}
+        {/* Ambient Background */}
+        <div
+          className="fixed inset-0 pointer-events-none -z-10"
+          style={{
+            background: `
+              radial-gradient(ellipse 80% 50% at 50% -20%, ${tokens.brandPrimary}15, transparent),
+              radial-gradient(ellipse 60% 40% at 100% 0%, ${tokens.brandSecondary}10, transparent),
+              ${tokens.bgApp}
+            `,
+          }}
+        />
+
+        {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-white mb-1">Availability Settings</h1>
-          <p className="text-white/50">Manage interviewer availability</p>
+          <div
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium mb-3"
+            style={{
+              backgroundColor: `${tokens.brandPrimary}15`,
+              border: `1px solid ${tokens.brandPrimary}30`,
+              color: tokens.brandPrimary,
+            }}
+          >
+            <Calendar className="w-3.5 h-3.5" />
+            Scheduling
+          </div>
+          <h1 className="text-3xl font-light tracking-tight text-white mb-2">
+            Availability Settings
+          </h1>
+          <p style={{ color: tokens.textMuted }}>
+            Manage interviewer availability and scheduling preferences
+          </p>
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
-          </div>
+          <LoadingState />
         ) : (
-        <>
-        {/* Interviewer Selector */}
-        <div className="mb-8">
-          <label className="block text-sm text-white/60 mb-2">Select Interviewer</label>
-          <select
-            value={selectedInterviewer?.id || ""}
-            onChange={(e) => {
-              const interviewer = interviewers.find((i) => i.id === e.target.value);
-              setSelectedInterviewer(interviewer || null);
-            }}
-            className="w-full max-w-md px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500"
-          >
-            {interviewers.map((i) => (
-              <option key={i.id} value={i.id}>
-                {i.name} - {i.team}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Alerts */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 text-red-400" />
-            <span className="text-red-300">{error}</span>
-          </div>
-        )}
-        {success && (
-          <div className="mb-6 p-4 bg-green-500/10 border border-green-500/20 rounded-xl flex items-center gap-3">
-            <CheckCircle className="w-5 h-5 text-green-400" />
-            <span className="text-green-300">{success}</span>
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Settings Panel */}
-          <div className="glass-panel rounded-2xl p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center">
-                <Settings className="w-5 h-5 text-indigo-400" />
-              </div>
-              <h2 className="text-lg font-medium text-white">Preferences</h2>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs text-white/50 mb-2">Timezone</label>
-                <select
-                  value={editTimezone}
-                  onChange={(e) => setEditTimezone(e.target.value)}
-                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-indigo-500"
-                >
-                  {TIMEZONES.map((tz) => (
-                    <option key={tz.value} value={tz.value}>
-                      {tz.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs text-white/50 mb-2">Default Interview Duration</label>
-                <select
-                  value={editDuration}
-                  onChange={(e) => setEditDuration(Number(e.target.value))}
-                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-indigo-500"
-                >
-                  <option value={30}>30 minutes</option>
-                  <option value={45}>45 minutes</option>
-                  <option value={60}>60 minutes</option>
-                  <option value={90}>90 minutes</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs text-white/50 mb-2">Max Interviews Per Day</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={20}
-                  value={editMaxPerDay}
-                  onChange={(e) => setEditMaxPerDay(Number(e.target.value))}
-                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-
-              <button
-                onClick={handleSaveSettings}
-                disabled={saving}
-                className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-white/10 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
+          <>
+            {/* Interviewer Selector */}
+            <div className="mb-8">
+              <label className="block text-sm mb-2" style={{ color: tokens.textMuted }}>
+                Select Interviewer
+              </label>
+              <select
+                value={selectedInterviewer?.id || ""}
+                onChange={(e) => {
+                  const interviewer = interviewers.find((i) => i.id === e.target.value);
+                  setSelectedInterviewer(interviewer || null);
+                }}
+                className="w-full max-w-md px-4 py-3 border rounded-xl focus:outline-none focus:ring-2"
+                style={{
+                  ...inputStyle,
+                  focusRing: tokens.brandPrimary,
+                }}
               >
-                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                Save Preferences
-              </button>
-            </div>
-          </div>
-
-          {/* Weekly Availability Panel */}
-          <div className="glass-panel rounded-2xl p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
-                <Calendar className="w-5 h-5 text-green-400" />
-              </div>
-              <h2 className="text-lg font-medium text-white">Weekly Schedule</h2>
-            </div>
-
-            {/* Add Slot Form */}
-            <div className="p-4 bg-white/5 rounded-xl mb-4">
-              <div className="grid grid-cols-4 gap-2 mb-3">
-                <select
-                  value={newSlotDay}
-                  onChange={(e) => setNewSlotDay(Number(e.target.value))}
-                  className="col-span-2 px-2 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm"
-                >
-                  {DAY_LABELS.map((day, idx) => (
-                    <option key={idx} value={idx}>
-                      {day}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  type="time"
-                  value={newSlotStart}
-                  onChange={(e) => setNewSlotStart(e.target.value)}
-                  className="px-2 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm"
-                />
-                <input
-                  type="time"
-                  value={newSlotEnd}
-                  onChange={(e) => setNewSlotEnd(e.target.value)}
-                  className="px-2 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm"
-                />
-              </div>
-              <button
-                onClick={handleAddWeeklySlot}
-                disabled={saving}
-                className="w-full py-2 bg-green-600 hover:bg-green-500 disabled:bg-white/10 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                Add Time Slot
-              </button>
-            </div>
-
-            {/* Existing Slots */}
-            <div className="space-y-3 max-h-64 overflow-y-auto">
-              {Object.entries(slotsByDay)
-                .sort(([a], [b]) => Number(a) - Number(b))
-                .map(([day, slots]) => (
-                  <div key={day} className="flex items-start gap-3">
-                    <div className="w-20 text-xs text-white/50 pt-2">{DAY_LABELS[Number(day)]}</div>
-                    <div className="flex-1 space-y-1">
-                      {slots.map((slot) => (
-                        <div
-                          key={slot.id}
-                          className="flex items-center justify-between p-2 bg-white/5 rounded-lg"
-                        >
-                          <span className="text-sm text-white">
-                            {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
-                          </span>
-                          <button
-                            onClick={() => handleDeleteWeeklySlot(slot.id)}
-                            className="p-1 hover:bg-red-500/20 rounded text-red-400"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                {interviewers.map((i) => (
+                  <option key={i.id} value={i.id}>
+                    {i.name} - {i.team}
+                  </option>
                 ))}
-              {weeklySlots.length === 0 && (
-                <div className="text-center py-8 text-white/40 text-sm">
-                  No weekly availability set
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Overrides Panel */}
-          <div className="glass-panel rounded-2xl p-6 lg:col-span-2">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
-                <Clock className="w-5 h-5 text-orange-400" />
-              </div>
-              <div>
-                <h2 className="text-lg font-medium text-white">Date Overrides</h2>
-                <p className="text-xs text-white/40">Block time off or add extra availability</p>
-              </div>
+              </select>
             </div>
 
-            {/* Add Override Form */}
-            <div className="p-4 bg-white/5 rounded-xl mb-4">
-              <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-3">
-                <input
-                  type="date"
-                  value={newOverrideDate}
-                  onChange={(e) => setNewOverrideDate(e.target.value)}
-                  className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm"
-                />
-                <select
-                  value={newOverrideType}
-                  onChange={(e) => setNewOverrideType(e.target.value as any)}
-                  className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm"
-                >
-                  <option value="unavailable">Unavailable</option>
-                  <option value="available">Available</option>
-                </select>
-                <input
-                  type="time"
-                  value={newOverrideStart}
-                  onChange={(e) => setNewOverrideStart(e.target.value)}
-                  placeholder="Start (optional)"
-                  className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm"
-                />
-                <input
-                  type="time"
-                  value={newOverrideEnd}
-                  onChange={(e) => setNewOverrideEnd(e.target.value)}
-                  placeholder="End (optional)"
-                  className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm"
-                />
-                <input
-                  type="text"
-                  value={newOverrideReason}
-                  onChange={(e) => setNewOverrideReason(e.target.value)}
-                  placeholder="Reason (optional)"
-                  className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm"
-                />
-              </div>
-              <button
-                onClick={handleAddOverride}
-                disabled={saving}
-                className="w-full py-2 bg-orange-600 hover:bg-orange-500 disabled:bg-white/10 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+            {/* Alerts */}
+            {error && (
+              <div
+                className="mb-6 p-4 rounded-xl flex items-center gap-3 border"
+                style={{
+                  backgroundColor: tokens.statusDangerBg,
+                  borderColor: `${tokens.statusDanger}30`,
+                }}
               >
-                <Plus className="w-4 h-4" />
-                Add Override
-              </button>
-            </div>
+                <AlertCircle className="w-5 h-5" style={{ color: tokens.statusDanger }} />
+                <span style={{ color: tokens.statusDanger }}>{error}</span>
+              </div>
+            )}
+            {success && (
+              <div
+                className="mb-6 p-4 rounded-xl flex items-center gap-3 border"
+                style={{
+                  backgroundColor: tokens.statusSuccessBg,
+                  borderColor: `${tokens.statusSuccess}30`,
+                }}
+              >
+                <CheckCircle className="w-5 h-5" style={{ color: tokens.statusSuccess }} />
+                <span style={{ color: tokens.statusSuccess }}>{success}</span>
+              </div>
+            )}
 
-            {/* Existing Overrides */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {overrides.map((override) => (
-                <div
-                  key={override.id}
-                  className={`p-3 rounded-xl border ${
-                    override.override_type === "unavailable"
-                      ? "bg-red-500/10 border-red-500/20"
-                      : "bg-green-500/10 border-green-500/20"
-                  }`}
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="text-sm font-medium text-white">
-                        {new Date(override.override_date + "T00:00:00").toLocaleDateString("en-US", {
-                          weekday: "short",
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </div>
-                      <div className="text-xs text-white/50 mt-1">
-                        {override.start_time && override.end_time
-                          ? `${formatTime(override.start_time)} - ${formatTime(override.end_time)}`
-                          : "All Day"}
-                      </div>
-                      {override.reason && (
-                        <div className="text-xs text-white/40 mt-1">{override.reason}</div>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => handleDeleteOverride(override.id)}
-                      className="p-1 hover:bg-white/10 rounded"
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Settings Panel */}
+              <SectionCard
+                title="Preferences"
+                icon={<Settings className="w-5 h-5" style={{ color: tokens.brandPrimary }} />}
+                iconBgColor={`${tokens.brandPrimary}20`}
+              >
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs mb-2" style={{ color: tokens.textMuted }}>
+                      Timezone
+                    </label>
+                    <select
+                      value={editTimezone}
+                      onChange={(e) => setEditTimezone(e.target.value)}
+                      className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none"
+                      style={inputStyle}
                     >
-                      <Trash2 className="w-3 h-3 text-white/40" />
-                    </button>
+                      {TIMEZONES.map((tz) => (
+                        <option key={tz.value} value={tz.value}>
+                          {tz.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
+
+                  <div>
+                    <label className="block text-xs mb-2" style={{ color: tokens.textMuted }}>
+                      Default Interview Duration
+                    </label>
+                    <select
+                      value={editDuration}
+                      onChange={(e) => setEditDuration(Number(e.target.value))}
+                      className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none"
+                      style={inputStyle}
+                    >
+                      <option value={30}>30 minutes</option>
+                      <option value={45}>45 minutes</option>
+                      <option value={60}>60 minutes</option>
+                      <option value={90}>90 minutes</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs mb-2" style={{ color: tokens.textMuted }}>
+                      Max Interviews Per Day
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={20}
+                      value={editMaxPerDay}
+                      onChange={(e) => setEditMaxPerDay(Number(e.target.value))}
+                      className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none"
+                      style={inputStyle}
+                    />
+                  </div>
+
+                  <button
+                    onClick={handleSaveSettings}
+                    disabled={saving}
+                    className="w-full py-2.5 font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
+                    style={{
+                      backgroundColor: saving ? tokens.bgSurface : tokens.brandPrimary,
+                      color: saving ? tokens.textMuted : "white",
+                    }}
+                  >
+                    {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                    Save Preferences
+                  </button>
                 </div>
-              ))}
-              {overrides.length === 0 && (
-                <div className="col-span-full text-center py-8 text-white/40 text-sm">
-                  No overrides set
+              </SectionCard>
+
+              {/* Weekly Availability Panel */}
+              <SectionCard
+                title="Weekly Schedule"
+                icon={<Calendar className="w-5 h-5" style={{ color: tokens.statusSuccess }} />}
+                iconBgColor={`${tokens.statusSuccess}20`}
+              >
+                {/* Add Slot Form */}
+                <div
+                  className="p-4 rounded-xl mb-4"
+                  style={{ backgroundColor: tokens.bgSurface }}
+                >
+                  <div className="grid grid-cols-4 gap-2 mb-3">
+                    <select
+                      value={newSlotDay}
+                      onChange={(e) => setNewSlotDay(Number(e.target.value))}
+                      className="col-span-2 px-2 py-2 border rounded-lg text-sm"
+                      style={inputStyle}
+                    >
+                      {DAY_LABELS.map((day, idx) => (
+                        <option key={idx} value={idx}>
+                          {day}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="time"
+                      value={newSlotStart}
+                      onChange={(e) => setNewSlotStart(e.target.value)}
+                      className="px-2 py-2 border rounded-lg text-sm"
+                      style={inputStyle}
+                    />
+                    <input
+                      type="time"
+                      value={newSlotEnd}
+                      onChange={(e) => setNewSlotEnd(e.target.value)}
+                      className="px-2 py-2 border rounded-lg text-sm"
+                      style={inputStyle}
+                    />
+                  </div>
+                  <button
+                    onClick={handleAddWeeklySlot}
+                    disabled={saving}
+                    className="w-full py-2 text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                    style={{
+                      backgroundColor: saving ? tokens.bgSurface : tokens.statusSuccess,
+                      color: saving ? tokens.textMuted : "white",
+                    }}
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Time Slot
+                  </button>
                 </div>
-              )}
+
+                {/* Existing Slots */}
+                <div className="space-y-3 max-h-64 overflow-y-auto">
+                  {Object.entries(slotsByDay)
+                    .sort(([a], [b]) => Number(a) - Number(b))
+                    .map(([day, slots]) => (
+                      <div key={day} className="flex items-start gap-3">
+                        <div className="w-20 text-xs pt-2" style={{ color: tokens.textMuted }}>
+                          {DAY_LABELS[Number(day)]}
+                        </div>
+                        <div className="flex-1 space-y-1">
+                          {slots.map((slot) => (
+                            <div
+                              key={slot.id}
+                              className="flex items-center justify-between p-2 rounded-lg"
+                              style={{ backgroundColor: tokens.bgSurface }}
+                            >
+                              <span className="text-sm text-white">
+                                {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
+                              </span>
+                              <button
+                                onClick={() => handleDeleteWeeklySlot(slot.id)}
+                                className="p-1 rounded transition-colors"
+                                style={{ color: tokens.statusDanger }}
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  {weeklySlots.length === 0 && (
+                    <div className="text-center py-8 text-sm" style={{ color: tokens.textMuted }}>
+                      No weekly availability set
+                    </div>
+                  )}
+                </div>
+              </SectionCard>
+
+              {/* Overrides Panel */}
+              <SectionCard
+                title="Date Overrides"
+                subtitle="Block time off or add extra availability"
+                icon={<Clock className="w-5 h-5" style={{ color: tokens.statusWarning }} />}
+                iconBgColor={`${tokens.statusWarning}20`}
+                className="lg:col-span-2"
+              >
+                {/* Add Override Form */}
+                <div
+                  className="p-4 rounded-xl mb-4"
+                  style={{ backgroundColor: tokens.bgSurface }}
+                >
+                  <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-3">
+                    <input
+                      type="date"
+                      value={newOverrideDate}
+                      onChange={(e) => setNewOverrideDate(e.target.value)}
+                      className="px-3 py-2 border rounded-lg text-sm"
+                      style={inputStyle}
+                    />
+                    <select
+                      value={newOverrideType}
+                      onChange={(e) => setNewOverrideType(e.target.value as any)}
+                      className="px-3 py-2 border rounded-lg text-sm"
+                      style={inputStyle}
+                    >
+                      <option value="unavailable">Unavailable</option>
+                      <option value="available">Available</option>
+                    </select>
+                    <input
+                      type="time"
+                      value={newOverrideStart}
+                      onChange={(e) => setNewOverrideStart(e.target.value)}
+                      placeholder="Start (optional)"
+                      className="px-3 py-2 border rounded-lg text-sm"
+                      style={inputStyle}
+                    />
+                    <input
+                      type="time"
+                      value={newOverrideEnd}
+                      onChange={(e) => setNewOverrideEnd(e.target.value)}
+                      placeholder="End (optional)"
+                      className="px-3 py-2 border rounded-lg text-sm"
+                      style={inputStyle}
+                    />
+                    <input
+                      type="text"
+                      value={newOverrideReason}
+                      onChange={(e) => setNewOverrideReason(e.target.value)}
+                      placeholder="Reason (optional)"
+                      className="px-3 py-2 border rounded-lg text-sm"
+                      style={inputStyle}
+                    />
+                  </div>
+                  <button
+                    onClick={handleAddOverride}
+                    disabled={saving}
+                    className="w-full py-2 text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                    style={{
+                      backgroundColor: saving ? tokens.bgSurface : tokens.statusWarning,
+                      color: saving ? tokens.textMuted : "white",
+                    }}
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Override
+                  </button>
+                </div>
+
+                {/* Existing Overrides */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {overrides.map((override) => (
+                    <div
+                      key={override.id}
+                      className="p-3 rounded-xl border"
+                      style={{
+                        backgroundColor: override.override_type === "unavailable"
+                          ? tokens.statusDangerBg
+                          : tokens.statusSuccessBg,
+                        borderColor: override.override_type === "unavailable"
+                          ? `${tokens.statusDanger}30`
+                          : `${tokens.statusSuccess}30`,
+                      }}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <div className="text-sm font-medium text-white">
+                            {new Date(override.override_date + "T00:00:00").toLocaleDateString("en-US", {
+                              weekday: "short",
+                              month: "short",
+                              day: "numeric",
+                            })}
+                          </div>
+                          <div className="text-xs mt-1" style={{ color: tokens.textMuted }}>
+                            {override.start_time && override.end_time
+                              ? `${formatTime(override.start_time)} - ${formatTime(override.end_time)}`
+                              : "All Day"}
+                          </div>
+                          {override.reason && (
+                            <div className="text-xs mt-1" style={{ color: tokens.textMuted }}>
+                              {override.reason}
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => handleDeleteOverride(override.id)}
+                          className="p-1 rounded transition-colors"
+                          style={{ color: tokens.textMuted }}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {overrides.length === 0 && (
+                    <div className="col-span-full text-center py-8 text-sm" style={{ color: tokens.textMuted }}>
+                      No overrides set
+                    </div>
+                  )}
+                </div>
+              </SectionCard>
             </div>
-          </div>
-        </div>
-        </>
+          </>
         )}
       </div>
     </AppLayout>
