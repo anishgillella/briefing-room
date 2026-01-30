@@ -7614,5 +7614,858 @@
     ],
     "parallel_research_status": "complete",
     "skipped_fields": []
+  },
+  "67d33f63-a151-42b8-8ddc-8a6b5163de41": {
+    "id": "67d33f63-a151-42b8-8ddc-8a6b5163de41",
+    "created_at": "2025-12-26T04:17:58.393623",
+    "updated_at": "2025-12-26T04:19:49.919872",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Accenture",
+      "website": "https://www.accenture.com",
+      "tagline": "Delivering on the promise of technology and human ingenuity.",
+      "funding_stage": "public",
+      "total_raised": null,
+      "last_round_date": null,
+      "investors": [],
+      "product_description": "Accenture is a global professional services company providing a broad range of services and solutions in strategy, consulting, digital, technology, and operations.",
+      "problem_solved": "They help the world's leading businesses, governments, and other organizations build their digital core, optimize operations, accelerate revenue growth, and enhance citizen services.",
+      "target_customers": "Global 2000 companies, large enterprises, and government organizations across nearly all industries.",
+      "industry": "Management Consulting, Information Technology Services, Professional Services",
+      "founders": [
+        "Clarence W. Bellen",
+        "Joe G. Eades"
+      ],
+      "founder_backgrounds": "Accenture originated from the business and technology consulting division of accounting firm Arthur Andersen.",
+      "team_size": "700,000+",
+      "headquarters": "Dublin, Ireland",
+      "office_locations": [
+        "New York, NY",
+        "London, UK",
+        "Bangalore, India",
+        "Manila, Philippines",
+        "Chicago, IL",
+        "Paris, France"
+      ],
+      "competitors": [
+        "Deloitte",
+        "IBM Global Services",
+        "Capgemini",
+        "Tata Consultancy Services (TCS)",
+        "McKinsey & Company",
+        "Boston Consulting Group (BCG)"
+      ],
+      "differentiators": "Accenture is known for its massive scale, deep industry expertise, and extensive technology implementation capabilities, particularly in large-scale digital transformation projects.",
+      "recent_news": [
+        "Accenture acquires multiple smaller firms globally to bolster capabilities in AI, cloud, and cybersecurity.",
+        "Accenture releases its annual Technology Vision report, outlining key technology trends for businesses.",
+        "Accenture announces major partnerships with hyperscalers like AWS, Microsoft, and Google Cloud."
+      ],
+      "hiring_signals": "Hiring aggressively globally, especially in technology and digital transformation roles; consistently listed as one of the largest employers in the IT services sector.",
+      "tech_stack_hints": [
+        "SAP",
+        "Oracle",
+        "Salesforce",
+        "Microsoft Azure",
+        "Amazon Web Services (AWS)",
+        "Google Cloud Platform (GCP)",
+        "Java",
+        "Python",
+        "AI/ML frameworks"
+      ],
+      "culture_keywords": [
+        "Global",
+        "Large-scale",
+        "Process-driven",
+        "Consulting lifestyle",
+        "Continuous learning",
+        "Diversity and inclusion focus"
+      ],
+      "glassdoor_sentiment": null,
+      "eng_team_size": null,
+      "work_style": null,
+      "decision_making": null,
+      "code_review_culture": null,
+      "deployment_frequency": null,
+      "tech_debt_attitude": null,
+      "documentation_culture": null,
+      "on_call_expectations": null,
+      "growth_trajectory": null,
+      "interesting_facts": [
+        "Accenture was originally the consulting division of Arthur Andersen, but separated in 2000, changing its name from Andersen Consulting to Accenture in 2001.",
+        "The name 'Accenture' is derived from 'Accent on the future' and was chosen following an internal competition among the firm's employees.",
+        "Accenture is one of the largest employers globally, with a workforce exceeding 700,000 people across more than 120 countries."
+      ],
+      "potential_selling_points": [
+        "Unparalleled scale and exposure to Fortune 500 clients and complex global projects.",
+        "Extensive training and development opportunities, including certifications and internal universities.",
+        "Strong career mobility across different industry groups, service lines (strategy, technology, operations), and global locations."
+      ]
+    },
+    "requirements": {
+      "job_title": "Software Engineer",
+      "location_type": "onsite",
+      "location_city": "Hyderabad",
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": 4,
+      "experience_max_years": null,
+      "salary_min": 2000000,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": null,
+      "equity_range": null,
+      "bonus_structure": null,
+      "team_size": 10,
+      "team_composition": "Working on cybersecurity issues with AI",
+      "team_seniority": null,
+      "reporting_to": "Manager of Cybersecurity",
+      "direct_reports": null,
+      "hiring_urgency": null,
+      "backfill_reason": null,
+      "success_metrics_30_day": null,
+      "success_metrics_90_day": null,
+      "growth_path": null,
+      "deal_breakers": [],
+      "ideal_background": null,
+      "interview_turnaround": null
+    },
+    "traits": [],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": null,
+      "selling_points": [],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "conversation",
+    "field_confidence": [],
+    "is_complete": false,
+    "missing_required_fields": [
+      "visa_sponsorship",
+      "equity",
+      "traits",
+      "interview_stages",
+      "role_context"
+    ],
+    "parallel_research_status": "complete",
+    "skipped_fields": []
+  },
+  "a8bf6687-c954-43a1-8ad2-3446114bd4c7": {
+    "id": "a8bf6687-c954-43a1-8ad2-3446114bd4c7",
+    "created_at": "2025-12-29T03:14:29.853713",
+    "updated_at": "2025-12-29T03:14:34.862756",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Accenture",
+      "website": "https://www.accenture.com/us-en",
+      "tagline": "Embracing the power of change to create 360\u00b0 value.",
+      "funding_stage": "public",
+      "total_raised": null,
+      "last_round_date": null,
+      "investors": [],
+      "product_description": "Accenture is a global professional services company providing a broad range of services and solutions in strategy, consulting, digital, technology, and operations.",
+      "problem_solved": "They help the world's leading businesses, governments, and other organizations build their digital core, optimize operations, accelerate revenue growth, and enhance citizen services.",
+      "target_customers": "Large enterprises, governments, and organizations across nearly all industries (e.g., banking, healthcare, communications, resources).",
+      "industry": "Management Consulting, IT Services, Professional Services",
+      "founders": [
+        "Clarence W. Bellen",
+        "Joe G. Eades"
+      ],
+      "founder_backgrounds": "Accenture originated as the business and technology consulting division of accounting firm Arthur Andersen.",
+      "team_size": "700,000+",
+      "headquarters": "Dublin, Ireland",
+      "office_locations": [
+        "New York, NY",
+        "Chicago, IL",
+        "London, UK",
+        "Bangalore, India",
+        "Manila, Philippines",
+        "Paris, France",
+        "Frankfurt, Germany"
+      ],
+      "competitors": [
+        "Deloitte Consulting",
+        "IBM Global Services",
+        "Tata Consultancy Services (TCS)",
+        "Capgemini",
+        "McKinsey & Company",
+        "Boston Consulting Group (BCG)"
+      ],
+      "differentiators": "Accenture's massive scale, global delivery network, deep industry expertise, and significant investment in digital and cloud transformation capabilities (e.g., Accenture Song, Accenture Cloud First).",
+      "recent_news": [
+        "Accenture acquires a specialized cloud and data services company to boost its Cloud First capabilities.",
+        "Accenture releases its annual Technology Vision report detailing key trends for the coming year.",
+        "Accenture announces strong quarterly earnings, driven by demand for digital transformation services."
+      ],
+      "hiring_signals": "Hiring aggressively globally, particularly in technology, cloud, and digital transformation roles; consistently one of the world's largest recruiters of university graduates.",
+      "tech_stack_hints": [
+        "SAP",
+        "Oracle",
+        "Microsoft Azure",
+        "Amazon Web Services (AWS)",
+        "Google Cloud Platform (GCP)",
+        "Salesforce",
+        "Java",
+        "Python",
+        "AI/ML platforms"
+      ],
+      "culture_keywords": [
+        "Global",
+        "Large-scale projects",
+        "Structured career path",
+        "High-performance",
+        "Continuous learning",
+        "Travel (role dependent)"
+      ],
+      "glassdoor_sentiment": "Generally positive, often cited for career growth opportunities and large project exposure, but sometimes criticized for work-life balance depending on the client/project.",
+      "eng_team_size": null,
+      "work_style": null,
+      "decision_making": null,
+      "code_review_culture": null,
+      "deployment_frequency": null,
+      "tech_debt_attitude": null,
+      "documentation_culture": null,
+      "on_call_expectations": null,
+      "growth_trajectory": null,
+      "interesting_facts": [
+        "Accenture was originally the consulting division of Arthur Andersen, but spun off in 1989 and rebranded as Accenture in 2001 following the collapse of Arthur Andersen.",
+        "The company operates across five main areas: Strategy & Consulting, Technology, Operations, Industry X (digital engineering), and Accenture Song (creative and digital marketing).",
+        "Accenture is one of the largest employers globally, with a workforce exceeding 700,000 people across more than 120 countries."
+      ],
+      "potential_selling_points": [
+        "Unparalleled opportunity to work on massive, complex digital transformation projects for Fortune 500 companies and governments.",
+        "Exceptional career development and training resources, including access to specialized academies and certifications.",
+        "A truly global organization offering opportunities for international exposure and collaboration across diverse teams."
+      ]
+    },
+    "requirements": {
+      "job_title": "",
+      "location_type": null,
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": null,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": null,
+      "equity_range": null,
+      "bonus_structure": null,
+      "team_size": null,
+      "team_composition": null,
+      "team_seniority": null,
+      "reporting_to": null,
+      "direct_reports": null,
+      "hiring_urgency": null,
+      "backfill_reason": null,
+      "success_metrics_30_day": null,
+      "success_metrics_90_day": null,
+      "growth_path": null,
+      "deal_breakers": [],
+      "ideal_background": null,
+      "interview_turnaround": null
+    },
+    "traits": [],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": null,
+      "selling_points": [],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "conversation",
+    "field_confidence": [],
+    "is_complete": false,
+    "missing_required_fields": [
+      "job_title",
+      "location_type",
+      "experience_min_years",
+      "compensation",
+      "visa_sponsorship",
+      "equity",
+      "team_context",
+      "traits",
+      "interview_stages",
+      "role_context"
+    ],
+    "parallel_research_status": "complete",
+    "skipped_fields": []
+  },
+  "e6119b0d-7f0f-4d02-b58a-5b3c74427029": {
+    "id": "e6119b0d-7f0f-4d02-b58a-5b3c74427029",
+    "created_at": "2025-12-29T04:05:24.289503",
+    "updated_at": "2025-12-29T04:05:51.926704",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Apple",
+      "website": "https://apple.com/",
+      "tagline": "Designing and manufacturing the world's most innovative personal technology.",
+      "funding_stage": "public",
+      "total_raised": null,
+      "last_round_date": null,
+      "investors": [],
+      "product_description": "Apple designs, manufactures, and markets consumer electronics, software, and online services, including the iPhone, Mac, iPad, and Apple Watch. They operate a vast ecosystem of integrated hardware and software.",
+      "problem_solved": "Apple provides integrated, user-friendly technology solutions that emphasize design excellence, performance, and user privacy, simplifying complex digital tasks for consumers and professionals.",
+      "target_customers": "Global consumers, educational institutions, small and mid-sized businesses, and enterprise organizations.",
+      "industry": "Consumer Electronics, Software, Technology, Services",
+      "founders": [
+        "Steve Jobs",
+        "Steve Wozniak",
+        "Ronald Wayne"
+      ],
+      "founder_backgrounds": "Steve Jobs was known for his visionary leadership and design focus; Steve Wozniak was the engineering genius behind the original Apple computers.",
+      "team_size": "160,000+",
+      "headquarters": "Cupertino, California",
+      "office_locations": [
+        "Cupertino, California",
+        "Austin, Texas",
+        "Cork, Ireland",
+        "London, UK",
+        "Shenzhen, China",
+        "Seattle, Washington"
+      ],
+      "competitors": [
+        "Samsung",
+        "Google",
+        "Microsoft",
+        "Amazon",
+        "Xiaomi"
+      ],
+      "differentiators": "Unmatched vertical integration (designing both hardware and custom silicon/software), a strong commitment to user privacy, and a premium, globally recognized brand built on design aesthetics.",
+      "recent_news": [
+        "Launch of Apple Vision Pro spatial computing platform.",
+        "Major announcements regarding integrating generative AI across their operating systems (Apple Intelligence).",
+        "Continued development and rollout of custom M-series chips for Mac and iPad lines."
+      ],
+      "hiring_signals": "Continuous large-scale hiring globally, particularly in AI/ML, custom silicon engineering, and Services (Apple TV+, Apple Music).",
+      "tech_stack_hints": [
+        "Swift",
+        "Objective-C",
+        "C++",
+        "Custom ARM-based Silicon (M-series, A-series)",
+        "Metal (Graphics API)",
+        "FoundationDB (Acquired and used internally for distributed data storage)"
+      ],
+      "culture_keywords": [
+        "Secrecy",
+        "Design-driven",
+        "High standards",
+        "Integrated teams",
+        "Excellence"
+      ],
+      "glassdoor_sentiment": null,
+      "eng_team_size": null,
+      "work_style": null,
+      "decision_making": null,
+      "code_review_culture": null,
+      "deployment_frequency": null,
+      "tech_debt_attitude": null,
+      "documentation_culture": null,
+      "on_call_expectations": null,
+      "growth_trajectory": null,
+      "interesting_facts": [
+        "Apple Park, the company's headquarters, is often referred to as 'the spaceship' and cost approximately $5 billion to build.",
+        "The company designs its own custom processors (M-series and A-series chips), giving it a massive performance and efficiency advantage over competitors relying on off-the-shelf silicon.",
+        "When Steve Jobs returned to Apple in 1997, the company was weeks away from bankruptcy; he famously secured a $150 million investment from Microsoft to keep the company afloat."
+      ],
+      "potential_selling_points": [
+        "Opportunity to work on products used by billions of people globally, offering unparalleled scale and impact.",
+        "Working at the cutting edge of hardware and software integration, especially in custom silicon and spatial computing.",
+        "Industry-leading compensation, benefits, and resources typical of a trillion-dollar company."
+      ]
+    },
+    "requirements": {
+      "job_title": "Java Developers",
+      "location_type": null,
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": 3,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": null,
+      "equity_range": null,
+      "bonus_structure": null,
+      "team_size": null,
+      "team_composition": null,
+      "team_seniority": null,
+      "reporting_to": null,
+      "direct_reports": null,
+      "hiring_urgency": null,
+      "backfill_reason": null,
+      "success_metrics_30_day": null,
+      "success_metrics_90_day": null,
+      "growth_path": null,
+      "deal_breakers": [],
+      "ideal_background": null,
+      "interview_turnaround": null
+    },
+    "traits": [
+      {
+        "id": "5448fb88-3be6-400a-a539-dc334389fa34",
+        "name": "Backend Java Development",
+        "description": "Ability to design, develop, and maintain high-performance, scalable backend solutions using modern Java versions and object-oriented principles.",
+        "priority": "must_have",
+        "signals": [
+          "Java 11+",
+          "Spring ecosystem",
+          "Spring Boot",
+          "OOPS",
+          "Data structures",
+          "Design patterns",
+          "Microservices"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "adcb530c-2acd-445f-a569-65e08b366ec3",
+        "name": "Software Quality & Testing",
+        "description": "Ensuring code quality, maintainability, and reliability through rigorous testing, code reviews, and adherence to established software engineering best practices.",
+        "priority": "must_have",
+        "signals": [
+          "Clean code",
+          "Code reviews",
+          "Unit testing",
+          "JUnit/Mockito testing",
+          "Debugging issues",
+          "Optimize performance"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "b88edfeb-c976-4a1d-b9cc-0012d5efa679",
+        "name": "Data and API Integration",
+        "description": "Proficiency in designing database schemas and implementing robust APIs to expose application functionality.",
+        "priority": "must_have",
+        "signals": [
+          "RESTful APIs",
+          "Database designs (SQL/NoSQL)",
+          "SQL databases"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "ad0b191b-8891-492f-a0f9-e73844ee83e6",
+        "name": "DevOps and Cloud Engineering",
+        "description": "Experience implementing automated deployment pipelines and familiarity with deploying applications in modern cloud environments.",
+        "priority": "must_have",
+        "signals": [
+          "CI/CD pipelines",
+          "Cloud-native environments",
+          "Git",
+          "Maven",
+          "Jenkins",
+          "Cloud (AWS/Azure)"
+        ],
+        "anti_signals": []
+      },
+      {
+        "id": "5efc78ed-812b-4410-8f11-c06c657b7bd7",
+        "name": "Teamwork and Mentorship",
+        "description": "Working effectively within Agile teams, communicating clearly with cross-functional stakeholders, and providing guidance to junior developers.",
+        "priority": "must_have",
+        "signals": [
+          "Agile/Scrum methodologies",
+          "Collaboration with cross-functional teams",
+          "Excellent communication",
+          "English skills",
+          "Ability to work in teams",
+          "Mentor juniors"
+        ],
+        "anti_signals": []
+      }
+    ],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": "Join Accenture to design and build custom, high-performance Java-based applications and microservices for diverse client projects across various industries.",
+      "selling_points": [
+        "Contribute to custom software solutions, from microservices to full applications.",
+        "Work in Agile teams on client projects across industries.",
+        "Focus on modern frameworks (Spring Boot) and cloud-native environments.",
+        "Opportunity to mentor junior developers and contribute to architectural decisions.",
+        "Stay current with trends like cloud (AWS/Azure) and microservices."
+      ],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "jd_paste",
+    "field_confidence": [
+      {
+        "field_name": "job_title",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "location",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "experience",
+        "confidence": 1.0,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "compensation",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "visa",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "equity",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      },
+      {
+        "field_name": "traits",
+        "confidence": 0.9,
+        "source": "jd_paste",
+        "needs_confirmation": false
+      },
+      {
+        "field_name": "interview_stages",
+        "confidence": 0.0,
+        "source": "jd_paste",
+        "needs_confirmation": true
+      }
+    ],
+    "is_complete": false,
+    "missing_required_fields": [
+      "location_type",
+      "compensation",
+      "visa_sponsorship",
+      "equity",
+      "team_context",
+      "interview_stages",
+      "role_context"
+    ],
+    "parallel_research_status": "complete",
+    "skipped_fields": []
+  },
+  "c91bb384-6e02-4d61-8d0e-c5a0d995c106": {
+    "id": "c91bb384-6e02-4d61-8d0e-c5a0d995c106",
+    "created_at": "2025-12-29T17:30:06.599394",
+    "updated_at": "2025-12-29T17:30:10.721793",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Apple",
+      "website": "https://apple.com",
+      "tagline": "Think Different.",
+      "funding_stage": "public",
+      "total_raised": null,
+      "last_round_date": null,
+      "investors": [],
+      "product_description": "Apple designs, manufactures, and markets smartphones, personal computers, tablets, wearables, and accessories, alongside a wide range of related software and services.",
+      "problem_solved": "Apple provides integrated hardware, software, and services that simplify technology use and enhance productivity and entertainment for consumers and professionals.",
+      "target_customers": "Global consumers, small to medium businesses, educational institutions, and government agencies.",
+      "industry": "Consumer Electronics, Software, Services, Technology",
+      "founders": [
+        "Steve Jobs",
+        "Steve Wozniak",
+        "Ronald Wayne"
+      ],
+      "founder_backgrounds": "Steve Jobs and Steve Wozniak were college dropouts and electronics enthusiasts who pioneered the personal computer revolution.",
+      "team_size": "164,000+",
+      "headquarters": "Cupertino, California",
+      "office_locations": [
+        "Cupertino",
+        "Austin",
+        "Raleigh",
+        "Cork, Ireland",
+        "London, UK",
+        "Munich, Germany"
+      ],
+      "competitors": [
+        "Samsung",
+        "Google (Alphabet)",
+        "Microsoft",
+        "Amazon",
+        "Meta Platforms"
+      ],
+      "differentiators": "Deep integration between hardware and software (ecosystem lock-in), premium brand perception, strong focus on privacy, and high customer loyalty.",
+      "recent_news": [
+        "Apple Vision Pro mixed-reality headset launched to the public.",
+        "Ongoing regulatory scrutiny regarding App Store policies in the EU and US.",
+        "Continued investment and development in proprietary silicon (M-series chips)."
+      ],
+      "hiring_signals": "Consistently hiring across all major divisions, particularly in AI/ML, chip design, and services.",
+      "tech_stack_hints": [
+        "Swift",
+        "Objective-C",
+        "C++",
+        "Metal (Graphics API)",
+        "Proprietary Silicon (Apple M-series, A-series)",
+        "Kubernetes (Internal Infrastructure)"
+      ],
+      "culture_keywords": [
+        "Secrecy",
+        "Perfectionism",
+        "Design-focused",
+        "High-pressure",
+        "Innovation"
+      ],
+      "glassdoor_sentiment": null,
+      "eng_team_size": null,
+      "work_style": null,
+      "decision_making": null,
+      "code_review_culture": null,
+      "deployment_frequency": null,
+      "tech_debt_attitude": null,
+      "documentation_culture": null,
+      "on_call_expectations": null,
+      "growth_trajectory": null,
+      "interesting_facts": [
+        "Apple was founded on April 1, 1976, often mistaken for an April Fool's joke.",
+        "The company's first logo featured Isaac Newton sitting under an apple tree.",
+        "Apple holds the record for the highest market capitalization ever achieved by a public company."
+      ],
+      "potential_selling_points": [
+        "Opportunity to work on products that define global technology trends and are used by billions of people.",
+        "Access to world-class resources, talent, and cutting-edge proprietary technology (e.g., custom silicon).",
+        "Strong compensation and benefits package typical of a leading FAANG company."
+      ]
+    },
+    "requirements": {
+      "job_title": "",
+      "location_type": null,
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": null,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": null,
+      "equity_range": null,
+      "bonus_structure": null,
+      "team_size": null,
+      "team_composition": null,
+      "team_seniority": null,
+      "reporting_to": null,
+      "direct_reports": null,
+      "hiring_urgency": null,
+      "backfill_reason": null,
+      "success_metrics_30_day": null,
+      "success_metrics_90_day": null,
+      "growth_path": null,
+      "deal_breakers": [],
+      "ideal_background": null,
+      "interview_turnaround": null
+    },
+    "traits": [],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": null,
+      "selling_points": [],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "conversation",
+    "field_confidence": [],
+    "is_complete": false,
+    "missing_required_fields": [
+      "job_title",
+      "location_type",
+      "experience_min_years",
+      "compensation",
+      "visa_sponsorship",
+      "equity",
+      "team_context",
+      "traits",
+      "interview_stages",
+      "role_context"
+    ],
+    "parallel_research_status": "complete",
+    "skipped_fields": []
+  },
+  "838b77b1-fa37-46dd-96ca-5aeb10d68743": {
+    "id": "838b77b1-fa37-46dd-96ca-5aeb10d68743",
+    "created_at": "2026-01-01T10:02:29.570691",
+    "updated_at": "2026-01-01T10:02:33.787630",
+    "recruiter_first_name": "Anish",
+    "recruiter_last_name": "Gillella",
+    "company": {
+      "name": "Apple",
+      "website": "https://www.apple.com/",
+      "tagline": "The world's most valuable technology company, known for its innovative hardware, software, and services.",
+      "funding_stage": "public",
+      "total_raised": "N/A (Public since 1980)",
+      "last_round_date": "December 1980 (IPO)",
+      "investors": [],
+      "product_description": "Apple designs, manufactures, and markets smartphones (iPhone), personal computers (Mac), tablets (iPad), wearables (Apple Watch), and a variety of related software and services (App Store, Apple Music, iCloud, Apple Pay).",
+      "problem_solved": "Apple provides integrated, user-friendly technology ecosystems that simplify communication, productivity, entertainment, and creativity for consumers and professionals.",
+      "target_customers": "Global consumers, creative professionals, educational institutions, and enterprise businesses.",
+      "industry": "Consumer Electronics, Software, Services, Technology",
+      "founders": [
+        "Steve Jobs",
+        "Steve Wozniak",
+        "Ronald Wayne"
+      ],
+      "founder_backgrounds": "Steve Jobs and Steve Wozniak were college dropouts and electronics enthusiasts; Ronald Wayne was an older colleague who drew the first Apple logo and wrote the first partnership agreement.",
+      "team_size": "161,000+",
+      "headquarters": "Cupertino, California",
+      "office_locations": [
+        "Cupertino (Apple Park)",
+        "Austin, Texas",
+        "Santa Clara, California",
+        "Cork, Ireland",
+        "London, UK",
+        "Beijing, China"
+      ],
+      "competitors": [
+        "Samsung",
+        "Google (Alphabet)",
+        "Microsoft",
+        "Amazon",
+        "Xiaomi"
+      ],
+      "differentiators": "Deep integration between hardware and software, premium brand perception, strong focus on user privacy, and a highly profitable services division.",
+      "recent_news": [
+        "Launch of the Apple Vision Pro spatial computing headset.",
+        "Ongoing regulatory scrutiny regarding App Store policies in the EU and US.",
+        "Continued investment in generative AI capabilities across its operating systems."
+      ],
+      "hiring_signals": "Hiring aggressively across AI/ML, hardware engineering, and services development globally.",
+      "tech_stack_hints": [
+        "Swift",
+        "Objective-C",
+        "C++",
+        "Metal (Graphics API)",
+        "macOS/iOS/iPadOS/watchOS/tvOS",
+        "Custom Silicon (M-series and A-series chips)",
+        "Kubernetes (for cloud services)",
+        "Proprietary databases"
+      ],
+      "culture_keywords": [
+        "Secrecy",
+        "Excellence",
+        "Detail-oriented",
+        "Innovation",
+        "High-pressure",
+        "Design-centric"
+      ],
+      "glassdoor_sentiment": null,
+      "eng_team_size": null,
+      "work_style": null,
+      "decision_making": null,
+      "code_review_culture": null,
+      "deployment_frequency": null,
+      "tech_debt_attitude": null,
+      "documentation_culture": null,
+      "on_call_expectations": null,
+      "growth_trajectory": null,
+      "interesting_facts": [
+        "Apple's current headquarters, Apple Park, is often referred to as 'the spaceship' and cost approximately $5 billion to build.",
+        "The first Apple logo featured Isaac Newton sitting under an apple tree, designed by Ronald Wayne.",
+        "Apple holds the unique distinction of being the first company in history to achieve a market capitalization of $1 trillion, $2 trillion, and $3 trillion."
+      ],
+      "potential_selling_points": [
+        "Opportunity to work on products that define global consumer technology and are used by billions worldwide.",
+        "Access to unparalleled resources, talent, and cutting-edge proprietary technology (e.g., custom silicon design).",
+        "Strong commitment to privacy and environmental sustainability, appealing to mission-driven candidates."
+      ]
+    },
+    "requirements": {
+      "job_title": "",
+      "location_type": null,
+      "location_city": null,
+      "onsite_days_per_week": null,
+      "timezone_requirements": null,
+      "visa_sponsorship": null,
+      "work_authorization_notes": null,
+      "experience_min_years": null,
+      "experience_max_years": null,
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "USD",
+      "equity_offered": null,
+      "equity_range": null,
+      "bonus_structure": null,
+      "team_size": null,
+      "team_composition": null,
+      "team_seniority": null,
+      "reporting_to": null,
+      "direct_reports": null,
+      "hiring_urgency": null,
+      "backfill_reason": null,
+      "success_metrics_30_day": null,
+      "success_metrics_90_day": null,
+      "growth_path": null,
+      "deal_breakers": [],
+      "ideal_background": null,
+      "interview_turnaround": null
+    },
+    "traits": [],
+    "interview_stages": [],
+    "nuances": [],
+    "outreach": {
+      "tone": null,
+      "key_hook": null,
+      "selling_points": [],
+      "avoid_phrases": [],
+      "subject_line": null,
+      "email_body": null,
+      "is_signed_off": false
+    },
+    "extraction_source": "conversation",
+    "field_confidence": [],
+    "is_complete": false,
+    "missing_required_fields": [
+      "job_title",
+      "location_type",
+      "experience_min_years",
+      "compensation",
+      "visa_sponsorship",
+      "equity",
+      "team_context",
+      "traits",
+      "interview_stages",
+      "role_context"
+    ],
+    "parallel_research_status": "complete",
+    "skipped_fields": []
   }
 }

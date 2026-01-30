@@ -178,9 +178,28 @@ async def list_talent_pool(
                 offset=offset,
             )
             total = person_repo.count_all_sync()
+            
+            # Use batch fetch for application counts in this filtered path
+            person_ids = [str(person.id) for person in persons]
+            application_counts = candidate_repo.count_applications_batch_sync(person_ids) if person_ids else {}
+            
+            person_summaries = []
+            for person in persons:
+                person_summaries.append(PersonSummary(
+                    id=str(person.id),
+                    name=person.name,
+                    email=person.email,
+                    headline=person.headline,
+                    current_title=person.current_title,
+                    current_company=person.current_company,
+                    location=person.location,
+                    skills=person.skills or [],
+                    linkedin_url=person.linkedin_url,
+                    application_count=application_counts.get(str(person.id), 0),
+                ))
     else:
-        # Search persons without candidate filters
-        persons = person_repo.search_sync(
+        # Use optimized single JOIN query - fetches persons AND candidate counts in ONE query
+        persons_with_counts = person_repo.search_with_candidates_sync(
             query=query,
             skills=skills_list,
             location=location,
@@ -190,26 +209,22 @@ async def list_talent_pool(
         )
         total = person_repo.count_all_sync()
 
+        person_summaries = []
+        for person, application_count in persons_with_counts:
+            person_summaries.append(PersonSummary(
+                id=str(person.id),
+                name=person.name,
+                email=person.email,
+                headline=person.headline,
+                current_title=person.current_title,
+                current_company=person.current_company,
+                location=person.location,
+                skills=person.skills or [],
+                linkedin_url=person.linkedin_url,
+                application_count=application_count,
+            ))
+
     total_pages = (total + page_size - 1) // page_size
-
-    # Build response with application counts
-    person_summaries = []
-    for person in persons:
-        # Get application count for this person
-        candidates = candidate_repo.list_by_person_sync(person.id) if hasattr(candidate_repo, 'list_by_person_sync') else []
-
-        person_summaries.append(PersonSummary(
-            id=str(person.id),
-            name=person.name,
-            email=person.email,
-            headline=person.headline,
-            current_title=person.current_title,
-            current_company=person.current_company,
-            location=person.location,
-            skills=person.skills or [],
-            linkedin_url=person.linkedin_url,
-            application_count=len(candidates) if candidates else 0,
-        ))
 
     return TalentPoolResponse(
         persons=person_summaries,
@@ -229,6 +244,8 @@ async def get_filter_options(
 
     Returns lists of unique skills, locations, companies, and jobs
     that can be used for filtering.
+
+    Optimized: Uses batch count for job candidate counts.
     """
     from repositories.streamlined.job_repo import JobRepository
 
@@ -241,18 +258,24 @@ async def get_filter_options(
     companies = person_repo.get_all_companies_sync(limit=50)
     total = person_repo.count_all_sync()
 
-    # Get jobs that have candidates
+    # Get jobs that have candidates - use batch count
     jobs = []
     try:
-        all_jobs = job_repo.list_all_sync(limit=100) if hasattr(job_repo, 'list_all_sync') else []
-        for job in all_jobs:
-            candidate_count = candidate_repo.count_by_job_sync(job.id) if hasattr(candidate_repo, 'count_by_job_sync') else 0
-            if candidate_count > 0:
-                jobs.append(JobOption(
-                    id=str(job.id),
-                    title=job.title,
-                    candidate_count=candidate_count,
-                ))
+        all_jobs = job_repo.list_all_for_org_sync(include_counts=False) if hasattr(job_repo, 'list_all_for_org_sync') else []
+        
+        if all_jobs:
+            # BATCH FETCH: Get candidate counts for all jobs in ONE query
+            job_ids = [str(job.id) for job in all_jobs]
+            candidate_counts = candidate_repo.count_by_jobs_batch_sync(job_ids)
+            
+            for job in all_jobs:
+                count = candidate_counts.get(str(job.id), 0)
+                if count > 0:
+                    jobs.append(JobOption(
+                        id=str(job.id),
+                        title=job.title,
+                        candidate_count=count,
+                    ))
     except Exception as e:
         logger.warning(f"Failed to get jobs for filter: {e}")
 

@@ -14,12 +14,207 @@ import {
   MessageSquare,
   Shield,
   ExternalLink,
+  BarChart3,
+  Activity,
+  Zap,
+  Loader2,
+  Award,
+  Timer,
+  ArrowUpRight,
+  ArrowDownRight,
 } from "lucide-react";
 import { getTeamMetrics, TeamMetrics } from "@/lib/managerApi";
 import { getTeamAnalytics, TeamAnalyticsResponse } from "@/lib/interviewerApi";
-import { Card } from "@/components/ui/card";
-import { FadeInUp, Stagger, StaggerItem, Spinner } from "@/components/ui/motion";
-import { cn } from "@/lib/utils";
+import { tokens, springConfig } from "@/lib/design-tokens";
+
+// =============================================================================
+// STAT CARD COMPONENT
+// =============================================================================
+
+interface StatCardProps {
+  icon: React.ReactNode;
+  value: number;
+  label: string;
+  color: string;
+  suffix?: string;
+  decimals?: number;
+  trend?: { value: number; positive: boolean };
+}
+
+function StatCard({ icon, value, label, color, suffix = "", decimals = 0, trend }: StatCardProps) {
+  return (
+    <div
+      className="relative overflow-hidden rounded-2xl border group"
+      style={{
+        backgroundColor: tokens.bgCard,
+        borderColor: tokens.borderSubtle,
+      }}
+    >
+      {/* Subtle glow effect */}
+      <div
+        className="absolute -top-12 -right-12 w-32 h-32 rounded-full opacity-20 blur-3xl transition-opacity group-hover:opacity-30"
+        style={{ backgroundColor: color }}
+      />
+
+      <div className="relative p-5">
+        <div className="flex items-center justify-between mb-3">
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center"
+            style={{ backgroundColor: `${color}15` }}
+          >
+            <div style={{ color }}>{icon}</div>
+          </div>
+          {trend && (
+            <div
+              className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full"
+              style={{
+                backgroundColor: trend.positive ? `${tokens.statusSuccess}15` : `${tokens.statusDanger}15`,
+                color: trend.positive ? tokens.statusSuccess : tokens.statusDanger,
+              }}
+            >
+              {trend.positive ? (
+                <ArrowUpRight className="w-3 h-3" />
+              ) : (
+                <ArrowDownRight className="w-3 h-3" />
+              )}
+              {trend.value}%
+            </div>
+          )}
+        </div>
+        <div className="text-3xl font-light tracking-tight text-white mb-1">
+          {value.toFixed(decimals)}{suffix}
+        </div>
+        <div className="text-sm" style={{ color: tokens.textMuted }}>
+          {label}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// =============================================================================
+// FUNNEL STAGE COMPONENT
+// =============================================================================
+
+interface FunnelStageProps {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+  rate?: number | null;
+  color: string;
+}
+
+function FunnelStage({ icon, label, value, rate, color }: FunnelStageProps) {
+  return (
+    <div
+      className="flex-1 text-center p-6 rounded-2xl border cursor-default transition-transform hover:-translate-y-1 hover:scale-[1.02]"
+      style={{
+        backgroundColor: tokens.bgSurface,
+        borderColor: tokens.borderSubtle,
+      }}
+    >
+      <div
+        className="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center"
+        style={{ backgroundColor: `${color}15` }}
+      >
+        <div style={{ color }}>{icon}</div>
+      </div>
+      <div className="text-4xl font-light text-white mb-1">
+        {value}
+      </div>
+      <div className="text-sm capitalize mb-2" style={{ color: tokens.textMuted }}>
+        {label}
+      </div>
+      {rate !== null && rate !== undefined && (
+        <div className="text-sm font-medium" style={{ color }}>
+          {(rate * 100).toFixed(1)}%
+        </div>
+      )}
+    </div>
+  );
+}
+
+// =============================================================================
+// PROGRESS BAR COMPONENT
+// =============================================================================
+
+function ProgressBar({ value, maxValue, color, label }: { value: number; maxValue: number; color: string; label: string }) {
+  const percentage = maxValue > 0 ? (value / maxValue) * 100 : 0;
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between text-sm">
+        <span style={{ color: tokens.textSecondary }}>{label}</span>
+        <span className="font-medium" style={{ color: tokens.textPrimary }}>{value}%</span>
+      </div>
+      <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: tokens.bgSurface }}>
+        <div
+          className="h-full rounded-full transition-all duration-1000 ease-out"
+          style={{ backgroundColor: color, width: `${percentage}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+// =============================================================================
+// SECTION CARD COMPONENT
+// =============================================================================
+
+interface SectionCardProps {
+  title: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+  action?: React.ReactNode;
+}
+
+function SectionCard({ title, icon, children, action }: SectionCardProps) {
+  return (
+    <div
+      className="rounded-2xl border"
+      style={{
+        backgroundColor: tokens.bgCard,
+        borderColor: tokens.borderSubtle,
+      }}
+    >
+      <div
+        className="flex items-center justify-between px-5 py-4 border-b"
+        style={{ borderColor: tokens.borderSubtle }}
+      >
+        <h3 className="text-lg font-medium text-white flex items-center gap-2">
+          <span style={{ color: tokens.brandPrimary }}>{icon}</span>
+          {title}
+        </h3>
+        {action}
+      </div>
+      <div className="p-5">{children}</div>
+    </div>
+  );
+}
+
+// =============================================================================
+// LOADING STATE COMPONENT
+// =============================================================================
+
+function LoadingState() {
+  return (
+    <div className="flex flex-col items-center justify-center py-20">
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+      >
+        <Loader2 className="w-8 h-8" style={{ color: tokens.brandPrimary }} />
+      </motion.div>
+      <p className="mt-4 text-sm" style={{ color: tokens.textMuted }}>
+        Loading manager dashboard...
+      </p>
+    </div>
+  );
+}
+
+// =============================================================================
+// MAIN COMPONENT
+// =============================================================================
 
 export default function ManagerDashboard() {
   const [funnelData, setFunnelData] = useState<TeamMetrics | null>(null);
@@ -49,373 +244,322 @@ export default function ManagerDashboard() {
 
   const getScoreColor = (score: number, inverted: boolean = false) => {
     if (inverted) {
-      if (score <= 20) return "text-emerald-400";
-      if (score <= 50) return "text-amber-400";
-      return "text-red-400";
+      if (score <= 20) return tokens.statusSuccess;
+      if (score <= 50) return tokens.statusWarning;
+      return tokens.statusDanger;
     }
-    if (score >= 80) return "text-emerald-400";
-    if (score >= 60) return "text-amber-400";
-    return "text-red-400";
+    if (score >= 80) return tokens.statusSuccess;
+    if (score >= 60) return tokens.statusWarning;
+    return tokens.statusDanger;
   };
-
-  const getScoreBg = (score: number, inverted: boolean = false) => {
-    if (inverted) {
-      if (score <= 20) return "bg-emerald-500/10 border-emerald-500/20";
-      if (score <= 50) return "bg-amber-500/10 border-amber-500/20";
-      return "bg-red-500/10 border-red-500/20";
-    }
-    if (score >= 80) return "bg-emerald-500/10 border-emerald-500/20";
-    if (score >= 60) return "bg-amber-500/10 border-amber-500/20";
-    return "bg-red-500/10 border-red-500/20";
-  };
-
-  const formatPercent = (val: number) => `${(val * 100).toFixed(1)}%`;
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Spinner size="lg" />
-      </div>
-    );
+    return <LoadingState />;
   }
 
   if (error) {
     return (
-      <Card variant="glass" padding="lg" className="bg-red-500/5 border-red-500/20">
-        <p className="text-red-400">{error}</p>
-      </Card>
+      <div
+        className="rounded-2xl border p-8 text-center"
+        style={{
+          backgroundColor: tokens.statusDangerBg,
+          borderColor: `${tokens.statusDanger}30`,
+        }}
+      >
+        <p style={{ color: tokens.statusDanger }}>{error}</p>
+      </div>
     );
   }
 
   const funnelStages = [
-    {
-      key: "reviewed",
-      label: "Reviewed",
-      icon: Users,
-      value: funnelData?.metrics.funnel.reviewed || 0,
-      rate: null,
-      color: "purple",
-    },
-    {
-      key: "interviewed",
-      label: "Interviewed",
-      icon: UserCheck,
-      value: funnelData?.metrics.funnel.interviewed || 0,
-      rate: funnelData?.metrics.rates.interview_rate,
-      color: "indigo",
-    },
-    {
-      key: "offered",
-      label: "Offered",
-      icon: FileCheck,
-      value: funnelData?.metrics.funnel.offered || 0,
-      rate: funnelData?.metrics.rates.offer_rate,
-      color: "cyan",
-    },
-    {
-      key: "hired",
-      label: "Hired",
-      icon: Target,
-      value: funnelData?.metrics.funnel.hired || 0,
-      rate: funnelData?.metrics.rates.hire_rate,
-      color: "emerald",
-    },
-  ];
-
-  const timingMetrics = [
-    {
-      key: "time_to_first_interview",
-      label: "Avg Time to First Interview",
-      unit: "days",
-      icon: Clock,
-      color: "indigo",
-    },
-    {
-      key: "time_in_pipeline",
-      label: "Avg Time in Pipeline",
-      unit: "days",
-      icon: TrendingUp,
-      color: "purple",
-    },
-    {
-      key: "interviews_per_candidate",
-      label: "Avg Interviews per Hire",
-      unit: "",
-      icon: Users,
-      color: "cyan",
-    },
+    { key: "reviewed", label: "Reviewed", icon: <Users className="w-6 h-6" />, color: "#A78BFA", rate: null },
+    { key: "interviewed", label: "Interviewed", icon: <UserCheck className="w-6 h-6" />, color: tokens.brandPrimary, rate: funnelData?.metrics.rates.interview_rate },
+    { key: "offered", label: "Offered", icon: <FileCheck className="w-6 h-6" />, color: "#22D3EE", rate: funnelData?.metrics.rates.offer_rate },
+    { key: "hired", label: "Hired", icon: <Target className="w-6 h-6" />, color: tokens.statusSuccess, rate: funnelData?.metrics.rates.hire_rate },
   ];
 
   const teamMetrics = [
-    { key: "avg_question_quality", label: "Question Quality", icon: MessageSquare },
-    { key: "avg_topic_coverage", label: "Topic Coverage", icon: Target },
-    { key: "avg_consistency", label: "Consistency", icon: TrendingUp },
-    { key: "avg_bias_score", label: "Bias Score", icon: Shield, inverted: true },
-    { key: "avg_candidate_experience", label: "Candidate Exp", icon: Users },
+    { key: "avg_question_quality", label: "Question Quality", icon: <MessageSquare className="w-5 h-5" /> },
+    { key: "avg_topic_coverage", label: "Topic Coverage", icon: <Target className="w-5 h-5" /> },
+    { key: "avg_consistency", label: "Consistency", icon: <TrendingUp className="w-5 h-5" /> },
+    { key: "avg_bias_score", label: "Bias Score", icon: <Shield className="w-5 h-5" />, inverted: true },
+    { key: "avg_candidate_experience", label: "Candidate Exp", icon: <Users className="w-5 h-5" /> },
   ];
 
   return (
     <div className="space-y-8">
+      {/* Ambient Background */}
+      <div
+        className="fixed inset-0 pointer-events-none -z-10"
+        style={{
+          background: `
+            radial-gradient(ellipse 80% 50% at 50% -20%, ${tokens.brandPrimary}15, transparent),
+            radial-gradient(ellipse 60% 40% at 100% 0%, ${tokens.brandSecondary}10, transparent),
+            ${tokens.bgApp}
+          `,
+        }}
+      />
+
       {/* Header */}
-      <FadeInUp>
-        <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">
-            Manager Dashboard
-          </h1>
-          <p className="text-zinc-400 mt-1">
-            Consolidated hiring funnel and team interviewer performance
-          </p>
+      <div>
+        <div
+          className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium mb-3"
+          style={{
+            backgroundColor: `${tokens.brandPrimary}15`,
+            border: `1px solid ${tokens.brandPrimary}30`,
+            color: tokens.brandPrimary,
+          }}
+        >
+          <BarChart3 className="w-3.5 h-3.5" />
+          Team Analytics
         </div>
-      </FadeInUp>
+        <h1 className="text-3xl font-light tracking-tight text-white mb-2">
+          Manager Dashboard
+        </h1>
+        <p style={{ color: tokens.textMuted }}>
+          Monitor your team's hiring funnel and interviewer performance
+        </p>
+      </div>
+
+      {/* Summary KPI Cards */}
+      {funnelData && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <StatCard
+            icon={<Users className="w-5 h-5" />}
+            value={funnelData.metrics.funnel.reviewed}
+            label="Candidates Reviewed"
+            color="#A78BFA"
+          />
+          <StatCard
+            icon={<UserCheck className="w-5 h-5" />}
+            value={funnelData.metrics.funnel.interviewed}
+            label="Interviewed"
+            color={tokens.brandPrimary}
+            trend={{ value: Math.round(funnelData.metrics.rates.interview_rate * 100), positive: true }}
+          />
+          <StatCard
+            icon={<Target className="w-5 h-5" />}
+            value={funnelData.metrics.funnel.hired}
+            label="Total Hires"
+            color={tokens.statusSuccess}
+          />
+          <StatCard
+            icon={<Timer className="w-5 h-5" />}
+            value={funnelData.metrics.timing.time_to_first_interview}
+            label="Avg Days to Interview"
+            color="#22D3EE"
+            decimals={1}
+            suffix=" days"
+          />
+        </div>
+      )}
 
       {/* Hiring Funnel */}
       {funnelData && (
-        <FadeInUp delay={0.1}>
-          <Card padding="lg">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-8">
-              Team Hiring Funnel (Last {funnelData.period_days} Days)
-            </h2>
-
-            <div className="flex items-center justify-between">
-              {funnelStages.map((stage, i) => (
-                <div key={stage.key} className="flex items-center flex-1">
-                  <motion.div
-                    className="flex-1 text-center p-6 rounded-2xl border bg-white/[0.03] border-white/[0.06]"
-                    whileHover={{ y: -4, scale: 1.02 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                  >
-                    <div
-                      className={cn(
-                        "w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center",
-                        stage.color === "purple" && "bg-purple-500/10",
-                        stage.color === "indigo" && "bg-indigo-500/10",
-                        stage.color === "cyan" && "bg-cyan-500/10",
-                        stage.color === "emerald" && "bg-emerald-500/10"
-                      )}
-                    >
-                      <stage.icon
-                        className={cn(
-                          "w-6 h-6",
-                          stage.color === "purple" && "text-purple-400",
-                          stage.color === "indigo" && "text-indigo-400",
-                          stage.color === "cyan" && "text-cyan-400",
-                          stage.color === "emerald" && "text-emerald-400"
-                        )}
-                      />
-                    </div>
-                    <div className="text-4xl font-light text-white mb-1">
-                      {stage.value}
-                    </div>
-                    <div className="text-sm text-zinc-500 capitalize mb-2">
-                      {stage.label}
-                    </div>
-                    {stage.rate !== null && stage.rate !== undefined && (
-                      <div
-                        className={cn(
-                          "text-sm font-medium",
-                          stage.color === "purple" && "text-purple-400",
-                          stage.color === "indigo" && "text-indigo-400",
-                          stage.color === "cyan" && "text-cyan-400",
-                          stage.color === "emerald" && "text-emerald-400"
-                        )}
-                      >
-                        {formatPercent(stage.rate)}
-                      </div>
-                    )}
-                  </motion.div>
-                  {i < 3 && (
-                    <ChevronRight className="w-8 h-8 text-zinc-700 mx-4 flex-shrink-0" />
-                  )}
-                </div>
-              ))}
-            </div>
-          </Card>
-        </FadeInUp>
+        <SectionCard
+          title={`Hiring Funnel (Last ${funnelData.period_days} Days)`}
+          icon={<Activity className="w-5 h-5" />}
+        >
+          <div className="flex items-center justify-between gap-4">
+            {funnelStages.map((stage, i) => (
+              <div key={stage.key} className="flex items-center flex-1">
+                <FunnelStage
+                  icon={stage.icon}
+                  label={stage.label}
+                  value={funnelData.metrics.funnel[stage.key as keyof typeof funnelData.metrics.funnel] || 0}
+                  rate={stage.rate}
+                  color={stage.color}
+                />
+                {i < funnelStages.length - 1 && (
+                  <ChevronRight className="w-8 h-8 mx-4 flex-shrink-0" style={{ color: tokens.textMuted }} />
+                )}
+              </div>
+            ))}
+          </div>
+        </SectionCard>
       )}
 
-      {/* Timing Metrics */}
+      {/* Timing & Efficiency Metrics */}
       {funnelData && (
-        <FadeInUp delay={0.15}>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {timingMetrics.map((metric) => {
-              const value =
-                funnelData.metrics.timing[
-                  metric.key as keyof typeof funnelData.metrics.timing
-                ];
-              return (
-                <motion.div
-                  key={metric.key}
-                  whileHover={{ y: -2 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                >
-                  <Card padding="lg" className="h-full">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div
-                        className={cn(
-                          "p-2 rounded-lg",
-                          metric.color === "indigo" && "bg-indigo-500/10",
-                          metric.color === "purple" && "bg-purple-500/10",
-                          metric.color === "cyan" && "bg-cyan-500/10"
-                        )}
-                      >
-                        <metric.icon
-                          className={cn(
-                            "w-5 h-5",
-                            metric.color === "indigo" && "text-indigo-400",
-                            metric.color === "purple" && "text-purple-400",
-                            metric.color === "cyan" && "text-cyan-400"
-                          )}
-                        />
-                      </div>
-                      <span className="text-sm text-zinc-400 uppercase tracking-wider">
-                        {metric.label}
-                      </span>
-                    </div>
-                    <div className="text-4xl font-light text-white mb-2">
-                      {value.toFixed(1)}
-                      {metric.unit && (
-                        <span className="text-lg text-zinc-500 ml-1">
-                          {metric.unit}
-                        </span>
-                      )}
-                    </div>
-                  </Card>
-                </motion.div>
-              );
-            })}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <SectionCard title="Time to First Interview" icon={<Clock className="w-5 h-5" />}>
+            <div className="text-5xl font-light text-white mb-2">
+              {funnelData.metrics.timing.time_to_first_interview.toFixed(1)}
+              <span className="text-lg ml-2" style={{ color: tokens.textMuted }}>days</span>
+            </div>
+            <p className="text-sm" style={{ color: tokens.textMuted }}>
+              Average time from application to first interview
+            </p>
+          </SectionCard>
+
+          <SectionCard title="Time in Pipeline" icon={<TrendingUp className="w-5 h-5" />}>
+            <div className="text-5xl font-light text-white mb-2">
+              {funnelData.metrics.timing.time_in_pipeline.toFixed(1)}
+              <span className="text-lg ml-2" style={{ color: tokens.textMuted }}>days</span>
+            </div>
+            <p className="text-sm" style={{ color: tokens.textMuted }}>
+              Average candidate time from start to decision
+            </p>
+          </SectionCard>
+
+          <SectionCard title="Interviews per Hire" icon={<Award className="w-5 h-5" />}>
+            <div className="text-5xl font-light text-white mb-2">
+              {funnelData.metrics.timing.interviews_per_candidate.toFixed(1)}
+            </div>
+            <p className="text-sm" style={{ color: tokens.textMuted }}>
+              Average interviews conducted per successful hire
+            </p>
+          </SectionCard>
+        </div>
+      )}
+
+      {/* Conversion Rate Visual */}
+      {funnelData && (
+        <SectionCard title="Conversion Rates" icon={<Zap className="w-5 h-5" />}>
+          <div className="space-y-4">
+            <ProgressBar
+              value={Math.round(funnelData.metrics.rates.interview_rate * 100)}
+              maxValue={100}
+              color={tokens.brandPrimary}
+              label="Review → Interview Rate"
+            />
+            <ProgressBar
+              value={Math.round(funnelData.metrics.rates.offer_rate * 100)}
+              maxValue={100}
+              color="#22D3EE"
+              label="Interview → Offer Rate"
+            />
+            <ProgressBar
+              value={Math.round(funnelData.metrics.rates.hire_rate * 100)}
+              maxValue={100}
+              color={tokens.statusSuccess}
+              label="Offer → Hire Rate"
+            />
           </div>
-        </FadeInUp>
+        </SectionCard>
       )}
 
       {/* Team Interviewer Analytics */}
       {teamData && teamData.interviewers.length > 0 && (
-        <FadeInUp delay={0.2}>
-          <Card padding="lg">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xs font-bold uppercase tracking-widest text-zinc-500">
-                Team Interviewer Performance
-              </h2>
-              <div className="text-xs text-zinc-600">
-                {teamData.team_averages.total_interviews} total interviews analyzed
-              </div>
-            </div>
+        <SectionCard
+          title="Team Interviewer Performance"
+          icon={<Users className="w-5 h-5" />}
+          action={
+            <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: tokens.bgSurface, color: tokens.textMuted }}>
+              {teamData.team_averages.total_interviews} interviews analyzed
+            </span>
+          }
+        >
+          {/* Team Averages Summary */}
+          <div className="grid grid-cols-5 gap-4 mb-8">
+            {teamMetrics.map((metric) => {
+              const value = teamData.team_averages[metric.key as keyof typeof teamData.team_averages] as number;
+              const inverted = (metric as any).inverted || false;
+              const color = getScoreColor(value, inverted);
+              return (
+                <div
+                  key={metric.key}
+                  className="text-center p-4 rounded-xl border transition-transform hover:scale-[1.02]"
+                  style={{
+                    backgroundColor: tokens.bgSurface,
+                    borderColor: `${color}30`,
+                  }}
+                >
+                  <div style={{ color: tokens.textMuted }} className="mb-2 flex justify-center">{metric.icon}</div>
+                  <div className="text-2xl font-light" style={{ color }}>
+                    {value.toFixed(0)}
+                  </div>
+                  <div className="text-xs mt-1" style={{ color: tokens.textMuted }}>{metric.label}</div>
+                </div>
+              );
+            })}
+          </div>
 
-            {/* Team Averages Summary */}
-            <div className="grid grid-cols-5 gap-4 mb-8">
-              {teamMetrics.map((metric) => {
-                const value = teamData.team_averages[
-                  metric.key as keyof typeof teamData.team_averages
-                ] as number;
-                const inverted = metric.inverted || false;
-                return (
-                  <motion.div
-                    key={metric.key}
-                    className={cn(
-                      "text-center p-4 rounded-xl border",
-                      getScoreBg(value, inverted)
-                    )}
-                    whileHover={{ scale: 1.02 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
+          {/* Individual Interviewers Table */}
+          <div className="space-y-3">
+            <div
+              className="grid grid-cols-7 gap-4 px-4 py-2 text-xs uppercase tracking-wider"
+              style={{ color: tokens.textMuted }}
+            >
+              <div className="col-span-2">Interviewer</div>
+              <div className="text-center">Interviews</div>
+              <div className="text-center">Quality</div>
+              <div className="text-center">Coverage</div>
+              <div className="text-center">Bias</div>
+              <div className="text-center">Action</div>
+            </div>
+            {teamData.interviewers.map((item) => (
+              <div
+                key={item.interviewer.id}
+                className="grid grid-cols-7 gap-4 items-center p-4 rounded-xl border transition-all hover:translate-x-1"
+                style={{
+                  backgroundColor: tokens.bgSurface,
+                  borderColor: tokens.borderSubtle,
+                }}
+              >
+                <div className="col-span-2">
+                  <div className="text-white font-medium">{item.interviewer.name}</div>
+                  <div className="text-xs" style={{ color: tokens.textMuted }}>{item.interviewer.team}</div>
+                </div>
+                <div className="text-center" style={{ color: tokens.textSecondary }}>
+                  {item.metrics.total_interviews}
+                </div>
+                <div
+                  className="text-center font-medium"
+                  style={{ color: getScoreColor(item.metrics.avg_question_quality) }}
+                >
+                  {item.metrics.avg_question_quality.toFixed(0)}
+                </div>
+                <div
+                  className="text-center font-medium"
+                  style={{ color: getScoreColor(item.metrics.avg_topic_coverage) }}
+                >
+                  {item.metrics.avg_topic_coverage.toFixed(0)}
+                </div>
+                <div
+                  className="text-center font-medium"
+                  style={{ color: getScoreColor(item.metrics.avg_bias_score, true) }}
+                >
+                  {item.metrics.avg_bias_score.toFixed(0)}
+                </div>
+                <div className="text-center">
+                  <Link
+                    href={`/dashboard/interviewer?id=${item.interviewer.id}`}
+                    className="inline-flex items-center gap-1 text-xs transition-colors hover:underline"
+                    style={{ color: tokens.brandPrimary }}
                   >
-                    <metric.icon className="w-5 h-5 mx-auto mb-2 text-zinc-500" />
-                    <div className={cn("text-2xl font-light", getScoreColor(value, inverted))}>
-                      {value.toFixed(0)}
-                    </div>
-                    <div className="text-xs text-zinc-500 mt-1">{metric.label}</div>
-                  </motion.div>
-                );
-              })}
-            </div>
-
-            {/* Individual Interviewers Table */}
-            <div className="space-y-3">
-              <div className="grid grid-cols-7 gap-4 px-4 py-2 text-xs text-zinc-500 uppercase tracking-wider">
-                <div className="col-span-2">Interviewer</div>
-                <div className="text-center">Interviews</div>
-                <div className="text-center">Quality</div>
-                <div className="text-center">Coverage</div>
-                <div className="text-center">Bias</div>
-                <div className="text-center">Action</div>
+                    Details <ExternalLink className="w-3 h-3" />
+                  </Link>
+                </div>
               </div>
-              <Stagger className="space-y-2">
-                {teamData.interviewers.map((item) => (
-                  <StaggerItem key={item.interviewer.id}>
-                    <motion.div
-                      className="grid grid-cols-7 gap-4 items-center p-4 bg-white/[0.03] rounded-xl border border-white/[0.04] hover:bg-white/[0.06] transition-colors"
-                      whileHover={{ x: 4 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                    >
-                      <div className="col-span-2">
-                        <div className="text-white font-medium">
-                          {item.interviewer.name}
-                        </div>
-                        <div className="text-xs text-zinc-500">
-                          {item.interviewer.team}
-                        </div>
-                      </div>
-                      <div className="text-center text-zinc-400">
-                        {item.metrics.total_interviews}
-                      </div>
-                      <div
-                        className={cn(
-                          "text-center font-medium",
-                          getScoreColor(item.metrics.avg_question_quality)
-                        )}
-                      >
-                        {item.metrics.avg_question_quality.toFixed(0)}
-                      </div>
-                      <div
-                        className={cn(
-                          "text-center font-medium",
-                          getScoreColor(item.metrics.avg_topic_coverage)
-                        )}
-                      >
-                        {item.metrics.avg_topic_coverage.toFixed(0)}
-                      </div>
-                      <div
-                        className={cn(
-                          "text-center font-medium",
-                          getScoreColor(item.metrics.avg_bias_score, true)
-                        )}
-                      >
-                        {item.metrics.avg_bias_score.toFixed(0)}
-                      </div>
-                      <div className="text-center">
-                        <Link
-                          href={`/dashboard/interviewer?id=${item.interviewer.id}`}
-                          className="inline-flex items-center gap-1 text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
-                        >
-                          Details <ExternalLink className="w-3 h-3" />
-                        </Link>
-                      </div>
-                    </motion.div>
-                  </StaggerItem>
-                ))}
-              </Stagger>
-            </div>
-          </Card>
-        </FadeInUp>
+            ))}
+          </div>
+        </SectionCard>
       )}
 
-      {/* No Interviewer Analytics Yet */}
+      {/* Empty State */}
       {teamData && teamData.interviewers.length === 0 && (
-        <FadeInUp delay={0.2}>
-          <Card variant="glass" padding="lg" className="text-center py-12">
-            <motion.div
-              className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/10 to-indigo-500/10 flex items-center justify-center mx-auto mb-4 border border-white/5"
-              animate={{ y: [0, -4, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              <Users className="w-8 h-8 text-purple-400" />
-            </motion.div>
-            <h3 className="text-lg text-zinc-300 mb-2">
-              No Interviewer Analytics Yet
-            </h3>
-            <p className="text-sm text-zinc-500">
-              Complete interviews with the interviewer selector to generate analytics.
-            </p>
-          </Card>
-        </FadeInUp>
+        <div
+          className="rounded-2xl border text-center py-12"
+          style={{
+            backgroundColor: tokens.bgCard,
+            borderColor: tokens.borderSubtle,
+          }}
+        >
+          <div
+            className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+            style={{
+              background: `linear-gradient(135deg, ${tokens.brandPrimary}20, ${tokens.brandSecondary}20)`,
+              border: `1px solid ${tokens.borderSubtle}`,
+            }}
+          >
+            <Users className="w-8 h-8" style={{ color: tokens.brandPrimary }} />
+          </div>
+          <h3 className="text-lg text-white mb-2">No Interviewer Analytics Yet</h3>
+          <p className="text-sm" style={{ color: tokens.textMuted }}>
+            Complete interviews with the interviewer selector to generate analytics.
+          </p>
+        </div>
       )}
     </div>
   );

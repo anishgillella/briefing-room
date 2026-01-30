@@ -63,7 +63,7 @@ interface Interview {
   candidate_name?: string;
   interviewer_name?: string;
   job_title?: string;
-  job_id?: string;
+  job_posting_id?: string;
   stage?: string;
   status: string;
   scheduled_at?: string;
@@ -214,7 +214,7 @@ function groupInterviewsByCandidate(interviews: Interview[]): GroupedCandidate[]
         candidate_id: candidateId,
         candidate_name: interview.candidate_name || "Unknown Candidate",
         job_title: interview.job_title || "",
-        job_id: interview.job_id,
+        job_id: interview.job_posting_id,
         interviews: [],
         rounds: { round_1: null, round_2: null, round_3: null },
         scores: { round_1: null, round_2: null, round_3: null, average: null },
@@ -282,7 +282,7 @@ function groupInterviewsByCandidate(interviews: Interview[]): GroupedCandidate[]
     if (!a.nextInterview && b.nextInterview) return 1;
     if (a.nextInterview && b.nextInterview) {
       return new Date(a.nextInterview.scheduled_at!).getTime() -
-             new Date(b.nextInterview.scheduled_at!).getTime();
+        new Date(b.nextInterview.scheduled_at!).getTime();
     }
     return a.candidate_name.localeCompare(b.candidate_name);
   });
@@ -367,9 +367,8 @@ function CommandBar({ value, onChange, placeholder }: CommandBarProps) {
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={springConfig}
-      className={`relative rounded-2xl border transition-all duration-300 ${
-        isFocused ? "ring-2 ring-indigo-500/20" : ""
-      }`}
+      className={`relative rounded-2xl border transition-all duration-300 ${isFocused ? "ring-2 ring-indigo-500/20" : ""
+        }`}
       style={{
         backgroundColor: tokens.bgSurface,
         borderColor: isFocused ? tokens.brandPrimary + "40" : tokens.borderSubtle,
@@ -1776,11 +1775,10 @@ export default function InterviewsPage() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 px-4 py-3 rounded-xl border transition-all ${
-                showFilters || hasActiveFilters
-                  ? "ring-2 ring-indigo-500/20"
-                  : ""
-              }`}
+              className={`flex items-center gap-2 px-4 py-3 rounded-xl border transition-all ${showFilters || hasActiveFilters
+                ? "ring-2 ring-indigo-500/20"
+                : ""
+                }`}
               style={{
                 backgroundColor: showFilters || hasActiveFilters ? tokens.bgCard : tokens.bgSurface,
                 borderColor: showFilters || hasActiveFilters ? tokens.brandPrimary + "40" : tokens.borderSubtle,
@@ -1839,9 +1837,8 @@ export default function InterviewsPage() {
               <button
                 key={tab.value}
                 onClick={() => setSelectedStatus(tab.value)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${
-                  isActive ? "ring-2 ring-indigo-500/20" : ""
-                }`}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${isActive ? "ring-2 ring-indigo-500/20" : ""
+                  }`}
                 style={{
                   backgroundColor: isActive ? tokens.bgCard : "transparent",
                   border: `1px solid ${isActive ? tokens.brandPrimary + "40" : tokens.borderSubtle}`,
@@ -1877,7 +1874,13 @@ export default function InterviewsPage() {
                   key={group.candidate_id}
                   group={group}
                   index={index}
-                  onViewProfile={() => router.push(`/candidates/${group.candidate_id}`)}
+                  onViewProfile={() => {
+                    if (group.job_id) {
+                      router.push(`/jobs/${group.job_id}/candidates/${group.candidate_id}`);
+                    } else {
+                      router.push(`/candidates/${group.candidate_id}`);
+                    }
+                  }}
                   onStartInterview={(interview) => {
                     setSelectedInterviewForStart({
                       candidateId: interview.candidate_id,

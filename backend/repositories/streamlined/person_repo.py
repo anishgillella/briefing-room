@@ -467,3 +467,68 @@ class PersonRepository:
             .execute()
 
         return [Person(**p) for p in result.data]
+
+    def search_with_candidates_sync(
+        self,
+        query: Optional[str] = None,
+        skills: Optional[List[str]] = None,
+        location: Optional[str] = None,
+        current_company: Optional[str] = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> List[tuple]:
+        """
+        Search persons with filters and include candidate counts in a SINGLE query.
+
+        Uses Supabase's nested select to fetch persons and their candidates
+        in one database round-trip, avoiding N+1 query problems.
+
+        Args:
+            query: Text search for name, headline, or summary
+            skills: List of skills to filter by (matches any)
+            location: Location filter (partial match)
+            current_company: Company filter (partial match)
+            limit: Max results to return
+            offset: Pagination offset
+
+        Returns:
+            List of tuples: (Person, application_count)
+        """
+        # Use nested select to include candidates in the same query
+        builder = self.client.table(self.table).select("*, candidates(id)")
+
+        # Text search on name using ilike
+        if query:
+            builder = builder.ilike("name", f"%{query}%")
+
+        # Location filter
+        if location:
+            builder = builder.ilike("location", f"%{location}%")
+
+        # Company filter
+        if current_company:
+            builder = builder.ilike("current_company", f"%{current_company}%")
+
+        # Skills filter - use contains for JSONB array
+        if skills and len(skills) > 0:
+            builder = builder.contains("skills", skills)
+
+        # Pagination and ordering
+        result = builder\
+            .order("updated_at", desc=True)\
+            .range(offset, offset + limit - 1)\
+            .execute()
+
+        # Parse results and count candidates for each person
+        persons_with_counts = []
+        for p in result.data:
+            # Extract candidates and count them
+            candidates = p.pop("candidates", []) or []
+            application_count = len(candidates)
+            
+            # Create Person object from remaining data
+            person = Person(**p)
+            persons_with_counts.append((person, application_count))
+
+        return persons_with_counts
+

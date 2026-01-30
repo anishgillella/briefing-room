@@ -453,13 +453,52 @@ async def get_scheduled_interviews(
         status=status,
     )
 
-    # Pre-fetch scores for all unique candidates if requested
+    # Pre-fetch scores for all unique candidates if requested - BATCH FETCH
     candidate_scores_cache: dict[str, CandidateScores] = {}
     if include_scores:
         interview_repo = get_interview_repo()
-        unique_candidate_ids = set(i['candidate_id'] for i in interviews)
+        unique_candidate_ids = list(set(i['candidate_id'] for i in interviews))
+        
+        # BATCH FETCH: Get all interviews for all candidates in ONE query
+        interviews_by_candidate = interview_repo.get_candidate_interviews_batch(unique_candidate_ids)
+        
+        # Build scores cache from pre-fetched data (no additional queries)
         for cid in unique_candidate_ids:
-            candidate_scores_cache[cid] = get_candidate_scores(cid, interview_repo)
+            candidate_interviews = interviews_by_candidate.get(cid, [])
+            scores = CandidateScores()
+            all_scores = []
+            
+            for interview in candidate_interviews:
+                if interview.get("status") != "completed":
+                    continue
+                    
+                scores.has_completed_interviews = True
+                analytics = interview.get("analytics")
+                
+                if not analytics:
+                    continue
+                    
+                if isinstance(analytics, list) and analytics:
+                    overall_score = analytics[0].get("overall_score")
+                elif isinstance(analytics, dict):
+                    overall_score = analytics.get("overall_score")
+                else:
+                    overall_score = None
+                    
+                if overall_score is not None:
+                    stage = interview.get("stage")
+                    if stage == "round_1":
+                        scores.round_1 = overall_score
+                    elif stage == "round_2":
+                        scores.round_2 = overall_score
+                    elif stage == "round_3":
+                        scores.round_3 = overall_score
+                    all_scores.append(overall_score)
+            
+            if all_scores:
+                scores.cumulative = round(sum(all_scores) / len(all_scores), 1)
+            
+            candidate_scores_cache[cid] = scores
 
     result = []
     for i in interviews:

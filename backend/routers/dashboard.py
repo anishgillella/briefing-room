@@ -156,21 +156,23 @@ async def get_dashboard_stats(
             total_candidates = candidate_counts.get('total', 0)
             interviewed_candidates = candidate_counts.get('interviewed', 0)
         else:
-            # Fallback: Get jobs without counts, then batch fetch candidate counts
+            # Fallback: Get all jobs, then batch fetch all candidates in ONE query
             all_jobs = job_repo.list_all_for_org_sync(
                 current_user.organization_id,
                 include_counts=False
             )
-
-            for job in all_jobs:
-                try:
-                    candidates = candidate_repo.list_by_job_sync(job.id)
-                    total_candidates += len(candidates)
-                    for candidate in candidates:
-                        if candidate.interview_status in ["completed", "in_progress"]:
-                            interviewed_candidates += 1
-                except Exception:
-                    pass
+            job_ids = [str(job.id) for job in all_jobs]
+            
+            if job_ids:
+                # BATCH FETCH: Get all candidates for all jobs in one query
+                all_candidates = candidate_repo.list_by_job_ids_sync(job_ids)
+                total_candidates = len(all_candidates)
+                for candidate in all_candidates:
+                    status = candidate.interview_status
+                    if hasattr(status, 'value'):
+                        status = status.value
+                    if status in ["completed", "in_progress"]:
+                        interviewed_candidates += 1
     except Exception:
         pass
 
@@ -297,6 +299,8 @@ async def get_pipeline_stats(
     Get pipeline funnel statistics for the user's organization.
 
     Shows candidate distribution across interview stages and recommendations.
+
+    Optimized: Uses batch queries to avoid N+1 pattern.
     """
     job_repo = get_job_repo()
     candidate_repo = get_candidate_repo()
@@ -313,50 +317,54 @@ async def get_pipeline_stats(
         "no_hire": 0,
     }
 
-    # Get all jobs for the user's organization (skip expensive counts)
+    # Get all job IDs for the user's organization
     all_jobs = job_repo.list_all_for_org_sync(current_user.organization_id, include_counts=False)
+    job_ids = [str(job.id) for job in all_jobs]
 
-    for job in all_jobs:
-        try:
-            candidates = candidate_repo.list_by_job_sync(job.id)
-        except Exception:
-            continue
+    if not job_ids:
+        return PipelineStats(**pipeline)
 
-        for candidate in candidates:
-            status = candidate.interview_status
+    # BATCH FETCH: Get all candidates for all jobs in ONE query
+    try:
+        all_candidates = candidate_repo.list_by_job_ids_sync(job_ids)
+    except Exception:
+        all_candidates = []
 
-            if status == "pending":
-                pipeline["applied"] += 1
-            elif status == "in_progress":
-                pipeline["in_progress"] += 1
-            elif status == "completed":
-                pipeline["completed"] += 1
+    # BATCH FETCH: Get all analytics in ONE query
+    try:
+        all_analytics = analytics_repo.list_all_sync(limit=1000)
+        # Build lookup by interview_id for O(1) access
+        analytics_by_interview = {str(a.interview_id): a for a in all_analytics}
+    except Exception:
+        analytics_by_interview = {}
 
-                # Get analytics recommendation for completed candidates
-                try:
-                    # Get latest analytics for this candidate's interviews
-                    from repositories.streamlined.interview_repo import InterviewRepository
-                    interview_repo = InterviewRepository()
-                    interviews = interview_repo.list_by_candidate_sync(candidate.id)
+    # Count candidate statuses (no additional queries needed)
+    for candidate in all_candidates:
+        status = candidate.interview_status
+        if hasattr(status, 'value'):
+            status = status.value
 
-                    for interview in interviews:
-                        analytics = analytics_repo.get_by_interview_sync(interview.id)
-                        if analytics:
-                            rec = analytics.recommendation
-                            if hasattr(rec, 'value'):
-                                rec = rec.value
+        if status == "pending":
+            pipeline["applied"] += 1
+        elif status == "in_progress":
+            pipeline["in_progress"] += 1
+        elif status == "completed":
+            pipeline["completed"] += 1
 
-                            if rec == "strong_hire":
-                                pipeline["strong_hire"] += 1
-                            elif rec == "hire":
-                                pipeline["hire"] += 1
-                            elif rec == "maybe":
-                                pipeline["maybe"] += 1
-                            elif rec == "no_hire":
-                                pipeline["no_hire"] += 1
-                            break  # Only count latest interview
-                except Exception:
-                    pass
+    # Count recommendations from analytics (already fetched in batch)
+    for analytics in all_analytics:
+        rec = analytics.recommendation
+        if hasattr(rec, 'value'):
+            rec = rec.value
+
+        if rec == "strong_hire":
+            pipeline["strong_hire"] += 1
+        elif rec == "hire":
+            pipeline["hire"] += 1
+        elif rec == "maybe":
+            pipeline["maybe"] += 1
+        elif rec == "no_hire":
+            pipeline["no_hire"] += 1
 
     return PipelineStats(**pipeline)
 
@@ -481,6 +489,8 @@ async def get_top_candidates(
     """
     Get top-scoring candidates for the user's organization.
 
+    Optimized: Uses batch queries to pre-fetch interviews and candidates.
+
     Args:
         limit: Maximum number of candidates to return
         min_score: Minimum score threshold
@@ -492,30 +502,48 @@ async def get_top_candidates(
 
     top_candidates: List[TopCandidate] = []
 
-    # Get organization's job IDs for filtering (skip expensive counts)
+    # Get organization's jobs for filtering
     org_jobs = job_repo.list_all_for_org_sync(current_user.organization_id, include_counts=False)
     org_job_ids = {str(j.id) for j in org_jobs}
+    job_map = {str(j.id): j for j in org_jobs}
 
-    # Get all analytics (we'll filter by org below)
+    if not org_job_ids:
+        return TopCandidatesResponse(candidates=[], total=0)
+
+    # BATCH FETCH: Get all analytics
     try:
-        all_analytics = analytics_repo.list_all_sync()
+        all_analytics = analytics_repo.list_all_sync(limit=500)
     except Exception:
         all_analytics = []
+
+    # BATCH FETCH: Get all interviews for org's jobs in ONE query
+    try:
+        all_interviews = interview_repo.list_by_job_ids_sync(list(org_job_ids), limit=1000)
+        interview_map = {str(i.id): i for i in all_interviews}
+    except Exception:
+        interview_map = {}
+
+    # BATCH FETCH: Get all candidates for org's jobs in ONE query
+    try:
+        all_candidates = candidate_repo.list_by_job_ids_sync(list(org_job_ids))
+        candidate_map = {str(c.id): c for c in all_candidates}
+    except Exception:
+        candidate_map = {}
 
     # Filter and sort by score
     filtered = [a for a in all_analytics if a.overall_score >= min_score]
     sorted_analytics = sorted(filtered, key=lambda a: a.overall_score, reverse=True)
 
-    # Build top candidates list
-    seen_candidates = set()  # Avoid duplicates
+    # Build top candidates list using pre-fetched data (no additional queries)
+    seen_candidates = set()
 
     for analytics in sorted_analytics:
         if len(top_candidates) >= limit:
             break
 
         try:
-            # Get interview to find candidate
-            interview = interview_repo.get_by_id_sync(analytics.interview_id)
+            # Use pre-fetched interview map (O(1) lookup)
+            interview = interview_map.get(str(analytics.interview_id))
             if not interview:
                 continue
 
@@ -523,19 +551,19 @@ async def get_top_candidates(
             if candidate_id in seen_candidates:
                 continue
 
-            # Get candidate details
-            candidate = candidate_repo.get_by_id_sync(interview.candidate_id)
+            # Use pre-fetched candidate map (O(1) lookup)
+            candidate = candidate_map.get(candidate_id)
             if not candidate:
                 continue
 
-            # Filter by organization - only include candidates from org's jobs
+            # Filter by organization
             if str(candidate.job_id) not in org_job_ids:
                 continue
 
             seen_candidates.add(candidate_id)
 
-            # Get job details (already verified it's in org)
-            job = job_repo.get_by_id_sync(candidate.job_id)
+            # Use pre-fetched job map (O(1) lookup)
+            job = job_map.get(str(candidate.job_id))
 
             rec = analytics.recommendation
             recommendation = rec.value if hasattr(rec, 'value') else str(rec)

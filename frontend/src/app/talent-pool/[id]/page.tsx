@@ -601,6 +601,17 @@ export default function PersonDetailPage({ params }: { params: Promise<{ id: str
     );
   }
 
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return "?";
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    } catch {
+      return dateString;
+    }
+  };
+
   return (
     <AppLayout>
       <div className="min-h-screen relative" style={{ backgroundColor: tokens.bgApp }}>
@@ -897,7 +908,7 @@ export default function PersonDetailPage({ params }: { params: Promise<{ id: str
                           </div>
                           {(job.start_date || job.end_date) && (
                             <span className="text-xs" style={{ color: tokens.textMuted }}>
-                              {job.start_date || "?"} - {job.is_current ? "Present" : job.end_date || "?"}
+                              {formatDate(job.start_date)} - {job.is_current ? "Present" : formatDate(job.end_date)}
                             </span>
                           )}
                         </div>
@@ -933,7 +944,7 @@ export default function PersonDetailPage({ params }: { params: Promise<{ id: str
                           </div>
                           {(edu.start_date || edu.end_date) && (
                             <span className="text-xs" style={{ color: tokens.textMuted }}>
-                              {edu.start_date || "?"} - {edu.end_date || "?"}
+                              {formatDate(edu.start_date)} - {formatDate(edu.end_date)}
                             </span>
                           )}
                         </div>

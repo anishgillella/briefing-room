@@ -410,3 +410,86 @@ class CandidateRepository:
             .execute()
 
         return result.count if result.count else 0
+
+    def count_applications_batch_sync(self, person_ids: List[str]) -> dict:
+        """
+        Get application counts for multiple persons in a single query.
+
+        Args:
+            person_ids: List of person IDs to count applications for
+
+        Returns:
+            Dict mapping person_id -> application count
+        """
+        if not person_ids:
+            return {}
+
+        # Fetch all candidates for the given person IDs in one query
+        result = self.client.table(self.table)\
+            .select("person_id")\
+            .in_("person_id", person_ids)\
+            .execute()
+
+        # Count applications per person
+        counts: dict = {}
+        for row in result.data:
+            person_id = row.get("person_id")
+            if person_id:
+                counts[person_id] = counts.get(person_id, 0) + 1
+
+        # Ensure all requested IDs have an entry (default 0)
+        for pid in person_ids:
+            if pid not in counts:
+                counts[pid] = 0
+
+        return counts
+
+
+    def list_by_job_ids_sync(self, job_ids: List[str]) -> List:
+        """
+        List all candidates for multiple jobs in a single query.
+
+        Args:
+            job_ids: List of job IDs to fetch candidates for
+
+        Returns:
+            List of Candidate objects for all specified jobs
+        """
+        if not job_ids:
+            return []
+
+        result = self.client.table(self.table)\
+            .select("*, job_postings(title, status)")\
+            .in_("job_posting_id", job_ids)\
+            .execute()
+
+        return [self._parse_candidate_with_joins(data) for data in result.data]
+
+    def count_by_jobs_batch_sync(self, job_ids: List[str]) -> dict:
+        """
+        Count candidates for multiple jobs in a single query.
+
+        Args:
+            job_ids: List of job IDs to count candidates for
+
+        Returns:
+            Dict mapping job_id -> candidate count
+        """
+        if not job_ids:
+            return {}
+
+        result = self.client.table(self.table)\
+            .select("job_posting_id")\
+            .in_("job_posting_id", job_ids)\
+            .execute()
+
+        # Count candidates per job
+        counts: dict = {}
+        for row in result.data:
+            job_id = row.get("job_posting_id")
+            if job_id:
+                counts[job_id] = counts.get(job_id, 0) + 1
+
+        return counts
+
+

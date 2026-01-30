@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Briefcase,
   Users,
+  UsersRound,
   ChevronLeft,
   LogOut,
   BarChart3,
@@ -60,14 +61,19 @@ const navItems: NavItem[] = [
     label: "Dashboard",
     href: "/dashboard",
     icon: <LayoutDashboard className="w-5 h-5" />,
+  },
+  {
+    label: "Team",
+    href: "/team",
+    icon: <UsersRound className="w-5 h-5" />,
     children: [
       {
-        label: "Manager",
+        label: "Managers",
         href: "/dashboard/manager",
         icon: <BarChart3 className="w-4 h-4" />,
       },
       {
-        label: "Interviewer",
+        label: "Interviewers",
         href: "/dashboard/interviewer",
         icon: <UserCheck className="w-4 h-4" />,
       },
@@ -143,6 +149,12 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
   const isActive = (href: string) => {
     if (href === "/dashboard") {
       return pathname === "/dashboard";
+    }
+    if (href === "/team") {
+      // Team is active if any child route is active
+      return pathname.startsWith("/dashboard/manager") ||
+        pathname.startsWith("/dashboard/interviewer") ||
+        pathname.startsWith("/dashboard/availability");
     }
     return pathname.startsWith(href);
   };
@@ -241,8 +253,8 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
                   background: active
                     ? tokens.activeBg
                     : isHovered
-                    ? tokens.hoverBg
-                    : "transparent",
+                      ? tokens.hoverBg
+                      : "transparent",
                 }}
                 onHoverStart={() => setHoveredItem(item.href)}
                 onHoverEnd={() => setHoveredItem(null)}
@@ -268,8 +280,8 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
                     color: active
                       ? tokens.brandPrimary
                       : isHovered
-                      ? tokens.textPrimary
-                      : tokens.textMuted,
+                        ? tokens.textPrimary
+                        : tokens.textMuted,
                   }}
                 >
                   {active ? (
@@ -300,8 +312,8 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
                         color: active
                           ? tokens.textPrimary
                           : isHovered
-                          ? tokens.textPrimary
-                          : tokens.textSecondary,
+                            ? tokens.textPrimary
+                            : tokens.textSecondary,
                       }}
                     >
                       {item.label}

@@ -14,6 +14,7 @@ import {
   Loader2,
   AlertTriangle,
 } from "lucide-react";
+import AppLayout from "@/components/AppLayout";
 import CandidateProfile from "@/components/CandidateProfile";
 import InterviewHistory from "@/components/InterviewHistory";
 import InterviewerSelector from "@/components/InterviewerSelector";
@@ -246,9 +247,8 @@ Be concise and helpful. The recruiter has limited time before the interview.`,
             provider: "11labs",
             voiceId: "21m00Tcm4TlvDq8ikWAM",
           },
-          firstMessage: `Hi! I'm ready to help you prepare for your interview with ${
-            candidate?.name || "this candidate"
-          }. What would you like to know?`,
+          firstMessage: `Hi! I'm ready to help you prepare for your interview with ${candidate?.name || "this candidate"
+            }. What would you like to know?`,
         });
       }
     } catch (err) {
@@ -340,26 +340,7 @@ Be concise and helpful. The recruiter has limited time before the interview.`,
   ] as const;
 
   return (
-    <div className="min-h-screen text-white" style={{ backgroundColor: tokens.bgApp }}>
-      {/* Ambient Background */}
-      <div
-        className="fixed inset-0 pointer-events-none"
-        style={{
-          background: `
-            radial-gradient(ellipse 80% 50% at 50% -20%, ${tokens.brandPrimary}15, transparent),
-            radial-gradient(ellipse 60% 40% at 100% 0%, ${tokens.brandSecondary}10, transparent),
-            ${tokens.bgApp}
-          `,
-        }}
-      />
-
-      {/* Grain Texture */}
-      <div
-        className="fixed inset-0 pointer-events-none opacity-[0.015]"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-        }}
-      />
+    <AppLayout>
 
       {/* Header */}
       <header
@@ -605,14 +586,14 @@ Be concise and helpful. The recruiter has limited time before the interview.`,
                     line.startsWith("AI:")
                       ? "text-indigo-300"
                       : line.startsWith("You:")
-                      ? "text-white"
-                      : line.includes("connected")
-                      ? "text-emerald-400"
-                      : line.includes("disconnected")
-                      ? "text-amber-400"
-                      : line.includes("Error")
-                      ? "text-red-400"
-                      : "text-zinc-400"
+                        ? "text-white"
+                        : line.includes("connected")
+                          ? "text-emerald-400"
+                          : line.includes("disconnected")
+                            ? "text-amber-400"
+                            : line.includes("Error")
+                              ? "text-red-400"
+                              : "text-zinc-400"
                   )}
                 >
                   {line}
@@ -632,6 +613,6 @@ Be concise and helpful. The recruiter has limited time before the interview.`,
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </AppLayout>
   );
 }
