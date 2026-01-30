@@ -658,119 +658,393 @@ function RoundBadge({ round, interview, score, onStart, onCancel }: RoundBadgePr
   };
 
   const status = getStatus();
-
-  const statusStyles: Record<string, { bg: string; border: string; text: string; glow?: string }> = {
-    completed: {
-      bg: `${tokens.statusSuccess}15`,
-      border: `${tokens.statusSuccess}40`,
-      text: tokens.statusSuccess,
-      glow: `0 0 20px ${tokens.statusSuccess}30`,
-    },
-    today: {
-      bg: `${tokens.brandPrimary}20`,
-      border: tokens.brandPrimary,
-      text: tokens.brandPrimary,
-      glow: `0 0 20px ${tokens.brandPrimary}40`,
-    },
-    active: {
-      bg: `${tokens.statusWarning}15`,
-      border: `${tokens.statusWarning}60`,
-      text: tokens.statusWarning,
-      glow: `0 0 20px ${tokens.statusWarning}30`,
-    },
-    scheduled: {
-      bg: `${tokens.brandSecondary}10`,
-      border: `${tokens.brandSecondary}40`,
-      text: tokens.brandSecondary,
-    },
-    cancelled: {
-      bg: `${tokens.statusDanger}10`,
-      border: `${tokens.statusDanger}30`,
-      text: tokens.statusDanger,
-    },
-    pending: {
-      bg: tokens.bgSurface,
-      border: tokens.borderSubtle,
-      text: tokens.textMuted,
-    },
-  };
-
-  const style = statusStyles[status];
   const canStart = interview && (interview.status === "scheduled" || interview.status === "active" || interview.status === "in_progress");
   const canCancel = interview && interview.status === "scheduled";
 
-  return (
-    <div className="flex flex-col items-center gap-2">
+  // Format scheduled date for display
+  const getScheduledDateDisplay = () => {
+    if (!interview?.scheduled_at) return null;
+    const date = new Date(interview.scheduled_at);
+    const now = new Date();
+    const diffDays = Math.ceil((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (isToday(date)) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    if (diffDays === 1) {
+      return "Tomorrow";
+    }
+    if (diffDays > 0 && diffDays <= 7) {
+      return date.toLocaleDateString([], { weekday: 'short' });
+    }
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  };
+
+  // COMPLETED ROUND - Solid filled, prominent score (clean design)
+  if (status === "completed") {
+    return (
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ ...springConfig, delay: round * 0.1 }}
-        className="relative group"
+        className="flex flex-col items-center"
       >
         <div
-          className="w-20 h-20 rounded-2xl flex flex-col items-center justify-center border-2 transition-all cursor-default"
+          className="w-24 h-24 rounded-2xl flex flex-col items-center justify-center"
           style={{
-            backgroundColor: style.bg,
-            borderColor: style.border,
-            boxShadow: style.glow,
+            background: `linear-gradient(135deg, ${tokens.statusSuccess}25 0%, ${tokens.statusSuccess}15 100%)`,
+            border: `2px solid ${tokens.statusSuccess}`,
+            boxShadow: `0 0 24px ${tokens.statusSuccess}25, inset 0 1px 0 ${tokens.statusSuccess}30`,
           }}
         >
-          <span className="text-xs font-medium mb-0.5" style={{ color: style.text }}>
-            R{round}
+          {/* Round label */}
+          <span
+            className="text-[10px] font-semibold uppercase tracking-wider mb-1"
+            style={{ color: tokens.statusSuccess }}
+          >
+            Round {round}
           </span>
-          {score !== null ? (
-            <span className="text-xl font-semibold" style={{ color: getScoreColor(score) }}>
-              {score}
+
+          {/* Score - large and prominent */}
+          <span
+            className="text-3xl font-bold"
+            style={{ color: getScoreColor(score) }}
+          >
+            {score ?? "—"}
+          </span>
+        </div>
+
+        {/* Status label */}
+        <div className="flex items-center gap-1.5 mt-2">
+          <CheckCircle className="w-3.5 h-3.5" style={{ color: tokens.statusSuccess }} />
+          <span
+            className="text-xs font-medium"
+            style={{ color: tokens.statusSuccess }}
+          >
+            Completed
+          </span>
+        </div>
+      </motion.div>
+    );
+  }
+
+  // TODAY / ACTIVE ROUND - Pulsing animation, accent color
+  if (status === "today" || status === "active") {
+    const isLive = status === "active";
+    const accentColor = isLive ? tokens.statusWarning : tokens.brandPrimary;
+
+    return (
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ ...springConfig, delay: round * 0.1 }}
+        className="flex flex-col items-center group"
+      >
+        <div className="relative">
+          {/* Pulsing ring animation */}
+          <motion.div
+            className="absolute inset-0 rounded-2xl"
+            animate={{
+              boxShadow: [
+                `0 0 0 0px ${accentColor}40`,
+                `0 0 0 8px ${accentColor}00`,
+              ]
+            }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut" }}
+          />
+
+          <div
+            className="relative w-24 h-24 rounded-2xl flex flex-col items-center justify-center"
+            style={{
+              background: `linear-gradient(135deg, ${accentColor}20 0%, ${accentColor}10 100%)`,
+              border: `2px solid ${accentColor}`,
+              boxShadow: `0 0 20px ${accentColor}30`,
+            }}
+          >
+            {/* Live indicator */}
+            {isLive && (
+              <div className="absolute top-2 right-2 flex items-center gap-1">
+                <span className="relative flex h-2 w-2">
+                  <span
+                    className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                    style={{ backgroundColor: accentColor }}
+                  />
+                  <span
+                    className="relative inline-flex rounded-full h-2 w-2"
+                    style={{ backgroundColor: accentColor }}
+                  />
+                </span>
+              </div>
+            )}
+
+            {/* Round label */}
+            <span
+              className="text-[10px] font-semibold uppercase tracking-wider mb-1"
+              style={{ color: accentColor }}
+            >
+              Round {round}
             </span>
-          ) : status === "completed" ? (
-            <CheckCircle className="w-5 h-5" style={{ color: tokens.statusSuccess }} />
-          ) : status === "today" || status === "active" ? (
-            <Play className="w-5 h-5" style={{ color: style.text }} />
-          ) : status === "cancelled" ? (
-            <XCircle className="w-5 h-5" style={{ color: tokens.statusDanger }} />
-          ) : status === "scheduled" ? (
-            <Clock className="w-5 h-5" style={{ color: style.text }} />
-          ) : (
-            <span className="text-lg" style={{ color: tokens.textMuted }}>—</span>
+
+            {/* Play icon or time */}
+            <Play className="w-7 h-7" style={{ color: accentColor }} />
+
+            {/* Time display */}
+            {!isLive && interview?.scheduled_at && (
+              <span
+                className="text-xs font-medium mt-1"
+                style={{ color: accentColor }}
+              >
+                {getScheduledDateDisplay()}
+              </span>
+            )}
+          </div>
+
+          {/* Action buttons */}
+          {(canStart || canCancel) && (
+            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              {canStart && onStart && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onStart(); }}
+                  className="p-1.5 rounded-lg transition-colors"
+                  style={{
+                    backgroundColor: `${accentColor}30`,
+                    border: `1px solid ${accentColor}50`,
+                  }}
+                >
+                  <Video className="w-3.5 h-3.5" style={{ color: accentColor }} />
+                </button>
+              )}
+            </div>
           )}
         </div>
 
-        {/* Status Label */}
-        <div className="text-center mt-1">
-          <span className="text-[10px] uppercase tracking-wider font-medium" style={{ color: style.text }}>
-            {status === "today" ? "Today" : status === "active" ? "Live" : status.charAt(0).toUpperCase() + status.slice(1)}
+        {/* Status label */}
+        <div className="flex items-center gap-1.5 mt-2">
+          {isLive ? (
+            <Zap className="w-3.5 h-3.5" style={{ color: accentColor }} />
+          ) : (
+            <Play className="w-3.5 h-3.5" style={{ color: accentColor }} />
+          )}
+          <span
+            className="text-xs font-medium"
+            style={{ color: accentColor }}
+          >
+            {isLive ? "Live Now" : "Today"}
+          </span>
+        </div>
+      </motion.div>
+    );
+  }
+
+  // SCHEDULED ROUND - Shows date/time (clean design, no action buttons)
+  if (status === "scheduled") {
+    return (
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ ...springConfig, delay: round * 0.1 }}
+        className="flex flex-col items-center"
+      >
+        <div
+          className="w-24 h-24 rounded-2xl flex flex-col items-center justify-center"
+          style={{
+            background: `linear-gradient(135deg, ${tokens.brandSecondary}15 0%, ${tokens.brandSecondary}08 100%)`,
+            border: `2px solid ${tokens.brandSecondary}50`,
+          }}
+        >
+          {/* Round label */}
+          <span
+            className="text-[10px] font-semibold uppercase tracking-wider mb-1"
+            style={{ color: tokens.brandSecondary }}
+          >
+            Round {round}
+          </span>
+
+          {/* Clock icon */}
+          <Clock className="w-6 h-6 mb-1" style={{ color: tokens.brandSecondary }} />
+
+          {/* Scheduled date */}
+          <span
+            className="text-xs font-medium"
+            style={{ color: tokens.brandSecondary }}
+          >
+            {getScheduledDateDisplay()}
           </span>
         </div>
 
-        {/* Action buttons on hover */}
-        {(canStart || canCancel) && (
-          <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            {canStart && onStart && (
-              <button
-                onClick={(e) => { e.stopPropagation(); onStart(); }}
-                className="p-1.5 rounded-lg transition-colors"
-                style={{
-                  backgroundColor: `${tokens.brandPrimary}20`,
-                  border: `1px solid ${tokens.brandPrimary}30`,
-                }}
-              >
-                <Video className="w-3 h-3" style={{ color: tokens.brandPrimary }} />
-              </button>
-            )}
-            {canCancel && onCancel && (
-              <button
-                onClick={(e) => { e.stopPropagation(); onCancel(); }}
-                className="p-1.5 rounded-lg transition-colors"
-                style={{
-                  backgroundColor: `${tokens.statusDanger}10`,
-                  border: `1px solid ${tokens.statusDanger}20`,
-                }}
-              >
-                <X className="w-3 h-3" style={{ color: tokens.statusDanger }} />
-              </button>
-            )}
-          </div>
-        )}
+        {/* Status label */}
+        <div className="flex items-center gap-1.5 mt-2">
+          <Calendar className="w-3.5 h-3.5" style={{ color: tokens.brandSecondary }} />
+          <span
+            className="text-xs font-medium"
+            style={{ color: tokens.brandSecondary }}
+          >
+            Scheduled
+          </span>
+        </div>
+      </motion.div>
+    );
+  }
+
+  // CANCELLED ROUND
+  if (status === "cancelled") {
+    return (
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ ...springConfig, delay: round * 0.1 }}
+        className="flex flex-col items-center"
+      >
+        <div
+          className="w-24 h-24 rounded-2xl flex flex-col items-center justify-center"
+          style={{
+            background: `${tokens.statusDanger}08`,
+            border: `2px dashed ${tokens.statusDanger}40`,
+          }}
+        >
+          {/* Round label */}
+          <span
+            className="text-[10px] font-semibold uppercase tracking-wider mb-1"
+            style={{ color: tokens.statusDanger }}
+          >
+            Round {round}
+          </span>
+
+          {/* X icon */}
+          <XCircle className="w-6 h-6" style={{ color: `${tokens.statusDanger}80` }} />
+        </div>
+
+        {/* Status label */}
+        <div className="flex items-center gap-1.5 mt-2">
+          <XCircle className="w-3.5 h-3.5" style={{ color: tokens.statusDanger }} />
+          <span
+            className="text-xs font-medium"
+            style={{ color: tokens.statusDanger }}
+          >
+            Cancelled
+          </span>
+        </div>
+      </motion.div>
+    );
+  }
+
+  // PENDING ROUND - Dashed border, muted styling
+  return (
+    <motion.div
+      initial={{ scale: 0.9, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ ...springConfig, delay: round * 0.1 }}
+      className="flex flex-col items-center"
+    >
+      <div
+        className="w-24 h-24 rounded-2xl flex flex-col items-center justify-center"
+        style={{
+          background: tokens.bgSurface,
+          border: `2px dashed ${tokens.borderSubtle}`,
+        }}
+      >
+        {/* Round label */}
+        <span
+          className="text-[10px] font-semibold uppercase tracking-wider mb-2"
+          style={{ color: tokens.textMuted }}
+        >
+          Round {round}
+        </span>
+
+        {/* Placeholder dash */}
+        <div
+          className="w-8 h-0.5 rounded-full mb-2"
+          style={{ backgroundColor: tokens.borderSubtle }}
+        />
+
+        {/* Not scheduled text */}
+        <span
+          className="text-[10px] font-medium"
+          style={{ color: tokens.textMuted }}
+        >
+          Not Scheduled
+        </span>
+      </div>
+
+      {/* Status label */}
+      <div className="flex items-center gap-1.5 mt-2">
+        <Clock className="w-3.5 h-3.5" style={{ color: tokens.textMuted }} />
+        <span
+          className="text-xs font-medium"
+          style={{ color: tokens.textMuted }}
+        >
+          Pending
+        </span>
+      </div>
+    </motion.div>
+  );
+}
+
+// =============================================================================
+// PROGRESS ARROW COMPONENT
+// =============================================================================
+
+interface ProgressArrowProps {
+  fromInterview: Interview | null;
+  toInterview: Interview | null;
+}
+
+function ProgressArrow({ fromInterview, toInterview }: ProgressArrowProps) {
+  // Determine arrow state based on interview progression
+  const getArrowState = (): "passed" | "failed" | "pending" => {
+    // If previous round was cancelled, show red (failed to progress)
+    if (fromInterview?.status === "cancelled") {
+      return "failed";
+    }
+
+    // If previous round is completed and next round exists (scheduled, in_progress, or completed)
+    // This means the candidate passed and moved to the next round
+    if (fromInterview?.status === "completed" && toInterview) {
+      return "passed";
+    }
+
+    // If previous round is completed but next round doesn't exist yet
+    // Could be awaiting decision or pending scheduling
+    if (fromInterview?.status === "completed" && !toInterview) {
+      return "pending";
+    }
+
+    // Default: pending/grey
+    return "pending";
+  };
+
+  const state = getArrowState();
+
+  const arrowColors = {
+    passed: tokens.statusSuccess,
+    failed: tokens.statusDanger,
+    pending: tokens.borderSubtle,
+  };
+
+  const color = arrowColors[state];
+
+  return (
+    <div className="flex items-center h-24 flex-1 px-1">
+      <motion.div
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ ...springConfig, delay: 0.2 }}
+        className="flex items-center w-full"
+      >
+        {/* Arrow line - now flexible width */}
+        <div
+          className="flex-1 h-[3px] rounded-full min-w-[60px]"
+          style={{ backgroundColor: color }}
+        />
+        {/* Arrow head - larger */}
+        <div
+          className="w-0 h-0 -ml-[1px]"
+          style={{
+            borderTop: "7px solid transparent",
+            borderBottom: "7px solid transparent",
+            borderLeft: `12px solid ${color}`,
+          }}
+        />
       </motion.div>
     </div>
   );
@@ -914,34 +1188,11 @@ function CandidateInterviewCard({
 
         {/* Interview Timeline */}
         <div
-          className="relative py-6 px-4 rounded-xl"
+          className="relative py-8 px-6 rounded-xl"
           style={{ backgroundColor: tokens.bgSurface }}
         >
-          {/* Connecting Line */}
-          <div
-            className="absolute top-1/2 left-[60px] right-[60px] h-[2px] -translate-y-1/2"
-            style={{ backgroundColor: tokens.borderSubtle }}
-          />
-
-          {/* Progress Line */}
-          <motion.div
-            className="absolute top-1/2 left-[60px] h-[2px] -translate-y-1/2"
-            initial={{ width: 0 }}
-            animate={{
-              width: `${Math.max(
-                0,
-                (group.interviews.filter((i) => i.status === "completed").length / 3) * 100
-              )}%`,
-            }}
-            transition={{ ...springConfig, delay: 0.3 }}
-            style={{
-              background: `linear-gradient(to right, ${tokens.statusSuccess}, ${tokens.brandPrimary})`,
-              maxWidth: "calc(100% - 120px)",
-            }}
-          />
-
-          {/* Round Badges */}
-          <div className="relative flex justify-between items-center">
+          {/* Round Badges with Progress Arrows */}
+          <div className="relative flex justify-between items-start">
             <RoundBadge
               round={1}
               interview={group.rounds.round_1}
@@ -950,7 +1201,11 @@ function CandidateInterviewCard({
               onCancel={group.rounds.round_1 ? () => onCancelInterview(group.rounds.round_1!.id) : undefined}
             />
 
-            <ArrowRight className="w-5 h-5 -mx-2" style={{ color: tokens.borderSubtle }} />
+            {/* Arrow 1→2: Green if R1 completed and R2 exists, Red if R1 cancelled, Grey if pending */}
+            <ProgressArrow
+              fromInterview={group.rounds.round_1}
+              toInterview={group.rounds.round_2}
+            />
 
             <RoundBadge
               round={2}
@@ -960,7 +1215,11 @@ function CandidateInterviewCard({
               onCancel={group.rounds.round_2 ? () => onCancelInterview(group.rounds.round_2!.id) : undefined}
             />
 
-            <ArrowRight className="w-5 h-5 -mx-2" style={{ color: tokens.borderSubtle }} />
+            {/* Arrow 2→3: Green if R2 completed and R3 exists, Red if R2 cancelled, Grey if pending */}
+            <ProgressArrow
+              fromInterview={group.rounds.round_2}
+              toInterview={group.rounds.round_3}
+            />
 
             <RoundBadge
               round={3}
