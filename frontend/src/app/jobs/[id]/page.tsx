@@ -3,8 +3,10 @@
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import AppLayout from "@/components/AppLayout";
+import { tokens, springConfig, easeOutCustom } from "@/lib/design-tokens";
 import {
   ArrowLeft,
   Briefcase,
@@ -37,6 +39,7 @@ import {
   Loader2,
   GripVertical,
   Settings,
+  type LucideIcon,
 } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -455,18 +458,18 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusStyle = (status: string) => {
     switch (status) {
       case "active":
-        return "bg-green-500/10 border-green-500/30 text-green-400";
+        return { bg: tokens.statusSuccessBg, text: tokens.statusSuccess, dot: tokens.statusSuccess };
       case "draft":
-        return "bg-yellow-500/10 border-yellow-500/30 text-yellow-400";
+        return { bg: tokens.statusWarningBg, text: tokens.statusWarning, dot: tokens.statusWarning };
       case "paused":
-        return "bg-orange-500/10 border-orange-500/30 text-orange-400";
+        return { bg: "rgba(249,115,22,0.1)", text: "#F97316", dot: "#F97316" };
       case "closed":
-        return "bg-gray-500/10 border-gray-500/30 text-gray-400";
+        return { bg: "rgba(100,116,139,0.1)", text: tokens.textMuted, dot: tokens.textMuted };
       default:
-        return "bg-gray-500/10 border-gray-500/30 text-gray-400";
+        return { bg: "rgba(100,116,139,0.1)", text: tokens.textMuted, dot: tokens.textMuted };
     }
   };
 
@@ -493,23 +496,41 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
         ) : (
         <>
         {/* Page Header */}
-        <div className="flex items-center justify-between mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: easeOutCustom }}
+          className="flex items-center justify-between mb-8"
+        >
           <div className="flex items-center gap-4">
-            <Link href="/jobs" className="p-2 hover:bg-white/5 rounded-lg transition-colors">
-              <ArrowLeft className="w-5 h-5 text-white/60" />
+            <Link
+              href="/jobs"
+              className="p-2 rounded-xl transition-all duration-200"
+              style={{
+                backgroundColor: tokens.bgSurface,
+                border: `1px solid ${tokens.borderSubtle}`,
+              }}
+            >
+              <ArrowLeft className="w-5 h-5" style={{ color: tokens.textMuted }} />
             </Link>
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold text-white">{job.title}</h1>
+                <h1 className="text-2xl font-semibold" style={{ color: tokens.textPrimary }}>{job.title}</h1>
                 <span
-                  className={`text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider border ${getStatusColor(
-                    job.status
-                  )}`}
+                  className="inline-flex items-center gap-1.5 text-[10px] px-2.5 py-1 rounded-full uppercase tracking-wider font-medium"
+                  style={{
+                    backgroundColor: getStatusStyle(job.status).bg,
+                    color: getStatusStyle(job.status).text,
+                  }}
                 >
+                  <span
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{ backgroundColor: getStatusStyle(job.status).dot }}
+                  />
                   {job.status}
                 </span>
               </div>
-              <p className="text-sm text-white/50">
+              <p className="text-sm mt-1" style={{ color: tokens.textMuted }}>
                 Created {new Date(job.created_at).toLocaleDateString()}
               </p>
             </div>
@@ -518,85 +539,111 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
           <div className="flex items-center gap-3">
             {/* Quick Actions */}
             {job.status === "draft" && (
-              <button
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => updateJobStatus("activate")}
-                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 rounded-lg text-sm font-medium transition-colors"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-colors text-white"
+                style={{
+                  background: tokens.gradientSuccess,
+                  boxShadow: `0 0 20px ${tokens.statusSuccessBg}`,
+                }}
               >
                 <Play className="w-4 h-4" />
                 Activate
-              </button>
+              </motion.button>
             )}
             {job.status === "active" && (
-              <button
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => updateJobStatus("pause")}
-                className="flex items-center gap-2 px-4 py-2 bg-orange-600/20 hover:bg-orange-600/30 text-orange-400 rounded-lg text-sm font-medium transition-colors"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-colors"
+                style={{
+                  backgroundColor: tokens.statusWarningBg,
+                  color: tokens.statusWarning,
+                  border: `1px solid rgba(245,158,11,0.2)`,
+                }}
               >
                 <Pause className="w-4 h-4" />
                 Pause
-              </button>
+              </motion.button>
             )}
           </div>
-        </div>
+        </motion.div>
+
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="glass-panel rounded-2xl p-5">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
-                <Users className="w-5 h-5 text-purple-400" />
-              </div>
-              <div>
-                <div className="text-2xl font-light text-white">{job.candidate_count}</div>
-                <div className="text-xs text-white/50 uppercase tracking-wider">Candidates</div>
-              </div>
-            </div>
-          </div>
-          <div className="glass-panel rounded-2xl p-5">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
-                <CheckCircle className="w-5 h-5 text-cyan-400" />
-              </div>
-              <div>
-                <div className="text-2xl font-light text-white">{job.interviewed_count}</div>
-                <div className="text-xs text-white/50 uppercase tracking-wider">Interviewed</div>
-              </div>
-            </div>
-          </div>
-          <div className="glass-panel rounded-2xl p-5">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-green-400" />
-              </div>
-              <div>
-                <div className="text-2xl font-light text-white">
-                  {stats?.analytics_stats.avg_score.toFixed(1) || "—"}
+          {[
+            { icon: Users, value: job.candidate_count, label: "Candidates", color: "#A855F7", delay: 0 },
+            { icon: CheckCircle, value: job.interviewed_count, label: "Interviewed", color: "#06B6D4", delay: 0.05 },
+            { icon: TrendingUp, value: stats?.analytics_stats.avg_score.toFixed(1) || "—", label: "Avg Score", color: tokens.statusSuccess, delay: 0.1 },
+            { icon: Target, value: (stats?.analytics_stats.recommendations.strong_hire || 0) + (stats?.analytics_stats.recommendations.hire || 0), label: "Hire Ready", color: tokens.brandPrimary, delay: 0.15 },
+          ].map((stat, index) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: stat.delay, ease: easeOutCustom }}
+              whileHover={{ y: -4, transition: springConfig }}
+              className="group relative cursor-default"
+            >
+              <div
+                className="relative p-5 rounded-2xl transition-all duration-300"
+                style={{
+                  backgroundColor: tokens.bgSurface,
+                  border: `1px solid ${tokens.borderDefault}`,
+                }}
+              >
+                {/* Hover glow */}
+                <div
+                  className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                  style={{
+                    background: `radial-gradient(circle at 50% 0%, ${stat.color}15, transparent 70%)`,
+                  }}
+                />
+                <div className="relative flex items-start justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium mb-2" style={{ color: tokens.textMuted }}>
+                      {stat.label}
+                    </p>
+                    <p
+                      className="text-3xl font-semibold tracking-tight tabular-nums"
+                      style={{ color: tokens.textPrimary }}
+                    >
+                      {stat.value}
+                    </p>
+                  </div>
+                  <div
+                    className="p-3 rounded-xl transition-transform duration-300 group-hover:scale-110"
+                    style={{ backgroundColor: `${stat.color}15` }}
+                  >
+                    <stat.icon className="w-5 h-5" style={{ color: stat.color }} />
+                  </div>
                 </div>
-                <div className="text-xs text-white/50 uppercase tracking-wider">Avg Score</div>
               </div>
-            </div>
-          </div>
-          <div className="glass-panel rounded-2xl p-5">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center">
-                <Target className="w-5 h-5 text-indigo-400" />
-              </div>
-              <div>
-                <div className="text-2xl font-light text-white">
-                  {(stats?.analytics_stats.recommendations.strong_hire || 0) +
-                    (stats?.analytics_stats.recommendations.hire || 0)}
-                </div>
-                <div className="text-xs text-white/50 uppercase tracking-wider">Hire Ready</div>
-              </div>
-            </div>
-          </div>
+            </motion.div>
+          ))}
         </div>
 
         {/* Action Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Link
             href={`/jobs/${resolvedParams.id}/upload`}
-            className="glass-panel rounded-2xl p-6 hover:bg-white/5 transition-all group"
+            className="group relative rounded-2xl p-6 transition-all duration-300"
+            style={{
+              backgroundColor: tokens.bgSurface,
+              border: `1px solid ${tokens.borderDefault}`,
+            }}
           >
-            <div className="flex items-center gap-4">
+            {/* Hover glow */}
+            <div
+              className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+              style={{
+                background: `radial-gradient(circle at 50% 50%, ${tokens.brandPrimary}10, transparent 70%)`,
+              }}
+            />
+            <div className="relative flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-indigo-500/20 flex items-center justify-center group-hover:bg-indigo-500/30 transition-colors">
                 <Upload className="w-6 h-6 text-indigo-400" />
               </div>
@@ -612,95 +659,162 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
 
           <Link
             href={`/jobs/${resolvedParams.id}/enrich`}
-            className="glass-panel rounded-2xl p-6 hover:bg-white/5 transition-all group"
+            className="group relative rounded-2xl p-6 transition-all duration-300"
+            style={{
+              backgroundColor: tokens.bgSurface,
+              border: `1px solid ${tokens.borderDefault}`,
+            }}
           >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center group-hover:bg-purple-500/30 transition-colors">
-                <Mic className="w-6 h-6 text-purple-400" />
+            <div
+              className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+              style={{
+                background: `radial-gradient(circle at 50% 50%, #A855F710, transparent 70%)`,
+              }}
+            />
+            <div className="relative flex items-center gap-4">
+              <div
+                className="w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110"
+                style={{ backgroundColor: "rgba(168,85,247,0.15)" }}
+              >
+                <Mic className="w-6 h-6" style={{ color: "#A855F7" }} />
               </div>
               <div className="flex-1">
-                <h3 className="text-white font-medium group-hover:text-purple-300 transition-colors">
+                <h3 className="font-medium transition-colors" style={{ color: tokens.textPrimary }}>
                   Voice Enrichment
                 </h3>
-                <p className="text-sm text-white/50">Add scoring criteria</p>
+                <p className="text-sm" style={{ color: tokens.textMuted }}>Add scoring criteria</p>
               </div>
-              <ChevronRight className="w-5 h-5 text-white/30 group-hover:text-white/60 transition-colors" />
+              <ChevronRight className="w-5 h-5 transition-colors" style={{ color: tokens.textDisabled }} />
             </div>
           </Link>
 
           <Link
             href={`/jobs/${resolvedParams.id}/candidates`}
-            className="glass-panel rounded-2xl p-6 hover:bg-white/5 transition-all group"
+            className="group relative rounded-2xl p-6 transition-all duration-300"
+            style={{
+              backgroundColor: tokens.bgSurface,
+              border: `1px solid ${tokens.borderDefault}`,
+            }}
           >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-cyan-500/20 flex items-center justify-center group-hover:bg-cyan-500/30 transition-colors">
-                <BarChart3 className="w-6 h-6 text-cyan-400" />
+            <div
+              className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+              style={{
+                background: `radial-gradient(circle at 50% 50%, #06B6D410, transparent 70%)`,
+              }}
+            />
+            <div className="relative flex items-center gap-4">
+              <div
+                className="w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110"
+                style={{ backgroundColor: "rgba(6,182,212,0.15)" }}
+              >
+                <BarChart3 className="w-6 h-6" style={{ color: "#06B6D4" }} />
               </div>
               <div className="flex-1">
-                <h3 className="text-white font-medium group-hover:text-cyan-300 transition-colors">
+                <h3 className="font-medium transition-colors" style={{ color: tokens.textPrimary }}>
                   View Rankings
                 </h3>
-                <p className="text-sm text-white/50">See candidate analytics</p>
+                <p className="text-sm" style={{ color: tokens.textMuted }}>See candidate analytics</p>
               </div>
-              <ChevronRight className="w-5 h-5 text-white/30 group-hover:text-white/60 transition-colors" />
+              <ChevronRight className="w-5 h-5 transition-colors" style={{ color: tokens.textDisabled }} />
             </div>
           </Link>
         </div>
 
         {/* Interview Pipeline Configuration */}
-        <div className="glass-panel rounded-2xl p-6 mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2, ease: easeOutCustom }}
+          className="rounded-2xl p-6 mb-8"
+          style={{
+            backgroundColor: tokens.bgSurface,
+            border: `1px solid ${tokens.borderDefault}`,
+          }}
+        >
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-lg font-medium text-white flex items-center gap-2">
-                <Settings className="w-5 h-5 text-white/60" />
+              <h3 className="text-lg font-medium flex items-center gap-2" style={{ color: tokens.textPrimary }}>
+                <Settings className="w-5 h-5" style={{ color: tokens.textMuted }} />
                 Interview Pipeline
               </h3>
-              <p className="text-xs text-white/40 mt-1">
+              <p className="text-xs mt-1" style={{ color: tokens.textMuted }}>
                 Configure the stages candidates go through
               </p>
             </div>
             <button
               type="button"
               onClick={() => setShowStagesEditor(!showStagesEditor)}
-              className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/70 rounded-lg text-xs font-medium transition-colors"
+              className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+              style={{
+                backgroundColor: tokens.bgSurfaceHover,
+                color: tokens.textSecondary,
+                border: `1px solid ${tokens.borderSubtle}`,
+              }}
             >
               {showStagesEditor ? "Cancel" : "Edit Stages"}
             </button>
           </div>
 
           {/* Pipeline Visualization */}
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-3 flex-wrap">
             {/* Screen stage */}
-            <div className="flex items-center gap-2">
-              <div className="px-4 py-2 bg-indigo-500/10 text-indigo-300 rounded-lg border border-indigo-500/20 flex items-center gap-2">
-                <span className="font-medium">Screen</span>
-                <span className="text-xs bg-indigo-500/30 px-2 py-0.5 rounded">
+            <div className="flex items-center gap-3">
+              <div
+                className="px-4 py-2.5 rounded-xl flex items-center gap-2"
+                style={{
+                  backgroundColor: tokens.brandGlow,
+                  border: `1px solid ${tokens.brandPrimary}30`,
+                }}
+              >
+                <span className="font-medium" style={{ color: tokens.brandSecondary }}>Screen</span>
+                <span
+                  className="text-xs px-2 py-0.5 rounded-md font-medium"
+                  style={{ backgroundColor: `${tokens.brandPrimary}30`, color: tokens.brandSecondary }}
+                >
                   {job.stage_counts?.find(s => s.stage_key === "new")?.count ?? job.candidate_count - job.interviewed_count}
                 </span>
               </div>
-              <ChevronRight className="w-4 h-4 text-white/30" />
+              <ChevronRight className="w-4 h-4" style={{ color: tokens.textDisabled }} />
             </div>
 
             {/* Dynamic interview stages */}
             {(job.interview_stages || ["Round 1", "Round 2", "Round 3"]).map((stage, index) => {
               const stageCount = job.stage_counts?.find(s => s.stage_key === `stage_${index}`);
               return (
-                <div key={index} className="flex items-center gap-2">
-                  <div className="px-4 py-2 bg-white/5 text-white/70 rounded-lg border border-white/10 flex items-center gap-2">
-                    <span className="font-medium">{stage}</span>
-                    <span className="text-xs bg-white/10 px-2 py-0.5 rounded">
+                <div key={index} className="flex items-center gap-3">
+                  <div
+                    className="px-4 py-2.5 rounded-xl flex items-center gap-2"
+                    style={{
+                      backgroundColor: tokens.bgCard,
+                      border: `1px solid ${tokens.borderDefault}`,
+                    }}
+                  >
+                    <span className="font-medium" style={{ color: tokens.textSecondary }}>{stage}</span>
+                    <span
+                      className="text-xs px-2 py-0.5 rounded-md font-medium"
+                      style={{ backgroundColor: tokens.bgSurfaceHover, color: tokens.textMuted }}
+                    >
                       {stageCount?.count ?? 0}
                     </span>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-white/30" />
+                  <ChevronRight className="w-4 h-4" style={{ color: tokens.textDisabled }} />
                 </div>
               );
             })}
 
             {/* Offer stage */}
-            <div className="px-4 py-2 bg-green-500/10 text-green-300 rounded-lg border border-green-500/20 flex items-center gap-2">
-              <span className="font-medium">Offer</span>
-              <span className="text-xs bg-green-500/30 px-2 py-0.5 rounded">
+            <div
+              className="px-4 py-2.5 rounded-xl flex items-center gap-2"
+              style={{
+                backgroundColor: tokens.statusSuccessBg,
+                border: `1px solid ${tokens.statusSuccess}30`,
+              }}
+            >
+              <span className="font-medium" style={{ color: tokens.statusSuccess }}>Offer</span>
+              <span
+                className="text-xs px-2 py-0.5 rounded-md font-medium"
+                style={{ backgroundColor: `${tokens.statusSuccess}25`, color: tokens.statusSuccess }}
+              >
                 {job.stage_counts?.find(s => s.stage_key === "offer")?.count ?? 0}
               </span>
             </div>
@@ -787,10 +901,16 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
               </div>
             </div>
           )}
-        </div>
+        </motion.div>
 
         {/* Tabs */}
-        <div className="flex items-center gap-2 p-1 bg-white/5 rounded-xl border border-white/10 w-fit mb-6">
+        <div
+          className="flex items-center gap-1 p-1 rounded-xl w-fit mb-6"
+          style={{
+            backgroundColor: tokens.bgSurface,
+            border: `1px solid ${tokens.borderDefault}`,
+          }}
+        >
           {[
             { key: "overview", label: "Overview" },
             { key: "candidates", label: "Candidates" },
@@ -799,11 +919,11 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key as any)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                activeTab === tab.key
-                  ? "bg-white text-black"
-                  : "text-white/50 hover:text-white"
-              }`}
+              className="px-4 py-2 rounded-lg text-sm font-medium transition-all"
+              style={{
+                backgroundColor: activeTab === tab.key ? tokens.brandPrimary : "transparent",
+                color: activeTab === tab.key ? "#fff" : tokens.textMuted,
+              }}
             >
               {tab.label}
             </button>
@@ -815,67 +935,101 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
           <div className="space-y-6">
             {/* Missing Fields Alert */}
             {job.extracted_requirements?.missing_fields && job.extracted_requirements.missing_fields.length > 0 && (
-              <div className="glass-panel rounded-2xl p-6 border border-yellow-500/30 bg-yellow-500/5">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="rounded-2xl p-6"
+                style={{
+                  backgroundColor: tokens.statusWarningBg,
+                  border: `1px solid ${tokens.statusWarning}30`,
+                }}
+              >
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-yellow-500/20 flex items-center justify-center flex-shrink-0">
-                    <AlertCircle className="w-5 h-5 text-yellow-400" />
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: `${tokens.statusWarning}20` }}
+                  >
+                    <AlertCircle className="w-5 h-5" style={{ color: tokens.statusWarning }} />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-lg font-medium text-white mb-2">Complete Job Profile</h3>
-                    <p className="text-sm text-white/60 mb-4">
+                    <h3 className="text-lg font-medium mb-2" style={{ color: tokens.textPrimary }}>Complete Job Profile</h3>
+                    <p className="text-sm mb-4" style={{ color: tokens.textSecondary }}>
                       The following attributes weren't found in the job description. Add them to improve candidate screening accuracy.
                     </p>
                     <div className="flex flex-wrap gap-2 mb-4">
                       {job.extracted_requirements.missing_fields.map((field) => (
-                        <span key={field} className="px-3 py-1 bg-yellow-500/20 text-yellow-300 rounded-lg text-sm">
+                        <span
+                          key={field}
+                          className="px-3 py-1 rounded-lg text-sm"
+                          style={{ backgroundColor: `${tokens.statusWarning}25`, color: tokens.statusWarning }}
+                        >
                           {field.replace(/_/g, ' ')}
                         </span>
                       ))}
                     </div>
-                    <button
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                       onClick={() => setShowMissingFieldsForm(true)}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500 text-black rounded-lg font-medium hover:bg-yellow-400 transition-colors"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-colors"
+                      style={{
+                        background: tokens.gradientWarning,
+                        color: "#000",
+                      }}
                     >
                       <Plus className="w-4 h-4" />
                       Add Missing Attributes
-                    </button>
+                    </motion.button>
                   </div>
                   {job.extracted_requirements.extraction_confidence !== undefined && (
                     <div className="text-right">
-                      <div className="text-2xl font-light text-white">
+                      <div className="text-2xl font-light" style={{ color: tokens.textPrimary }}>
                         {(job.extracted_requirements.extraction_confidence * 100).toFixed(0)}%
                       </div>
-                      <div className="text-xs text-white/40">Extraction Confidence</div>
+                      <div className="text-xs" style={{ color: tokens.textMuted }}>Extraction Confidence</div>
                     </div>
                   )}
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {/* Missing Fields Form Modal */}
             {showMissingFieldsForm && (
-              <div className="glass-panel rounded-2xl p-6 border border-indigo-500/30">
+              <div
+                className="rounded-2xl p-6"
+                style={{
+                  backgroundColor: tokens.bgSurface,
+                  border: `1px solid ${tokens.brandPrimary}30`,
+                }}
+              >
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-medium text-white flex items-center gap-2">
-                    <Edit className="w-5 h-5 text-indigo-400" />
+                  <h3 className="text-lg font-medium flex items-center gap-2" style={{ color: tokens.textPrimary }}>
+                    <Edit className="w-5 h-5" style={{ color: tokens.brandPrimary }} />
                     Complete Screening Profile
                   </h3>
                   <button
                     onClick={() => setShowMissingFieldsForm(false)}
-                    className="p-2 hover:bg-white/5 rounded-lg transition-colors"
+                    className="p-2 rounded-lg transition-colors"
+                    style={{ backgroundColor: tokens.bgCard }}
                   >
-                    <X className="w-5 h-5 text-white/60" />
+                    <X className="w-5 h-5" style={{ color: tokens.textMuted }} />
                   </button>
                 </div>
 
                 <div className="space-y-6">
                   {/* Category Weights Section */}
-                  <div className="p-4 bg-white/5 rounded-xl border border-white/10">
-                    <h4 className="text-sm font-medium text-white mb-3 flex items-center gap-2">
-                      <BarChart3 className="w-4 h-4 text-indigo-400" />
+                  <div
+                    className="p-4 rounded-xl"
+                    style={{
+                      backgroundColor: tokens.bgCard,
+                      border: `1px solid ${tokens.borderDefault}`,
+                    }}
+                  >
+                    <h4 className="text-sm font-medium mb-3 flex items-center gap-2" style={{ color: tokens.textPrimary }}>
+                      <BarChart3 className="w-4 h-4" style={{ color: tokens.brandPrimary }} />
                       Category Weights
                     </h4>
-                    <p className="text-xs text-white/40 mb-4">Adjust how much each category matters in overall candidate scoring.</p>
+                    <p className="text-xs mb-4" style={{ color: tokens.textMuted }}>Adjust how much each category matters in overall candidate scoring.</p>
                     <div className="grid grid-cols-2 gap-3">
                       {Object.entries(editedFields.category_weights).map(([key, value]) => (
                         <div key={key} className="flex items-center gap-2">
@@ -1221,7 +1375,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
               {/* Left Column: Job Description + Basic Info */}
               <div className="space-y-6">
                 {/* Job Description */}
-                <div className="glass-panel rounded-2xl p-6">
+                <div className="rounded-2xl p-6" style={{ backgroundColor: tokens.bgSurface, border: `1px solid ${tokens.borderDefault}` }}>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-medium text-white flex items-center gap-2">
                       <FileText className="w-5 h-5 text-white/60" />
@@ -1235,7 +1389,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
 
                 {/* Basic Requirements */}
                 {job.extracted_requirements && (
-                  <div className="glass-panel rounded-2xl p-6">
+                  <div className="rounded-2xl p-6" style={{ backgroundColor: tokens.bgSurface, border: `1px solid ${tokens.borderDefault}` }}>
                     <h3 className="text-lg font-medium text-white flex items-center gap-2 mb-4">
                       <Sparkles className="w-5 h-5 text-indigo-400" />
                       Basic Requirements
@@ -1277,7 +1431,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
               <div className="space-y-6">
                 {/* Success Signals */}
                 {job.extracted_requirements?.success_signals && job.extracted_requirements.success_signals.length > 0 && (
-                  <div className="glass-panel rounded-2xl p-6 border border-green-500/20">
+                  <div className="rounded-2xl p-6" style={{ backgroundColor: tokens.bgSurface, border: `1px solid ${tokens.statusSuccess}30` }}>
                     <h3 className="text-lg font-medium text-white flex items-center gap-2 mb-4">
                       <ThumbsUp className="w-5 h-5 text-green-400" />
                       Success Signals
@@ -1303,7 +1457,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
 
                 {/* Red Flags */}
                 {job.extracted_requirements?.red_flags && job.extracted_requirements.red_flags.length > 0 && (
-                  <div className="glass-panel rounded-2xl p-6 border border-red-500/20">
+                  <div className="rounded-2xl p-6" style={{ backgroundColor: tokens.bgSurface, border: `1px solid ${tokens.statusDanger}30` }}>
                     <h3 className="text-lg font-medium text-white flex items-center gap-2 mb-4">
                       <ThumbsDown className="w-5 h-5 text-red-400" />
                       Red Flags
@@ -1329,7 +1483,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
 
                 {/* Behavioral Traits */}
                 {job.extracted_requirements?.behavioral_traits && job.extracted_requirements.behavioral_traits.length > 0 && (
-                  <div className="glass-panel rounded-2xl p-6 border border-purple-500/20">
+                  <div className="rounded-2xl p-6" style={{ backgroundColor: tokens.bgSurface, border: "1px solid rgba(168,85,247,0.3)" }}>
                     <h3 className="text-lg font-medium text-white flex items-center gap-2 mb-4">
                       <Brain className="w-5 h-5 text-purple-400" />
                       Behavioral Traits
@@ -1354,7 +1508,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
 
                 {/* Cultural Fit */}
                 {job.extracted_requirements?.cultural_indicators && job.extracted_requirements.cultural_indicators.length > 0 && (
-                  <div className="glass-panel rounded-2xl p-6 border border-cyan-500/20">
+                  <div className="rounded-2xl p-6" style={{ backgroundColor: tokens.bgSurface, border: "1px solid rgba(6,182,212,0.3)" }}>
                     <h3 className="text-lg font-medium text-white flex items-center gap-2 mb-4">
                       <Heart className="w-5 h-5 text-cyan-400" />
                       Cultural Fit
@@ -1379,7 +1533,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
 
                 {/* Deal Breakers */}
                 {job.extracted_requirements?.deal_breakers && job.extracted_requirements.deal_breakers.length > 0 && (
-                  <div className="glass-panel rounded-2xl p-6 border border-orange-500/20">
+                  <div className="rounded-2xl p-6" style={{ backgroundColor: tokens.bgSurface, border: "1px solid rgba(249,115,22,0.3)" }}>
                     <h3 className="text-lg font-medium text-white flex items-center gap-2 mb-4">
                       <Ban className="w-5 h-5 text-orange-400" />
                       Deal Breakers
@@ -1405,7 +1559,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
 
                 {/* Ideal Background */}
                 {job.extracted_requirements?.ideal_background && (
-                  <div className="glass-panel rounded-2xl p-6">
+                  <div className="rounded-2xl p-6" style={{ backgroundColor: tokens.bgSurface, border: `1px solid ${tokens.borderDefault}` }}>
                     <h3 className="text-lg font-medium text-white flex items-center gap-2 mb-4">
                       <Target className="w-5 h-5 text-indigo-400" />
                       Ideal Background
@@ -1420,7 +1574,12 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                 {!showMissingFieldsForm && (
                   <button
                     onClick={() => setShowMissingFieldsForm(true)}
-                    className="w-full py-3 glass-panel rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-colors flex items-center justify-center gap-2"
+                    className="w-full py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+                    style={{
+                      backgroundColor: tokens.bgSurface,
+                      border: `1px solid ${tokens.borderDefault}`,
+                      color: tokens.textMuted,
+                    }}
                   >
                     <Edit className="w-4 h-4" />
                     Edit Screening Profile
@@ -1432,7 +1591,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
         )}
 
         {activeTab === "candidates" && (
-          <div className="glass-panel rounded-2xl p-6">
+          <div className="rounded-2xl p-6" style={{ backgroundColor: tokens.bgSurface, border: `1px solid ${tokens.borderDefault}` }}>
             {candidates.length === 0 ? (
               <div className="text-center py-12">
                 <Users className="w-12 h-12 text-white/20 mx-auto mb-4" />
@@ -1521,7 +1680,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
         )}
 
         {activeTab === "analytics" && (
-          <div className="glass-panel rounded-2xl p-6">
+          <div className="rounded-2xl p-6" style={{ backgroundColor: tokens.bgSurface, border: `1px solid ${tokens.borderDefault}` }}>
             {!stats || stats.analytics_stats.total_evaluated === 0 ? (
               <div className="text-center py-12">
                 <BarChart3 className="w-12 h-12 text-white/20 mx-auto mb-4" />

@@ -3,8 +3,10 @@
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import AppLayout from "@/components/AppLayout";
+import { tokens, springConfig, easeOutCustom } from "@/lib/design-tokens";
 import {
   ArrowLeft,
   Users,
@@ -348,18 +350,27 @@ export default function JobCandidatesPage({ params }: { params: Promise<{ id: st
     <AppLayout>
       <div className="px-6 py-8 max-w-7xl mx-auto">
         {/* Page Header */}
-        <div className="flex items-center gap-4 mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: easeOutCustom }}
+          className="flex items-center gap-4 mb-8"
+        >
           <Link
             href={`/jobs/${resolvedParams.id}`}
-            className="p-2 hover:bg-white/5 rounded-lg transition-colors"
+            className="p-2 rounded-xl transition-all duration-200"
+            style={{
+              backgroundColor: tokens.bgSurface,
+              border: `1px solid ${tokens.borderSubtle}`,
+            }}
           >
-            <ArrowLeft className="w-5 h-5 text-white/60" />
+            <ArrowLeft className="w-5 h-5" style={{ color: tokens.textMuted }} />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-white">Candidates</h1>
-            <p className="text-sm text-white/50">{job.title}</p>
+            <h1 className="text-2xl font-semibold" style={{ color: tokens.textPrimary }}>Candidates</h1>
+            <p className="text-sm" style={{ color: tokens.textMuted }}>{job.title}</p>
           </div>
-        </div>
+        </motion.div>
 
       {/* Bulk Action Bar */}
       {selectedIds.size > 0 && (
@@ -434,99 +445,80 @@ export default function JobCandidatesPage({ params }: { params: Promise<{ id: st
       <div className="pt-28 px-6 pb-12 max-w-7xl mx-auto">
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
-          <div className="glass-panel rounded-2xl p-5">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
-                <Users className="w-5 h-5 text-purple-400" />
-              </div>
-              <div>
-                <div className="text-2xl font-light text-white">{candidates.length}</div>
-                <div className="text-xs text-white/50 uppercase tracking-wider">Total</div>
-              </div>
-            </div>
-          </div>
-          <div className="glass-panel rounded-2xl p-5">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
-                <Star className="w-5 h-5 text-green-400" />
-              </div>
-              <div>
-                <div className="text-2xl font-light text-white">{strongFitCount}</div>
-                <div className="text-xs text-white/50 uppercase tracking-wider">Strong Fit</div>
-              </div>
-            </div>
-          </div>
-          <div className="glass-panel rounded-2xl p-5">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
-                <CheckCircle className="w-5 h-5 text-blue-400" />
-              </div>
-              <div>
-                <div className="text-2xl font-light text-white">{goodFitCount}</div>
-                <div className="text-xs text-white/50 uppercase tracking-wider">Good Fit</div>
-              </div>
-            </div>
-          </div>
-          <div className="glass-panel rounded-2xl p-5">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-yellow-500/20 flex items-center justify-center">
-                <Clock className="w-5 h-5 text-yellow-400" />
-              </div>
-              <div>
-                <div className="text-2xl font-light text-white">{potentialFitCount}</div>
-                <div className="text-xs text-white/50 uppercase tracking-wider">Potential</div>
-              </div>
-            </div>
-          </div>
-          <div className="glass-panel rounded-2xl p-5">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center">
-                <AlertCircle className="w-5 h-5 text-red-400" />
-              </div>
-              <div>
-                <div className="text-2xl font-light text-white">{notFitCount}</div>
-                <div className="text-xs text-white/50 uppercase tracking-wider">Not a Fit</div>
-              </div>
-            </div>
-          </div>
-          <div className="glass-panel rounded-2xl p-5">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-cyan-400" />
-              </div>
-              <div>
-                <div className="text-2xl font-light text-white">
-                  {avgScore > 0 ? avgScore.toFixed(0) : "—"}
+          {[
+            { icon: Users, value: candidates.length, label: "Total", color: "#A855F7" },
+            { icon: Star, value: strongFitCount, label: "Strong Fit", color: tokens.statusSuccess },
+            { icon: CheckCircle, value: goodFitCount, label: "Good Fit", color: "#3B82F6" },
+            { icon: Clock, value: potentialFitCount, label: "Potential", color: tokens.statusWarning },
+            { icon: AlertCircle, value: notFitCount, label: "Not a Fit", color: tokens.statusDanger },
+            { icon: TrendingUp, value: avgScore > 0 ? avgScore.toFixed(0) : "—", label: "Avg Score", color: "#06B6D4" },
+          ].map((stat, index) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: index * 0.05, ease: easeOutCustom }}
+              className="rounded-2xl p-5"
+              style={{
+                backgroundColor: tokens.bgSurface,
+                border: `1px solid ${tokens.borderDefault}`,
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center"
+                  style={{ backgroundColor: `${stat.color}15` }}
+                >
+                  <stat.icon className="w-5 h-5" style={{ color: stat.color }} />
                 </div>
-                <div className="text-xs text-white/50 uppercase tracking-wider">Avg Score</div>
+                <div>
+                  <div className="text-2xl font-light" style={{ color: tokens.textPrimary }}>{stat.value}</div>
+                  <div className="text-xs uppercase tracking-wider" style={{ color: tokens.textMuted }}>{stat.label}</div>
+                </div>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          ))}
         </div>
 
         {/* Filters */}
-        <div className="flex items-center gap-4 mb-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.3, ease: easeOutCustom }}
+          className="flex items-center gap-4 mb-6"
+        >
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: tokens.textMuted }} />
             <input
               type="text"
               placeholder="Search candidates..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-indigo-500/50"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm focus:outline-none"
+              style={{
+                backgroundColor: tokens.bgSurface,
+                border: `1px solid ${tokens.borderDefault}`,
+                color: tokens.textPrimary,
+              }}
             />
           </div>
 
-          <div className="flex items-center gap-2 p-1 bg-white/5 rounded-xl border border-white/10">
+          <div
+            className="flex items-center gap-1 p-1 rounded-xl"
+            style={{
+              backgroundColor: tokens.bgSurface,
+              border: `1px solid ${tokens.borderDefault}`,
+            }}
+          >
             {["all", "pending", "in_progress", "completed"].map((status) => (
               <button
                 key={status}
                 onClick={() => setStatusFilter(status)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize ${
-                  statusFilter === status
-                    ? "bg-white text-black"
-                    : "text-white/50 hover:text-white"
-                }`}
+                className="px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize"
+                style={{
+                  backgroundColor: statusFilter === status ? tokens.brandPrimary : "transparent",
+                  color: statusFilter === status ? "#fff" : tokens.textMuted,
+                }}
               >
                 {status === "all" ? "All" : status.replace("_", " ")}
               </button>
@@ -536,47 +528,72 @@ export default function JobCandidatesPage({ params }: { params: Promise<{ id: st
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
-            className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500/50"
+            className="px-4 py-2.5 rounded-xl text-sm focus:outline-none"
+            style={{
+              backgroundColor: tokens.bgSurface,
+              border: `1px solid ${tokens.borderDefault}`,
+              color: tokens.textPrimary,
+            }}
           >
             <option value="score">Sort by Score</option>
             <option value="fit">Sort by Fit</option>
             <option value="name">Sort by Name</option>
             <option value="date">Sort by Date</option>
           </select>
-        </div>
+        </motion.div>
 
         {/* Candidates List */}
         {filteredCandidates.length === 0 ? (
-          <div className="glass-panel rounded-3xl p-12 text-center">
-            <Users className="w-12 h-12 text-white/20 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-white mb-2">No Candidates Found</h3>
-            <p className="text-white/50 mb-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.35, ease: easeOutCustom }}
+            className="rounded-3xl p-12 text-center"
+            style={{
+              backgroundColor: tokens.bgSurface,
+              border: `1px solid ${tokens.borderDefault}`,
+            }}
+          >
+            <Users className="w-12 h-12 mx-auto mb-4" style={{ color: tokens.textDisabled }} />
+            <h3 className="text-lg font-medium mb-2" style={{ color: tokens.textPrimary }}>No Candidates Found</h3>
+            <p className="mb-6" style={{ color: tokens.textMuted }}>
               {searchQuery
                 ? "No candidates match your search."
                 : "Upload candidates to get started."}
             </p>
             <Link
               href={`/jobs/${resolvedParams.id}/upload`}
-              className="inline-flex items-center gap-2 px-5 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-full font-medium transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-full font-medium transition-colors text-white"
+              style={{ background: tokens.gradientPrimary }}
             >
               <Users className="w-4 h-4" />
               Upload Candidates
             </Link>
-          </div>
+          </motion.div>
         ) : (
-          <div className="glass-panel rounded-2xl overflow-hidden">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.35, ease: easeOutCustom }}
+            className="rounded-2xl overflow-hidden"
+            style={{
+              backgroundColor: tokens.bgSurface,
+              border: `1px solid ${tokens.borderDefault}`,
+            }}
+          >
             {/* Table Header */}
-            <div className="grid grid-cols-12 gap-4 p-4 border-b border-white/10 text-xs text-white/50 uppercase tracking-wider">
+            <div
+              className="grid grid-cols-12 gap-4 p-4 text-xs uppercase tracking-wider"
+              style={{ borderBottom: `1px solid ${tokens.borderDefault}`, color: tokens.textMuted }}
+            >
               <div className="col-span-1 flex items-center">
                 <button
                   onClick={toggleSelectAll}
-                  className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-                    isAllSelected
-                      ? "bg-indigo-500 border-indigo-500"
-                      : isSomeSelected
-                      ? "bg-indigo-500/50 border-indigo-500"
-                      : "border-white/30 hover:border-white/50"
-                  }`}
+                  className="w-5 h-5 rounded border-2 flex items-center justify-center transition-colors"
+                  style={{
+                    backgroundColor: isAllSelected ? tokens.brandPrimary : isSomeSelected ? `${tokens.brandPrimary}50` : "transparent",
+                    borderColor: isAllSelected || isSomeSelected ? tokens.brandPrimary : tokens.borderDefault,
+                  }}
                 >
                   {(isAllSelected || isSomeSelected) && (
                     <CheckCircle2 className="w-3 h-3 text-white" />
@@ -592,7 +609,7 @@ export default function JobCandidatesPage({ params }: { params: Promise<{ id: st
             </div>
 
             {/* Table Body */}
-            <div className="divide-y divide-white/5">
+            <div>
               {filteredCandidates.map((candidate, index) => {
                 const recommendation = getRecommendation(candidate);
                 const score = candidate.combined_score ?? candidate.ranking_score;
@@ -600,20 +617,28 @@ export default function JobCandidatesPage({ params }: { params: Promise<{ id: st
                 return (
                   <div
                     key={candidate.id}
-                    className={`grid grid-cols-12 gap-4 p-4 hover:bg-white/5 transition-colors cursor-pointer items-center ${
-                      isSelected ? "bg-indigo-500/10" : ""
-                    }`}
+                    className="grid grid-cols-12 gap-4 p-4 transition-colors cursor-pointer items-center"
+                    style={{
+                      backgroundColor: isSelected ? `${tokens.brandPrimary}10` : "transparent",
+                      borderBottom: `1px solid ${tokens.borderSubtle}`,
+                    }}
                     onClick={() => router.push(`/jobs/${resolvedParams.id}/candidates/${candidate.id}`)}
+                    onMouseEnter={(e) => {
+                      if (!isSelected) e.currentTarget.style.backgroundColor = tokens.bgSurfaceHover;
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isSelected) e.currentTarget.style.backgroundColor = "transparent";
+                    }}
                   >
                     {/* Checkbox */}
                     <div className="col-span-1 flex items-center">
                       <button
                         onClick={(e) => toggleSelect(candidate.id, e)}
-                        className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-                          isSelected
-                            ? "bg-indigo-500 border-indigo-500"
-                            : "border-white/30 hover:border-white/50"
-                        }`}
+                        className="w-5 h-5 rounded border-2 flex items-center justify-center transition-colors"
+                        style={{
+                          backgroundColor: isSelected ? tokens.brandPrimary : "transparent",
+                          borderColor: isSelected ? tokens.brandPrimary : tokens.borderDefault,
+                        }}
                       >
                         {isSelected && <CheckCircle2 className="w-3 h-3 text-white" />}
                       </button>
@@ -621,17 +646,20 @@ export default function JobCandidatesPage({ params }: { params: Promise<{ id: st
 
                     {/* Candidate Info */}
                     <div className="col-span-3 flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60 font-medium">
+                      <div
+                        className="w-10 h-10 rounded-full flex items-center justify-center font-medium"
+                        style={{ backgroundColor: tokens.bgCard, color: tokens.textMuted }}
+                      >
                         {candidate.person_name?.charAt(0)?.toUpperCase() || "?"}
                       </div>
                       <div>
-                        <div className="font-medium text-white flex items-center gap-2">
+                        <div className="font-medium flex items-center gap-2" style={{ color: tokens.textPrimary }}>
                           {candidate.person_name || "Unknown"}
                           {recommendation === "Strong Fit" && (
-                            <Star className="w-4 h-4 text-green-400 fill-green-400" />
+                            <Star className="w-4 h-4 fill-current" style={{ color: tokens.statusSuccess }} />
                           )}
                         </div>
-                        <div className="text-xs text-white/40">
+                        <div className="text-xs" style={{ color: tokens.textMuted }}>
                           {candidate.current_title || candidate.person_email || candidate.email || "No email"}
                         </div>
                       </div>
@@ -646,7 +674,7 @@ export default function JobCandidatesPage({ params }: { params: Promise<{ id: st
                           {recommendation}
                         </span>
                       ) : (
-                        <span className="text-white/30 text-sm">—</span>
+                        <span style={{ color: tokens.textDisabled }}>—</span>
                       )}
                     </div>
 
@@ -654,17 +682,17 @@ export default function JobCandidatesPage({ params }: { params: Promise<{ id: st
                     <div className="col-span-1 text-center">
                       {score != null ? (
                         <div className="inline-flex items-center gap-1">
-                          <span className="text-lg font-light text-white">
+                          <span className="text-lg font-light" style={{ color: tokens.textPrimary }}>
                             {score}
                           </span>
                           {score >= 75 ? (
-                            <TrendingUp className="w-3 h-3 text-green-400" />
+                            <TrendingUp className="w-3 h-3" style={{ color: tokens.statusSuccess }} />
                           ) : score <= 40 ? (
-                            <TrendingDown className="w-3 h-3 text-red-400" />
+                            <TrendingDown className="w-3 h-3" style={{ color: tokens.statusDanger }} />
                           ) : null}
                         </div>
                       ) : (
-                        <span className="text-white/30">—</span>
+                        <span style={{ color: tokens.textDisabled }}>—</span>
                       )}
                     </div>
 
@@ -681,20 +709,20 @@ export default function JobCandidatesPage({ params }: { params: Promise<{ id: st
 
                     {/* Pipeline Status */}
                     <div className="col-span-2">
-                      <span className="text-sm text-white/60 capitalize">
+                      <span className="text-sm capitalize" style={{ color: tokens.textSecondary }}>
                         {(candidate.pipeline_status || "new").replace("_", " ")}
                       </span>
                     </div>
 
                     {/* Actions */}
                     <div className="col-span-1 flex items-center justify-end gap-2">
-                      <ChevronRight className="w-5 h-5 text-white/30" />
+                      <ChevronRight className="w-5 h-5" style={{ color: tokens.textDisabled }} />
                     </div>
                   </div>
                 );
               })}
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
       </div>
