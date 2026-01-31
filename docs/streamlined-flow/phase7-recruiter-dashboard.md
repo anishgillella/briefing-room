@@ -8,11 +8,12 @@ This phase implements the recruiter dashboard - the main landing page that provi
 
 ## Dashboard Features
 
-1. **Overview Stats** - Total jobs, candidates, interviews, hires
-2. **Active Jobs List** - Quick access to all active hiring roles
-3. **Recent Activity** - Latest interviews and analytics
-4. **Pipeline Funnel** - Visual representation of hiring stages
-5. **Quick Actions** - Create job, upload candidates, start interview
+1. **Overview Stats** - Total jobs, candidates, interviews, and hires.
+2. **Active Jobs List** - Quick access to all active hiring roles with candidate counts.
+3. **Recent Activity** - Latest interviews with AI scores and recommendations.
+4. **Pipeline Funnel** - Visual representation of hiring stages (Applied → Interviewed → Offered → Hired).
+5. **Manager Analytics** - Team-wide interviewer performance metrics (Question Quality, Coverage, Bias).
+6. **Quick Actions** - Create job, upload candidates, or start practice interviews.
 
 ## Dashboard Wireframe
 
@@ -173,42 +174,15 @@ GET /api/dashboard/top-candidates?limit=10&min_score=70
 }
 ```
 
-### Job Dashboard Summary
+### Interviewer Performance Metrics (Manager Dashboard)
 
-```
-GET /api/dashboard/job/{job_id}/summary
-```
+The `ManagerDashboard` component (`frontend/src/components/ManagerDashboard.tsx`) introduces advanced analytics for hiring teams:
 
-**Response:**
-```json
-{
-  "job_id": "uuid",
-  "job_title": "Senior Engineer",
-  "job_status": "active",
-  "candidate_stats": {
-    "total": 12,
-    "pending": 4,
-    "in_progress": 2,
-    "completed": 6
-  },
-  "interview_stats": {
-    "total": 8,
-    "completed": 6,
-    "avg_duration_seconds": 1800,
-    "avg_duration_minutes": 30.0
-  },
-  "analytics_stats": {
-    "total_evaluated": 6,
-    "avg_score": 75.5,
-    "recommendations": {
-      "strong_hire": 2,
-      "hire": 3,
-      "maybe": 1,
-      "no_hire": 0
-    }
-  }
-}
-```
+- **Question Quality**: AI assessment of how effective the interviewer's questions were.
+- **Topic Coverage**: Percentage of required skills/topics discussed during the interview.
+- **Consistency**: How well the interviewer follows the structured interview guide.
+- **Bias Score**: AI detection of potential leading questions or biased patterns.
+- **Candidate Experience**: Predicted sentiment from the candidate's perspective.
 
 ## Implementation Details
 

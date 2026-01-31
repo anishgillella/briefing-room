@@ -25,11 +25,12 @@ Let's make those minutes collaborative, calm, and effective.
 - **In-Interview Briefing Access**: Quick-access modal overlay to review candidate details without leaving the call
 - **AI Candidate Simulator**: Practice interviews with OpenAI Realtime-powered virtual candidates
 
-### 📊 Post-Interview Analytics
+### 📊 Manager & Interviewer Analytics
+- **Recruiter Dashboard**: High-level view of active jobs, candidate pipeline, and recent activity
+- **Interviewer Performance**: Track question quality, topic coverage, and bias scores across the team
 - **Automated Debrief**: Comprehensive interview summary with scoring and evidence
 - **Score Breakdown**: Visual scoring across multiple competency dimensions
-- **Q&A Analysis**: Question quality assessment and conversation balance metrics
-- **Next Round Recommendations**: AI-suggested questions for follow-up interviews
+- **Q&A Analysis**: Conversation balance metrics and follow-up recommendations
 
 ---
 
@@ -37,15 +38,16 @@ Let's make those minutes collaborative, calm, and effective.
 
 | Layer | Technology | Purpose |
 |-------|------------|---------|
-| **Frontend** | Next.js 16 (Turbopack) |Modern React framework with app router |
+| **Frontend** | Next.js 16 (Turbopack) | Modern React framework with App Router |
 | **UI Components** | shadcn/ui + Tailwind CSS | Premium component library |
+| **Animations** | Framer Motion | Fluid UI transitions and micro-animations |
 | **Video** | Daily.co | WebRTC video conferencing |
-| **Voice (Briefing)** | Vapi | Pre-interview voice AI assistant |
-| **Voice (Candidate)** | LiveKit + Deepgram + OpenRouter | Real-time AI candidate simulation |
-| **Database** | Supabase (PostgreSQL) | Persistent storage |
-| **Backend** | FastAPI (Python) | REST API server |
+| **Voice (Briefing)** | Vapi (uses Daily.co) | Pre-interview voice AI assistant |
+| **Voice (Candidate)** | OpenAI Realtime | Real-time AI candidate simulation (WebSocket) |
+| **Database** | Supabase (PostgreSQL) | Persistent storage & Multi-tenancy |
+| **Backend** | FastAPI (Python) | REST API server with N+1 optimizations |
 | **AI Models** | OpenRouter (Gemini 2.5 Flash) | Text generation and analysis |
-| **Charts** | Recharts | Data visualization |
+| **Charts** | Recharts | Data visualization & Competency radar |
 | **Icons** | Lucide React | Consistent iconography |
 
 ---
@@ -313,25 +315,24 @@ This project is a **foundation for something much bigger**. Here's how a single 
 - Voice AI for hands-free preparation
 - Real-time chat coaching during interviews
 
-### Phase 2: Interview History
-**Problem**: Hiring decisions are made based on a single interview snapshot. Previous interviews with the same candidate are lost.  
-**Solution**: Aggregate all interviews for a candidate into a unified view. Surface patterns across interviewers.  
-**Example**: *"3 of 4 interviewers flagged 'communication' as a concern. Is this a real signal or are they anchoring on the same data?"*
+### Phase 2: Hiring Funnel Intelligence (Current ✅)
+- **Problem**: Companies don't know where their hiring process breaks down.
+- **Solution**: Track conversion rates at each stage. Identify which interview rounds lose the best candidates.
+- **Implementation**: Recruiter dashboard with pipeline funnel and active job tracking.
 
-### Phase 3: Calibration & Consistency
-**Problem**: Interviewers aren't calibrated. One person's "strong yes" means nothing because we don't track if their "yes" candidates actually succeed.  
-**Solution**: Link interview scores to 1-year retention and performance outcomes. Build an interviewer effectiveness score.  
-**Example**: *"Priya's 'strong yes' candidates have 85% 1-year retention. Mike's have 40%. Trust Priya's signal more."*
+### Phase 3: Interviewer Performance (Current ✅)
+- **Problem**: Interviewers are inconsistent and prone to bias.
+- **Solution**: Track question quality, topic coverage, and bias scores per interviewer.
+- **Implementation**: Manager dashboard with team-wide performance metrics.
 
-### Phase 4: Hiring Funnel Intelligence
-**Problem**: Companies don't know where their hiring process breaks down. They optimize blindly.  
-**Solution**: Track conversion rates at each stage. Identify which interview rounds lose the best candidates. A/B test different question sets.  
-**Example**: *"60% of candidates fail the system design round, but system design scores don't correlate with job performance. Consider removing it."*
+### Phase 4: Calibration & Outcomes (Planned)
+- **Problem**: One person's "strong yes" means nothing without tracking outcome.
+- **Solution**: Link interview scores to retention and performance metadata.
+- **Example**: *"Priya's 'strong yes' candidates have 85% 1-year retention. Trust her signal more."*
 
-### Phase 5: The Knowledge Graph
-**Problem**: Institutional knowledge walks out when interviewers leave. Every interviewer asks questions differently.  
-**Solution**: Build a corpus of every question asked and every answer given. Pattern match against successful hires to surface what actually predicts success.  
-**Example**: *"Here's how your last 50 successful hires answered 'Tell me about a conflict with a manager.' Compare this candidate's answer."*
+### Phase 5: The Knowledge Graph (Future)
+- **Problem**: Institutional knowledge walks out when interviewers leave.
+- **Solution**: Build a corpus of every question and answer. Pattern match against successful hires.
 
 ---
 

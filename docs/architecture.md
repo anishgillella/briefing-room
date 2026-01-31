@@ -7,7 +7,7 @@
 │                         BROWSER                                  │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
 │  │  Pre-Briefing   │  │   Video Room    │  │    Debrief      │  │
-│  │  (Vapi Voice)   │→ │  (Daily + AI)   │→ │  (AI Analysis)  │  │
+│  │ (Vapi/Streamline)│→ │  (Daily + AI)   │→ │  (AI Analysis)  │  │
 │  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
 │         │                    │  │                    │          │
 │      Vapi SDK            Daily.co  OpenAI         REST API      │
@@ -19,6 +19,12 @@
    │    Vapi     │     │ Daily.co │ │  OpenAI  │ │   Backend    │
    │   Servers   │     │  Servers │ │ Realtime │ │   FastAPI    │
    └─────────────┘     └──────────┘ └──────────┘ └──────────────┘
+                                                        │
+                                                        ▼
+                                                 ┌──────────────┐
+                                                 │ Multi-tenant │
+                                                 │ Repository   │
+                                                 └──────────────┘
                                                         │
                                                         ▼
                                                  ┌──────────────┐
@@ -36,14 +42,15 @@
 | Video | Daily.co | WebRTC video rooms |
 | Voice (Briefing) | Vapi | Voice AI for pre-briefing |
 | Voice (Candidate) | OpenAI Realtime | AI candidate voice (WebSocket) |
-| Backend | FastAPI | REST API |
+| Backend | FastAPI | REST API & N+1 Optimized Repos |
+| Auth | JWT + Middleware | Organization-scoped access |
 | LLM | OpenRouter | Text generation |
 
 ## Data Flow
 
-### 1. Room Setup
+### 1. Streamlined Flow Setup
 ```
-User fills form → POST /api/rooms → Create Daily room → Redirect to /room/[name]
+Create Job → Add Candidates (CSV/Manual) → Generate Interview Brief → Start Video Room
 ```
 
 ### 2. Pre-Briefing
@@ -61,15 +68,7 @@ Daily video room active → (Optional) Connect AI candidate → Capture transcri
 POST /api/rooms/{name}/debrief with transcript → LLM analysis → Display results
 ```
 
-## Key Integration Points
-
-### Daily.co + OpenAI Realtime (Important!)
-- Both run simultaneously in browser
-- Daily handles video via WebRTC
-- OpenAI Realtime handles AI voice via WebSocket
-- **No conflict** because different transports
-
-### Daily.co + Vapi (Conflict!)
-- Both use Daily.co internally
-- **Cannot run simultaneously**
-- Vapi used ONLY for pre-briefing (when video room inactive)
+### Multi-tenancy & Security
+- All repositories use `organization_id` for isolation.
+- Middleware extracts `organization_id` from JWT.
+- Repositories implement batch-fetching to prevent N+1 query performance issues in dashboards.

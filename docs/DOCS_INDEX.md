@@ -7,11 +7,12 @@ Technical documentation for the Briefing Room interview training platform.
 
 | File | Description |
 |------|-------------|
-| `architecture.md` | System architecture, data flow, tech stack |
-| `ai-candidate-agent.md` | AI candidate feature design (updated for OpenAI Realtime) |
+| `architecture.md` | System architecture, multi-tenancy, and tech stack |
+| `ai-candidate-agent.md` | AI candidate feature design (OpenAI Realtime WebSocket) |
 | `dual-agent-architecture.md` | Two-agent design: AI Interviewer + AI Candidate roles |
 | `transcription.md` | Real-time transcription implementation |
 | `interview-analytics.md` | Post-interview analytics with Gemini 2.5 Flash |
+| `optimization-and-multi-tenancy.md` | [NEW] N+1 query optimizations and org-scoped security |
 
 ## Dual Agent Implementation
 
