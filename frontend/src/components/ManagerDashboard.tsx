@@ -87,7 +87,7 @@ function StatCard({ icon, value, label, color, suffix = "", decimals = 0, trend 
           {trend && <TrendBadge trend={trend} />}
         </div>
         <div className="text-3xl font-light tracking-tight text-white mb-1">
-          {value.toFixed(decimals)}{suffix}
+          {Number(value.toFixed(decimals))}{suffix}
         </div>
         <div className="text-sm" style={{ color: tokens.textMuted }}>{label}</div>
       </div>

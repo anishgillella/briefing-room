@@ -116,7 +116,11 @@ function StatCard({ icon, value, label, inverted = false, benchmark, trend }: St
             <span style={{ color: benchmark.is_better ? tokens.statusSuccess : tokens.statusDanger }}>
               {benchmark.diff > 0 ? "+" : ""}{benchmark.diff.toFixed(0)} vs team
             </span>
-            <span style={{ color: tokens.textMuted }}>• Top {100 - benchmark.percentile}%</span>
+            <span style={{ color: tokens.textMuted }}>
+              • {benchmark.percentile >= 50
+                ? `Top ${Math.max(1, 100 - benchmark.percentile)}%`
+                : `Bottom ${Math.max(1, benchmark.percentile)}%`}
+            </span>
           </div>
         )}
       </div>
@@ -310,7 +314,7 @@ export default function InterviewerDashboard() {
           <h1 className="text-3xl font-light tracking-tight text-white mb-2">Interviewer Dashboard</h1>
           <p style={{ color: tokens.textMuted }}>Select an interviewer to view their analytics</p>
         </div>
-        <InterviewerSelector selectedId={null} onSelect={handleInterviewerChange} />
+        <InterviewerSelector selectedId={null} onInterviewerChange={handleInterviewerChange} />
       </div>
     );
   }
@@ -353,7 +357,7 @@ export default function InterviewerDashboard() {
 
       {/* Interviewer Selector + Badges */}
       <div className="flex items-center justify-between">
-        <InterviewerSelector selectedId={interviewerId} onSelect={handleInterviewerChange} />
+        <InterviewerSelector selectedId={interviewerId} onInterviewerChange={handleInterviewerChange} />
         {data.badges && data.badges.length > 0 && (
           <div className="flex items-center gap-2">
             {data.badges.slice(0, 3).map((badge) => (
@@ -530,7 +534,9 @@ export default function InterviewerDashboard() {
                       </span>
                     </div>
                     <div className="w-20 text-right text-xs" style={{ color: tokens.textMuted }}>
-                      Top {100 - bench.percentile}%
+                      {bench.percentile >= 50
+                        ? `Top ${Math.max(1, 100 - bench.percentile)}%`
+                        : `Bottom ${Math.max(1, bench.percentile)}%`}
                     </div>
                   </div>
                 );

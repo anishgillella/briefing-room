@@ -32,7 +32,15 @@ class InterviewerAnalyticsRepository:
             "question_quality_breakdown": analytics.question_quality_breakdown.model_dump(),
             "topics_covered": analytics.topics_covered.model_dump(),
             "bias_indicators": analytics.bias_indicators.model_dump(),
-            "improvement_suggestions": analytics.improvement_suggestions
+            "improvement_suggestions": analytics.improvement_suggestions,
+            # NEW: Granular analytics fields
+            "interview_dynamics": analytics.interview_dynamics.model_dump() if analytics.interview_dynamics else None,
+            "question_effectiveness": [q.model_dump() for q in analytics.question_effectiveness] if analytics.question_effectiveness else [],
+            "missed_opportunities": [m.model_dump() for m in analytics.missed_opportunities] if analytics.missed_opportunities else [],
+            "coverage_gaps": analytics.coverage_gaps or [],
+            "interviewer_strengths": analytics.interviewer_strengths or [],
+            "detailed_assessment": analytics.detailed_assessment,
+            "summary": analytics.summary
         }
         
         result = self.db.table("interviewer_analytics").insert(data).execute()

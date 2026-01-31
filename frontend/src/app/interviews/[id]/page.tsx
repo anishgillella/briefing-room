@@ -16,10 +16,44 @@ import {
     Calendar,
     Loader2,
     Award,
+    Clock,
+    Mic,
+    HeartHandshake,
+    AlertCircle,
+    Zap,
+    ChevronDown,
+    ChevronUp,
+    Star,
+    XCircle,
 } from "lucide-react";
 import { tokens } from "@/lib/design-tokens";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+// =============================================================================
+// TYPES
+// =============================================================================
+
+interface QuestionEffectiveness {
+    question: string;
+    effectiveness_score: number;
+    information_elicited: "high" | "medium" | "low" | "none";
+    better_alternative: string | null;
+}
+
+interface MissedOpportunity {
+    topic: string;
+    candidate_statement: string;
+    suggested_followup: string;
+}
+
+interface InterviewDynamics {
+    time_management: number;
+    active_listening_score: number;
+    rapport_building: number;
+    interruption_count: number;
+    avg_response_wait_time: "rushed" | "appropriate" | "too_long";
+}
 
 interface InterviewAnalytics {
     id: string;
@@ -35,6 +69,8 @@ interface InterviewAnalytics {
         relevance: number;
         depth: number;
         follow_up_quality: number;
+        open_ended_ratio?: number;
+        clarity?: number;
     };
     topics_covered: {
         technical: number;
@@ -48,6 +84,14 @@ interface InterviewAnalytics {
         sentiment_balance: number;
     };
     improvement_suggestions: string[];
+    // NEW: Granular analytics
+    interview_dynamics?: InterviewDynamics;
+    question_effectiveness?: QuestionEffectiveness[];
+    missed_opportunities?: MissedOpportunity[];
+    coverage_gaps?: string[];
+    interviewer_strengths?: string[];
+    detailed_assessment?: string;
+    summary?: string;
     created_at: string;
 }
 
@@ -80,16 +124,23 @@ function ScoreCard({ icon, value, label, inverted = false }: { icon: React.React
     );
 }
 
-function SectionCard({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
+function SectionCard({ title, icon, children, defaultOpen = true }: { title: string; icon: React.ReactNode; children: React.ReactNode; defaultOpen?: boolean }) {
+    const [isOpen, setIsOpen] = useState(defaultOpen);
+
     return (
         <div className="rounded-2xl border" style={{ backgroundColor: tokens.bgCard, borderColor: tokens.borderSubtle }}>
-            <div className="px-5 py-4 border-b" style={{ borderColor: tokens.borderSubtle }}>
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="w-full px-5 py-4 border-b flex items-center justify-between transition-colors hover:bg-white/5"
+                style={{ borderColor: tokens.borderSubtle }}
+            >
                 <h3 className="text-lg font-medium text-white flex items-center gap-2">
                     <span style={{ color: tokens.brandPrimary }}>{icon}</span>
                     {title}
                 </h3>
-            </div>
-            <div className="p-5">{children}</div>
+                {isOpen ? <ChevronUp className="w-5 h-5" style={{ color: tokens.textMuted }} /> : <ChevronDown className="w-5 h-5" style={{ color: tokens.textMuted }} />}
+            </button>
+            {isOpen && <div className="p-5">{children}</div>}
         </div>
     );
 }
@@ -111,6 +162,113 @@ function CircularProgress({ value, label, color }: { value: number; label: strin
                 </div>
             </div>
             <div className="text-xs capitalize" style={{ color: tokens.textMuted }}>{label}</div>
+        </div>
+    );
+}
+
+function getEffectivenessColor(score: number): string {
+    if (score >= 80) return tokens.statusSuccess;
+    if (score >= 60) return tokens.statusWarning;
+    return tokens.statusDanger;
+}
+
+function getInfoElicitedBadge(level: string): { bg: string; text: string; label: string } {
+    switch (level) {
+        case "high": return { bg: `${tokens.statusSuccess}20`, text: tokens.statusSuccess, label: "High Value" };
+        case "medium": return { bg: `${tokens.statusWarning}20`, text: tokens.statusWarning, label: "Medium Value" };
+        case "low": return { bg: `${tokens.statusDanger}20`, text: tokens.statusDanger, label: "Low Value" };
+        default: return { bg: `${tokens.textMuted}20`, text: tokens.textMuted, label: "No Value" };
+    }
+}
+
+function QuestionTimelineItem({ question, index }: { question: QuestionEffectiveness; index: number }) {
+    const [expanded, setExpanded] = useState(false);
+    const scoreColor = getEffectivenessColor(question.effectiveness_score);
+    const infoBadge = getInfoElicitedBadge(question.information_elicited);
+
+    return (
+        <div className="relative pl-8 pb-6 border-l-2" style={{ borderColor: `${scoreColor}50` }}>
+            {/* Timeline dot */}
+            <div
+                className="absolute left-[-9px] w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold"
+                style={{ backgroundColor: scoreColor, color: "white" }}
+            >
+                {index + 1}
+            </div>
+
+            <div className="rounded-xl p-4" style={{ backgroundColor: tokens.bgSurface }}>
+                {/* Question header */}
+                <div className="flex items-start justify-between gap-4 mb-3">
+                    <p className="text-sm text-white flex-1">"{question.question}"</p>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className="text-2xl font-light" style={{ color: scoreColor }}>{question.effectiveness_score}</span>
+                    </div>
+                </div>
+
+                {/* Tags */}
+                <div className="flex flex-wrap gap-2">
+                    <span className="px-2 py-1 rounded-full text-xs" style={{ backgroundColor: infoBadge.bg, color: infoBadge.text }}>
+                        {infoBadge.label}
+                    </span>
+                </div>
+
+                {/* Better alternative */}
+                {question.better_alternative && (
+                    <button
+                        onClick={() => setExpanded(!expanded)}
+                        className="mt-3 flex items-center gap-1 text-xs transition-colors hover:underline"
+                        style={{ color: tokens.brandPrimary }}
+                    >
+                        <Lightbulb className="w-3 h-3" />
+                        Better alternative available
+                        {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                    </button>
+                )}
+                {expanded && question.better_alternative && (
+                    <div className="mt-2 p-3 rounded-lg text-sm italic" style={{ backgroundColor: `${tokens.brandPrimary}10`, color: tokens.textSecondary }}>
+                        "{question.better_alternative}"
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+function DynamicsMetric({ icon, value, label, isScore = true, suffix = "" }: { icon: React.ReactNode; value: number | string; label: string; isScore?: boolean; suffix?: string }) {
+    const getScoreColor = (score: number) => {
+        if (score >= 80) return tokens.statusSuccess;
+        if (score >= 60) return tokens.statusWarning;
+        return tokens.statusDanger;
+    };
+
+    const displayValue = typeof value === "number" ? value : value;
+    const color = isScore && typeof value === "number" ? getScoreColor(value) : tokens.textSecondary;
+
+    return (
+        <div className="text-center p-4 rounded-xl" style={{ backgroundColor: tokens.bgSurface }}>
+            <div className="mb-2" style={{ color: tokens.textMuted }}>{icon}</div>
+            <div className="text-2xl font-light mb-1" style={{ color }}>
+                {displayValue}{suffix}
+            </div>
+            <div className="text-xs" style={{ color: tokens.textMuted }}>{label}</div>
+        </div>
+    );
+}
+
+function WaitTimeIndicator({ waitTime }: { waitTime: string }) {
+    const config = {
+        rushed: { color: tokens.statusDanger, label: "Rushed", desc: "Candidate needed more time" },
+        appropriate: { color: tokens.statusSuccess, label: "Appropriate", desc: "Good pacing" },
+        too_long: { color: tokens.statusWarning, label: "Too Long", desc: "Consider prompting earlier" }
+    };
+
+    const { color, label, desc } = config[waitTime as keyof typeof config] || config.appropriate;
+
+    return (
+        <div className="text-center p-4 rounded-xl" style={{ backgroundColor: tokens.bgSurface }}>
+            <Clock className="w-6 h-6 mx-auto mb-2" style={{ color: tokens.textMuted }} />
+            <div className="text-lg font-medium mb-1" style={{ color }}>{label}</div>
+            <div className="text-xs" style={{ color: tokens.textMuted }}>{desc}</div>
         </div>
     );
 }
@@ -214,6 +372,9 @@ export default function InterviewDetailPage() {
                     </div>
                     <h1 className="text-3xl font-light tracking-tight text-white mb-2">Interview Details</h1>
                     <p style={{ color: tokens.textMuted }}>{formattedDate}</p>
+                    {analytics.summary && (
+                        <p className="mt-3 text-sm" style={{ color: tokens.textSecondary }}>{analytics.summary}</p>
+                    )}
                 </div>
                 <div className="text-right">
                     <div className="text-sm mb-1" style={{ color: tokens.textMuted }}>Overall Score</div>
@@ -230,13 +391,116 @@ export default function InterviewDetailPage() {
                 <ScoreCard icon={<Users className="w-5 h-5" />} value={analytics.candidate_experience_score} label="Candidate Exp" />
             </div>
 
+            {/* Interview Dynamics */}
+            {analytics.interview_dynamics && (
+                <SectionCard title="Interview Dynamics" icon={<Zap className="w-5 h-5" />}>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        <DynamicsMetric
+                            icon={<Clock className="w-6 h-6 mx-auto" />}
+                            value={analytics.interview_dynamics.time_management}
+                            label="Time Management"
+                        />
+                        <DynamicsMetric
+                            icon={<Mic className="w-6 h-6 mx-auto" />}
+                            value={analytics.interview_dynamics.active_listening_score}
+                            label="Active Listening"
+                        />
+                        <DynamicsMetric
+                            icon={<HeartHandshake className="w-6 h-6 mx-auto" />}
+                            value={analytics.interview_dynamics.rapport_building}
+                            label="Rapport Building"
+                        />
+                        <DynamicsMetric
+                            icon={<AlertCircle className="w-6 h-6 mx-auto" />}
+                            value={analytics.interview_dynamics.interruption_count}
+                            label="Interruptions"
+                            isScore={false}
+                        />
+                        <WaitTimeIndicator waitTime={analytics.interview_dynamics.avg_response_wait_time} />
+                    </div>
+                </SectionCard>
+            )}
+
+            {/* Question-by-Question Analysis */}
+            {analytics.question_effectiveness && analytics.question_effectiveness.length > 0 && (
+                <SectionCard title={`Question Analysis (${analytics.question_effectiveness.length} questions)`} icon={<MessageSquare className="w-5 h-5" />} defaultOpen={true}>
+                    <div className="space-y-0">
+                        {analytics.question_effectiveness.map((q, i) => (
+                            <QuestionTimelineItem key={i} question={q} index={i} />
+                        ))}
+                    </div>
+                </SectionCard>
+            )}
+
+            {/* Interviewer Strengths */}
+            {analytics.interviewer_strengths && analytics.interviewer_strengths.length > 0 && (
+                <SectionCard title="Interviewer Strengths" icon={<Star className="w-5 h-5" />}>
+                    <div className="space-y-3">
+                        {analytics.interviewer_strengths.map((strength, i) => (
+                            <div key={i} className="flex items-start gap-3 p-4 rounded-xl" style={{ backgroundColor: `${tokens.statusSuccess}10` }}>
+                                <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: tokens.statusSuccess }} />
+                                <p className="text-sm" style={{ color: tokens.textSecondary }}>{strength}</p>
+                            </div>
+                        ))}
+                    </div>
+                </SectionCard>
+            )}
+
+            {/* Missed Opportunities */}
+            {analytics.missed_opportunities && analytics.missed_opportunities.length > 0 && (
+                <SectionCard title="Missed Opportunities" icon={<AlertTriangle className="w-5 h-5" />}>
+                    <div className="space-y-4">
+                        {analytics.missed_opportunities.map((opp, i) => (
+                            <div key={i} className="rounded-xl border p-4" style={{ backgroundColor: tokens.bgSurface, borderColor: `${tokens.statusWarning}30` }}>
+                                <div className="flex items-center gap-2 mb-2">
+                                    <span className="px-2 py-1 rounded text-xs font-medium" style={{ backgroundColor: `${tokens.statusWarning}20`, color: tokens.statusWarning }}>
+                                        {opp.topic}
+                                    </span>
+                                </div>
+                                <p className="text-sm mb-3" style={{ color: tokens.textMuted }}>
+                                    <span className="font-medium text-white">Candidate said:</span> "{opp.candidate_statement}"
+                                </p>
+                                <div className="flex items-start gap-2 p-3 rounded-lg" style={{ backgroundColor: `${tokens.brandPrimary}10` }}>
+                                    <Lightbulb className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: tokens.brandPrimary }} />
+                                    <p className="text-sm" style={{ color: tokens.textSecondary }}>
+                                        <span style={{ color: tokens.brandPrimary }}>Suggested follow-up:</span> "{opp.suggested_followup}"
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </SectionCard>
+            )}
+
+            {/* Coverage Gaps */}
+            {analytics.coverage_gaps && analytics.coverage_gaps.length > 0 && (
+                <SectionCard title="Coverage Gaps" icon={<XCircle className="w-5 h-5" />}>
+                    <p className="text-sm mb-4" style={{ color: tokens.textMuted }}>
+                        These critical topics were not adequately explored during the interview:
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                        {analytics.coverage_gaps.map((gap, i) => (
+                            <span key={i} className="px-3 py-2 rounded-lg text-sm" style={{ backgroundColor: `${tokens.statusDanger}15`, color: tokens.statusDanger }}>
+                                {gap}
+                            </span>
+                        ))}
+                    </div>
+                </SectionCard>
+            )}
+
             {/* Question Quality Breakdown */}
             {analytics.question_quality_breakdown && (
                 <SectionCard title="Question Quality Breakdown" icon={<MessageSquare className="w-5 h-5" />}>
-                    <div className="grid grid-cols-3 gap-6">
+                    <div className="grid grid-cols-3 md:grid-cols-5 gap-6">
                         <CircularProgress value={analytics.question_quality_breakdown.relevance} label="Relevance" color={tokens.brandPrimary} />
                         <CircularProgress value={analytics.question_quality_breakdown.depth} label="Depth" color="#22D3EE" />
                         <CircularProgress value={analytics.question_quality_breakdown.follow_up_quality} label="Follow-up Quality" color={tokens.statusSuccess} />
+                        {analytics.question_quality_breakdown.open_ended_ratio !== undefined && (
+                            <CircularProgress value={analytics.question_quality_breakdown.open_ended_ratio} label="Open-ended %" color={tokens.statusWarning} />
+                        )}
+                        {analytics.question_quality_breakdown.clarity !== undefined && (
+                            <CircularProgress value={analytics.question_quality_breakdown.clarity} label="Clarity" color="#A78BFA" />
+                        )}
                     </div>
                 </SectionCard>
             )}
@@ -262,8 +526,8 @@ export default function InterviewDetailPage() {
                             <div
                                 className="px-3 py-1 rounded-full text-sm font-medium capitalize"
                                 style={{
-                                    backgroundColor: analytics.bias_indicators.severity === "low" ? `${tokens.statusSuccess}20` : `${tokens.statusWarning}20`,
-                                    color: analytics.bias_indicators.severity === "low" ? tokens.statusSuccess : tokens.statusWarning,
+                                    backgroundColor: analytics.bias_indicators.severity === "none" || analytics.bias_indicators.severity === "low" ? `${tokens.statusSuccess}20` : `${tokens.statusWarning}20`,
+                                    color: analytics.bias_indicators.severity === "none" || analytics.bias_indicators.severity === "low" ? tokens.statusSuccess : tokens.statusWarning,
                                 }}
                             >
                                 {analytics.bias_indicators.severity}
@@ -287,6 +551,17 @@ export default function InterviewDetailPage() {
                                 No significant bias indicators detected
                             </div>
                         )}
+                    </div>
+                </SectionCard>
+            )}
+
+            {/* Detailed Assessment */}
+            {analytics.detailed_assessment && (
+                <SectionCard title="Detailed Assessment" icon={<Award className="w-5 h-5" />}>
+                    <div className="prose prose-invert max-w-none">
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: tokens.textSecondary }}>
+                            {analytics.detailed_assessment}
+                        </p>
                     </div>
                 </SectionCard>
             )}

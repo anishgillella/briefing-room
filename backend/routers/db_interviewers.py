@@ -350,8 +350,12 @@ async def get_interview_analytics(interview_id: str):
 
 
 @router.post("/interviews/{interview_id}/analyze")
-async def analyze_interview(interview_id: str, background_tasks: BackgroundTasks):
-    """Trigger LLM analysis for an interview. Runs in background."""
+async def analyze_interview(interview_id: str, background_tasks: BackgroundTasks, force: bool = False):
+    """Trigger LLM analysis for an interview. Runs in background.
+    
+    Args:
+        force: If True, delete existing analytics and re-analyze
+    """
     db = get_db()
     
     # Get interview
@@ -368,8 +372,13 @@ async def analyze_interview(interview_id: str, background_tasks: BackgroundTasks
     # Check if already analyzed
     analytics_repo = get_interviewer_analytics_repository()
     existing = analytics_repo.get_by_interview(interview_id)
-    if existing:
+    
+    if existing and not force:
         return {"status": "already_analyzed", "analytics": existing}
+    
+    # If forcing re-analysis, delete existing
+    if existing and force:
+        db.table("interviewer_analytics").delete().eq("interview_id", interview_id).execute()
     
     # Schedule background analysis
     background_tasks.add_task(
@@ -385,26 +394,52 @@ async def analyze_interview(interview_id: str, background_tasks: BackgroundTasks
 async def _run_analysis(interview_id: str, interviewer_id: str, interview: dict):
     """Background task to run LLM analysis."""
     import logging
+    import re
     logger = logging.getLogger(__name__)
     
     try:
-        # Extract transcript text
+        # Extract transcript text - handle multiple formats
         transcripts = interview.get("transcripts") or []
         transcript_text = ""
         questions = []
         
+        # Format 1: transcripts table with full_text field
         for t in transcripts:
-            if t.get("speaker") == "interviewer":
+            if t.get("full_text"):
+                transcript_text = t.get("full_text", "")
+                # Extract questions from interviewer turns
+                if t.get("turns"):
+                    for turn in t.get("turns", []):
+                        role = turn.get("role", turn.get("speaker", ""))
+                        text = turn.get("text", "")
+                        if role.lower() == "interviewer" and "?" in text:
+                            questions.append(text)
+                break
+        
+        # Format 2: legacy format with speaker/text on each transcript entry
+        if not transcript_text:
+            for t in transcripts:
+                speaker = t.get("speaker", t.get("role", "unknown"))
                 text = t.get("text", "")
-                transcript_text += f"Interviewer: {text}\n"
-                if "?" in text:
-                    questions.append(text)
-            else:
-                transcript_text += f"Candidate: {t.get('text', '')}\n"
+                if speaker.lower() == "interviewer":
+                    transcript_text += f"Interviewer: {text}\n"
+                    if "?" in text:
+                        questions.append(text)
+                else:
+                    transcript_text += f"Candidate: {text}\n"
         
         if not transcript_text:
             logger.warning(f"No transcript found for interview {interview_id}")
             return
+        
+        # Extract questions from transcript_text if turns didn't yield any
+        if not questions and transcript_text:
+            # Pattern: "interviewer: ... ?" 
+            pattern = r'interviewer:\s*([^:]+\?)'
+            matches = re.findall(pattern, transcript_text, re.IGNORECASE)
+            questions = matches[:20]  # Limit to 20 questions
+        
+        logger.info(f"Analyzing interview {interview_id}: {len(transcript_text)} chars, {len(questions)} questions")
         
         # Run analysis
         analyzer = get_interviewer_analyzer()
@@ -418,3 +453,5 @@ async def _run_analysis(interview_id: str, interviewer_id: str, interview: dict)
         
     except Exception as e:
         logger.error(f"Failed to analyze interview {interview_id}: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
