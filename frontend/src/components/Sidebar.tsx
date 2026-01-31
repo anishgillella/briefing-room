@@ -64,7 +64,7 @@ const navItems: NavItem[] = [
   },
   {
     label: "Team",
-    href: "/team",
+    href: "#team",  // Dropdown-only, no page navigation
     icon: <UsersRound className="w-5 h-5" />,
     children: [
       {
@@ -150,7 +150,7 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
     if (href === "/dashboard") {
       return pathname === "/dashboard";
     }
-    if (href === "/team") {
+    if (href === "#team") {
       // Team is active if any child route is active
       return pathname.startsWith("/dashboard/manager") ||
         pathname.startsWith("/dashboard/interviewer") ||
@@ -347,23 +347,24 @@ export default function Sidebar({ defaultCollapsed = false }: SidebarProps) {
                   <>
                     {isCollapsed ? (
                       <SimpleTooltip content={item.label} side="right">
-                        <Link
-                          href={item.href}
-                          onClick={(e) => {
-                            e.preventDefault();
+                        <button
+                          onClick={() => {
                             setIsCollapsed(false);
                             setExpandedItems([item.href]);
                           }}
                           className="w-full block"
                         >
                           {NavContent}
-                        </Link>
+                        </button>
                       </SimpleTooltip>
                     ) : (
                       <div className="flex items-center">
-                        <Link href={item.href} className="flex-1 block">
+                        <button
+                          onClick={() => toggleExpanded(item.href)}
+                          className="flex-1 block text-left"
+                        >
                           {NavContent}
-                        </Link>
+                        </button>
                         <button
                           onClick={() => toggleExpanded(item.href)}
                           className="p-2 rounded-lg transition-all duration-150"

@@ -130,6 +130,116 @@ class InterviewerAnalyticsRepository:
             "bias_flags": bias_flags
         }
 
+    def get_batch_aggregated_metrics(self, interviewer_ids: List[str]) -> dict:
+        """
+        Get aggregated metrics for multiple interviewers in ONE query.
+        
+        Returns:
+            Dict mapping interviewer_id -> aggregated metrics
+        """
+        if not interviewer_ids:
+            return {}
+
+        # Fetch all analytics for all interviewers in ONE query
+        result = self.db.table("interviewer_analytics")\
+            .select("*")\
+            .in_("interviewer_id", interviewer_ids)\
+            .order("created_at", desc=True)\
+            .execute()
+
+        all_analytics = result.data or []
+
+        # Group by interviewer
+        analytics_by_interviewer = {}
+        for a in all_analytics:
+            iid = a.get("interviewer_id")
+            if iid not in analytics_by_interviewer:
+                analytics_by_interviewer[iid] = []
+            # Limit to 50 per interviewer for aggregation
+            if len(analytics_by_interviewer[iid]) < 50:
+                analytics_by_interviewer[iid].append(a)
+
+        # Compute aggregated metrics for each interviewer
+        metrics_map = {}
+        for iid in interviewer_ids:
+            analytics = analytics_by_interviewer.get(iid, [])
+            metrics_map[iid] = self._compute_aggregated_metrics(analytics)
+
+        return metrics_map
+
+    def _compute_aggregated_metrics(self, analytics: List[dict]) -> dict:
+        """Compute aggregated metrics from a list of analytics records."""
+        if not analytics:
+            return {
+                "total_interviews": 0,
+                "avg_question_quality": 0,
+                "avg_topic_coverage": 0,
+                "avg_consistency": 0,
+                "avg_bias_score": 0,
+                "avg_candidate_experience": 0,
+                "avg_overall": 0,
+                "topic_breakdown": {
+                    "technical": 0,
+                    "behavioral": 0,
+                    "culture_fit": 0,
+                    "problem_solving": 0
+                },
+                "common_suggestions": [],
+                "bias_flags": []
+            }
+
+        n = len(analytics)
+
+        # Calculate averages
+        avg_question = sum(a.get("question_quality_score") or 0 for a in analytics) / n
+        avg_coverage = sum(a.get("topic_coverage_score") or 0 for a in analytics) / n
+        avg_consistency = sum(a.get("consistency_score") or 0 for a in analytics) / n
+        avg_bias = sum(a.get("bias_score") or 0 for a in analytics) / n
+        avg_experience = sum(a.get("candidate_experience_score") or 0 for a in analytics) / n
+        avg_overall = sum(a.get("overall_score") or 0 for a in analytics) / n
+
+        # Aggregate topic coverage
+        topic_totals = {"technical": 0, "behavioral": 0, "culture_fit": 0, "problem_solving": 0}
+        for a in analytics:
+            topics = a.get("topics_covered") or {}
+            for key in topic_totals:
+                topic_totals[key] += topics.get(key, 0)
+
+        topic_breakdown = {k: round(v / n, 1) for k, v in topic_totals.items()}
+
+        # Collect common suggestions
+        all_suggestions = []
+        for a in analytics:
+            all_suggestions.extend(a.get("improvement_suggestions") or [])
+
+        suggestion_counts = {}
+        for s in all_suggestions:
+            suggestion_counts[s] = suggestion_counts.get(s, 0) + 1
+
+        common_suggestions = sorted(suggestion_counts.items(), key=lambda x: -x[1])[:3]
+        common_suggestions = [s[0] for s in common_suggestions]
+
+        # Collect bias flags
+        all_flags = []
+        for a in analytics:
+            indicators = a.get("bias_indicators") or {}
+            all_flags.extend(indicators.get("flags") or [])
+
+        bias_flags = list(set(all_flags))[:5]
+
+        return {
+            "total_interviews": n,
+            "avg_question_quality": round(avg_question, 1),
+            "avg_topic_coverage": round(avg_coverage, 1),
+            "avg_consistency": round(avg_consistency, 1),
+            "avg_bias_score": round(avg_bias, 1),
+            "avg_candidate_experience": round(avg_experience, 1),
+            "avg_overall": round(avg_overall, 1),
+            "topic_breakdown": topic_breakdown,
+            "common_suggestions": common_suggestions,
+            "bias_flags": bias_flags
+        }
+
 
 # Singleton
 _repo: InterviewerAnalyticsRepository | None = None

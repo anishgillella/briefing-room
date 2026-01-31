@@ -155,6 +155,8 @@ class JobRepository:
         """
         List all archived (soft-deleted) jobs for an organization.
 
+        Optimized: Uses batch queries instead of N+1 pattern.
+
         Args:
             organization_id: UUID of the organization
 
@@ -168,13 +170,21 @@ class JobRepository:
 
         result = query.order("deleted_at", desc=True).execute()
 
-        jobs = []
-        for job_data in result.data:
-            job = self._parse_job(job_data)
-            job.candidate_count = self._get_candidate_count_sync(job.id)
-            job.interviewed_count = self._get_interviewed_count_sync(job.id)
+        if not result.data:
+            return []
+
+        jobs = [self._parse_job(job_data) for job_data in result.data]
+
+        # Use batch methods to avoid N+1
+        job_ids = [job.id for job in jobs]
+        counts_map = self._get_batch_candidate_counts_sync(job_ids)
+        interviewed_map = self._get_batch_interviewed_counts_sync(job_ids)
+
+        for job in jobs:
+            job.candidate_count = counts_map.get(str(job.id), 0)
+            job.interviewed_count = interviewed_map.get(str(job.id), 0)
+            # Stage counts use per-job query but it's optimized (single query per job)
             job.stage_counts = self._get_stage_counts_sync(job.id, job.interview_stages)
-            jobs.append(job)
 
         return jobs
 
@@ -203,11 +213,78 @@ class JobRepository:
             return None
 
         job = self._parse_job(result.data[0])
-        job.candidate_count = self._get_candidate_count_sync(job_id)
-        job.interviewed_count = self._get_interviewed_count_sync(job_id)
-        job.stage_counts = self._get_stage_counts_sync(job_id, job.interview_stages)
+        
+        # Get all counts from a single query
+        self._populate_job_counts_sync(job)
 
         return job
+
+    def _populate_job_counts_sync(self, job: Job) -> None:
+        """
+        Populate candidate_count, interviewed_count, and stage_counts in ONE query.
+        
+        This replaces 3 separate queries with 1 query + in-memory aggregation.
+        """
+        # Single query: fetch all pipeline statuses for this job
+        result = self.client.table("candidates")\
+            .select("pipeline_status")\
+            .eq("job_posting_id", str(job.id))\
+            .execute()
+
+        # Count statuses in Python
+        status_counts: Dict[str, int] = {}
+        total_count = 0
+        for row in result.data:
+            status = row.get("pipeline_status") or "new"
+            status_counts[status] = status_counts.get(status, 0) + 1
+            total_count += 1
+
+        # 1. Total candidate count
+        job.candidate_count = total_count
+
+        # 2. Interviewed count (candidates past "new" stage)
+        interviewed_statuses = {
+            "round_1", "round_2", "round_3", "decision_pending", "accepted",
+            "stage_0", "stage_1", "stage_2", "stage_3", "stage_4",
+            "stage_5", "stage_6", "stage_7", "stage_8", "stage_9"
+        }
+        job.interviewed_count = sum(
+            count for status, count in status_counts.items() 
+            if status in interviewed_statuses
+        )
+
+        # 3. Stage counts
+        stage_counts = []
+        
+        # Screen stage
+        stage_counts.append(StageCount(
+            stage_key="new",
+            stage_name="Screen",
+            count=status_counts.get("new", 0)
+        ))
+
+        # Interview stages
+        for i, stage_name in enumerate(job.interview_stages):
+            legacy_status = f"round_{i + 1}" if i < 3 else None
+            new_status = f"stage_{i}"
+            count = status_counts.get(new_status, 0)
+            if legacy_status:
+                count += status_counts.get(legacy_status, 0)
+            stage_counts.append(StageCount(
+                stage_key=new_status,
+                stage_name=stage_name,
+                count=count
+            ))
+
+        # Offer stage
+        stage_counts.append(StageCount(
+            stage_key="offer",
+            stage_name="Offer",
+            count=status_counts.get("decision_pending", 0) + status_counts.get("accepted", 0)
+        ))
+
+        job.stage_counts = stage_counts
+
 
     def create_for_org_sync(
         self,
@@ -956,7 +1033,7 @@ class JobRepository:
 
     def _get_stage_counts_sync(self, job_id: UUID, interview_stages: List[str]) -> List[StageCount]:
         """
-        Get candidate counts for each pipeline stage.
+        Get candidate counts for each pipeline stage using a SINGLE database query.
 
         Returns counts for:
         - Screen (new): Candidates not yet moved to any interview stage
@@ -970,18 +1047,26 @@ class JobRepository:
         Returns:
             List of StageCount objects with actual candidate counts
         """
+        # Single query: fetch all pipeline statuses for this job
+        result = self.client.table("candidates")\
+            .select("pipeline_status")\
+            .eq("job_posting_id", str(job_id))\
+            .execute()
+
+        # Count statuses in Python (fast in-memory operation)
+        status_counts: Dict[str, int] = {}
+        for row in result.data:
+            status = row.get("pipeline_status") or "new"
+            status_counts[status] = status_counts.get(status, 0) + 1
+
         stage_counts = []
 
         # 1. Screen stage (candidates with status 'new' or NULL)
-        screen_result = self.client.table("candidates")\
-            .select("id", count="exact")\
-            .eq("job_posting_id", str(job_id))\
-            .or_("pipeline_status.eq.new,pipeline_status.is.null")\
-            .execute()
+        screen_count = status_counts.get("new", 0)
         stage_counts.append(StageCount(
             stage_key="new",
             stage_name="Screen",
-            count=screen_result.count or 0
+            count=screen_count
         ))
 
         # 2. Interview stages (based on job's interview_stages)
@@ -990,36 +1075,23 @@ class JobRepository:
             legacy_status = f"round_{i + 1}" if i < 3 else None
             new_status = f"stage_{i}"
 
-            # Query for candidates in this stage
+            count = status_counts.get(new_status, 0)
             if legacy_status:
-                result = self.client.table("candidates")\
-                    .select("id", count="exact")\
-                    .eq("job_posting_id", str(job_id))\
-                    .or_(f"pipeline_status.eq.{new_status},pipeline_status.eq.{legacy_status}")\
-                    .execute()
-            else:
-                result = self.client.table("candidates")\
-                    .select("id", count="exact")\
-                    .eq("job_posting_id", str(job_id))\
-                    .eq("pipeline_status", new_status)\
-                    .execute()
+                count += status_counts.get(legacy_status, 0)
 
             stage_counts.append(StageCount(
                 stage_key=new_status,
                 stage_name=stage_name,
-                count=result.count or 0
+                count=count
             ))
 
         # 3. Offer stage (decision_pending + accepted)
-        offer_result = self.client.table("candidates")\
-            .select("id", count="exact")\
-            .eq("job_posting_id", str(job_id))\
-            .in_("pipeline_status", ["decision_pending", "accepted"])\
-            .execute()
+        offer_count = status_counts.get("decision_pending", 0) + status_counts.get("accepted", 0)
         stage_counts.append(StageCount(
             stage_key="offer",
             stage_name="Offer",
-            count=offer_result.count or 0
+            count=offer_count
         ))
 
         return stage_counts
+

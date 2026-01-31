@@ -32,12 +32,22 @@ async def list_interviewers():
 
 @router.get("/analytics/team")
 async def get_team_analytics():
-    """Get analytics for ALL interviewers - team-wide view for managers."""
+    """Get analytics for ALL interviewers - team-wide view for managers.
+    
+    Optimized: Uses batch query to fetch all analytics in ONE query.
+    """
     manager_repo = get_manager_repository()
     analytics_repo = get_interviewer_analytics_repository()
     
     managers = manager_repo.get_all()
     interviewers = [m for m in managers if m.get("role") in ["interviewer", "both", None]]
+    
+    if not interviewers:
+        return {"team_averages": {}, "interviewers": []}
+    
+    # Batch fetch all metrics in ONE query instead of N queries
+    interviewer_ids = [i["id"] for i in interviewers]
+    metrics_map = analytics_repo.get_batch_aggregated_metrics(interviewer_ids)
     
     team_data = []
     team_totals = {
@@ -51,7 +61,7 @@ async def get_team_analytics():
     }
     
     for interviewer in interviewers:
-        metrics = analytics_repo.get_aggregated_metrics(interviewer["id"])
+        metrics = metrics_map.get(interviewer["id"], {"total_interviews": 0})
         
         if metrics["total_interviews"] > 0:
             team_data.append({
@@ -95,7 +105,14 @@ async def get_interviewer(interviewer_id: str):
 
 @router.get("/{interviewer_id}/analytics")
 async def get_interviewer_analytics(interviewer_id: str):
-    """Get aggregated analytics for an interviewer."""
+    """
+    Get aggregated analytics for an interviewer.
+    
+    Enhanced with:
+    - Team benchmarks (comparison to team average)
+    - Trend data (recent vs older interviews)
+    - Badges/achievements
+    """
     manager_repo = get_manager_repository()
     analytics_repo = get_interviewer_analytics_repository()
     
@@ -107,8 +124,178 @@ async def get_interviewer_analytics(interviewer_id: str):
     # Get aggregated metrics
     metrics = analytics_repo.get_aggregated_metrics(interviewer_id)
     
-    # Get recent individual analytics
-    recent = analytics_repo.get_by_interviewer(interviewer_id, limit=10)
+    # Get ALL individual analytics for trends and details
+    all_analytics = analytics_repo.get_by_interviewer(interviewer_id, limit=50)
+    
+    # ==========================================================================
+    # TEAM BENCHMARKS
+    # ==========================================================================
+    all_managers = manager_repo.get_all()
+    all_interviewers = [m for m in all_managers if m.get("role") in ["interviewer", "both", None]]
+    interviewer_ids = [i["id"] for i in all_interviewers if i["id"] != interviewer_id]
+    
+    # Get team averages
+    team_metrics = analytics_repo.get_batch_aggregated_metrics(interviewer_ids)
+    
+    team_avg = {
+        "avg_question_quality": 0,
+        "avg_topic_coverage": 0,
+        "avg_consistency": 0,
+        "avg_bias_score": 0,
+        "avg_candidate_experience": 0,
+        "avg_overall": 0
+    }
+    
+    valid_team = [m for m in team_metrics.values() if m.get("total_interviews", 0) > 0]
+    if valid_team:
+        n = len(valid_team)
+        team_avg["avg_question_quality"] = round(sum(m["avg_question_quality"] for m in valid_team) / n, 1)
+        team_avg["avg_topic_coverage"] = round(sum(m["avg_topic_coverage"] for m in valid_team) / n, 1)
+        team_avg["avg_consistency"] = round(sum(m["avg_consistency"] for m in valid_team) / n, 1)
+        team_avg["avg_bias_score"] = round(sum(m["avg_bias_score"] for m in valid_team) / n, 1)
+        team_avg["avg_candidate_experience"] = round(sum(m["avg_candidate_experience"] for m in valid_team) / n, 1)
+        team_avg["avg_overall"] = round(sum(m["avg_overall"] for m in valid_team) / n, 1)
+    
+    # Calculate benchmarks (difference from team average)
+    benchmarks = {}
+    if valid_team and metrics.get("total_interviews", 0) > 0:
+        for key in ["avg_question_quality", "avg_topic_coverage", "avg_consistency", "avg_bias_score", "avg_candidate_experience", "avg_overall"]:
+            diff = round(metrics.get(key, 0) - team_avg.get(key, 0), 1)
+            # For bias, lower is better (inverted)
+            is_better = diff > 0 if key != "avg_bias_score" else diff < 0
+            benchmarks[key] = {
+                "value": metrics.get(key, 0),
+                "team_avg": team_avg.get(key, 0),
+                "diff": diff,
+                "is_better": is_better,
+                "percentile": _calculate_percentile(metrics.get(key, 0), [m.get(key, 0) for m in valid_team], key == "avg_bias_score")
+            }
+    
+    # ==========================================================================
+    # TREND DATA (recent 5 vs previous interviews)
+    # ==========================================================================
+    trends = {}
+    if len(all_analytics) >= 3:
+        recent = all_analytics[:min(5, len(all_analytics))]
+        older = all_analytics[5:] if len(all_analytics) > 5 else []
+        
+        if older:
+            def avg_field(items, field):
+                vals = [i.get(field, 0) for i in items if i.get(field) is not None]
+                return sum(vals) / len(vals) if vals else 0
+            
+            for field in ["question_quality_score", "topic_coverage_score", "consistency_score", "bias_score", "candidate_experience_score", "overall_score"]:
+                recent_avg = avg_field(recent, field)
+                older_avg = avg_field(older, field)
+                diff = recent_avg - older_avg
+                # For bias, decrease is good
+                improving = diff > 0 if field != "bias_score" else diff < 0
+                
+                trends[field] = {
+                    "recent_avg": round(recent_avg, 1),
+                    "older_avg": round(older_avg, 1),
+                    "diff": round(diff, 1),
+                    "improving": improving,
+                    "direction": "improving" if improving else "declining" if abs(diff) > 2 else "stable"
+                }
+    
+    # ==========================================================================
+    # BADGES / ACHIEVEMENTS
+    # ==========================================================================
+    badges = []
+    
+    if metrics.get("total_interviews", 0) >= 5:
+        # Consistency badge
+        if metrics.get("avg_consistency", 0) >= 85:
+            badges.append({
+                "id": "consistent_performer",
+                "name": "Consistent Performer",
+                "icon": "🎯",
+                "description": "Maintains high consistency across interviews"
+            })
+        
+        # Low bias badge
+        if metrics.get("avg_bias_score", 100) <= 15:
+            badges.append({
+                "id": "bias_free",
+                "name": "Bias-Free",
+                "icon": "⚖️",
+                "description": "Demonstrates minimal bias in evaluations"
+            })
+        
+        # High quality badge
+        if metrics.get("avg_question_quality", 0) >= 85:
+            badges.append({
+                "id": "question_master",
+                "name": "Question Master",
+                "icon": "💡",
+                "description": "Asks excellent, insightful questions"
+            })
+        
+        # Candidate experience badge
+        if metrics.get("avg_candidate_experience", 0) >= 85:
+            badges.append({
+                "id": "candidate_favorite",
+                "name": "Candidate Favorite",
+                "icon": "⭐",
+                "description": "Creates positive candidate experiences"
+            })
+        
+        # Improving performer
+        if trends.get("overall_score", {}).get("direction") == "improving":
+            badges.append({
+                "id": "rising_star",
+                "name": "Rising Star",
+                "icon": "📈",
+                "description": "Showing consistent improvement"
+            })
+        
+        # Interview volume
+        if metrics.get("total_interviews", 0) >= 20:
+            badges.append({
+                "id": "interview_veteran",
+                "name": "Interview Veteran",
+                "icon": "🏆",
+                "description": "Conducted 20+ interviews"
+            })
+    
+    # ==========================================================================
+    # COACHING INSIGHTS
+    # ==========================================================================
+    coaching = []
+    
+    if metrics.get("total_interviews", 0) > 0:
+        # Focus areas based on weakest scores
+        scores = {
+            "question_quality": metrics.get("avg_question_quality", 0),
+            "topic_coverage": metrics.get("avg_topic_coverage", 0),
+            "consistency": metrics.get("avg_consistency", 0),
+            "candidate_experience": metrics.get("avg_candidate_experience", 0)
+        }
+        
+        weakest = min(scores, key=scores.get)
+        
+        coaching_tips = {
+            "question_quality": "Focus on asking more open-ended, probing questions that reveal depth of experience.",
+            "topic_coverage": "Ensure all key competency areas are covered - technical, behavioral, cultural fit, and problem-solving.",
+            "consistency": "Use a structured interview framework to maintain consistency across candidates.",
+            "candidate_experience": "Allow more time for candidate questions and provide clearer next-step information."
+        }
+        
+        if scores[weakest] < 80:
+            coaching.append({
+                "area": weakest.replace("_", " ").title(),
+                "score": scores[weakest],
+                "tip": coaching_tips[weakest]
+            })
+        
+        # Bias coaching if needed
+        if metrics.get("avg_bias_score", 0) > 25:
+            coaching.append({
+                "area": "Bias Awareness",
+                "score": metrics.get("avg_bias_score", 0),
+                "tip": "Review bias indicators and focus on objective, skills-based questioning."
+            })
     
     return {
         "interviewer": {
@@ -118,8 +305,28 @@ async def get_interviewer_analytics(interviewer_id: str):
             "department": interviewer.get("department")
         },
         "aggregated": metrics,
-        "recent_interviews": recent
+        "recent_interviews": all_analytics[:10],  # Most recent 10
+        "benchmarks": benchmarks,
+        "team_average": team_avg,
+        "trends": trends,
+        "badges": badges,
+        "coaching": coaching
     }
+
+
+def _calculate_percentile(value: float, all_values: list, inverted: bool = False) -> int:
+    """Calculate percentile rank. For inverted metrics (bias), lower is better."""
+    if not all_values:
+        return 50
+    
+    if inverted:
+        # For bias, count how many have HIGHER scores (worse)
+        better_count = sum(1 for v in all_values if v > value)
+    else:
+        # For normal metrics, count how many have LOWER scores (worse)
+        better_count = sum(1 for v in all_values if v < value)
+    
+    return round((better_count / len(all_values)) * 100)
 
 
 @router.get("/{interviewer_id}/analytics/history")

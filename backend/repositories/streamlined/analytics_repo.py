@@ -120,48 +120,69 @@ class AnalyticsRepository:
         return self._parse_analytics(result.data[0])
 
     async def list_by_job(self, job_id: UUID) -> List[Analytics]:
-        """Get all analytics for candidates of a job."""
-        # Need to join through interviews and candidates
+        """Get all analytics for candidates of a job.
+        
+        Uses a two-step query approach since PostgREST doesn't support
+        filtering on nested table joins.
+        """
+        # Step 1: Get all interview IDs for this job
+        interviews_result = self.client.table("interviews")\
+            .select("id, candidate_id, candidates!fk_interviews_candidate(name)")\
+            .eq("job_posting_id", str(job_id))\
+            .execute()
+
+        if not interviews_result.data:
+            return []
+
+        interview_ids = [i["id"] for i in interviews_result.data]
+        interview_map = {i["id"]: i for i in interviews_result.data}
+
+        # Step 2: Get analytics for those interviews
         result = self.client.table(self.table)\
-            .select("""
-                *,
-                interviews!inner(
-                    candidate_id,
-                    job_posting_id,
-                    candidates(name)
-                )
-            """)\
-            .eq("interviews.job_posting_id", str(job_id))\
+            .select("*")\
+            .in_("interview_id", interview_ids)\
             .execute()
 
         analytics_list = []
         for data in result.data:
             analytics = self._parse_analytics(data)
-            if data.get("interviews") and data["interviews"].get("candidates"):
-                analytics.candidate_name = data["interviews"]["candidates"].get("name")
+            interview_data = interview_map.get(data.get("interview_id"))
+            if interview_data and interview_data.get("candidates"):
+                analytics.candidate_name = interview_data["candidates"].get("name")
             analytics_list.append(analytics)
 
         return analytics_list
 
     def list_by_job_sync(self, job_id: UUID) -> List[Analytics]:
-        """Synchronous version of list_by_job."""
+        """Synchronous version of list_by_job.
+        
+        Uses a two-step query approach since PostgREST doesn't support
+        filtering on nested table joins.
+        """
+        # Step 1: Get all interview IDs for this job
+        interviews_result = self.client.table("interviews")\
+            .select("id, candidate_id, candidates!fk_interviews_candidate(name)")\
+            .eq("job_posting_id", str(job_id))\
+            .execute()
+
+        if not interviews_result.data:
+            return []
+
+        interview_ids = [i["id"] for i in interviews_result.data]
+        interview_map = {i["id"]: i for i in interviews_result.data}
+
+        # Step 2: Get analytics for those interviews
         result = self.client.table(self.table)\
-            .select("""
-                *,
-                interviews!inner(
-                    candidate_id,
-                    job_posting_id,
-                    candidates(name)
-                )
-            """)\
-            .eq("interviews.job_posting_id", str(job_id))\
+            .select("*")\
+            .in_("interview_id", interview_ids)\
             .execute()
 
         analytics_list = []
         for data in result.data:
             analytics = self._parse_analytics(data)
-            if data.get("interviews") and data["interviews"].get("candidates"):
-                analytics.candidate_name = data["interviews"]["candidates"].get("name")
+            interview_data = interview_map.get(data.get("interview_id"))
+            if interview_data and interview_data.get("candidates"):
+                analytics.candidate_name = interview_data["candidates"].get("name")
             analytics_list.append(analytics)
 
         return analytics_list
