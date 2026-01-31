@@ -68,6 +68,39 @@ export interface InterviewerAnalyticsResponse {
     };
     aggregated: InterviewerMetrics;
     recent_interviews: InterviewAnalytics[];
+    benchmarks: Record<string, {
+        value: number;
+        team_avg: number;
+        diff: number;
+        is_better: boolean;
+        percentile: number;
+    }>;
+    team_average: {
+        avg_question_quality: number;
+        avg_topic_coverage: number;
+        avg_consistency: number;
+        avg_bias_score: number;
+        avg_candidate_experience: number;
+        avg_overall: number;
+    };
+    trends: Record<string, {
+        recent_avg: number;
+        older_avg: number;
+        diff: number;
+        improving: boolean;
+        direction: 'improving' | 'declining' | 'stable';
+    }>;
+    badges: Array<{
+        id: string;
+        name: string;
+        icon: string;
+        description: string;
+    }>;
+    coaching: Array<{
+        area: string;
+        score: number;
+        tip: string;
+    }>;
 }
 
 // API Functions

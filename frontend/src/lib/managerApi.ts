@@ -92,6 +92,29 @@ export async function getManagerRecommendations(managerId: string): Promise<{ re
 }
 
 // Team-wide metrics (consolidated view)
+export interface TrendData {
+    current: number;
+    previous: number;
+    change_pct: number;
+}
+
+export interface BottleneckInfo {
+    stage: string;
+    from_stage: string;
+    to_stage: string;
+    rate: number;
+    rate_pct: number;
+    description: string;
+}
+
+export interface StuckCandidate {
+    id: string;
+    name: string;
+    stage: string;
+    days_stuck: number;
+    created_at: string;
+}
+
 export interface TeamMetrics {
     period_days: number;
     total_managers: number;
@@ -105,6 +128,7 @@ export interface TeamMetrics {
         timing: {
             time_to_first_interview: number;
             time_in_pipeline: number;
+            time_to_hire: number;
             interviews_per_candidate: number;
         };
         rates: {
@@ -113,6 +137,18 @@ export interface TeamMetrics {
             hire_rate: number;
         };
     };
+    trends: {
+        reviewed: TrendData;
+        interviewed: TrendData;
+        offered: TrendData;
+        hired: TrendData;
+        interview_rate: TrendData;
+        offer_rate: TrendData;
+        hire_rate: TrendData;
+    };
+    bottleneck: BottleneckInfo | null;
+    stuck_candidates: StuckCandidate[];
+    stuck_count: number;
 }
 
 export async function getTeamMetrics(days: number = 90): Promise<TeamMetrics> {

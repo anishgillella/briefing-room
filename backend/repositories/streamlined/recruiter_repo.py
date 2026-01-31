@@ -93,38 +93,58 @@ class RecruiterRepository:
         return new_recruiter, True
 
     def list_all_sync(self) -> List[Recruiter]:
-        """List all recruiters with job counts."""
+        """List all recruiters with job counts.
+        
+        Optimized: Uses batch query for job counts instead of N+1 pattern.
+        """
         result = self.client.table(self.table)\
             .select("*")\
             .order("name")\
             .execute()
 
+        if not result.data:
+            return []
+
+        # Batch fetch all job counts in ONE query
+        recruiter_ids = [row["id"] for row in result.data]
+        job_counts_map = self._get_batch_job_counts_sync(recruiter_ids)
+
         recruiters = []
         for row in result.data:
             recruiter = self._parse_recruiter(row)
-            job_counts = self._get_job_counts_sync(recruiter.id)
-            recruiter.job_count = job_counts["total"]
-            recruiter.active_job_count = job_counts["active"]
+            counts = job_counts_map.get(row["id"], {"total": 0, "active": 0})
+            recruiter.job_count = counts["total"]
+            recruiter.active_job_count = counts["active"]
             recruiters.append(recruiter)
 
         return recruiters
 
     def list_summaries_sync(self) -> List[RecruiterSummary]:
-        """List all recruiters as lightweight summaries (for dropdowns)."""
+        """List all recruiters as lightweight summaries (for dropdowns).
+        
+        Optimized: Uses batch query for job counts instead of N+1 pattern.
+        """
         result = self.client.table(self.table)\
             .select("id, name, email")\
             .order("name")\
             .execute()
 
+        if not result.data:
+            return []
+
+        # Batch fetch all job counts in ONE query
+        recruiter_ids = [row["id"] for row in result.data]
+        job_counts_map = self._get_batch_job_counts_sync(recruiter_ids)
+
         summaries = []
         for row in result.data:
-            job_counts = self._get_job_counts_sync(UUID(row["id"]))
+            counts = job_counts_map.get(row["id"], {"total": 0, "active": 0})
             summaries.append(RecruiterSummary(
                 id=row["id"],
                 name=row["name"],
                 email=row["email"],
-                job_count=job_counts["total"],
-                active_job_count=job_counts["active"],
+                job_count=counts["total"],
+                active_job_count=counts["active"],
             ))
 
         return summaries
@@ -279,6 +299,32 @@ class RecruiterRepository:
             "total": len(jobs),
             "active": len([j for j in jobs if j["status"] == "active"]),
         }
+
+    def _get_batch_job_counts_sync(self, recruiter_ids: List[str]) -> dict:
+        """
+        Batch fetch job counts for multiple recruiters in ONE query.
+        
+        Returns:
+            Dict mapping recruiter_id -> {"total": int, "active": int}
+        """
+        if not recruiter_ids:
+            return {}
+
+        result = self.client.table("job_postings")\
+            .select("recruiter_id, status")\
+            .in_("recruiter_id", recruiter_ids)\
+            .execute()
+
+        # Aggregate in Python
+        counts_map = {rid: {"total": 0, "active": 0} for rid in recruiter_ids}
+        for job in result.data or []:
+            rid = job.get("recruiter_id")
+            if rid in counts_map:
+                counts_map[rid]["total"] += 1
+                if job.get("status") == "active":
+                    counts_map[rid]["active"] += 1
+
+        return counts_map
 
     def _get_total_candidates_sync(self, recruiter_id: UUID) -> int:
         """Get total candidates across all jobs for a recruiter."""
