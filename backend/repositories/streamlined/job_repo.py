@@ -317,6 +317,10 @@ class JobRepository:
             "updated_at": datetime.utcnow().isoformat(),
         }
 
+        # Add extracted requirements if provided
+        if job_data.extracted_requirements:
+            data["extracted_requirements"] = job_data.extracted_requirements.model_dump()
+
         result = self.client.table(self.table).insert(data).execute()
 
         if not result.data:

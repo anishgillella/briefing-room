@@ -68,8 +68,8 @@ async def create_job(
         created_by_recruiter_id=current_user.recruiter_id
     )
 
-    # Trigger async extraction (non-blocking)
-    if job_data.raw_description and len(job_data.raw_description) > 50:
+    # Trigger async extraction ONLY if not already provided
+    if not job_data.extracted_requirements and job_data.raw_description and len(job_data.raw_description) > 50:
         background_tasks.add_task(
             trigger_jd_extraction_for_job,
             str(job.id),

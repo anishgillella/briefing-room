@@ -223,7 +223,10 @@ class JobBase(BaseModel):
 
 class JobCreate(JobBase):
     """Fields required to create a new job."""
-    pass
+    extracted_requirements: Optional[ExtractedRequirements] = Field(
+        None,
+        description="Pre-extracted requirements from the review step"
+    )
 
 
 class JobUpdate(BaseModel):

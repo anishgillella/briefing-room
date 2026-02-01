@@ -30,6 +30,7 @@ import {
   ChevronRight,
   Zap,
 } from "lucide-react";
+import JobCreationStepper from "@/components/JobCreationStepper";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -518,41 +519,7 @@ export default function ReviewJobPage() {
           </motion.div>
 
           {/* Progress Indicator */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-3 mb-8 max-w-7xl mx-auto"
-          >
-            <div className="flex items-center gap-2">
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold"
-                style={{
-                  backgroundColor: tokens.statusSuccess,
-                  color: "white",
-                }}
-              >
-                <Check className="w-4 h-4" />
-              </div>
-              <span className="text-sm font-medium" style={{ color: tokens.statusSuccess }}>
-                Enter Details
-              </span>
-            </div>
-            <div className="flex-1 h-0.5" style={{ backgroundColor: tokens.statusSuccess }} />
-            <div className="flex items-center gap-2">
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold"
-                style={{
-                  backgroundColor: tokens.brandPrimary,
-                  color: "white",
-                }}
-              >
-                2
-              </div>
-              <span className="text-sm font-semibold" style={{ color: tokens.textPrimary }}>
-                Review & Create
-              </span>
-            </div>
-          </motion.div>
+          <JobCreationStepper currentStep={2} />
 
           {/* Error Alert */}
           <AnimatePresence>
