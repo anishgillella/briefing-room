@@ -37,6 +37,7 @@ interface Job {
 
 interface Candidate {
   id: string;
+  person_id: string;
   person_name: string;
   person_email?: string;
   email?: string;
@@ -372,359 +373,359 @@ export default function JobCandidatesPage({ params }: { params: Promise<{ id: st
           </div>
         </motion.div>
 
-      {/* Bulk Action Bar */}
-      {selectedIds.size > 0 && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-40 bg-indigo-600 rounded-2xl shadow-2xl shadow-indigo-500/20 px-6 py-3 flex items-center gap-4 animate-in slide-in-from-top-2 duration-200">
-          <span className="text-sm font-medium text-white">
-            {selectedIds.size} selected
-          </span>
-          <div className="h-5 w-px bg-white/20" />
+        {/* Bulk Action Bar */}
+        {selectedIds.size > 0 && (
+          <div className="fixed top-20 left-1/2 -translate-x-1/2 z-40 bg-indigo-600 rounded-2xl shadow-2xl shadow-indigo-500/20 px-6 py-3 flex items-center gap-4 animate-in slide-in-from-top-2 duration-200">
+            <span className="text-sm font-medium text-white">
+              {selectedIds.size} selected
+            </span>
+            <div className="h-5 w-px bg-white/20" />
 
-          {/* Move to Stage */}
-          <div className="relative">
+            {/* Move to Stage */}
+            <div className="relative">
+              <button
+                onClick={() => setShowStageDropdown(!showStageDropdown)}
+                disabled={bulkActionLoading}
+                className="flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+              >
+                <ArrowRightCircle className="w-4 h-4" />
+                Move to Stage
+              </button>
+              {showStageDropdown && (
+                <div className="absolute top-full left-0 mt-2 bg-[#1a1a2e] border border-white/10 rounded-xl shadow-xl py-2 min-w-[160px]">
+                  {PIPELINE_STAGES.map((stage) => (
+                    <button
+                      key={stage.value}
+                      onClick={() => executeBulkAction("move_stage", stage.value)}
+                      className="w-full px-4 py-2 text-left text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors"
+                    >
+                      {stage.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Accept */}
             <button
-              onClick={() => setShowStageDropdown(!showStageDropdown)}
+              onClick={() => executeBulkAction("accept")}
               disabled={bulkActionLoading}
-              className="flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+              className="flex items-center gap-2 px-3 py-1.5 bg-green-500/20 hover:bg-green-500/30 text-green-300 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
             >
-              <ArrowRightCircle className="w-4 h-4" />
-              Move to Stage
+              <CheckCircle2 className="w-4 h-4" />
+              Accept
             </button>
-            {showStageDropdown && (
-              <div className="absolute top-full left-0 mt-2 bg-[#1a1a2e] border border-white/10 rounded-xl shadow-xl py-2 min-w-[160px]">
-                {PIPELINE_STAGES.map((stage) => (
-                  <button
-                    key={stage.value}
-                    onClick={() => executeBulkAction("move_stage", stage.value)}
-                    className="w-full px-4 py-2 text-left text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors"
-                  >
-                    {stage.label}
-                  </button>
-                ))}
-              </div>
+
+            {/* Reject */}
+            <button
+              onClick={() => executeBulkAction("reject")}
+              disabled={bulkActionLoading}
+              className="flex items-center gap-2 px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+            >
+              <XCircle className="w-4 h-4" />
+              Reject
+            </button>
+
+            <div className="h-5 w-px bg-white/20" />
+
+            {/* Clear Selection */}
+            <button
+              onClick={clearSelection}
+              disabled={bulkActionLoading}
+              className="flex items-center gap-1 px-2 py-1.5 hover:bg-white/10 rounded-lg text-sm text-white/70 hover:text-white transition-colors disabled:opacity-50"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            {bulkActionLoading && (
+              <Loader2 className="w-4 h-4 animate-spin text-white" />
             )}
           </div>
+        )}
 
-          {/* Accept */}
-          <button
-            onClick={() => executeBulkAction("accept")}
-            disabled={bulkActionLoading}
-            className="flex items-center gap-2 px-3 py-1.5 bg-green-500/20 hover:bg-green-500/30 text-green-300 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+        <div className="pt-28 px-6 pb-12 max-w-7xl mx-auto">
+          {/* Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
+            {[
+              { icon: Users, value: candidates.length, label: "Total", color: "#A855F7" },
+              { icon: Star, value: strongFitCount, label: "Strong Fit", color: tokens.statusSuccess },
+              { icon: CheckCircle, value: goodFitCount, label: "Good Fit", color: "#3B82F6" },
+              { icon: Clock, value: potentialFitCount, label: "Potential", color: tokens.statusWarning },
+              { icon: AlertCircle, value: notFitCount, label: "Not a Fit", color: tokens.statusDanger },
+              { icon: TrendingUp, value: avgScore > 0 ? avgScore.toFixed(0) : "—", label: "Avg Score", color: "#06B6D4" },
+            ].map((stat, index) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: index * 0.05, ease: easeOutCustom }}
+                className="rounded-2xl p-5"
+                style={{
+                  backgroundColor: tokens.bgSurface,
+                  border: `1px solid ${tokens.borderDefault}`,
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center"
+                    style={{ backgroundColor: `${stat.color}15` }}
+                  >
+                    <stat.icon className="w-5 h-5" style={{ color: stat.color }} />
+                  </div>
+                  <div>
+                    <div className="text-2xl font-light" style={{ color: tokens.textPrimary }}>{stat.value}</div>
+                    <div className="text-xs uppercase tracking-wider" style={{ color: tokens.textMuted }}>{stat.label}</div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Filters */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.3, ease: easeOutCustom }}
+            className="flex items-center gap-4 mb-6"
           >
-            <CheckCircle2 className="w-4 h-4" />
-            Accept
-          </button>
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: tokens.textMuted }} />
+              <input
+                type="text"
+                placeholder="Search candidates..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm focus:outline-none"
+                style={{
+                  backgroundColor: tokens.bgSurface,
+                  border: `1px solid ${tokens.borderDefault}`,
+                  color: tokens.textPrimary,
+                }}
+              />
+            </div>
 
-          {/* Reject */}
-          <button
-            onClick={() => executeBulkAction("reject")}
-            disabled={bulkActionLoading}
-            className="flex items-center gap-2 px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-          >
-            <XCircle className="w-4 h-4" />
-            Reject
-          </button>
-
-          <div className="h-5 w-px bg-white/20" />
-
-          {/* Clear Selection */}
-          <button
-            onClick={clearSelection}
-            disabled={bulkActionLoading}
-            className="flex items-center gap-1 px-2 py-1.5 hover:bg-white/10 rounded-lg text-sm text-white/70 hover:text-white transition-colors disabled:opacity-50"
-          >
-            <X className="w-4 h-4" />
-          </button>
-
-          {bulkActionLoading && (
-            <Loader2 className="w-4 h-4 animate-spin text-white" />
-          )}
-        </div>
-      )}
-
-      <div className="pt-28 px-6 pb-12 max-w-7xl mx-auto">
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
-          {[
-            { icon: Users, value: candidates.length, label: "Total", color: "#A855F7" },
-            { icon: Star, value: strongFitCount, label: "Strong Fit", color: tokens.statusSuccess },
-            { icon: CheckCircle, value: goodFitCount, label: "Good Fit", color: "#3B82F6" },
-            { icon: Clock, value: potentialFitCount, label: "Potential", color: tokens.statusWarning },
-            { icon: AlertCircle, value: notFitCount, label: "Not a Fit", color: tokens.statusDanger },
-            { icon: TrendingUp, value: avgScore > 0 ? avgScore.toFixed(0) : "—", label: "Avg Score", color: "#06B6D4" },
-          ].map((stat, index) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: index * 0.05, ease: easeOutCustom }}
-              className="rounded-2xl p-5"
+            <div
+              className="flex items-center gap-1 p-1 rounded-xl"
               style={{
                 backgroundColor: tokens.bgSurface,
                 border: `1px solid ${tokens.borderDefault}`,
               }}
             >
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center"
-                  style={{ backgroundColor: `${stat.color}15` }}
+              {["all", "pending", "in_progress", "completed"].map((status) => (
+                <button
+                  key={status}
+                  onClick={() => setStatusFilter(status)}
+                  className="px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize"
+                  style={{
+                    backgroundColor: statusFilter === status ? tokens.brandPrimary : "transparent",
+                    color: statusFilter === status ? "#fff" : tokens.textMuted,
+                  }}
                 >
-                  <stat.icon className="w-5 h-5" style={{ color: stat.color }} />
-                </div>
-                <div>
-                  <div className="text-2xl font-light" style={{ color: tokens.textPrimary }}>{stat.value}</div>
-                  <div className="text-xs uppercase tracking-wider" style={{ color: tokens.textMuted }}>{stat.label}</div>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+                  {status === "all" ? "All" : status.replace("_", " ")}
+                </button>
+              ))}
+            </div>
 
-        {/* Filters */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.3, ease: easeOutCustom }}
-          className="flex items-center gap-4 mb-6"
-        >
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: tokens.textMuted }} />
-            <input
-              type="text"
-              placeholder="Search candidates..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm focus:outline-none"
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="px-4 py-2.5 rounded-xl text-sm focus:outline-none"
               style={{
                 backgroundColor: tokens.bgSurface,
                 border: `1px solid ${tokens.borderDefault}`,
                 color: tokens.textPrimary,
               }}
-            />
-          </div>
-
-          <div
-            className="flex items-center gap-1 p-1 rounded-xl"
-            style={{
-              backgroundColor: tokens.bgSurface,
-              border: `1px solid ${tokens.borderDefault}`,
-            }}
-          >
-            {["all", "pending", "in_progress", "completed"].map((status) => (
-              <button
-                key={status}
-                onClick={() => setStatusFilter(status)}
-                className="px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize"
-                style={{
-                  backgroundColor: statusFilter === status ? tokens.brandPrimary : "transparent",
-                  color: statusFilter === status ? "#fff" : tokens.textMuted,
-                }}
-              >
-                {status === "all" ? "All" : status.replace("_", " ")}
-              </button>
-            ))}
-          </div>
-
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
-            className="px-4 py-2.5 rounded-xl text-sm focus:outline-none"
-            style={{
-              backgroundColor: tokens.bgSurface,
-              border: `1px solid ${tokens.borderDefault}`,
-              color: tokens.textPrimary,
-            }}
-          >
-            <option value="score">Sort by Score</option>
-            <option value="fit">Sort by Fit</option>
-            <option value="name">Sort by Name</option>
-            <option value="date">Sort by Date</option>
-          </select>
-        </motion.div>
-
-        {/* Candidates List */}
-        {filteredCandidates.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.35, ease: easeOutCustom }}
-            className="rounded-3xl p-12 text-center"
-            style={{
-              backgroundColor: tokens.bgSurface,
-              border: `1px solid ${tokens.borderDefault}`,
-            }}
-          >
-            <Users className="w-12 h-12 mx-auto mb-4" style={{ color: tokens.textDisabled }} />
-            <h3 className="text-lg font-medium mb-2" style={{ color: tokens.textPrimary }}>No Candidates Found</h3>
-            <p className="mb-6" style={{ color: tokens.textMuted }}>
-              {searchQuery
-                ? "No candidates match your search."
-                : "Upload candidates to get started."}
-            </p>
-            <Link
-              href={`/jobs/${resolvedParams.id}/upload`}
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-full font-medium transition-colors text-white"
-              style={{ background: tokens.gradientPrimary }}
             >
-              <Users className="w-4 h-4" />
-              Upload Candidates
-            </Link>
+              <option value="score">Sort by Score</option>
+              <option value="fit">Sort by Fit</option>
+              <option value="name">Sort by Name</option>
+              <option value="date">Sort by Date</option>
+            </select>
           </motion.div>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.35, ease: easeOutCustom }}
-            className="rounded-2xl overflow-hidden"
-            style={{
-              backgroundColor: tokens.bgSurface,
-              border: `1px solid ${tokens.borderDefault}`,
-            }}
-          >
-            {/* Table Header */}
-            <div
-              className="grid grid-cols-12 gap-4 p-4 text-xs uppercase tracking-wider"
-              style={{ borderBottom: `1px solid ${tokens.borderDefault}`, color: tokens.textMuted }}
-            >
-              <div className="col-span-1 flex items-center">
-                <button
-                  onClick={toggleSelectAll}
-                  className="w-5 h-5 rounded border-2 flex items-center justify-center transition-colors"
-                  style={{
-                    backgroundColor: isAllSelected ? tokens.brandPrimary : isSomeSelected ? `${tokens.brandPrimary}50` : "transparent",
-                    borderColor: isAllSelected || isSomeSelected ? tokens.brandPrimary : tokens.borderDefault,
-                  }}
-                >
-                  {(isAllSelected || isSomeSelected) && (
-                    <CheckCircle2 className="w-3 h-3 text-white" />
-                  )}
-                </button>
-              </div>
-              <div className="col-span-3">Candidate</div>
-              <div className="col-span-2">Fit</div>
-              <div className="col-span-1 text-center">Score</div>
-              <div className="col-span-2">Status</div>
-              <div className="col-span-2">Pipeline</div>
-              <div className="col-span-1 text-right">Actions</div>
-            </div>
 
-            {/* Table Body */}
-            <div>
-              {filteredCandidates.map((candidate, index) => {
-                const recommendation = getRecommendation(candidate);
-                const score = candidate.combined_score ?? candidate.ranking_score;
-                const isSelected = selectedIds.has(candidate.id);
-                return (
-                  <div
-                    key={candidate.id}
-                    className="grid grid-cols-12 gap-4 p-4 transition-colors cursor-pointer items-center"
+          {/* Candidates List */}
+          {filteredCandidates.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.35, ease: easeOutCustom }}
+              className="rounded-3xl p-12 text-center"
+              style={{
+                backgroundColor: tokens.bgSurface,
+                border: `1px solid ${tokens.borderDefault}`,
+              }}
+            >
+              <Users className="w-12 h-12 mx-auto mb-4" style={{ color: tokens.textDisabled }} />
+              <h3 className="text-lg font-medium mb-2" style={{ color: tokens.textPrimary }}>No Candidates Found</h3>
+              <p className="mb-6" style={{ color: tokens.textMuted }}>
+                {searchQuery
+                  ? "No candidates match your search."
+                  : "Upload candidates to get started."}
+              </p>
+              <Link
+                href={`/jobs/${resolvedParams.id}/upload`}
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-full font-medium transition-colors text-white"
+                style={{ background: tokens.gradientPrimary }}
+              >
+                <Users className="w-4 h-4" />
+                Upload Candidates
+              </Link>
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.35, ease: easeOutCustom }}
+              className="rounded-2xl overflow-hidden"
+              style={{
+                backgroundColor: tokens.bgSurface,
+                border: `1px solid ${tokens.borderDefault}`,
+              }}
+            >
+              {/* Table Header */}
+              <div
+                className="grid grid-cols-12 gap-4 p-4 text-xs uppercase tracking-wider"
+                style={{ borderBottom: `1px solid ${tokens.borderDefault}`, color: tokens.textMuted }}
+              >
+                <div className="col-span-1 flex items-center">
+                  <button
+                    onClick={toggleSelectAll}
+                    className="w-5 h-5 rounded border-2 flex items-center justify-center transition-colors"
                     style={{
-                      backgroundColor: isSelected ? `${tokens.brandPrimary}10` : "transparent",
-                      borderBottom: `1px solid ${tokens.borderSubtle}`,
-                    }}
-                    onClick={() => router.push(`/jobs/${resolvedParams.id}/candidates/${candidate.id}`)}
-                    onMouseEnter={(e) => {
-                      if (!isSelected) e.currentTarget.style.backgroundColor = tokens.bgSurfaceHover;
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isSelected) e.currentTarget.style.backgroundColor = "transparent";
+                      backgroundColor: isAllSelected ? tokens.brandPrimary : isSomeSelected ? `${tokens.brandPrimary}50` : "transparent",
+                      borderColor: isAllSelected || isSomeSelected ? tokens.brandPrimary : tokens.borderDefault,
                     }}
                   >
-                    {/* Checkbox */}
-                    <div className="col-span-1 flex items-center">
-                      <button
-                        onClick={(e) => toggleSelect(candidate.id, e)}
-                        className="w-5 h-5 rounded border-2 flex items-center justify-center transition-colors"
-                        style={{
-                          backgroundColor: isSelected ? tokens.brandPrimary : "transparent",
-                          borderColor: isSelected ? tokens.brandPrimary : tokens.borderDefault,
-                        }}
-                      >
-                        {isSelected && <CheckCircle2 className="w-3 h-3 text-white" />}
-                      </button>
-                    </div>
+                    {(isAllSelected || isSomeSelected) && (
+                      <CheckCircle2 className="w-3 h-3 text-white" />
+                    )}
+                  </button>
+                </div>
+                <div className="col-span-3">Candidate</div>
+                <div className="col-span-2">Fit</div>
+                <div className="col-span-1 text-center">Score</div>
+                <div className="col-span-2">Status</div>
+                <div className="col-span-2">Pipeline</div>
+                <div className="col-span-1 text-right">Actions</div>
+              </div>
 
-                    {/* Candidate Info */}
-                    <div className="col-span-3 flex items-center gap-3">
-                      <div
-                        className="w-10 h-10 rounded-full flex items-center justify-center font-medium"
-                        style={{ backgroundColor: tokens.bgCard, color: tokens.textMuted }}
-                      >
-                        {candidate.person_name?.charAt(0)?.toUpperCase() || "?"}
-                      </div>
-                      <div>
-                        <div className="font-medium flex items-center gap-2" style={{ color: tokens.textPrimary }}>
-                          {candidate.person_name || "Unknown"}
-                          {recommendation === "Strong Fit" && (
-                            <Star className="w-4 h-4 fill-current" style={{ color: tokens.statusSuccess }} />
-                          )}
-                        </div>
-                        <div className="text-xs" style={{ color: tokens.textMuted }}>
-                          {candidate.current_title || candidate.person_email || candidate.email || "No email"}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Fit */}
-                    <div className="col-span-2">
-                      {recommendation ? (
-                        <span
-                          className={`text-[10px] px-2 py-1 rounded-full uppercase tracking-wider border ${getFitBadgeStyle(recommendation)}`}
+              {/* Table Body */}
+              <div>
+                {filteredCandidates.map((candidate, index) => {
+                  const recommendation = getRecommendation(candidate);
+                  const score = candidate.combined_score ?? candidate.ranking_score;
+                  const isSelected = selectedIds.has(candidate.id);
+                  return (
+                    <div
+                      key={candidate.id}
+                      className="grid grid-cols-12 gap-4 p-4 transition-colors cursor-pointer items-center"
+                      style={{
+                        backgroundColor: isSelected ? `${tokens.brandPrimary}10` : "transparent",
+                        borderBottom: `1px solid ${tokens.borderSubtle}`,
+                      }}
+                      onClick={() => router.push(`/talent-pool/${candidate.person_id}`)}
+                      onMouseEnter={(e) => {
+                        if (!isSelected) e.currentTarget.style.backgroundColor = tokens.bgSurfaceHover;
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) e.currentTarget.style.backgroundColor = "transparent";
+                      }}
+                    >
+                      {/* Checkbox */}
+                      <div className="col-span-1 flex items-center">
+                        <button
+                          onClick={(e) => toggleSelect(candidate.id, e)}
+                          className="w-5 h-5 rounded border-2 flex items-center justify-center transition-colors"
+                          style={{
+                            backgroundColor: isSelected ? tokens.brandPrimary : "transparent",
+                            borderColor: isSelected ? tokens.brandPrimary : tokens.borderDefault,
+                          }}
                         >
-                          {recommendation}
-                        </span>
-                      ) : (
-                        <span style={{ color: tokens.textDisabled }}>—</span>
-                      )}
-                    </div>
+                          {isSelected && <CheckCircle2 className="w-3 h-3 text-white" />}
+                        </button>
+                      </div>
 
-                    {/* Score */}
-                    <div className="col-span-1 text-center">
-                      {score != null ? (
-                        <div className="inline-flex items-center gap-1">
-                          <span className="text-lg font-light" style={{ color: tokens.textPrimary }}>
-                            {score}
-                          </span>
-                          {score >= 75 ? (
-                            <TrendingUp className="w-3 h-3" style={{ color: tokens.statusSuccess }} />
-                          ) : score <= 40 ? (
-                            <TrendingDown className="w-3 h-3" style={{ color: tokens.statusDanger }} />
-                          ) : null}
+                      {/* Candidate Info */}
+                      <div className="col-span-4 flex items-center gap-3">
+                        <div
+                          className="w-10 h-10 rounded-full flex items-center justify-center font-medium"
+                          style={{ backgroundColor: tokens.bgCard, color: tokens.textMuted }}
+                        >
+                          {candidate.person_name?.charAt(0)?.toUpperCase() || "?"}
                         </div>
-                      ) : (
-                        <span style={{ color: tokens.textDisabled }}>—</span>
-                      )}
-                    </div>
+                        <div>
+                          <div className="font-medium text-sm" style={{ color: tokens.textPrimary }}>
+                            {candidate.person_name || "Unknown"}
+                          </div>
+                          <div className="text-xs font-mono text-red-500">
+                            PID: {candidate.person_id}
+                          </div>
+                          <div className="text-xs" style={{ color: tokens.textMuted }}>
+                            {candidate.current_title}
+                          </div>
+                        </div>
+                      </div>
 
-                    {/* Interview Status */}
-                    <div className="col-span-2">
-                      <span
-                        className={`text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider border ${getStatusColor(
-                          candidate.interview_status
-                        )}`}
-                      >
-                        {(candidate.interview_status || "pending").replace("_", " ")}
-                      </span>
-                    </div>
+                      {/* Fit */}
+                      <div className="col-span-2">
+                        {recommendation ? (
+                          <span
+                            className={`text-[10px] px-2 py-1 rounded-full uppercase tracking-wider border ${getFitBadgeStyle(recommendation)}`}
+                          >
+                            {recommendation}
+                          </span>
+                        ) : (
+                          <span style={{ color: tokens.textDisabled }}>—</span>
+                        )}
+                      </div>
 
-                    {/* Pipeline Status */}
-                    <div className="col-span-2">
-                      <span className="text-sm capitalize" style={{ color: tokens.textSecondary }}>
-                        {(candidate.pipeline_status || "new").replace("_", " ")}
-                      </span>
-                    </div>
+                      {/* Score */}
+                      <div className="col-span-1 text-center">
+                        {score != null ? (
+                          <div className="inline-flex items-center gap-1">
+                            <span className="text-lg font-light" style={{ color: tokens.textPrimary }}>
+                              {score}
+                            </span>
+                            {score >= 75 ? (
+                              <TrendingUp className="w-3 h-3" style={{ color: tokens.statusSuccess }} />
+                            ) : score <= 40 ? (
+                              <TrendingDown className="w-3 h-3" style={{ color: tokens.statusDanger }} />
+                            ) : null}
+                          </div>
+                        ) : (
+                          <span style={{ color: tokens.textDisabled }}>—</span>
+                        )}
+                      </div>
 
-                    {/* Actions */}
-                    <div className="col-span-1 flex items-center justify-end gap-2">
-                      <ChevronRight className="w-5 h-5" style={{ color: tokens.textDisabled }} />
+                      {/* Interview Status */}
+                      <div className="col-span-2">
+                        <span
+                          className={`text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider border ${getStatusColor(
+                            candidate.interview_status
+                          )}`}
+                        >
+                          {(candidate.interview_status || "pending").replace("_", " ")}
+                        </span>
+                      </div>
+
+                      {/* Pipeline Status */}
+                      <div className="col-span-2">
+                        <span className="text-sm capitalize" style={{ color: tokens.textSecondary }}>
+                          {(candidate.pipeline_status || "new").replace("_", " ")}
+                        </span>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="col-span-1 flex items-center justify-end gap-2">
+                        <ChevronRight className="w-5 h-5" style={{ color: tokens.textDisabled }} />
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          </motion.div>
-        )}
-      </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+        </div>
       </div>
     </AppLayout>
   );

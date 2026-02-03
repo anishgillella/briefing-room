@@ -519,3 +519,30 @@ async def get_global_talent_profile(
         status_breakdown=status_breakdown,
         applications=applications,
     )
+
+
+@router.delete("/{person_id}")
+async def delete_person(
+    person_id: UUID,
+    current_user: CurrentUser = Depends(get_current_user),
+):
+    """
+    Delete a person from the talent pool.
+    
+    WARNING: This will permanently delete the person and their profile data.
+    Associated candidates (applications) should be handled by database cascading 
+    delete or verified before this operation.
+    """
+    person_repo = get_person_repo()
+    
+    # Verify person exists
+    person = person_repo.get_by_id_sync(person_id)
+    if not person:
+        raise HTTPException(status_code=404, detail="Person not found")
+        
+    # Delete person
+    success = person_repo.delete_sync(person_id)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to delete person")
+        
+    return {"message": "Person deleted successfully", "id": str(person_id)}

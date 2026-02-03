@@ -1,0 +1,1 @@
+[Supabase] Using SERVICE_ROLE_KEY (full access)

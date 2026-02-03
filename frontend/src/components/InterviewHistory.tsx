@@ -86,6 +86,8 @@ export default function InterviewHistory({
     const [deletingInterview, setDeletingInterview] = useState(false);
     const [creatingForTranscript, setCreatingForTranscript] = useState(false);
 
+    const [scheduleStage, setScheduleStage] = useState<string | null>(null);
+
     useEffect(() => {
         loadInterviews();
     }, [candidateId, candidateName]);
@@ -296,6 +298,7 @@ export default function InterviewHistory({
 
     return (
         <div className="space-y-8 animate-fade-in">
+
             {/* -------------------- PIPELINE PROGRESS -------------------- */}
             <div className="relative">
                 {/* Connecting Line */}
@@ -309,28 +312,49 @@ export default function InterviewHistory({
                         const score = interview?.analytics?.overall_score;
                         const isCompleted = status === 'completed';
                         const isActive = status === 'in_progress';
+                        const isScheduled = status === 'scheduled';
+                        const isUnscheduled = !interview;
 
                         return (
-                            <div key={stage} className="flex flex-col items-center gap-4 group cursor-pointer" onClick={() => toggleStage(stage)}>
+                            <div
+                                key={stage}
+                                className="flex flex-col items-center gap-4 group cursor-pointer"
+                                onClick={() => {
+                                    if (isUnscheduled) {
+                                        setScheduleStage(stage);
+                                        setShowScheduleModal(true);
+                                    } else {
+                                        toggleStage(stage);
+                                    }
+                                }}
+                            >
                                 {/* Status Ring */}
                                 <div className={`w-14 h-14 rounded-full flex items-center justify-center border-4 transition-all duration-500 shadow-xl ${isCompleted
                                     ? 'bg-black border-green-500 shadow-[0_0_20px_rgba(34,197,94,0.3)]'
                                     : isActive
                                         ? 'bg-black border-yellow-500 shadow-[0_0_20px_rgba(234,179,8,0.3)] scale-110'
-                                        : 'bg-black border-white/10'
+                                        : isScheduled
+                                            ? 'bg-black border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.3)]'
+                                            : 'bg-black border-white/10 hover:border-white/30 group-hover:scale-105'
                                     }`}>
                                     {isCompleted ? (
                                         <div className="text-green-500 font-bold text-lg">{score || <CheckCircle className="w-6 h-6" />}</div>
                                     ) : isActive ? (
                                         <Clock className="w-6 h-6 text-yellow-500 animate-pulse" />
+                                    ) : isScheduled ? (
+                                        <Calendar className="w-6 h-6 text-blue-500" />
                                     ) : (
-                                        <span className="text-white/20 font-medium">0{i + 1}</span>
+                                        <span className="text-white/20 font-medium group-hover:text-white/40 transition-colors">
+                                            {/* Plus icon on hover for unscheduled */}
+                                            <span className="group-hover:hidden">0{i + 1}</span>
+                                            <Calendar className="hidden group-hover:block w-5 h-5" />
+                                        </span>
                                     )}
                                 </div>
 
                                 {/* Labels */}
                                 <div className="text-center">
-                                    <h3 className={`font-semibold tracking-tight text-sm uppercase ${isCompleted ? 'text-white' : isActive ? 'text-yellow-400' : 'text-white/40'
+                                    <h3 className={`font-semibold tracking-tight text-sm uppercase ${isCompleted ? 'text-white' : isActive ? 'text-yellow-400' : isScheduled ? 'text-blue-400' : 'text-white/40 group-hover:text-white/60'
                                         }`}>
                                         {formatStageName(stage)}
                                     </h3>
@@ -338,6 +362,16 @@ export default function InterviewHistory({
                                         <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full mt-1 inline-block ${interview.analytics.recommendation === 'Hire' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
                                             }`}>
                                             {interview.analytics.recommendation}
+                                        </span>
+                                    )}
+                                    {isScheduled && (
+                                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full mt-1 inline-block bg-blue-500/20 text-blue-400">
+                                            Scheduled
+                                        </span>
+                                    )}
+                                    {isUnscheduled && (
+                                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full mt-1 inline-block bg-white/5 text-white/30 group-hover:bg-white/10 group-hover:text-white/50 transition-all opacity-0 group-hover:opacity-100">
+                                            Schedule +
                                         </span>
                                     )}
                                 </div>
@@ -356,18 +390,17 @@ export default function InterviewHistory({
                                 className="flex flex-col items-center gap-4 group cursor-pointer"
                                 onClick={() => {
                                     if (allInterviewsComplete && dbCandidateId) {
-                                        router.push(`/candidates/${dbCandidateId}/offer-prep`);
+                                        router.push(`/talent-pool/${dbCandidateId}/offer-prep`);
                                     }
                                 }}
                             >
                                 {/* Status Ring */}
-                                <div className={`w-14 h-14 rounded-full flex items-center justify-center border-4 transition-all duration-500 shadow-xl ${
-                                    isOfferPrepComplete
-                                        ? 'bg-black border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.3)]'
-                                        : isOfferPrepActive
-                                            ? 'bg-black border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.3)] scale-110 animate-pulse'
-                                            : 'bg-black border-white/10'
-                                }`}>
+                                <div className={`w-14 h-14 rounded-full flex items-center justify-center border-4 transition-all duration-500 shadow-xl ${isOfferPrepComplete
+                                    ? 'bg-black border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.3)]'
+                                    : isOfferPrepActive
+                                        ? 'bg-black border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.3)] scale-110 animate-pulse'
+                                        : 'bg-black border-white/10'
+                                    }`}>
                                     {isOfferPrepComplete ? (
                                         <Gift className="w-6 h-6 text-purple-500" />
                                     ) : isOfferPrepActive ? (
@@ -379,13 +412,12 @@ export default function InterviewHistory({
 
                                 {/* Labels */}
                                 <div className="text-center">
-                                    <h3 className={`font-semibold tracking-tight text-sm uppercase ${
-                                        isOfferPrepComplete
+                                    <h3 className={`font-semibold tracking-tight text-sm uppercase ${isOfferPrepComplete
+                                        ? 'text-purple-400'
+                                        : isOfferPrepActive
                                             ? 'text-purple-400'
-                                            : isOfferPrepActive
-                                                ? 'text-purple-400'
-                                                : 'text-white/40'
-                                    }`}>
+                                            : 'text-white/40'
+                                        }`}>
                                         Offer Prep
                                     </h3>
                                     {isOfferPrepComplete && (
@@ -523,182 +555,181 @@ export default function InterviewHistory({
                                 {interview.analytics && (
                                     <>
 
-                                {/* View Full Analytics Button */}
-                                <div className="mb-8">
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            loadFullAnalytics(interview.id, interview.stage);
-                                        }}
-                                        className="w-full py-4 rounded-xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 hover:from-indigo-500/20 hover:to-purple-500/20 border border-indigo-500/20 hover:border-indigo-500/40 transition-all flex items-center justify-center gap-3 group"
-                                    >
-                                        <Eye className="w-5 h-5 text-indigo-400 group-hover:scale-110 transition-transform" />
-                                        <span className="text-white/80 group-hover:text-white font-medium">
-                                            View Full Analytics
-                                        </span>
-                                    </button>
-                                    <p className="text-center text-white/30 text-xs mt-3">
-                                        See complete interview analysis with all metrics
-                                    </p>
-                                </div>
-
-                                {/* 1. The Verdict (Synthesis) */}
-                                <div className="mb-10">
-                                    <h5 className="text-white/40 text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
-                                        <Lightbulb className="w-4 h-4" /> Executive Synthesis
-                                    </h5>
-                                    <p className="text-white/90 text-lg font-light leading-relaxed border-l-2 border-purple-500/50 pl-6 italic">
-                                        &quot;{interview.analytics.synthesis}&quot;
-                                    </p>
-                                </div>
-
-                                {/* 2. Behavioral Grid */}
-                                {interview.analytics.behavioral_profile && Object.keys(interview.analytics.behavioral_profile).length > 0 && (
-                                    <div className="mb-10">
-                                        <h5 className="text-white/40 text-xs font-bold uppercase tracking-widest mb-4">Behavioral DNA</h5>
-                                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                                            {Object.entries(interview.analytics.behavioral_profile)
-                                                .filter(([, score]) => typeof score === 'number' && !isNaN(score))
-                                                .map(([trait, score]) => {
-                                                    const numScore = Number(score) || 0;
-                                                    const dashOffset = 175.9 - (175.9 * Math.min(Math.max(numScore, 0), 10)) / 10;
-                                                    return (
-                                                        <div key={trait} className="bg-white/5 rounded-xl p-4 text-center border border-white/5 hover:bg-white/10 transition-colors">
-                                                            <div className="relative inline-flex items-center justify-center mb-2">
-                                                                <svg className="w-16 h-16 transform -rotate-90">
-                                                                    <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-white/5" />
-                                                                    <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-purple-500" strokeDasharray={175.9} strokeDashoffset={dashOffset} />
-                                                                </svg>
-                                                                <span className="absolute text-xl font-medium text-white">{numScore}</span>
-                                                            </div>
-                                                            <div className="text-xs text-white/50 font-medium capitalize truncate">{trait.replace('_', ' ')}</div>
-                                                        </div>
-                                                    );
-                                                })}
+                                        {/* View Full Analytics Button */}
+                                        <div className="mb-8">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    loadFullAnalytics(interview.id, interview.stage);
+                                                }}
+                                                className="w-full py-4 rounded-xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 hover:from-indigo-500/20 hover:to-purple-500/20 border border-indigo-500/20 hover:border-indigo-500/40 transition-all flex items-center justify-center gap-3 group"
+                                            >
+                                                <Eye className="w-5 h-5 text-indigo-400 group-hover:scale-110 transition-transform" />
+                                                <span className="text-white/80 group-hover:text-white font-medium">
+                                                    View Full Analytics
+                                                </span>
+                                            </button>
+                                            <p className="text-center text-white/30 text-xs mt-3">
+                                                See complete interview analysis with all metrics
+                                            </p>
                                         </div>
-                                    </div>
-                                )}
 
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                                    {/* 3. Key Questions with Answers */}
-                                    <div>
-                                        <h5 className="text-white/40 text-xs font-bold uppercase tracking-widest mb-4">Q&A Analysis</h5>
-                                        <div className="space-y-4">
-                                            {interview.analytics.question_analytics?.slice(0, 4).map((qa: any, i: number) => (
-                                                <div key={i} className="group p-4 bg-white/5 hover:bg-white/10 rounded-xl border border-white/5 transition-all">
-                                                    {/* Question */}
-                                                    <div className="flex justify-between items-start gap-4 mb-3">
-                                                        <p className="text-sm text-purple-300 font-medium leading-snug">"{qa.question}"</p>
-                                                        {qa.metrics && (
-                                                            <div className="flex gap-1 shrink-0">
-                                                                {qa.metrics.depth && (
-                                                                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300" title="Depth">
-                                                                        D:{qa.metrics.depth}
-                                                                    </span>
-                                                                )}
-                                                                {qa.metrics.clarity && (
-                                                                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-500/20 text-green-300" title="Clarity">
-                                                                        C:{qa.metrics.clarity}
-                                                                    </span>
-                                                                )}
-                                                                {qa.metrics.relevance && (
-                                                                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-300" title="Relevance">
-                                                                        R:{qa.metrics.relevance}
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                        )}
-                                                    </div>
-
-                                                    {/* Answer */}
-                                                    {qa.answer && (
-                                                        <div className="mb-3 pl-3 border-l-2 border-white/10">
-                                                            <p className="text-sm text-white/70 leading-relaxed">{qa.answer}</p>
-                                                        </div>
-                                                    )}
-
-                                                    {/* Highlight Quote */}
-                                                    {qa.highlight && (
-                                                        <div className="mb-2 px-3 py-2 bg-purple-500/10 rounded-lg border border-purple-500/20">
-                                                            <p className="text-xs text-purple-200 italic">"{qa.highlight}"</p>
-                                                        </div>
-                                                    )}
-
-                                                    {/* Follow-up & Concern */}
-                                                    <div className="flex flex-wrap gap-2 mt-2">
-                                                        {qa.question_type && (
-                                                            <span className="text-[10px] text-white/40 uppercase tracking-wider px-2 py-0.5 bg-white/5 rounded">
-                                                                {qa.question_type}
-                                                            </span>
-                                                        )}
-                                                        {qa.follow_up_needed && (
-                                                            <span className="text-[10px] text-yellow-300/70 px-2 py-0.5 bg-yellow-500/10 rounded" title="Follow-up needed">
-                                                                → {qa.follow_up_needed.slice(0, 60)}...
-                                                            </span>
-                                                        )}
-                                                        {qa.concern && (
-                                                            <span className="text-[10px] text-red-300/70 px-2 py-0.5 bg-red-500/10 rounded">
-                                                                ⚠ {qa.concern.slice(0, 50)}...
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            ))}
+                                        {/* 1. The Verdict (Synthesis) */}
+                                        <div className="mb-10">
+                                            <h5 className="text-white/40 text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
+                                                <Lightbulb className="w-4 h-4" /> Executive Synthesis
+                                            </h5>
+                                            <p className="text-white/90 text-lg font-light leading-relaxed border-l-2 border-purple-500/50 pl-6 italic">
+                                                &quot;{interview.analytics.synthesis}&quot;
+                                            </p>
                                         </div>
-                                    </div>
 
-                                    {/* 4. Skills & Topics to Probe */}
-                                    <div className="space-y-8">
-                                        {interview.analytics.skill_evidence && interview.analytics.skill_evidence.length > 0 && (
-                                            <div>
-                                                <h5 className="text-white/40 text-xs font-bold uppercase tracking-widest mb-4">Areas to Explore</h5>
-                                                <div className="space-y-2">
-                                                    {interview.analytics.skill_evidence.slice(0, 5).map((skill: any, i: number) => {
-                                                        // Handle both string and object formats
-                                                        const skillText = typeof skill === 'string' ? skill : skill?.skill || skill?.topic || String(skill);
-                                                        const confidence = typeof skill === 'object' ? skill?.confidence : null;
-
-                                                        return (
-                                                            <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors border border-white/5">
-                                                                <div className="w-6 h-6 rounded-full bg-yellow-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                                                                    <span className="text-yellow-400 text-xs font-bold">{i + 1}</span>
+                                        {/* 2. Behavioral Grid */}
+                                        {interview.analytics.behavioral_profile && Object.keys(interview.analytics.behavioral_profile).length > 0 && (
+                                            <div className="mb-10">
+                                                <h5 className="text-white/40 text-xs font-bold uppercase tracking-widest mb-4">Behavioral DNA</h5>
+                                                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                                                    {Object.entries(interview.analytics.behavioral_profile)
+                                                        .filter(([, score]) => typeof score === 'number' && !isNaN(score))
+                                                        .map(([trait, score]) => {
+                                                            const numScore = Number(score) || 0;
+                                                            const dashOffset = 175.9 - (175.9 * Math.min(Math.max(numScore, 0), 10)) / 10;
+                                                            return (
+                                                                <div key={trait} className="bg-white/5 rounded-xl p-4 text-center border border-white/5 hover:bg-white/10 transition-colors">
+                                                                    <div className="relative inline-flex items-center justify-center mb-2">
+                                                                        <svg className="w-16 h-16 transform -rotate-90">
+                                                                            <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-white/5" />
+                                                                            <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-purple-500" strokeDasharray={175.9} strokeDashoffset={dashOffset} />
+                                                                        </svg>
+                                                                        <span className="absolute text-xl font-medium text-white">{numScore}</span>
+                                                                    </div>
+                                                                    <div className="text-xs text-white/50 font-medium capitalize truncate">{trait.replace('_', ' ')}</div>
                                                                 </div>
-                                                                <p className="text-sm text-white/80 leading-relaxed">{skillText}</p>
-                                                                {confidence && (
+                                                            );
+                                                        })}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                            {/* 3. Key Questions with Answers */}
+                                            <div>
+                                                <h5 className="text-white/40 text-xs font-bold uppercase tracking-widest mb-4">Q&A Analysis</h5>
+                                                <div className="space-y-4">
+                                                    {interview.analytics.question_analytics?.slice(0, 4).map((qa: any, i: number) => (
+                                                        <div key={i} className="group p-4 bg-white/5 hover:bg-white/10 rounded-xl border border-white/5 transition-all">
+                                                            {/* Question */}
+                                                            <div className="flex justify-between items-start gap-4 mb-3">
+                                                                <p className="text-sm text-purple-300 font-medium leading-snug">"{qa.question}"</p>
+                                                                {qa.metrics && (
                                                                     <div className="flex gap-1 shrink-0">
-                                                                        {[1, 2, 3].map(bar => (
-                                                                            <div key={bar} className={`w-1.5 h-4 rounded-full ${
-                                                                                (confidence === 'High' && bar <= 3) ||
-                                                                                (confidence === 'Medium' && bar <= 2) ||
-                                                                                (confidence === 'Low' && bar <= 1)
-                                                                                    ? 'bg-green-500'
-                                                                                    : 'bg-white/10'
-                                                                            }`}></div>
-                                                                        ))}
+                                                                        {qa.metrics.depth && (
+                                                                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300" title="Depth">
+                                                                                D:{qa.metrics.depth}
+                                                                            </span>
+                                                                        )}
+                                                                        {qa.metrics.clarity && (
+                                                                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-500/20 text-green-300" title="Clarity">
+                                                                                C:{qa.metrics.clarity}
+                                                                            </span>
+                                                                        )}
+                                                                        {qa.metrics.relevance && (
+                                                                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-300" title="Relevance">
+                                                                                R:{qa.metrics.relevance}
+                                                                            </span>
+                                                                        )}
                                                                     </div>
                                                                 )}
                                                             </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        )}
 
-                                        {interview.analytics.topics_to_probe && interview.analytics.topics_to_probe.length > 0 && (
-                                            <div>
-                                                <h5 className="text-white/40 text-xs font-bold uppercase tracking-widest mb-4">Deep Dive Areas</h5>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {interview.analytics.topics_to_probe.map((topic, i) => (
-                                                        <span key={i} className="px-3 py-1.5 bg-yellow-500/10 text-yellow-200 border border-yellow-500/20 text-xs rounded-lg">
-                                                            → {topic}
-                                                        </span>
+                                                            {/* Answer */}
+                                                            {qa.answer && (
+                                                                <div className="mb-3 pl-3 border-l-2 border-white/10">
+                                                                    <p className="text-sm text-white/70 leading-relaxed">{qa.answer}</p>
+                                                                </div>
+                                                            )}
+
+                                                            {/* Highlight Quote */}
+                                                            {qa.highlight && (
+                                                                <div className="mb-2 px-3 py-2 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                                                                    <p className="text-xs text-purple-200 italic">"{qa.highlight}"</p>
+                                                                </div>
+                                                            )}
+
+                                                            {/* Follow-up & Concern */}
+                                                            <div className="flex flex-wrap gap-2 mt-2">
+                                                                {qa.question_type && (
+                                                                    <span className="text-[10px] text-white/40 uppercase tracking-wider px-2 py-0.5 bg-white/5 rounded">
+                                                                        {qa.question_type}
+                                                                    </span>
+                                                                )}
+                                                                {qa.follow_up_needed && (
+                                                                    <span className="text-[10px] text-yellow-300/70 px-2 py-0.5 bg-yellow-500/10 rounded" title="Follow-up needed">
+                                                                        → {qa.follow_up_needed.slice(0, 60)}...
+                                                                    </span>
+                                                                )}
+                                                                {qa.concern && (
+                                                                    <span className="text-[10px] text-red-300/70 px-2 py-0.5 bg-red-500/10 rounded">
+                                                                        ⚠ {qa.concern.slice(0, 50)}...
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
                                                     ))}
                                                 </div>
                                             </div>
-                                        )}
-                                    </div>
-                                </div>
-                                </>
+
+                                            {/* 4. Skills & Topics to Probe */}
+                                            <div className="space-y-8">
+                                                {interview.analytics.skill_evidence && interview.analytics.skill_evidence.length > 0 && (
+                                                    <div>
+                                                        <h5 className="text-white/40 text-xs font-bold uppercase tracking-widest mb-4">Areas to Explore</h5>
+                                                        <div className="space-y-2">
+                                                            {interview.analytics.skill_evidence.slice(0, 5).map((skill: any, i: number) => {
+                                                                // Handle both string and object formats
+                                                                const skillText = typeof skill === 'string' ? skill : skill?.skill || skill?.topic || String(skill);
+                                                                const confidence = typeof skill === 'object' ? skill?.confidence : null;
+
+                                                                return (
+                                                                    <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors border border-white/5">
+                                                                        <div className="w-6 h-6 rounded-full bg-yellow-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                                                                            <span className="text-yellow-400 text-xs font-bold">{i + 1}</span>
+                                                                        </div>
+                                                                        <p className="text-sm text-white/80 leading-relaxed">{skillText}</p>
+                                                                        {confidence && (
+                                                                            <div className="flex gap-1 shrink-0">
+                                                                                {[1, 2, 3].map(bar => (
+                                                                                    <div key={bar} className={`w-1.5 h-4 rounded-full ${(confidence === 'High' && bar <= 3) ||
+                                                                                        (confidence === 'Medium' && bar <= 2) ||
+                                                                                        (confidence === 'Low' && bar <= 1)
+                                                                                        ? 'bg-green-500'
+                                                                                        : 'bg-white/10'
+                                                                                        }`}></div>
+                                                                                ))}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {interview.analytics.topics_to_probe && interview.analytics.topics_to_probe.length > 0 && (
+                                                    <div>
+                                                        <h5 className="text-white/40 text-xs font-bold uppercase tracking-widest mb-4">Deep Dive Areas</h5>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {interview.analytics.topics_to_probe.map((topic, i) => (
+                                                                <span key={i} className="px-3 py-1.5 bg-yellow-500/10 text-yellow-200 border border-yellow-500/20 text-xs rounded-lg">
+                                                                    → {topic}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </>
                                 )}
                             </div>
                         )}
@@ -766,7 +797,7 @@ export default function InterviewHistory({
                 {/* Offer Prep Card - Shows when all interviews complete */}
                 {data.all_stages_complete && data.pipeline_status === 'decision_pending' && (
                     <div className="mb-6 group relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-600/20 to-pink-600/20 p-1 border border-purple-500/30 hover:border-purple-500/50 transition-all cursor-pointer"
-                        onClick={() => dbCandidateId && router.push(`/candidates/${dbCandidateId}/offer-prep`)}
+                        onClick={() => dbCandidateId && router.push(`/talent-pool/${dbCandidateId}/offer-prep`)}
                     >
                         <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-pink-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                         <div className="relative bg-black/60 backdrop-blur-xl rounded-xl p-6 flex items-center justify-between">
@@ -985,16 +1016,26 @@ export default function InterviewHistory({
             {dbCandidateId && data?.next_stage && jobId && (
                 <ScheduleInterviewModal
                     isOpen={showScheduleModal}
-                    onClose={() => setShowScheduleModal(false)}
-                    onScheduled={() => {
+                    onClose={() => {
                         setShowScheduleModal(false);
+                        setScheduleStage(null);
+                    }}
+                    onScheduled={() => {
                         loadInterviews();
+                        setScheduleStage(null);
                     }}
                     candidateId={dbCandidateId}
                     candidateName={candidateName}
                     jobId={jobId}
                     jobTitle={jobTitle || "Interview"}
-                    stage={data.next_stage}
+                    stage={scheduleStage || data.next_stage || "round_1"}
+                    allowStageSelection={!scheduleStage} // Allow selection if not clicked from specific stage ring
+                    existingInterviews={data?.interviews?.filter(i => i.scheduled_at).map(i => ({
+                        stage: i.stage,
+                        status: i.status,
+                        id: i.id,
+                        scheduled_at: i.scheduled_at as string
+                    })) || []}
                 />
             )}
 

@@ -1,0 +1,141 @@
+name,email,linkedin_url,phone,current_company,current_title,years_experience,resume
+"Sarah Jenkins","sarah.jenkins@example.com","https://linkedin.com/in/sarahjenkins-pm","214-555-0101","TechFlow Solutions","Senior Product Manager",8,"SUMMARY: Senior Product Manager with 8 years of experience in high-growth SaaS environments. Expert in data-driven product strategy and lifecycle management. Dallas native with deep local industry connections.
+
+EXPERIENCE:
+- Led a cross-functional team of 10 at TechFlow to launch 'Analytics v3', resulting in a 22% increase in user retention and 15% increase in ARR within 6 months.
+- Implemented a robust A/B testing framework that facilitated over 50 experiments per quarter, optimizing conversion flows and reducing churn by 12%.
+- Mastered Agile methodologies, leading sprint planning and backlog grooming for 3 engineering pods.
+- Bridges the gap between technical complexity and business value through clear documentation and stakeholder alignment.
+
+EDUCATION: BS in Computer Science from UT Dallas.
+SKILLS: SQL, Python, Mixpanel, Jira, Figma, Agile/Scrum, Product Strategy."
+"Michael Chen","michael.chen@example.com","https://linkedin.com/in/michaelchen-pm","214-555-0102","DataDrive Inc.","Product Manager",5,"SUMMARY: Data-obsessed Product Manager with 5 years experience in fintech. Strong technical foundation and a 'measure twice, cut once' mindset.
+
+EXPERIENCE:
+- Managed the 'SmartSpend' mobile feature from ideation to launch; achieved 500k monthly active users within the first year.
+- Utilized advanced data visualization (Tableau) to identify user drop-off points, leading to a UI refactor that improved task completion rates by 20%.
+- Conducted weekly user research sessions to inform the product roadmap, ensuring 100% alignment with customer pain points.
+- Collaborative leader who works closely with dev teams to translate business requirements into actionable technical specs.
+
+EDUCATION: BS in Engineering, Georgia Tech.
+SKILLS: Data Analytics, Prototyping, Agile, Stakeholder Management."
+"Emily Rodriguez","emily.rodriguez@example.com","https://linkedin.com/in/emilyrodriguez-product","214-555-0103","Innovate Corp","Product Lead",7,"SUMMARY: Product Lead with 7 years of experience focused on product-market fit and growth strategy in the e-commerce space.
+
+EXPERIENCE:
+- Successfully pivoted Innovate Corp’s flagship product based on extensive market analysis, resulting in a 40% growth in customer acquisition.
+- Defined and executed the long-term product roadmap, balancing trade-offs between technical debt and new feature development.
+- Mentors a team of 3 junior PMs and interns.
+- Expert communicator who regularly presents product updates to C-level executives.
+
+EDUCATION: MBA from SMU Cox School of Business; BS in Business Administration.
+SKILLS: Roadmap Planning, Market Research, Leadership, Strategic Thinking."
+"David Kim","david.kim@example.com","https://linkedin.com/in/davidkim-pm","214-555-0104","SoftSys","Product Manager",4,"SUMMARY: Technical Product Manager with 4 years experience. Transitioned from Engineering to Product, bringing deep technical insight to the role.
+
+EXPERIENCE:
+- Collaborated with engineering to refactor legacy API architecture, reducing latency by 30% while maintaining feature shipping cadence.
+- Defined requirements for a new developer portal, increasing external API adoption by 15%.
+- Skilled in Agile ceremonies and JIRA management.
+- Passionate about solving complex technical hurdles with elegant product solutions.
+
+EDUCATION: BS in Computer Science from University of North Texas.
+SKILLS: API Design, Technical Writing, Agile, Software Development Life Cycle."
+"Jessica Wong","jessica.wong@example.com","https://linkedin.com/in/jessicawong-pm","214-555-0105","CloudNet","Senior Product Manager",6,"SUMMARY: Results-oriented PM with 6 years experience in enterprise cloud solutions. Strong focus on ecosystem integration and security.
+
+EXPERIENCE:
+- Launched CloudNet’s 'SecureConnect' suite, which became the top-selling add-on within two quarters, generating $3M in incremental revenue.
+- Negotiated complex integration partnerships with top-tier SaaS vendors.
+- Led cross-functional workshops to define product vision and gain stakeholder buy-in across Sales, Support, and Marketing teams.
+
+EDUCATION: BS in Information Systems from UT Austin.
+SKILLS: Enterprise SaaS, Security Compliance, Partnership Strategy, Stakeholder Engagement."
+"Alex Rivera","alex.rivera@example.com","https://linkedin.com/in/alexrivera-pm","214-555-0116","GrowthLink","Product Manager",4,"SUMMARY: Growth-focused PM with a passion for experimentation and user onboarding. Based in Austin but moving to Dallas next month.
+
+EXPERIENCE:
+- Increased user activation rate by 18% through a series of onboarding experiments and personalized email triggers.
+- Built a self-serve analytics dashboard for the growth team using SQL and Amplitude.
+- Worked in a high-velocity agile environment, shipping code updates multiple times per week.
+
+EDUCATION: BS in Marketing and Minor in CS.
+SKILLS: Growth Hacking, A/B Testing, SQL, User Psychology."
+"Robert Smith","robert.smith@example.com","https://linkedin.com/in/robertsmith","214-555-0106","Legacy Bank","Product Owner",3,"SUMMARY: Dedicated Product Owner with 3 years experience in internal financial systems. Focused on process efficiency and digital transformation.
+
+EXPERIENCE:
+- Managed the backlog for a 15-person engineering team, ensuring timely delivery of quarterly internal reporting tools.
+- Transitioned the team from Waterfall to Agile/Scrum, improving delivery output by 10%.
+- Documented detailed user stories and acceptance criteria for regulatory compliance features.
+
+EDUCATION: BS in Finance.
+SKILLS: Backlog Management, User Stories, Financial Compliance."
+"James Wilson","james.wilson@example.com","https://linkedin.com/in/jameswilson-pmp","214-555-0109","BuildIt","Project Manager",6,"SUMMARY: PMP-certified Project Manager with 6 years of experience. Expert in resource allocation, timeline management, and budget control. Looking to transition into Product Management.
+
+EXPERIENCE:
+- Delivered complex infrastructure projects on time and 5% under budget.
+- Managed vendor relationships and cross-functional teams across multiple sites.
+- Strong organizational skills and ability to handle high-pressure deadlines.
+- Limited experience with product vision/strategy or data-driven experimentation.
+
+EDUCATION: BS in Civil Engineering.
+SKILLS: Project Planning, Risk Management, Budgeting."
+"Linda Davis","linda.davis@example.com","https://linkedin.com/in/lindadavis-ba","214-555-0108","Consulting Group","Senior Business Analyst",5,"SUMMARY: Senior Business Analyst with 5 years experience in fintech consulting. Seeking a transition to Product Management to drive product vision directly.
+
+EXPERIENCE:
+- Gathered and documented requirements for over 10 major client implementations.
+- Acted as a bridge between clients and technical teams to ensure product delivery met expectations.
+- Strong analytical skills but lacks direct accountability for product ROI or long-term roadmap.
+
+EDUCATION: BS in Economics.
+SKILLS: Requirements Gathering, Data Analysis, SQL."
+"Barbara Miller","barbara.miller@example.com","https://linkedin.com/in/barbaramiller-pm","214-555-0110","Retail Giant","Product Manager",4,"SUMMARY: Product Manager for internal warehouse management systems at a major retail corporation. Experienced in operational efficiency and legacy system modernization.
+
+EXPERIENCE:
+- Reduced warehouse processing time by 15% through a series of small-scale UI improvements and workflow optimizations.
+- Handled stakeholder management across multiple regional distribution centers.
+- Worked primarily in a non-tech-first environment; eager to move into a high-growth SaaS setting.
+
+EDUCATION: BS in Supply Chain Management.
+SKILLS: Operations, Inventory Systems, Workflow Optimization."
+"Richard Taylor","richard.taylor@example.com","https://linkedin.com/in/richardtaylor-sales","214-555-0111","SalesForce One","Regional Sales Manager",10,"SUMMARY: High-performing Sales Manager with a decade of experience in enterprise software sales. Expert at understanding customer pain points and driving revenue growth.
+
+EXPERIENCE:
+- Consistently exceeded sales targets by 20%+, managing a territory with $5M+ in annual quota.
+- Deep understanding of the competitive landscape and buyer personas.
+- Looking to pivot into product management to leverage customer insights in the development process. No direct PM experience.
+
+EDUCATION: BA in Communications.
+SKILLS: Sales, Negotiation, Customer Relations."
+"Patricia Anderson","patricia.anderson@example.com","https://linkedin.com/in/patriciaanderson-grad","214-555-0112","N/A","Recent Graduate",0,"SUMMARY: Enthusiastic recent graduate from the University of Texas with a degree in History. Passionate about entering the tech industry and starting a career in Product Management.
+
+EXPERIENCE:
+- Summer internship at a local non-profit where I helped manage their website content and social media.
+- Strong writing, research, and organizational skills developed through academic projects.
+- Fast learner with a high interest in user experience.
+
+EDUCATION: BA in History.
+SKILLS: Research, Writing, Project Coordination."
+"Charles Thomas","charles.thomas@example.com","https://linkedin.com/in/charlesthomas-mktg","214-555-0113","Creative Agency","Marketing Specialist",3,"SUMMARY: Creative Marketing Specialist with 3 years of experience. Expert in brand storytelling and user persona development for consumer brands.
+
+EXPERIENCE:
+- Developed social media campaigns that increased brand engagement by 50% for various small-business clients.
+- Strong eye for design and user empathy.
+- No experience with technical requirement documentation, agile roadmaps, or working with engineering teams.
+
+EDUCATION: BA in English.
+SKILLS: Storytelling, Social Media, User Personas."
+"Susan Jackson","susan.jackson@example.com","https://linkedin.com/in/susanjackson-qa","214-555-0114","Software House","QA Engineer",5,"SUMMARY: Quality Assurance Engineer with a deep understanding of software reliability and user feedback loops. Looking to transition into Product Management.
+
+EXPERIENCE:
+- Consistently identified critical bugs before release, improving platform stability by 25%.
+- Often provided UI/UX improvement suggestions that were adopted by the product team.
+- Interested in moving from verifying 'how it works' to deciding 'what to build'.
+
+EDUCATION: BS in General Studies.
+SKILLS: Manual Testing, Automated Testing, Bug Tracking."
+"Joseph White","joseph.white@example.com","https://linkedin.com/in/josephwhite-hr","214-555-0115","Corp Services","HR Coordinator",4,"SUMMARY: Organized HR Coordinator managing employee onboarding and benefits administration for a mid-sized corporation.
+
+EXPERIENCE:
+- Optimized the onboarding process, reducing the time for new hires to become productive by 20%.
+- Excellent people skills and attention to detail.
+- Seeking a career change into Product Management, though lacks relevant technical or product experience.
+
+EDUCATION: BA in Human Resources.
+SKILLS: Onboarding, Benefits Administration, People Operations."

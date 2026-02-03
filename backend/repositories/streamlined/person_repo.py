@@ -171,7 +171,11 @@ class PersonRepository:
 
     async def get_or_create(self, person_data: PersonCreate) -> tuple[Person, bool]:
         """
-        Get existing person by email or LinkedIn URL, or create new one.
+        Get existing person by matching unique identifiers (Email, LinkedIn, Phone),
+        or create a new one.
+        
+        If a match is found, it will UPDATE the existing person with any new non-null
+        fields from person_data (merging profiles).
 
         Args:
             person_data: PersonCreate model
@@ -179,35 +183,113 @@ class PersonRepository:
         Returns:
             Tuple of (Person, created: bool)
         """
-        # Try to find by email first (if provided)
+        existing = None
+
+        # 1. Match by Email (Highest Priority)
         if person_data.email:
             existing = await self.get_by_email(person_data.email)
-            if existing:
-                return existing, False
 
-        # Try to find by LinkedIn URL (if provided)
-        if person_data.linkedin_url:
+        # 2. Match by LinkedIn URL (Second Priority)
+        if not existing and person_data.linkedin_url:
             existing = await self.get_by_linkedin_url(person_data.linkedin_url)
-            if existing:
-                return existing, False
+            
+        # 3. Match by Phone (Third Priority)
+        if not existing and person_data.phone:
+            # We need to add get_by_phone method first, but assuming we can query
+            result = self.client.table(self.table)\
+                .select("*")\
+                .eq("phone", person_data.phone.strip())\
+                .execute()
+            if result.data:
+                existing = Person(**result.data[0])
 
+        if existing:
+            # MERGE: Update existing person with new data if current fields are empty
+            updates = {}
+            
+            # Check for new info to add
+            if person_data.phone and not existing.phone:
+                updates["phone"] = person_data.phone
+            if person_data.linkedin_url and not existing.linkedin_url:
+                updates["linkedin_url"] = person_data.linkedin_url
+            if person_data.email and not existing.email:
+                updates["email"] = person_data.email
+            if person_data.current_title and not existing.current_title:
+                updates["current_title"] = person_data.current_title
+            if person_data.current_company and not existing.current_company:
+                updates["current_company"] = person_data.current_company
+                
+            # Merge JSON fields (simple append/overwrite strategy)
+            if person_data.skills and not existing.skills:
+                updates["skills"] = person_data.skills
+            elif person_data.skills and existing.skills:
+                # Add new skills that don't exist
+                current_skills = set(existing.skills)
+                new_skills = [s for s in person_data.skills if s not in current_skills]
+                if new_skills:
+                    updates["skills"] = existing.skills + new_skills
+
+            if updates:
+                # Perform the update
+                updated_person = await self.update(existing.id, PersonUpdate(**updates))
+                return updated_person or existing, False
+            
+            return existing, False
+
+        # No match found - Create new
         new_person = await self.create(person_data)
         return new_person, True
 
     def get_or_create_sync(self, person_data: PersonCreate) -> tuple[Person, bool]:
-        """Synchronous version of get_or_create."""
-        # Try to find by email first (if provided)
+        """Synchronous version of get_or_create with full resolution logic."""
+        existing = None
+
+        # 1. Match by Email
         if person_data.email:
             existing = self.get_by_email_sync(person_data.email)
-            if existing:
-                return existing, False
 
-        # Try to find by LinkedIn URL (if provided)
-        if person_data.linkedin_url:
+        # 2. Match by LinkedIn URL
+        if not existing and person_data.linkedin_url:
             existing = self.get_by_linkedin_url_sync(person_data.linkedin_url)
-            if existing:
-                return existing, False
+            
+        # 3. Match by Phone
+        if not existing and person_data.phone:
+            result = self.client.table(self.table)\
+                .select("*")\
+                .eq("phone", person_data.phone.strip())\
+                .execute()
+            if result.data:
+                existing = Person(**result.data[0])
 
+        if existing:
+            # MERGE: Update existing person with new data
+            updates = {}
+            
+            if person_data.phone and not existing.phone:
+                updates["phone"] = person_data.phone
+            if person_data.linkedin_url and not existing.linkedin_url:
+                updates["linkedin_url"] = person_data.linkedin_url
+            if person_data.email and not existing.email:
+                updates["email"] = person_data.email
+            if person_data.current_title and not existing.current_title:
+                updates["current_title"] = person_data.current_title
+            if person_data.current_company and not existing.current_company:
+                updates["current_company"] = person_data.current_company
+                
+            # Merge skills
+            if person_data.skills:
+                current_skills = set(existing.skills) if existing.skills else set()
+                new_skills = [s for s in person_data.skills if s not in current_skills]
+                if new_skills:
+                    updates["skills"] = list(current_skills) + new_skills
+            
+            if updates:
+                updated_person = self.update_sync(existing.id, PersonUpdate(**updates))
+                return updated_person or existing, False
+
+            return existing, False
+
+        # No match found - Create new
         new_person = self.create_sync(person_data)
         return new_person, True
 

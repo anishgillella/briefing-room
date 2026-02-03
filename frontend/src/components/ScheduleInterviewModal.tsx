@@ -15,6 +15,7 @@ import {
 import {
   getAvailableSlots,
   scheduleInterview,
+  rescheduleInterview,
   TimeSlot,
   TIMEZONES,
   formatTime,
@@ -32,7 +33,15 @@ interface ScheduleInterviewModalProps {
   jobId: string;
   jobTitle: string;
   stage?: string;
+  allowStageSelection?: boolean;
+  existingInterviews?: { stage: string; status: string; id: string; scheduled_at: string }[];
 }
+
+const STAGES = [
+  { value: "round_1", label: "Round 1" },
+  { value: "round_2", label: "Round 2" },
+  { value: "round_3", label: "Round 3" },
+];
 
 export default function ScheduleInterviewModal({
   isOpen,
@@ -42,10 +51,13 @@ export default function ScheduleInterviewModal({
   candidateName,
   jobId,
   jobTitle,
-  stage = "round_1",
+  stage: initialStage = "round_1",
+  allowStageSelection = false,
+  existingInterviews = [],
 }: ScheduleInterviewModalProps) {
   // State
   const [step, setStep] = useState<"interviewer" | "datetime" | "confirm">("interviewer");
+  const [stage, setStage] = useState(initialStage);
   const [interviewers, setInterviewers] = useState<Interviewer[]>([]);
   const [selectedInterviewer, setSelectedInterviewer] = useState<Interviewer | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -58,6 +70,10 @@ export default function ScheduleInterviewModal({
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  // Update validation for existing interview
+  const existingInterview = existingInterviews.find(i => i.stage === stage && i.status !== 'cancelled');
+  const isRescheduling = !!existingInterview;
 
   // Load interviewers
   useEffect(() => {
@@ -111,17 +127,28 @@ export default function ScheduleInterviewModal({
     setError(null);
 
     try {
-      await scheduleInterview({
-        candidate_id: candidateId,
-        job_posting_id: jobId,
-        interviewer_id: selectedInterviewer.id,
-        stage,
-        scheduled_at: selectedSlot.start,
-        duration_minutes: duration,
-        timezone,
-        interview_type: "live",
-        notes: notes || undefined,
-      });
+      if (isRescheduling && existingInterview) {
+        // Reschedule existing
+        await rescheduleInterview(
+          existingInterview.id,
+          selectedSlot.start,
+          selectedInterviewer.id,
+          notes || "Rescheduled by user"
+        );
+      } else {
+        // Schedule new
+        await scheduleInterview({
+          candidate_id: candidateId,
+          job_posting_id: jobId,
+          interviewer_id: selectedInterviewer.id,
+          stage,
+          scheduled_at: selectedSlot.start,
+          duration_minutes: duration,
+          timezone,
+          interview_type: "live",
+          notes: notes || undefined,
+        });
+      }
 
       setSuccess(true);
       setTimeout(() => {
@@ -206,11 +233,10 @@ export default function ScheduleInterviewModal({
                       <button
                         key={interviewer.id}
                         onClick={() => setSelectedInterviewer(interviewer)}
-                        className={`w-full p-4 rounded-xl border transition-all text-left ${
-                          selectedInterviewer?.id === interviewer.id
-                            ? "border-indigo-500 bg-indigo-500/10"
-                            : "border-white/10 hover:border-white/20 bg-white/5"
-                        }`}
+                        className={`w-full p-4 rounded-xl border transition-all text-left ${selectedInterviewer?.id === interviewer.id
+                          ? "border-indigo-500 bg-indigo-500/10"
+                          : "border-white/10 hover:border-white/20 bg-white/5"
+                          }`}
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
@@ -228,6 +254,38 @@ export default function ScheduleInterviewModal({
                       </button>
                     ))}
                   </div>
+
+                  {/* Stage Selection */}
+                  {allowStageSelection && (
+                    <div className="mb-4">
+                      <label className="block text-sm text-white/60 mb-2">Interview Round</label>
+                      <select
+                        value={stage}
+                        onChange={(e) => setStage(e.target.value)}
+                        className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-indigo-500"
+                      >
+                        {STAGES.map((s) => (
+                          <option key={s.value} value={s.value}>{s.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Reschedule Warning */}
+                  {isRescheduling && (
+                    <div className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl flex items-start gap-3">
+                      <AlertCircle className="w-5 h-5 text-yellow-500 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium text-yellow-500">Already Scheduled</p>
+                        <p className="text-xs text-yellow-200/60 mt-0.5">
+                          {existingInterview?.scheduled_at
+                            ? `Scheduled for ${new Date(existingInterview.scheduled_at).toLocaleDateString()}`
+                            : 'This round is already scheduled.'}
+                          {' '}Proceeding will reschedule it.
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Duration & Timezone */}
                   <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
@@ -329,11 +387,10 @@ export default function ScheduleInterviewModal({
                             <button
                               key={idx}
                               onClick={() => setSelectedSlot(slot)}
-                              className={`p-3 rounded-lg border text-sm font-medium transition-all ${
-                                selectedSlot === slot
-                                  ? "border-indigo-500 bg-indigo-500/20 text-indigo-300"
-                                  : "border-white/10 hover:border-white/20 text-white/70 hover:text-white"
-                              }`}
+                              className={`p-3 rounded-lg border text-sm font-medium transition-all ${selectedSlot === slot
+                                ? "border-indigo-500 bg-indigo-500/20 text-indigo-300"
+                                : "border-white/10 hover:border-white/20 text-white/70 hover:text-white"
+                                }`}
                             >
                               {timeStr}
                             </button>

@@ -994,7 +994,7 @@ export default function AuthPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
-      router.push("/jobs");
+      router.push("/dashboard");
     }
   }, [isAuthenticated, authLoading, router]);
 
@@ -1014,7 +1014,7 @@ export default function AuthPage() {
     setIsSubmitting(true);
     try {
       await login({ email, password });
-      router.push("/jobs");
+      router.push("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {
@@ -1038,7 +1038,7 @@ export default function AuthPage() {
     setIsSubmitting(true);
     try {
       await signup({ name, email, password });
-      router.push("/jobs");
+      router.push("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Signup failed");
     } finally {

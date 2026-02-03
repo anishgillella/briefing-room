@@ -40,6 +40,7 @@ import {
   Eye,
 } from "lucide-react";
 import StartInterviewModal from "@/components/StartInterviewModal";
+import ScheduleInterviewModal from "@/components/ScheduleInterviewModal";
 import { tokens, springConfig, easeOutCustom } from "@/lib/design-tokens";
 
 // =============================================================================
@@ -835,40 +836,67 @@ function RoundBadge({ round, interview, score, onStart, onCancel }: RoundBadgePr
     );
   }
 
-  // SCHEDULED ROUND - Shows date/time (clean design, no action buttons)
+  // SCHEDULED ROUND - Shows date/time, now clickable to START
   if (status === "scheduled") {
+    // Check if we can start (usually true if onStart is provided)
+    const canStart = !!onStart;
+
     return (
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ ...springConfig, delay: round * 0.1 }}
-        className="flex flex-col items-center"
+        className={`relative flex flex-col items-center group ${canStart ? "cursor-pointer" : ""}`}
+        onClick={(e) => {
+          if (canStart && onStart) {
+            e.stopPropagation();
+            onStart();
+          }
+        }}
       >
         <div
-          className="w-24 h-24 rounded-2xl flex flex-col items-center justify-center"
+          className="w-24 h-24 rounded-2xl flex flex-col items-center justify-center relative overflow-hidden transition-all duration-300 group-hover:shadow-lg group-hover:shadow-indigo-500/20"
           style={{
             background: `linear-gradient(135deg, ${tokens.brandSecondary}15 0%, ${tokens.brandSecondary}08 100%)`,
             border: `2px solid ${tokens.brandSecondary}50`,
           }}
         >
-          {/* Round label */}
-          <span
-            className="text-[10px] font-semibold uppercase tracking-wider mb-1"
-            style={{ color: tokens.brandSecondary }}
-          >
-            Round {round}
-          </span>
+          {/* Default Content (Hidden on Hover if actionable) */}
+          <div className={`flex flex-col items-center transition-opacity duration-200 ${canStart ? "group-hover:opacity-0" : ""}`}>
+            {/* Round label */}
+            <span
+              className="text-[10px] font-semibold uppercase tracking-wider mb-1"
+              style={{ color: tokens.brandSecondary }}
+            >
+              Round {round}
+            </span>
 
-          {/* Clock icon */}
-          <Clock className="w-6 h-6 mb-1" style={{ color: tokens.brandSecondary }} />
+            {/* Clock icon */}
+            <Clock className="w-6 h-6 mb-1" style={{ color: tokens.brandSecondary }} />
 
-          {/* Scheduled date */}
-          <span
-            className="text-xs font-medium"
-            style={{ color: tokens.brandSecondary }}
-          >
-            {getScheduledDateDisplay()}
-          </span>
+            {/* Scheduled date */}
+            <span
+              className="text-xs font-medium"
+              style={{ color: tokens.brandSecondary }}
+            >
+              {getScheduledDateDisplay()}
+            </span>
+          </div>
+
+          {/* Hover Action (Start Interview) */}
+          {canStart && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-indigo-500/10 backdrop-blur-sm">
+              <div
+                className="w-10 h-10 rounded-full flex items-center justify-center mb-1 shadow-lg transform group-hover:scale-110 transition-transform"
+                style={{ backgroundColor: tokens.brandPrimary }}
+              >
+                <Video className="w-5 h-5 text-white ml-0.5" />
+              </div>
+              <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-wide">
+                Start
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Status label */}
@@ -927,16 +955,24 @@ function RoundBadge({ round, interview, score, onStart, onCancel }: RoundBadgePr
     );
   }
 
-  // PENDING ROUND - Dashed border, muted styling
+  // PENDING ROUND - Dashed border, muted styling, now clickable for scheduling
   return (
     <motion.div
       initial={{ scale: 0.9, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
+      whileHover={onStart ? { scale: 1.05 } : undefined}
+      whileTap={onStart ? { scale: 0.95 } : undefined}
       transition={{ ...springConfig, delay: round * 0.1 }}
-      className="flex flex-col items-center"
+      onClick={(e) => {
+        if (onStart) {
+          e.stopPropagation();
+          onStart();
+        }
+      }}
+      className={`flex flex-col items-center group ${onStart ? "cursor-pointer" : ""}`}
     >
       <div
-        className="w-24 h-24 rounded-2xl flex flex-col items-center justify-center"
+        className={`w-24 h-24 rounded-2xl flex flex-col items-center justify-center transition-colors ${onStart ? "group-hover:border-indigo-500/50 group-hover:bg-indigo-500/5" : ""}`}
         style={{
           background: tokens.bgSurface,
           border: `2px dashed ${tokens.borderSubtle}`,
@@ -944,24 +980,30 @@ function RoundBadge({ round, interview, score, onStart, onCancel }: RoundBadgePr
       >
         {/* Round label */}
         <span
-          className="text-[10px] font-semibold uppercase tracking-wider mb-2"
+          className={`text-[10px] font-semibold uppercase tracking-wider mb-2 transition-colors ${onStart ? "group-hover:text-indigo-400" : ""}`}
           style={{ color: tokens.textMuted }}
         >
           Round {round}
         </span>
 
-        {/* Placeholder dash */}
-        <div
-          className="w-8 h-0.5 rounded-full mb-2"
-          style={{ backgroundColor: tokens.borderSubtle }}
-        />
+        {/* Placeholder dash or Plus icon */}
+        {onStart ? (
+          <div className="w-8 h-8 rounded-full bg-indigo-500/10 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+            <Calendar className="w-4 h-4 text-indigo-400" />
+          </div>
+        ) : (
+          <div
+            className="w-8 h-0.5 rounded-full mb-2"
+            style={{ backgroundColor: tokens.borderSubtle }}
+          />
+        )}
 
         {/* Not scheduled text */}
         <span
-          className="text-[10px] font-medium"
+          className={`text-[10px] font-medium transition-colors ${onStart ? "group-hover:text-indigo-400" : ""}`}
           style={{ color: tokens.textMuted }}
         >
-          Not Scheduled
+          {onStart ? "Schedule Now" : "Not Scheduled"}
         </span>
       </div>
 
@@ -1058,6 +1100,7 @@ interface CandidateInterviewCardProps {
   onViewProfile: () => void;
   onStartInterview: (interview: Interview) => void;
   onCancelInterview: (interviewId: string) => void;
+  onScheduleInterview: (candidateId: string, candidateName: string, jobId: string, jobTitle: string, stage: string) => void;
   index: number;
 }
 
@@ -1066,6 +1109,7 @@ function CandidateInterviewCard({
   onViewProfile,
   onStartInterview,
   onCancelInterview,
+  onScheduleInterview,
   index,
 }: CandidateInterviewCardProps) {
   const overallStatusStyles: Record<string, { bg: string; text: string; label: string }> = {
@@ -1196,7 +1240,7 @@ function CandidateInterviewCard({
               round={1}
               interview={group.rounds.round_1}
               score={group.scores.round_1}
-              onStart={group.rounds.round_1 ? () => onStartInterview(group.rounds.round_1!) : undefined}
+              onStart={group.rounds.round_1 ? () => onStartInterview(group.rounds.round_1!) : () => onScheduleInterview(group.candidate_id, group.candidate_name, group.job_id || "", group.job_title || "", "round_1")}
               onCancel={group.rounds.round_1 ? () => onCancelInterview(group.rounds.round_1!.id) : undefined}
             />
 
@@ -1210,7 +1254,7 @@ function CandidateInterviewCard({
               round={2}
               interview={group.rounds.round_2}
               score={group.scores.round_2}
-              onStart={group.rounds.round_2 ? () => onStartInterview(group.rounds.round_2!) : undefined}
+              onStart={group.rounds.round_2 ? () => onStartInterview(group.rounds.round_2!) : () => onScheduleInterview(group.candidate_id, group.candidate_name, group.job_id || "", group.job_title || "", "round_2")}
               onCancel={group.rounds.round_2 ? () => onCancelInterview(group.rounds.round_2!.id) : undefined}
             />
 
@@ -1224,7 +1268,7 @@ function CandidateInterviewCard({
               round={3}
               interview={group.rounds.round_3}
               score={group.scores.round_3}
-              onStart={group.rounds.round_3 ? () => onStartInterview(group.rounds.round_3!) : undefined}
+              onStart={group.rounds.round_3 ? () => onStartInterview(group.rounds.round_3!) : () => onScheduleInterview(group.candidate_id, group.candidate_name, group.job_id || "", group.job_title || "", "round_3")}
               onCancel={group.rounds.round_3 ? () => onCancelInterview(group.rounds.round_3!.id) : undefined}
             />
           </div>
@@ -1556,12 +1600,8 @@ export default function InterviewsPage() {
   const [cancelReason, setCancelReason] = useState("");
 
   // Start interview modal
-  const [startModalOpen, setStartModalOpen] = useState(false);
-  const [selectedInterviewForStart, setSelectedInterviewForStart] = useState<{
-    candidateId: string;
-    candidateName: string;
-    jobTitle: string;
-  } | null>(null);
+  const [showStartModal, setShowStartModal] = useState(false);
+  const [stagedInterview, setStagedInterview] = useState<Interview | null>(null);
 
   // React Query hooks
   const {
@@ -1637,6 +1677,20 @@ export default function InterviewsPage() {
     (selectedJob ? 1 : 0) +
     (dateFrom ? 1 : 0) +
     (dateTo ? 1 : 0);
+
+  const [scheduleData, setScheduleData] = useState<{
+    candidateId: string;
+    candidateName: string;
+    jobId: string;
+    jobTitle: string;
+    stage: string;
+  } | null>(null);
+
+  // ... (keep existing effects)
+
+  const handleScheduleInterview = (candidateId: string, candidateName: string, jobId: string, jobTitle: string, stage: string) => {
+    setScheduleData({ candidateId, candidateName, jobId, jobTitle, stage });
+  };
 
   // Filter interviews by search query (client-side)
   const filteredInterviews = useMemo(() => {
@@ -1878,16 +1932,13 @@ export default function InterviewsPage() {
                     if (group.job_id) {
                       router.push(`/jobs/${group.job_id}/candidates/${group.candidate_id}`);
                     } else {
-                      router.push(`/candidates/${group.candidate_id}`);
+                      router.push(`/talent-pool/${group.candidate_id}`);
                     }
                   }}
+                  onScheduleInterview={handleScheduleInterview}
                   onStartInterview={(interview) => {
-                    setSelectedInterviewForStart({
-                      candidateId: interview.candidate_id,
-                      candidateName: interview.candidate_name || "Unknown Candidate",
-                      jobTitle: interview.job_title || "",
-                    });
-                    setStartModalOpen(true);
+                    setStagedInterview(interview);
+                    setShowStartModal(true);
                   }}
                   onCancelInterview={(interviewId) => {
                     setCancellingId(interviewId);
@@ -1984,16 +2035,51 @@ export default function InterviewsPage() {
       </AnimatePresence>
 
       {/* Start Interview Modal */}
+      {/* Start Interview Modal (now with "Manage Interview" flow) */}
       <StartInterviewModal
-        isOpen={startModalOpen}
+        isOpen={showStartModal}
         onClose={() => {
-          setStartModalOpen(false);
-          setSelectedInterviewForStart(null);
+          setShowStartModal(false);
+          setStagedInterview(null);
         }}
-        candidateId={selectedInterviewForStart?.candidateId || ""}
-        candidateName={selectedInterviewForStart?.candidateName || ""}
-        jobTitle={selectedInterviewForStart?.jobTitle || ""}
+        candidateId={stagedInterview?.candidate_id || ""}
+        candidateName={stagedInterview?.candidate_name || ""}
+        jobTitle={stagedInterview?.job_title || ""}
+        onReschedule={() => {
+          // Transition from Start Modal -> Schedule Modal (Edit Mode)
+          if (stagedInterview) {
+            // Cast to any to access potentially deeper properties or avoid strict type checks for now
+            const interview = stagedInterview as any;
+
+            setScheduleData({
+              candidateId: interview.candidate_id,
+              candidateName: interview.candidate_name,
+              jobId: interview.job_id,
+              jobTitle: interview.job_title,
+              stage: interview.round_key || "round_1",
+            });
+            setShowStartModal(false);
+            // setScheduleData being non-null triggers the modal to open
+          }
+        }}
       />
+
+      {scheduleData && (
+        <ScheduleInterviewModal
+          isOpen={true}
+          onClose={() => setScheduleData(null)}
+          onScheduled={() => {
+            refetch();
+            setScheduleData(null);
+          }}
+          candidateId={scheduleData.candidateId}
+          candidateName={scheduleData.candidateName}
+          jobId={scheduleData.jobId}
+          jobTitle={scheduleData.jobTitle}
+          stage={scheduleData.stage}
+          allowStageSelection={false}
+        />
+      )}
     </AppLayout>
   );
 }

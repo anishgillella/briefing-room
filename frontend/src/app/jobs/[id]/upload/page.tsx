@@ -40,6 +40,8 @@ export default function JobUploadPage({ params }: { params: Promise<{ id: string
   const [success, setSuccess] = useState(false);
   const [processedCount, setProcessedCount] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [uploadMode, setUploadMode] = useState<"file" | "paste">("file");
+  const [pastedContent, setPastedContent] = useState("");
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -117,7 +119,16 @@ export default function JobUploadPage({ params }: { params: Promise<{ id: string
   };
 
   const handleUpload = async () => {
-    if (!file || !job) return;
+    if (!job) return;
+
+    let fileToUpload = file;
+
+    if (uploadMode === "paste") {
+      if (!pastedContent) return;
+      fileToUpload = new File([pastedContent], "pasted_candidates.csv", { type: "text/csv" });
+    }
+
+    if (!fileToUpload) return;
 
     try {
       setUploading(true);
@@ -125,7 +136,7 @@ export default function JobUploadPage({ params }: { params: Promise<{ id: string
       setUploadProgress("Uploading file...");
 
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", fileToUpload);
       formData.append("job_id", job.id);
 
       const response = await fetch(`${API_URL}/api/jobs/${job.id}/candidates/upload`, {
@@ -136,9 +147,14 @@ export default function JobUploadPage({ params }: { params: Promise<{ id: string
 
       if (response.ok) {
         const result = await response.json();
-        setProcessedCount(result.created || result.total_processed || 0);
-        setSuccess(true);
-        setUploadProgress("Processing complete!");
+
+        if (result.errors && result.errors.length > 0) {
+          setError(`Processed ${result.total_processed} candidates with ${result.errors.length} errors: ${result.errors[0]}`);
+        } else {
+          setProcessedCount(result.created || result.total_processed || 0);
+          setSuccess(true);
+          setUploadProgress("Processing complete!");
+        }
       } else {
         const err = await response.json();
         setError(err.detail || "Upload failed");
@@ -255,12 +271,42 @@ export default function JobUploadPage({ params }: { params: Promise<{ id: string
           </motion.div>
         ) : (
           <div className="space-y-6">
+            {/* Upload Mode Toggle */}
+            <div className="flex p-1 rounded-xl mb-6 mx-auto max-w-sm" style={{ backgroundColor: tokens.bgCard, border: `1px solid ${tokens.borderSubtle}` }}>
+              <button
+                onClick={() => {
+                  setUploadMode("file");
+                  setError(null);
+                }}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${uploadMode === "file" ? "text-white shadow-sm" : "text-white/50 hover:text-white/70"
+                  }`}
+                style={{
+                  backgroundColor: uploadMode === "file" ? tokens.bgSurface : "transparent",
+                }}
+              >
+                File Upload
+              </button>
+              <button
+                onClick={() => {
+                  setUploadMode("paste");
+                  setError(null);
+                }}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${uploadMode === "paste" ? "text-white shadow-sm" : "text-white/50 hover:text-white/70"
+                  }`}
+                style={{
+                  backgroundColor: uploadMode === "paste" ? tokens.bgSurface : "transparent",
+                }}
+              >
+                Paste CSV
+              </button>
+            </div>
+
             {/* Error Alert */}
             {error && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-3 p-4 rounded-xl"
+                className="flex items-center gap-3 p-4 rounded-xl mb-6"
                 style={{
                   backgroundColor: tokens.statusDangerBg,
                   border: `1px solid ${tokens.statusDanger}30`,
@@ -271,91 +317,118 @@ export default function JobUploadPage({ params }: { params: Promise<{ id: string
               </motion.div>
             )}
 
-            {/* Drop Zone */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1, ease: easeOutCustom }}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              className="rounded-3xl p-12 text-center border-2 border-dashed transition-all cursor-pointer"
-              style={{
-                backgroundColor: isDragging
-                  ? `${tokens.brandPrimary}10`
-                  : file
-                  ? `${tokens.statusSuccess}08`
-                  : tokens.bgSurface,
-                borderColor: isDragging
-                  ? tokens.brandPrimary
-                  : file
-                  ? `${tokens.statusSuccess}50`
-                  : tokens.borderDefault,
-              }}
-            >
-              {file ? (
-                <div className="flex items-center justify-center gap-4">
-                  <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center"
-                    style={{ backgroundColor: tokens.statusSuccessBg }}
-                  >
-                    <FileText className="w-6 h-6" style={{ color: tokens.statusSuccess }} />
+            {/* Upload Area */}
+            {uploadMode === "file" ? (
+              <motion.div
+                key="file-upload"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, ease: easeOutCustom }}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className="rounded-3xl p-12 text-center border-2 border-dashed transition-all cursor-pointer"
+                style={{
+                  backgroundColor: isDragging
+                    ? `${tokens.brandPrimary}10`
+                    : file
+                      ? `${tokens.statusSuccess}08`
+                      : tokens.bgSurface,
+                  borderColor: isDragging
+                    ? tokens.brandPrimary
+                    : file
+                      ? `${tokens.statusSuccess}50`
+                      : tokens.borderDefault,
+                }}
+              >
+                {file ? (
+                  <div className="flex items-center justify-center gap-4">
+                    <div
+                      className="w-12 h-12 rounded-xl flex items-center justify-center"
+                      style={{ backgroundColor: tokens.statusSuccessBg }}
+                    >
+                      <FileText className="w-6 h-6" style={{ color: tokens.statusSuccess }} />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-medium" style={{ color: tokens.textPrimary }}>{file.name}</p>
+                      <p className="text-sm" style={{ color: tokens.textMuted }}>
+                        {(file.size / 1024).toFixed(1)} KB
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setFile(null)}
+                      className="p-2 rounded-lg transition-colors"
+                      style={{ backgroundColor: tokens.bgCard }}
+                    >
+                      <X className="w-5 h-5" style={{ color: tokens.textMuted }} />
+                    </button>
                   </div>
-                  <div className="text-left">
-                    <p className="font-medium" style={{ color: tokens.textPrimary }}>{file.name}</p>
-                    <p className="text-sm" style={{ color: tokens.textMuted }}>
-                      {(file.size / 1024).toFixed(1)} KB
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setFile(null)}
-                    className="p-2 rounded-lg transition-colors"
-                    style={{ backgroundColor: tokens.bgCard }}
-                  >
-                    <X className="w-5 h-5" style={{ color: tokens.textMuted }} />
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <div
-                    className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6"
-                    style={{ backgroundColor: tokens.brandGlow }}
-                  >
-                    <Upload className="w-8 h-8" style={{ color: tokens.brandPrimary }} />
-                  </div>
-                  <h3 className="text-xl font-medium mb-2" style={{ color: tokens.textPrimary }}>
-                    Drop your CSV file here
-                  </h3>
-                  <p className="mb-6" style={{ color: tokens.textMuted }}>or click to browse</p>
-                  <input
-                    type="file"
-                    accept=".csv"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                    id="file-input"
-                  />
-                  <label
-                    htmlFor="file-input"
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium cursor-pointer transition-colors"
+                ) : (
+                  <>
+                    <div
+                      className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6"
+                      style={{ backgroundColor: tokens.brandGlow }}
+                    >
+                      <Upload className="w-8 h-8" style={{ color: tokens.brandPrimary }} />
+                    </div>
+                    <h3 className="text-xl font-medium mb-2" style={{ color: tokens.textPrimary }}>
+                      Drop your CSV file here
+                    </h3>
+                    <p className="mb-6" style={{ color: tokens.textMuted }}>or click to browse</p>
+                    <input
+                      type="file"
+                      accept=".csv"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                      id="file-input"
+                    />
+                    <label
+                      htmlFor="file-input"
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium cursor-pointer transition-colors"
+                      style={{
+                        backgroundColor: tokens.bgCard,
+                        border: `1px solid ${tokens.borderDefault}`,
+                        color: tokens.textSecondary,
+                      }}
+                    >
+                      <FileText className="w-4 h-4" />
+                      Browse Files
+                    </label>
+                  </>
+                )}
+              </motion.div>
+            ) : (
+              <motion.div
+                key="paste-upload"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, ease: easeOutCustom }}
+              >
+                <div className="relative">
+                  <textarea
+                    value={pastedContent}
+                    onChange={(e) => setPastedContent(e.target.value)}
+                    placeholder="name,email,linkedin_url,resume&#10;John Doe,john@example.com,https://linkedin.com/in/johndoe,..."
+                    className="w-full h-80 rounded-3xl p-6 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none"
                     style={{
-                      backgroundColor: tokens.bgCard,
+                      backgroundColor: tokens.bgSurface,
                       border: `1px solid ${tokens.borderDefault}`,
-                      color: tokens.textSecondary,
+                      color: tokens.textPrimary,
                     }}
-                  >
-                    <FileText className="w-4 h-4" />
-                    Browse Files
-                  </label>
-                </>
-              )}
-            </motion.div>
+                  />
+                  <div className="absolute bottom-4 right-4 text-xs" style={{ color: tokens.textMuted }}>
+                    {pastedContent ? `${pastedContent.split('\n').filter(l => l.trim()).length - 1} candidates detected` : 'Paste CSV content'}
+                  </div>
+                </div>
+              </motion.div>
+            )}
 
             {/* CSV Format Guide */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.2, ease: easeOutCustom }}
-              className="rounded-2xl p-6"
+              className="rounded-2xl p-6 mt-6"
               style={{
                 backgroundColor: tokens.bgSurface,
                 border: `1px solid ${tokens.borderDefault}`,
@@ -393,7 +466,7 @@ export default function JobUploadPage({ params }: { params: Promise<{ id: string
                   className="p-3 rounded-lg"
                   style={{ backgroundColor: tokens.bgCard }}
                 >
-                  <code style={{ color: tokens.brandSecondary }}>resume_text</code>
+                  <code style={{ color: tokens.brandSecondary }}>resume</code>
                   <span className="ml-2" style={{ color: tokens.textMuted }}>(optional)</span>
                 </div>
               </div>
@@ -404,7 +477,7 @@ export default function JobUploadPage({ params }: { params: Promise<{ id: string
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.3, ease: easeOutCustom }}
-              className="flex items-center justify-end gap-4"
+              className="flex items-center justify-end gap-4 mt-6"
             >
               <Link
                 href={`/jobs/${resolvedParams.id}`}
@@ -421,12 +494,12 @@ export default function JobUploadPage({ params }: { params: Promise<{ id: string
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleUpload}
-                disabled={!file || uploading}
+                disabled={uploadMode === "file" ? (!file || uploading) : (!pastedContent || uploading)}
                 className="flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{
-                  background: file && !uploading ? tokens.gradientPrimary : tokens.bgCard,
-                  color: file && !uploading ? "#fff" : tokens.textMuted,
-                  border: file && !uploading ? "none" : `1px solid ${tokens.borderDefault}`,
+                  background: (uploadMode === "file" ? file : pastedContent) && !uploading ? tokens.gradientPrimary : tokens.bgCard,
+                  color: (uploadMode === "file" ? file : pastedContent) && !uploading ? "#fff" : tokens.textMuted,
+                  border: (uploadMode === "file" ? file : pastedContent) && !uploading ? "none" : `1px solid ${tokens.borderDefault}`,
                 }}
               >
                 {uploading ? (
@@ -437,7 +510,7 @@ export default function JobUploadPage({ params }: { params: Promise<{ id: string
                 ) : (
                   <>
                     <Users className="w-4 h-4" />
-                    Upload Candidates
+                    {uploadMode === "file" ? "Upload Candidates" : "Import Candidates"}
                   </>
                 )}
               </motion.button>

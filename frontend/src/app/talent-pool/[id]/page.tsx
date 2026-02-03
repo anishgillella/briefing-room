@@ -1,10 +1,14 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
+import Vapi from "@vapi-ai/web";
+import { cn } from "@/lib/utils";
+import InterviewerSelector from "@/components/InterviewerSelector";
+import { setSelectedInterviewerId } from "@/lib/interviewerApi";
 import AppLayout from "@/components/AppLayout";
 import {
   tokens,
@@ -32,6 +36,12 @@ import {
   Target,
   BarChart3,
   Award,
+  Sparkles,
+  TrendingDown,
+  Mic,
+  MicOff,
+  Loader2,
+  PlayCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/avatar";
@@ -533,6 +543,169 @@ export default function PersonDetailPage({ params }: { params: Promise<{ id: str
     person?.id
   );
 
+  // Interview & Voice State
+  const [startingInterview, setStartingInterview] = useState(false);
+  const [selectedInterviewer, setSelectedInterviewer] = useState<string | null>(null);
+  const [isVoiceActive, setIsVoiceActive] = useState(false);
+  const [isVoiceConnecting, setIsVoiceConnecting] = useState(false);
+  const [voiceTranscript, setVoiceTranscript] = useState<string[]>([]);
+  const vapiRef = useRef<Vapi | null>(null);
+
+  // Build briefing context for voice agent
+  const buildBriefingContext = useCallback(() => {
+    if (!person) return "";
+    const parts = [
+      `Candidate: ${person.name}`,
+      person.current_title ? `Current Role: ${person.current_title}` : "",
+      person.years_experience ? `Experience: ${person.years_experience} years` : "",
+      person.summary ? `Summary: ${person.summary}` : "",
+      person.skills?.length ? `Skills: ${person.skills.join(", ")}` : "",
+    ];
+    return parts.filter(Boolean).join("\n");
+  }, [person]);
+
+  // Start voice agent
+  const startVoiceAgent = useCallback(async () => {
+    const vapiKey = process.env.NEXT_PUBLIC_VAPI_WEB_KEY;
+    const assistantId = process.env.NEXT_PUBLIC_VAPI_BRIEFING_ASSISTANT_ID;
+
+    if (!vapiKey) {
+      alert("Voice AI not configured. Add NEXT_PUBLIC_VAPI_WEB_KEY to .env.local");
+      return;
+    }
+
+    setIsVoiceConnecting(true);
+    setVoiceTranscript([]);
+
+    try {
+      const vapi = new Vapi(vapiKey);
+      vapiRef.current = vapi;
+
+      vapi.on("call-start", () => {
+        setIsVoiceConnecting(false);
+        setIsVoiceActive(true);
+        setVoiceTranscript((prev) => [
+          ...prev,
+          "Voice assistant connected. Ask me anything about this candidate!",
+        ]);
+      });
+
+      vapi.on("call-end", () => {
+        setIsVoiceActive(false);
+        setVoiceTranscript((prev) => [...prev, "Voice assistant disconnected."]);
+      });
+
+      vapi.on("message", (msg: any) => {
+        if (msg.type === "transcript" && msg.transcript) {
+          const role = msg.role === "assistant" ? "AI:" : "You:";
+          setVoiceTranscript((prev) => [...prev, `${role} ${msg.transcript}`]);
+        }
+      });
+
+      vapi.on("error", (err: any) => {
+        console.error("VAPI error:", err);
+        setIsVoiceConnecting(false);
+        setIsVoiceActive(false);
+        if (err && Object.keys(err).length > 0) {
+          setVoiceTranscript((prev) => [...prev, `Error: ${err.message || JSON.stringify(err)}`]);
+        }
+      });
+
+      const briefingContext = buildBriefingContext();
+
+      if (assistantId) {
+        await vapi.start(assistantId, {
+          variableValues: {
+            candidateName: person?.name || "the candidate",
+            briefingContext: briefingContext,
+          },
+        });
+      } else {
+        await vapi.start({
+          model: {
+            provider: "openai",
+            model: "gpt-4o-mini",
+            messages: [
+              {
+                role: "system",
+                content: `You are a helpful interview preparation assistant. You're helping a recruiter prepare for an interview with a candidate.
+
+Here's the candidate information:
+${briefingContext}
+
+Help by:
+- Answering questions about the candidate's background
+- Suggesting probing questions based on their experience
+- Highlighting concerns or red flags to explore
+- Providing interviewing tips specific to this candidate
+
+Be concise and helpful. The recruiter has limited time before the interview.`,
+              },
+            ],
+          },
+          voice: {
+            provider: "11labs",
+            voiceId: "21m00Tcm4TlvDq8ikWAM",
+          },
+          firstMessage: `Hi! I'm ready to help you prepare for your interview with ${person?.name || "this candidate"}. What would you like to know?`,
+        });
+      }
+    } catch (err) {
+      console.error("Voice agent failed:", err);
+      setIsVoiceConnecting(false);
+      const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+      alert(`Failed to start voice AI: ${errorMsg}`);
+    }
+  }, [person, buildBriefingContext]);
+
+  // Stop voice agent
+  const stopVoiceAgent = useCallback(() => {
+    if (vapiRef.current) {
+      vapiRef.current.stop();
+      vapiRef.current = null;
+    }
+    setIsVoiceActive(false);
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (vapiRef.current) {
+        vapiRef.current.stop();
+      }
+    };
+  }, []);
+
+  const handleVoiceToggle = () => {
+    if (isVoiceActive) {
+      stopVoiceAgent();
+    } else {
+      startVoiceAgent();
+    }
+  };
+
+  const handleStartInterview = async () => {
+    setStartingInterview(true);
+    try {
+      const res = await fetch(`${API_URL}/api/pluto/talent-pool/${resolvedParams.id}/interview/start`, {
+        method: "POST",
+        headers: getAuthHeaders(), // Added auth headers
+      });
+      if (res.ok) {
+        const data = await res.json();
+        // Use legacy route for now, or update if route is ported
+        router.push(`/talent-pool/${resolvedParams.id}/interview?room=${data.room_name}`);
+      } else {
+        const data = await res.json();
+        alert(data.detail || "Failed to start interview");
+      }
+    } catch (e) {
+      alert("Failed to start interview");
+    } finally {
+      setStartingInterview(false);
+    }
+  };
+
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       router.push("/login");
@@ -643,6 +816,74 @@ export default function PersonDetailPage({ params }: { params: Promise<{ id: str
               <ArrowLeft className="w-4 h-4" />
               Back to Talent Pool
             </Link>
+
+            <div className="flex gap-3 items-center">
+              {/* Voice indicator */}
+              <AnimatePresence>
+                {isVoiceActive && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-indigo-500/20 border border-indigo-500/30 rounded-full"
+                  >
+                    <motion.div
+                      className="w-2 h-2 bg-indigo-400 rounded-full"
+                      animate={{ opacity: [1, 0.4, 1] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                    />
+                    <span className="text-sm text-indigo-300">AI Listening...</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Voice AI Button */}
+              <Button
+                variant={isVoiceActive ? "danger" : "secondary"}
+                size="sm"
+                onClick={handleVoiceToggle}
+                disabled={isVoiceConnecting}
+                leftIcon={
+                  isVoiceConnecting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : isVoiceActive ? (
+                    <MicOff className="w-4 h-4" />
+                  ) : (
+                    <Mic className="w-4 h-4" />
+                  )
+                }
+              >
+                {isVoiceConnecting ? "Connecting..." : isVoiceActive ? "Stop AI" : "Ask AI"}
+              </Button>
+
+              {/* Interviewer Selector */}
+              <div className="hidden md:block">
+                <InterviewerSelector
+                  label="As"
+                  onInterviewerChange={(id) => {
+                    setSelectedInterviewer(id);
+                    setSelectedInterviewerId(id);
+                  }}
+                  className="min-w-[140px]"
+                />
+              </div>
+
+              {/* Start Interview */}
+              <Button
+                variant="primary"
+                onClick={handleStartInterview}
+                disabled={startingInterview || !selectedInterviewer}
+                leftIcon={
+                  startingInterview ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <PlayCircle className="w-5 h-5" />
+                  )
+                }
+              >
+                Start Interview
+              </Button>
+            </div>
           </motion.div>
 
           {/* Profile Hero Card */}
@@ -957,6 +1198,93 @@ export default function PersonDetailPage({ params }: { params: Promise<{ id: str
           </div>
         </div>
       </div>
+      {/* Floating Voice Assistant Panel */}
+      <AnimatePresence>
+        {(isVoiceActive || voiceTranscript.length > 0) && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={springConfig}
+            className="fixed bottom-6 right-6 w-96 max-h-[400px] backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden z-50"
+            style={{
+              backgroundColor: `${tokens.bgCard}f5`,
+              border: `1px solid ${tokens.brandPrimary}30`,
+              boxShadow: `0 25px 50px -12px ${tokens.brandPrimary}20`,
+            }}
+          >
+            <div
+              className="p-4 flex items-center justify-between"
+              style={{ borderBottom: `1px solid ${tokens.borderSubtle}` }}
+            >
+              <div className="flex items-center gap-3">
+                <motion.div
+                  className={cn(
+                    "w-3 h-3 rounded-full",
+                    isVoiceActive ? "bg-indigo-400" : "bg-zinc-500"
+                  )}
+                  animate={isVoiceActive ? { opacity: [1, 0.4, 1] } : {}}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                />
+                <span className="font-semibold text-white">Voice Assistant</span>
+              </div>
+              <div className="flex gap-2">
+                {isVoiceActive && (
+                  <Button variant="danger" size="sm" onClick={stopVoiceAgent}>
+                    Stop
+                  </Button>
+                )}
+                {!isVoiceActive && voiceTranscript.length > 0 && (
+                  <Button variant="ghost" size="sm" onClick={() => setVoiceTranscript([])}>
+                    Clear
+                  </Button>
+                )}
+              </div>
+            </div>
+            <div className="p-4 max-h-[320px] overflow-y-auto space-y-2">
+              {voiceTranscript.length === 0 && !isVoiceActive && (
+                <p className="text-zinc-500 text-sm text-center py-4">
+                  Click &quot;Ask AI&quot; to start voice assistant
+                </p>
+              )}
+              {voiceTranscript.map((line, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.05 }}
+                  className={cn(
+                    "text-sm",
+                    line.startsWith("AI:")
+                      ? "text-indigo-300"
+                      : line.startsWith("You:")
+                        ? "text-white"
+                        : line.includes("connected")
+                          ? "text-emerald-400"
+                          : line.includes("disconnected")
+                            ? "text-amber-400"
+                            : line.includes("Error")
+                              ? "text-red-400"
+                              : "text-zinc-400"
+                  )}
+                >
+                  {line}
+                </motion.div>
+              ))}
+              {isVoiceActive && (
+                <motion.div
+                  className="flex items-center gap-2 text-indigo-400 text-sm"
+                  animate={{ opacity: [1, 0.5, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  <Mic className="w-4 h-4" />
+                  <span>Listening...</span>
+                </motion.div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </AppLayout>
   );
 }

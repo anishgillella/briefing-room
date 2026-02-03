@@ -692,7 +692,7 @@ function InterviewPageContent() {
     // Fetch candidate data (called on mount for role selection screen)
     const fetchCandidateData = async () => {
         try {
-            const candidateRes = await fetch(`${API_URL}/api/pluto/candidates/${candidateId}`);
+            const candidateRes = await fetch(`${API_URL}/api/pluto/talent-pool/${candidateId}`);
             if (!candidateRes.ok) throw new Error("Failed to fetch candidate");
             const candidateData = await candidateRes.json();
             setCandidate(candidateData);
@@ -700,7 +700,7 @@ function InterviewPageContent() {
 
             // Fetch Prebrief
             try {
-                const prebriefRes = await fetch(`${API_URL}/api/pluto/candidates/${candidateId}/prebrief`);
+                const prebriefRes = await fetch(`${API_URL}/api/pluto/talent-pool/${candidateId}/prebrief`);
                 if (prebriefRes.ok) {
                     const prebriefData = await prebriefRes.json();
                     setPrebrief(prebriefData.prebrief || prebriefData);
@@ -726,7 +726,7 @@ function InterviewPageContent() {
             setViewMode(role); // Sync viewMode with selected role
 
             // Start interview (creates LiveKit room) with role parameter
-            const startRes = await fetch(`${API_URL}/api/pluto/candidates/${candidateId}/interview/start?role=${role}`, {
+            const startRes = await fetch(`${API_URL}/api/pluto/talent-pool/${candidateId}/interview/start?role=${role}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
             });
@@ -981,7 +981,7 @@ function InterviewPageContent() {
                     .map(t => `${t.speaker}: ${t.text}`)
                     .join("\n");
 
-                const res = await fetch(`${API_URL}/api/pluto/candidates/${candidateId}/analytics`, {
+                const res = await fetch(`${API_URL}/api/pluto/talent-pool/${candidateId}/analytics`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ transcript: transcriptText }),

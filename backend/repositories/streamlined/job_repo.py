@@ -142,9 +142,8 @@ class JobRepository:
             for job in jobs:
                 job.candidate_count = counts_map.get(str(job.id), 0)
                 job.interviewed_count = interviewed_map.get(str(job.id), 0)
-                # Stage counts still need per-job queries due to custom stages
-                # but this is acceptable as it's O(n) not O(3n)
-                job.stage_counts = self._get_stage_counts_sync(job.id, job.interview_stages)
+            # Batch fetch stage counts
+            self._populate_batch_stage_counts_sync(jobs)
 
         return jobs
 
@@ -183,8 +182,8 @@ class JobRepository:
         for job in jobs:
             job.candidate_count = counts_map.get(str(job.id), 0)
             job.interviewed_count = interviewed_map.get(str(job.id), 0)
-            # Stage counts use per-job query but it's optimized (single query per job)
-            job.stage_counts = self._get_stage_counts_sync(job.id, job.interview_stages)
+            # Batch fetch stage counts
+            self._populate_batch_stage_counts_sync(jobs)
 
         return jobs
 
@@ -1099,3 +1098,74 @@ class JobRepository:
 
         return stage_counts
 
+    def _populate_batch_stage_counts_sync(self, jobs: List[Job]) -> None:
+        """
+        Populate stage_counts for a list of jobs using a SINGLE database query.
+        
+        Args:
+            jobs: List of Job objects to populate
+        """
+        if not jobs:
+            return
+
+        job_ids = [str(job.id) for job in jobs]
+
+        # Single query: fetch all pipeline statuses for these jobs
+        result = self.client.table("candidates")\
+            .select("job_posting_id, pipeline_status")\
+            .in_("job_posting_id", job_ids)\
+            .execute()
+
+        # Group statuses by job_id
+        # {job_id: {"new": 5, "round_1": 2, ...}}
+        job_status_counts: Dict[str, Dict[str, int]] = {jid: {} for jid in job_ids}
+        
+        for row in result.data:
+            jid = row.get("job_posting_id")
+            if not jid:
+                continue
+            
+            status = row.get("pipeline_status") or "new"
+            if jid in job_status_counts:
+                job_status_counts[jid][status] = job_status_counts[jid].get(status, 0) + 1
+
+        # Calculate stage counts for each job
+        for job in jobs:
+            jid = str(job.id)
+            status_counts = job_status_counts.get(jid, {})
+            interview_stages = job.interview_stages
+            
+            stage_counts = []
+
+            # 1. Screen stage
+            screen_count = status_counts.get("new", 0)
+            stage_counts.append(StageCount(
+                stage_key="new",
+                stage_name="Screen",
+                count=screen_count
+            ))
+
+            # 2. Interview stages
+            for i, stage_name in enumerate(interview_stages):
+                legacy_status = f"round_{i + 1}" if i < 3 else None
+                new_status = f"stage_{i}"
+
+                count = status_counts.get(new_status, 0)
+                if legacy_status:
+                    count += status_counts.get(legacy_status, 0)
+
+                stage_counts.append(StageCount(
+                    stage_key=new_status,
+                    stage_name=stage_name,
+                    count=count
+                ))
+
+            # 3. Offer stage
+            offer_count = status_counts.get("decision_pending", 0) + status_counts.get("accepted", 0)
+            stage_counts.append(StageCount(
+                stage_key="offer",
+                stage_name="Offer",
+                count=offer_count
+            ))
+
+            job.stage_counts = stage_counts
