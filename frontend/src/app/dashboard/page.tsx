@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useRecruiter } from "@/contexts/RecruiterContext";
+
 import { useAuth } from "@/contexts/AuthContext";
 import RecruiterSelector from "@/components/RecruiterSelector";
 import AppLayout from "@/components/AppLayout";
@@ -212,9 +212,8 @@ function CommandBar({ value, onChange }: CommandBarProps) {
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={springConfig}
-      className={`relative rounded-2xl border transition-all duration-300 ${
-        isFocused ? "ring-2 ring-indigo-500/20" : ""
-      }`}
+      className={`relative rounded-2xl border transition-all duration-300 ${isFocused ? "ring-2 ring-indigo-500/20" : ""
+        }`}
       style={{
         backgroundColor: tokens.bgSurface,
         borderColor: isFocused ? tokens.brandPrimary + "40" : tokens.borderSubtle,
@@ -630,8 +629,7 @@ function WelcomeState() {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { currentRecruiter } = useRecruiter();
-  const { isAuthenticated, isLoading: authLoading, token } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, token, recruiter } = useAuth();
 
   const [stats, setStats] = useState<RecruiterStats | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -661,33 +659,53 @@ export default function DashboardPage() {
         setLoading(true);
         const headers = getHeaders();
 
-        const statsResponse = await fetch(`${API_URL}/api/recruiters/${recruiterId}/stats`, { headers });
-        if (statsResponse.ok) {
-          const statsData = await statsResponse.json();
-          setStats(statsData);
+        // Stats - required
+        try {
+          const statsResponse = await fetch(`${API_URL}/api/recruiters/${recruiterId}/stats`, { headers });
+          if (statsResponse.ok) {
+            const statsData = await statsResponse.json();
+            setStats(statsData);
+          }
+        } catch (e) {
+          console.warn("Failed to fetch stats:", e);
         }
 
-        const jobsResponse = await fetch(`${API_URL}/api/jobs/?recruiter_id=${recruiterId}`, { headers });
-        if (jobsResponse.ok) {
-          const jobsData = await jobsResponse.json();
-          const sortedJobs = jobsData.sort((a: Job, b: Job) => {
-            if (a.status === "active" && b.status !== "active") return -1;
-            if (a.status !== "active" && b.status === "active") return 1;
-            return 0;
-          });
-          setJobs(sortedJobs.slice(0, 5));
+        // Jobs - required
+        try {
+          const jobsResponse = await fetch(`${API_URL}/api/jobs/?recruiter_id=${recruiterId}`, { headers });
+          if (jobsResponse.ok) {
+            const jobsData = await jobsResponse.json();
+            const sortedJobs = jobsData.sort((a: Job, b: Job) => {
+              if (a.status === "active" && b.status !== "active") return -1;
+              if (a.status !== "active" && b.status === "active") return 1;
+              return 0;
+            });
+            setJobs(sortedJobs.slice(0, 5));
+          }
+        } catch (e) {
+          console.warn("Failed to fetch jobs:", e);
         }
 
-        const activityResponse = await fetch(`${API_URL}/api/dashboard/activity?limit=5`, { headers });
-        if (activityResponse.ok) {
-          const activityData = await activityResponse.json();
-          setActivities(activityData.activities || []);
+        // Activity - optional, may not exist
+        try {
+          const activityResponse = await fetch(`${API_URL}/api/dashboard/activity?limit=5`, { headers });
+          if (activityResponse.ok) {
+            const activityData = await activityResponse.json();
+            setActivities(activityData.activities || []);
+          }
+        } catch {
+          // Silently ignore - endpoint may not exist
         }
 
-        const topResponse = await fetch(`${API_URL}/api/dashboard/top-candidates?limit=5`, { headers });
-        if (topResponse.ok) {
-          const topData = await topResponse.json();
-          setTopCandidates(topData.candidates || []);
+        // Top Candidates - optional, may not exist
+        try {
+          const topResponse = await fetch(`${API_URL}/api/dashboard/top-candidates?limit=5`, { headers });
+          if (topResponse.ok) {
+            const topData = await topResponse.json();
+            setTopCandidates(topData.candidates || []);
+          }
+        } catch {
+          // Silently ignore - endpoint may not exist
         }
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
@@ -700,15 +718,15 @@ export default function DashboardPage() {
   );
 
   useEffect(() => {
-    if (isAuthenticated && currentRecruiter?.id) {
-      if (fetchedForRecruiterRef.current !== currentRecruiter.id) {
+    if (isAuthenticated && recruiter?.id) {
+      if (fetchedForRecruiterRef.current !== recruiter.id) {
         fetchedForRecruiterRef.current = null;
       }
-      fetchDashboardData(currentRecruiter.id);
-    } else if (!authLoading && !currentRecruiter) {
+      fetchDashboardData(recruiter.id);
+    } else if (!authLoading && !recruiter) {
       setLoading(false);
     }
-  }, [isAuthenticated, currentRecruiter?.id, authLoading, fetchDashboardData]);
+  }, [isAuthenticated, recruiter?.id, authLoading, fetchDashboardData]);
 
   return (
     <AppLayout>
@@ -744,7 +762,7 @@ export default function DashboardPage() {
         </motion.div>
 
         <AnimatePresence mode="wait">
-          {!currentRecruiter ? (
+          {!recruiter ? (
             <WelcomeState key="welcome" />
           ) : loading ? (
             <LoadingState key="loading" />
@@ -773,7 +791,7 @@ export default function DashboardPage() {
                     transition={{ ...springConfig, delay: 0.15 }}
                     className="text-3xl font-light tracking-tight text-white mb-2"
                   >
-                    Welcome back, {currentRecruiter.name.split(" ")[0]}
+                    Welcome back, {recruiter.name.split(" ")[0]}
                   </motion.h1>
                   <motion.p
                     initial={{ opacity: 0, y: 10 }}
@@ -957,7 +975,7 @@ export default function DashboardPage() {
                             key={candidate.candidate_id}
                             candidate={candidate}
                             index={index}
-                            onClick={() => router.push(`/candidates/${candidate.candidate_id}`)}
+                            onClick={() => router.push(`/talent-pool/${candidate.candidate_id}`)}
                           />
                         ))}
                       </div>

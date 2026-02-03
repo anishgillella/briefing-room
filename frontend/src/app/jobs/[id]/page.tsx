@@ -39,6 +39,8 @@ import {
   Loader2,
   GripVertical,
   Settings,
+  Globe,
+  Trash2,
   type LucideIcon,
 } from "lucide-react";
 
@@ -116,6 +118,7 @@ interface Job {
 
 interface Candidate {
   id: string;
+  person_id: string;
   person_name: string;
   person_email?: string;
   email?: string;
@@ -308,6 +311,33 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
       }
     } catch (error) {
       console.error(`Failed to ${action} job:`, error);
+    }
+  };
+
+  const deleteCandidate = async (candidateId: string) => {
+    if (!confirm("Are you sure you want to delete this candidate? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/api/jobs/${resolvedParams.id}/candidates/${candidateId}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
+
+      if (response.ok) {
+        // Optimistic update
+        setCandidates(candidates.filter(c => c.id !== candidateId));
+        setJob(prev => prev ? ({
+          ...prev,
+          candidate_count: Math.max(0, prev.candidate_count - 1)
+        }) : null);
+      } else {
+        alert("Failed to delete candidate");
+      }
+    } catch (error) {
+      console.error("Failed to delete candidate:", error);
+      alert("Error deleting candidate");
     }
   };
 
@@ -573,6 +603,19 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                     Pause
                   </motion.button>
                 )}
+                <Link
+                  href={`/careers/${job.id}`}
+                  target="_blank"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors"
+                  style={{
+                    backgroundColor: tokens.bgSurfaceHover,
+                    color: tokens.textSecondary,
+                    border: `1px solid ${tokens.borderSubtle}`,
+                  }}
+                >
+                  <Globe className="w-4 h-4" />
+                  Public Page
+                </Link>
               </div>
             </motion.div>
 
@@ -1629,7 +1672,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                           <div
                             key={candidate.id}
                             className="flex items-center p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-colors cursor-pointer"
-                            onClick={() => router.push(`/jobs/${resolvedParams.id}/candidates/${candidate.id}`)}
+                            onClick={() => router.push(`/talent-pool/${candidate.person_id}`)}
                           >
                             <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60 font-medium mr-3">
                               {candidate.person_name?.charAt(0)?.toUpperCase() || "?"}
@@ -1666,7 +1709,19 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                                 <div className="text-xs text-white/40">Score</div>
                               </div>
                             )}
-                            <ChevronRight className="w-5 h-5 text-white/30" />
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteCandidate(candidate.id);
+                                }}
+                                className="p-2 hover:bg-white/10 rounded-lg text-white/30 hover:text-red-400 transition-colors"
+                                title="Delete Candidate"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                              <ChevronRight className="w-5 h-5 text-white/30" />
+                            </div>
                           </div>
                         );
                       })}

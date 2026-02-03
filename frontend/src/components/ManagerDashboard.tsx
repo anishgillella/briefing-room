@@ -261,28 +261,31 @@ function StuckCandidateRow({ candidate }: { candidate: StuckCandidate }) {
   const severity = getSeverity(candidate.days_stuck);
 
   return (
-    <div
-      className="flex items-center justify-between p-3 rounded-xl border"
-      style={{ backgroundColor: tokens.bgSurface, borderColor: `${severity.color}30` }}
-    >
-      <div className="flex items-center gap-3">
-        <div
-          className="w-8 h-8 rounded-full flex items-center justify-center text-white font-medium text-sm"
-          style={{ backgroundColor: `${severity.color}30` }}
-        >
-          {candidate.name.charAt(0)}
-        </div>
-        <div>
-          <div className="text-white font-medium text-sm">{candidate.name}</div>
-          <div className="text-xs capitalize" style={{ color: tokens.textMuted }}>
-            {candidate.stage.replace(/_/g, " ")}
+    <Link href={`/talent-pool/${candidate.id}`}>
+      <div
+        className="flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all hover:border-white/30 hover:bg-white/5"
+        style={{ backgroundColor: tokens.bgSurface, borderColor: `${severity.color}30` }}
+      >
+        <div className="flex items-center gap-3">
+          <div
+            className="w-8 h-8 rounded-full flex items-center justify-center text-white font-medium text-sm"
+            style={{ backgroundColor: `${severity.color}30` }}
+          >
+            {candidate.name.charAt(0)}
+          </div>
+          <div>
+            <div className="text-white font-medium text-sm">{candidate.name}</div>
+            <div className="text-xs capitalize" style={{ color: tokens.textMuted }}>
+              {candidate.stage.replace(/_/g, " ")}
+            </div>
           </div>
         </div>
+        <div className="flex items-center gap-2">
+          <div className="font-medium text-sm" style={{ color: severity.color }}>{candidate.days_stuck}d</div>
+          <ChevronRight className="w-4 h-4" style={{ color: tokens.textMuted }} />
+        </div>
       </div>
-      <div className="text-right">
-        <div className="font-medium text-sm" style={{ color: severity.color }}>{candidate.days_stuck}d</div>
-      </div>
-    </div>
+    </Link>
   );
 }
 

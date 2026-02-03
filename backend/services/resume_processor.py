@@ -66,11 +66,13 @@ async def extract_resume_data(
     if job_requirements:
         parts = []
         if hasattr(job_requirements, 'required_skills') and job_requirements.required_skills:
-            parts.append(f"Required Skills: {', '.join(job_requirements.required_skills)}")
+            skills = [s.value if hasattr(s, 'value') else str(s) for s in job_requirements.required_skills]
+            parts.append(f"Required Skills: {', '.join(skills)}")
         if hasattr(job_requirements, 'years_experience') and job_requirements.years_experience:
             parts.append(f"Experience: {job_requirements.years_experience}")
         if hasattr(job_requirements, 'preferred_skills') and job_requirements.preferred_skills:
-            parts.append(f"Preferred Skills: {', '.join(job_requirements.preferred_skills)}")
+            skills = [s.value if hasattr(s, 'value') else str(s) for s in job_requirements.preferred_skills]
+            parts.append(f"Preferred Skills: {', '.join(skills)}")
         if parts:
             job_context = "\n".join(parts)
 

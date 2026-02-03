@@ -399,17 +399,27 @@ async def schedule_interview(
         logger.warning(f"Requested slot not available, but proceeding anyway for flexibility")
         # We allow scheduling anyway - the availability is a guide, not a hard constraint
 
-    result = repo.schedule_interview(
-        candidate_id=request.candidate_id,
-        job_posting_id=request.job_posting_id,
-        interviewer_id=request.interviewer_id,
-        stage=request.stage,
-        scheduled_at=request.scheduled_at,
-        duration_minutes=request.duration_minutes,
-        timezone=request.timezone,
-        interview_type=request.interview_type,
-        notes=request.notes,
-    )
+    try:
+        result = repo.schedule_interview(
+            candidate_id=request.candidate_id,
+            job_posting_id=request.job_posting_id,
+            interviewer_id=request.interviewer_id,
+            stage=request.stage,
+            scheduled_at=request.scheduled_at,
+            duration_minutes=request.duration_minutes,
+            timezone=request.timezone,
+            interview_type=request.interview_type,
+            notes=request.notes,
+        )
+    except Exception as e:
+        # Check for unique constraint violation
+        error_str = str(e).lower()
+        if "unique" in error_str and "constraint" in error_str:
+            raise HTTPException(
+                status_code=409, 
+                detail=f"An interview for this candidate and stage ({request.stage}) is already scheduled."
+            )
+        raise e
 
     if not result:
         raise HTTPException(status_code=500, detail="Failed to schedule interview")

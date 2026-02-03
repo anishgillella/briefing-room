@@ -78,7 +78,7 @@ export default function UpcomingInterviews({
   };
 
   const handleStartInterview = (interview: ScheduledInterview) => {
-    router.push(`/candidates/${interview.candidate_id}/interview?room=${interview.room_name}`);
+    router.push(`/talent-pool/${interview.candidate_id}/interview?room=${interview.room_name}`);
   };
 
   if (loading) {
@@ -180,9 +180,9 @@ export default function UpcomingInterviews({
                             <Calendar className="w-3 h-3" />
                             {interview.scheduled_at
                               ? formatDateTime(
-                                  interview.scheduled_at,
-                                  interview.timezone
-                                )
+                                interview.scheduled_at,
+                                interview.timezone
+                              )
                               : "Not scheduled"}
                           </div>
                           <div className="flex items-center gap-1 text-slate-500">

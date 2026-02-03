@@ -31,6 +31,7 @@ import {
   Award,
   UserCheck,
   type LucideIcon,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/avatar";
@@ -373,9 +374,11 @@ function CommandBar({
 function PersonCard({
   person,
   index,
+  onDelete,
 }: {
   person: PersonSummary;
   index: number;
+  onDelete: (id: string) => void;
 }) {
   const shouldReduceMotion = useReducedMotion();
 
@@ -500,6 +503,19 @@ function PersonCard({
           </div>
         </div>
       </Link>
+
+      {/* Delete Button - Absolute positioned outside the link but inside the relative container */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete(person.id);
+        }}
+        className="absolute top-4 right-4 p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-red-500/10 hover:text-red-400"
+        style={{ color: tokens.textMuted, zIndex: 10 }}
+        title="Delete Person"
+      >
+        <Trash2 className="w-4 h-4" />
+      </button>
     </motion.div>
   );
 }
@@ -1016,6 +1032,31 @@ export default function TalentPoolPage() {
     }
   };
 
+  const deletePerson = async (personId: string) => {
+    if (!confirm("Are you sure you want to delete this person? This will delete their profile and all job applications. This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/api/talent-pool/${personId}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
+
+      if (response.ok) {
+        // Optimistic update
+        setPersons((prev) => prev.filter((p) => p.id !== personId));
+        setTotal((prev) => prev - 1);
+        setFilterOptions((prev) => prev ? { ...prev, total_persons: prev.total_persons - 1 } : null);
+      } else {
+        alert("Failed to delete person");
+      }
+    } catch (error) {
+      console.error("Failed to delete person:", error);
+      alert("Error deleting person");
+    }
+  };
+
   const clearFilters = () => {
     setSelectedSkills([]);
     setSelectedLocation("");
@@ -1206,7 +1247,7 @@ export default function TalentPoolPage() {
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {persons.map((person, index) => (
-                    <PersonCard key={person.id} person={person} index={index} />
+                    <PersonCard key={person.id} person={person} index={index} onDelete={deletePerson} />
                   ))}
                 </div>
 

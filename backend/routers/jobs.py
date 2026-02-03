@@ -17,6 +17,7 @@ from enum import Enum
 import csv
 import io
 import logging
+import asyncio
 
 from models.streamlined.job import (
     Job, JobCreate, JobUpdate, JobStatus, JobSummary,
@@ -477,6 +478,37 @@ async def get_job_candidate(
     }
 
     return response
+
+
+@router.delete("/{job_id}/candidates/{candidate_id}")
+async def delete_job_candidate(
+    job_id: UUID,
+    candidate_id: UUID,
+    current_user: CurrentUser = Depends(get_current_user),
+):
+    """
+    Delete a candidate from a job.
+    """
+    from repositories.streamlined.candidate_repo import CandidateRepository
+
+    repo = get_job_repo()
+    job = repo.get_by_id_for_org_sync(job_id, current_user.organization_id)
+
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    candidate_repo = CandidateRepository()
+    candidate = candidate_repo.get_by_id_sync(candidate_id)
+
+    if not candidate or str(candidate.job_id) != str(job_id):
+        raise HTTPException(status_code=404, detail="Candidate not found")
+
+    success = candidate_repo.delete_sync(candidate_id)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to delete candidate")
+
+    return {"message": "Candidate deleted successfully"}
+
 
 
 @router.get("/{job_id}/analytics/summary")
@@ -1040,140 +1072,175 @@ async def upload_candidates(
     # Collect candidates for batch LLM processing
     candidates_to_screen = []
 
-    for row_num, row in enumerate(rows, start=2):  # Row 1 is header
-        try:
-            # Normalize column names
-            row_normalized = {k.lower().strip(): v for k, v in row.items()}
 
-            # Parse enrichment data if present
-            enrichment_raw = row_normalized.get("crustdata_enrichment_data", "")
-            enrichment = _parse_enrichment_data(enrichment_raw)
-            profile_data = _extract_profile_from_enrichment(enrichment) if enrichment else {}
+    # Concurrency control
+    sem = asyncio.Semaphore(20)
 
-            # Get name from row, profile_data (from enrichment), or enrichment directly
-            name = row_normalized.get("name", "").strip()
-            if not name and profile_data.get("name"):
-                # profile_data uses _extract_name_from_enrichment which checks full_name, first+last, etc.
-                name = profile_data.get("name")
-            if not name and enrichment:
-                # Final fallback: try extracting directly
-                name = _extract_name_from_enrichment(enrichment)
+    async def process_row(row_num, row):
+        async with sem:
+            try:
+                # Normalize column names
+                row_normalized = {k.lower().strip(): v for k, v in row.items()}
 
-            if not name:
-                errors.append(f"Row {row_num}: Missing name")
-                continue
+                # Parse enrichment data if present
+                enrichment_raw = row_normalized.get("crustdata_enrichment_data", "")
+                enrichment = _parse_enrichment_data(enrichment_raw)
+                profile_data = _extract_profile_from_enrichment(enrichment) if enrichment else {}
 
-            # Get email from row or enrichment
-            email = row_normalized.get("email", "").strip().lower() or None
-            if not email and enrichment:
-                enrichment_email = enrichment.get("email") or enrichment.get("work_email") or enrichment.get("personal_email")
-                if isinstance(enrichment_email, list):
-                    email = enrichment_email[0] if enrichment_email else None
-                else:
-                    email = enrichment_email
-                if email:
-                    email = str(email).strip().lower()
+                # Get name
+                name = row_normalized.get("name", "").strip()
+                if not name and profile_data.get("name"):
+                    name = profile_data.get("name")
+                if not name and enrichment:
+                    name = _extract_name_from_enrichment(enrichment)
 
-            # Get linkedin_url from row or enrichment
-            linkedin_url = row_normalized.get("linkedin_url", "").strip() or None
-            if not linkedin_url and enrichment:
-                linkedin_url = enrichment.get("linkedin_url") or enrichment.get("linkedin_profile_url")
+                if not name:
+                    return {"error": f"Row {row_num}: Missing name"}
 
-            # Build PersonCreate with profile data
-            person_data = PersonCreate(
-                name=name,
-                email=email,
-                phone=row_normalized.get("phone", "").strip() or None,
-                linkedin_url=linkedin_url,
-                headline=profile_data.get("headline"),
-                summary=profile_data.get("summary"),
-                current_title=profile_data.get("current_title") or row_normalized.get("current_title", "").strip() or None,
-                current_company=profile_data.get("current_company") or row_normalized.get("current_company", "").strip() or None,
-                location=profile_data.get("location"),
-                skills=profile_data.get("skills", []),
-                work_history=profile_data.get("work_history", []),
-                education=profile_data.get("education", []),
-                enrichment_data=profile_data.get("enrichment_data"),
-            )
+                # Get email
+                email = row_normalized.get("email", "").strip().lower() or None
+                if not email and enrichment:
+                    enrichment_email = enrichment.get("email") or enrichment.get("work_email") or enrichment.get("personal_email")
+                    if isinstance(enrichment_email, list):
+                        email = enrichment_email[0] if enrichment_email else None
+                    else:
+                        email = enrichment_email
+                    if email:
+                        email = str(email).strip().lower()
 
-            # Find or create Person (by email or linkedin_url if available)
-            person, person_created = person_repo.get_or_create_sync(person_data)
+                # Get linkedin_url
+                linkedin_url = row_normalized.get("linkedin_url", "").strip() or None
+                if not linkedin_url and enrichment:
+                    linkedin_url = enrichment.get("linkedin_url") or enrichment.get("linkedin_profile_url")
 
-            # If person already existed but we have new enrichment data, update them
-            if not person_created and enrichment and not person.enrichment_data:
-                from models.streamlined.person import PersonUpdate
-                person_repo.update_sync(person.id, PersonUpdate(
+                # Build PersonCreate
+                person_data = PersonCreate(
+                    name=name,
+                    email=email,
+                    phone=row_normalized.get("phone", "").strip() or None,
+                    linkedin_url=linkedin_url,
                     headline=profile_data.get("headline"),
                     summary=profile_data.get("summary"),
-                    current_title=profile_data.get("current_title"),
-                    current_company=profile_data.get("current_company"),
+                    current_title=profile_data.get("current_title") or row_normalized.get("current_title", "").strip() or None,
+                    current_company=profile_data.get("current_company") or row_normalized.get("current_company", "").strip() or None,
                     location=profile_data.get("location"),
                     skills=profile_data.get("skills", []),
                     work_history=profile_data.get("work_history", []),
                     education=profile_data.get("education", []),
                     enrichment_data=profile_data.get("enrichment_data"),
-                ))
+                )
 
-            # Check if Candidate already exists for this job
-            existing = candidate_repo.get_by_person_and_job_sync(person.id, job_id)
+                # Find or create Person (Async)
+                person, person_created = await person_repo.get_or_create(person_data)
 
-            # Parse years_experience from row or estimate from work history
-            years_exp = None
-            if row_normalized.get("years_experience"):
-                try:
-                    years_exp = int(row_normalized.get("years_experience"))
-                except ValueError:
-                    pass
+                # Update person enrichment if needed
+                if not person_created and enrichment and not person.enrichment_data:
+                    from models.streamlined.person import PersonUpdate
+                    await person_repo.update(person.id, PersonUpdate(
+                        headline=profile_data.get("headline"),
+                        summary=profile_data.get("summary"),
+                        current_title=profile_data.get("current_title"),
+                        current_company=profile_data.get("current_company"),
+                        location=profile_data.get("location"),
+                        skills=profile_data.get("skills", []),
+                        work_history=profile_data.get("work_history", []),
+                        education=profile_data.get("education", []),
+                        enrichment_data=profile_data.get("enrichment_data"),
+                    ))
 
-            if existing:
-                # Update existing candidate
-                from models.streamlined.candidate import CandidateUpdate
-                candidate_repo.update_sync(existing.id, CandidateUpdate(
-                    current_company=profile_data.get("current_company") or row_normalized.get("current_company", "").strip() or None,
-                    current_title=profile_data.get("current_title") or row_normalized.get("current_title", "").strip() or None,
-                    years_experience=years_exp,
-                ))
-                updated += 1
+                # Check if Candidate already exists for this job (Async)
+                existing = await candidate_repo.get_by_person_and_job(person.id, job_id)
 
-                # Queue for LLM screening if no score yet
-                if not existing.combined_score:
+                # Parse years_experience
+                years_exp = None
+                if row_normalized.get("years_experience"):
+                    try:
+                        years_exp = int(row_normalized.get("years_experience"))
+                    except ValueError:
+                        pass
+
+                res_created = 0
+                res_updated = 0
+                candidate_id = None
+                existing_score = None
+
+                if existing:
+                    # Update existing candidate
+                    from models.streamlined.candidate import CandidateUpdate
+                    await candidate_repo.update(existing.id, CandidateUpdate(
+                        current_company=profile_data.get("current_company") or row_normalized.get("current_company", "").strip() or None,
+                        current_title=profile_data.get("current_title") or row_normalized.get("current_title", "").strip() or None,
+                        years_experience=years_exp,
+                    ))
+                    res_updated = 1
+                    candidate_id = existing.id
+                    existing_score = existing.combined_score
+                else:
+                    # Create new candidate
+                    candidate = await candidate_repo.create(CandidateCreate(
+                        person_id=person.id,
+                        job_id=job_id,
+                        current_company=profile_data.get("current_company") or row_normalized.get("current_company", "").strip() or None,
+                        current_title=profile_data.get("current_title") or row_normalized.get("current_title", "").strip() or None,
+                        years_experience=years_exp,
+                    ))
+                    res_created = 1
+                    candidate_id = candidate.id
+                    existing_score = None
+
+                # Prepare return data
+                screening_data = None
+                if not existing_score:
                     enrichment_for_screening = enrichment if enrichment else row_normalized
-                    candidates_to_screen.append({
-                        "candidate_id": existing.id,
+                    screening_data = {
+                        "candidate_id": candidate_id,
                         "person_id": person.id,
                         "enrichment_data": enrichment_for_screening,
-                    })
-            else:
-                # Create new candidate
-                candidate = candidate_repo.create_sync(CandidateCreate(
-                    person_id=person.id,
-                    job_id=job_id,
-                    current_company=profile_data.get("current_company") or row_normalized.get("current_company", "").strip() or None,
-                    current_title=profile_data.get("current_title") or row_normalized.get("current_title", "").strip() or None,
-                    years_experience=years_exp,
-                ))
-                created += 1
-
-                # Process resume in background if provided
+                    }
+                
+                resume_task = None
                 resume_text = row_normalized.get("resume", "").strip()
                 if resume_text and len(resume_text) > 50:
-                    background_tasks.add_task(
-                        _process_resume_async,
-                        str(candidate.id),
-                        resume_text,
-                        job.extracted_requirements
-                    )
+                    resume_task = {
+                       "candidate_id": candidate_id,
+                       "resume_text": resume_text
+                    }
 
-                # Queue for LLM screening
-                enrichment_for_screening = enrichment if enrichment else row_normalized
-                candidates_to_screen.append({
-                    "candidate_id": candidate.id,
-                    "person_id": person.id,
-                    "enrichment_data": enrichment_for_screening,
-                })
+                return {
+                    "created": res_created,
+                    "updated": res_updated,
+                    "screening": screening_data,
+                    "resume_task": resume_task
+                }
 
-        except Exception as e:
-            errors.append(f"Row {row_num}: {str(e)}")
+            except Exception as e:
+                logger.error(f"Error processing row {row_num}: {e}")
+                return {"error": f"Row {row_num}: {str(e)}"}
+
+    # Run processing within async context
+    tasks = [process_row(i, row) for i, row in enumerate(rows, start=2)]
+    results = await asyncio.gather(*tasks)
+
+    # Aggregate results
+    for res in results:
+        if "error" in res:
+            errors.append(res["error"])
+            continue
+        
+        created += res.get("created", 0)
+        updated += res.get("updated", 0)
+        
+        if res.get("screening"):
+            candidates_to_screen.append(res["screening"])
+        
+        if res.get("resume_task"):
+             # For resume processing, we still use background tasks but just queue them here
+             background_tasks.add_task(
+                _process_resume_async,
+                res["resume_task"]["candidate_id"],
+                res["resume_task"]["resume_text"],
+                job.extracted_requirements
+            )
 
     # Run LLM extraction and screening in parallel batches of 10
     if candidates_to_screen:

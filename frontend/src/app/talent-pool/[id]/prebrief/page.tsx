@@ -92,7 +92,7 @@ export default function PreBriefPage() {
 
   const fetchPrebrief = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/pluto/candidates/${candidateId}/prebrief`);
+      const res = await fetch(`${API_URL}/api/pluto/talent-pool/${candidateId}/prebrief`);
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.detail || "Failed to load pre-brief");
@@ -109,12 +109,12 @@ export default function PreBriefPage() {
   const handleStartInterview = async () => {
     setStartingInterview(true);
     try {
-      const res = await fetch(`${API_URL}/api/pluto/candidates/${candidateId}/interview/start`, {
+      const res = await fetch(`${API_URL}/api/pluto/talent-pool/${candidateId}/interview/start`, {
         method: "POST",
       });
       if (res.ok) {
         const data = await res.json();
-        router.push(`/candidates/${candidateId}/interview?room=${data.room_name}`);
+        router.push(`/talent-pool/${candidateId}/interview?room=${data.room_name}`);
       } else {
         alert("Failed to start interview");
       }
@@ -197,7 +197,7 @@ export default function PreBriefPage() {
           <p className="mb-6" style={{ color: tokens.textMuted }}>{error}</p>
           <Button
             variant="primary"
-            onClick={() => router.push(`/candidates/${candidateId}`)}
+            onClick={() => router.push(`/talent-pool/${candidateId}`)}
           >
             Back to Candidate
           </Button>
@@ -238,7 +238,7 @@ export default function PreBriefPage() {
       >
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <motion.button
-            onClick={() => router.push(`/candidates/${candidateId}`)}
+            onClick={() => router.push(`/talent-pool/${candidateId}`)}
             className="flex items-center gap-2 transition group"
             style={{ color: tokens.textMuted }}
             whileHover={{ x: -2 }}

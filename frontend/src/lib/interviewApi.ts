@@ -11,6 +11,7 @@ export interface InterviewSummary {
     stage: string;
     status: string;
     started_at?: string;
+    scheduled_at?: string;
     ended_at?: string;
     duration_sec?: number;
     analytics?: {

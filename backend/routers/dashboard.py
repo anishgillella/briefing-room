@@ -257,21 +257,27 @@ async def get_jobs_summary(
         other = [j for j in all_jobs if j.status != "active"]
         filtered_jobs = active + other
 
+    # Batch fetch analytics scores for the jobs we are about to return
+    jobs_to_return = filtered_jobs[:limit]
+    job_ids = [job.id for job in jobs_to_return]
+    
+    scores_map = {}
+    try:
+        scores_map = analytics_repo.get_batch_scores_by_job_ids_sync(job_ids)
+    except Exception:
+        pass
+
     summaries = []
-    for job in filtered_jobs[:limit]:
+    for job in jobs_to_return:
         # Use counts already included in job from batch query
         candidate_count = job.candidate_count or 0
         interviewed_count = job.interviewed_count or 0
 
-        # Get average score from analytics (still per-job for now)
+        # Get average score from batch map
         avg_score = None
-        try:
-            job_analytics = analytics_repo.list_by_job_sync(job.id)
-            if job_analytics:
-                scores = [a.overall_score for a in job_analytics]
-                avg_score = round(sum(scores) / len(scores), 1)
-        except Exception:
-            pass
+        scores = scores_map.get(str(job.id), [])
+        if scores:
+            avg_score = round(sum(scores) / len(scores), 1)
 
         summaries.append(JobSummary(
             id=str(job.id),
@@ -406,7 +412,7 @@ async def get_recent_activity(
     # Filter by date and pair with job
     all_interviews = []
     for interview in all_raw_interviews:
-        job = job_map.get(str(interview.job_posting_id))
+        job = job_map.get(str(interview.job_id))
         if not job:
             continue
 

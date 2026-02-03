@@ -298,3 +298,56 @@ class AnalyticsRepository:
             "No Hire": Recommendation.NO_HIRE,
         }
         return rec_map.get(rec_str, Recommendation.MAYBE)
+
+    def get_batch_scores_by_job_ids_sync(self, job_ids: List[UUID]) -> Dict[str, List[float]]:
+        """
+        Get all overall scores for a list of jobs in two queries.
+        
+        Args:
+            job_ids: List of job UUIDs
+            
+        Returns:
+            Dict mapping job_id string to list of scores
+        """
+        if not job_ids:
+            return {}
+            
+        job_id_strs = [str(jid) for jid in job_ids]
+        
+        # Step 1: Get all interview IDs for these jobs
+        # Map interview_id -> job_id
+        interviews_result = self.client.table("interviews")\
+            .select("id, job_posting_id")\
+            .in_("job_posting_id", job_id_strs)\
+            .execute()
+            
+        if not interviews_result.data:
+            return {jid: [] for jid in job_id_strs}
+            
+        interview_to_job = {
+            i["id"]: i["job_posting_id"] 
+            for i in interviews_result.data
+        }
+        interview_ids = list(interview_to_job.keys())
+        
+        # Step 2: Get scores for these interviews
+        # Use simple limits to avoid timeouts, 1000 should be enough for dashboard summary
+        analytics_result = self.client.table(self.table)\
+            .select("interview_id, overall_score")\
+            .in_("interview_id", interview_ids)\
+            .limit(1000)\
+            .execute()
+            
+        # Group scores by job
+        job_scores: Dict[str, List[float]] = {jid: [] for jid in job_id_strs}
+        
+        for row in analytics_result.data:
+            interview_id = row.get("interview_id")
+            score = row.get("overall_score")
+            
+            if interview_id and score is not None:
+                job_id = interview_to_job.get(interview_id)
+                if job_id in job_scores:
+                    job_scores[job_id].append(float(score))
+                    
+        return job_scores

@@ -217,7 +217,7 @@ export default function RankingsPage() {
                                         {candidate.tier}
                                     </span>
                                     <Link
-                                        href={`/candidates/${candidate.id}`}
+                                        href={`/talent-pool/${candidate.id}`}
                                         onClick={(e) => e.stopPropagation()}
                                         className="text-xs text-indigo-400 hover:text-indigo-300"
                                     >
@@ -413,7 +413,7 @@ export default function RankingsPage() {
                                 Close
                             </button>
                             <Link
-                                href={`/candidates/${selectedCandidate.id}`}
+                                href={`/talent-pool/${selectedCandidate.id}`}
                                 className="flex-[2] px-4 py-3 rounded-xl text-sm font-medium bg-indigo-500 hover:bg-indigo-600 text-white transition-colors text-center shadow-lg shadow-indigo-500/20"
                             >
                                 View Full Profile & Interview

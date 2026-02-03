@@ -8,6 +8,7 @@ from routers import auth as auth_router  # Authentication
 from routers import persons as persons_router  # Talent Pool
 from routers import scheduling as scheduling_router  # Interview scheduling
 from routers import job_architect
+from routers import public as public_router  # Public career pages
 from typing import Annotated, Optional
 
 app = FastAPI(
@@ -50,6 +51,7 @@ app.include_router(auth_router.router)  # Authentication routes
 app.include_router(persons_router.router)  # Talent Pool
 app.include_router(scheduling_router.router)  # Interview scheduling
 app.include_router(job_architect.router)      # AI Job Architect
+app.include_router(public_router.router)      # Public career pages
 
 
 @app.get("/health")
