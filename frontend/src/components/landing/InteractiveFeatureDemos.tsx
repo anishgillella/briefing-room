@@ -13,6 +13,9 @@ import {
     MoreHorizontal,
     Mic,
     Send,
+    FileText,
+    Sparkles,
+    Check
 } from "lucide-react";
 
 // =============================================================================
@@ -32,7 +35,136 @@ const colors = {
 };
 
 // =============================================================================
-// DEMO 1: SOURCING & SCREENING (Real-time sorting)
+// DEMO 1: JOB PROFILE ENRICHMENT (Parsing JD)
+// =============================================================================
+
+export function JobProfileDemo() {
+    const [step, setStep] = useState<"typing" | "processing" | "results">("typing");
+    const [typedText, setTypedText] = useState("");
+    const fullText = "We are looking for a Senior React Engineer with 5+ years of experience in TypeScript and Node.js. Must have experience with System Design and AWS.";
+
+    useEffect(() => {
+        let isMounted = true;
+        let timeout: NodeJS.Timeout;
+
+        const runDemo = async () => {
+            // Phase 1: Typing
+            if (step === "typing") {
+                for (let i = 0; i <= fullText.length; i++) {
+                    if (!isMounted) return;
+                    await new Promise(r => setTimeout(r, 30));
+                    setTypedText(fullText.slice(0, i));
+                }
+                if (!isMounted) return;
+                await new Promise(r => setTimeout(r, 500));
+                setStep("processing");
+            }
+
+            // Phase 2: Processing
+            if (step === "processing") {
+                await new Promise(r => setTimeout(r, 1500));
+                if (!isMounted) return;
+                setStep("results");
+            }
+
+            // Phase 3: Results (hold then reset)
+            if (step === "results") {
+                await new Promise(r => setTimeout(r, 4000));
+                if (!isMounted) return;
+                setStep("typing");
+                setTypedText("");
+            }
+        };
+
+        runDemo();
+        return () => { isMounted = false; };
+    }, [step]); // Re-run when step changes to trigger next phase logic
+
+    return (
+        <div className="w-full h-full min-h-[280px] flex flex-col p-6 relative overflow-hidden">
+            <AnimatePresence mode="wait">
+                {step === "results" ? (
+                    <motion.div
+                        key="results"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 1.05 }}
+                        className="flex flex-col gap-3 h-full justify-center"
+                    >
+                        <div className="flex items-center gap-2 text-emerald-400 mb-2">
+                            <CheckCircle className="w-5 h-5" />
+                            <span className="font-semibold text-sm">Profile Enriched</span>
+                        </div>
+
+                        <div className="bg-white/5 rounded-lg p-3 border border-white/10">
+                            <div className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-2">Extracted Signals</div>
+                            <div className="flex flex-wrap gap-2">
+                                {["React", "TypeScript", "Node.js", "System Design", "AWS"].map((skill, i) => (
+                                    <motion.div
+                                        key={skill}
+                                        initial={{ opacity: 0, scale: 0 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{ delay: i * 0.1 }}
+                                        className="px-2 py-1 rounded-md bg-indigo-500/20 text-indigo-300 text-xs font-medium border border-indigo-500/30"
+                                    >
+                                        {skill}
+                                    </motion.div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="bg-white/5 rounded-lg p-3 border border-white/10">
+                            <div className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-2">Rubric Generated</div>
+                            <div className="space-y-2">
+                                <div className="h-1.5 w-3/4 bg-slate-700 rounded-full overflow-hidden">
+                                    <motion.div className="h-full bg-emerald-500" initial={{ width: 0 }} animate={{ width: "80%" }} transition={{ delay: 0.5, duration: 1 }} />
+                                </div>
+                                <div className="h-1.5 w-1/2 bg-slate-700 rounded-full overflow-hidden">
+                                    <motion.div className="h-full bg-blue-500" initial={{ width: 0 }} animate={{ width: "60%" }} transition={{ delay: 0.7, duration: 1 }} />
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        key="input"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="flex flex-col h-full"
+                    >
+                        <div className="flex items-center gap-2 mb-3 text-slate-400">
+                            <FileText className="w-4 h-4" />
+                            <span className="text-xs font-medium">Job Description</span>
+                        </div>
+                        <div className="flex-1 bg-black/20 rounded-lg p-3 text-sm text-slate-300 font-mono leading-relaxed border border-white/5 relative overflow-hidden">
+                            {typedText}
+                            {step === "typing" && <span className="animate-pulse">|</span>}
+
+                            {step === "processing" && (
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    className="absolute inset-0 bg-slate-900/60 backdrop-blur-[2px] flex items-center justify-center flex-col gap-3"
+                                >
+                                    <div className="relative">
+                                        <div className="w-8 h-8 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
+                                        <Sparkles className="w-4 h-4 text-indigo-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                                    </div>
+                                    <span className="text-xs font-medium text-indigo-400">Extracting Signals...</span>
+                                </motion.div>
+                            )}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+}
+
+
+// =============================================================================
+// DEMO 2: SOURCING & SCREENING (Real-time sorting)
 // =============================================================================
 
 export function SourcingDemo() {
@@ -96,7 +228,7 @@ export function SourcingDemo() {
     }, [phase]);
 
     return (
-        <div className="w-full h-full flex flex-col p-4">
+        <div className="w-full h-full min-h-[280px] flex flex-col p-4">
             {/* Header */}
             <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-2">
                 <div className="flex items-center gap-2 text-xs font-medium text-slate-400">
@@ -183,7 +315,7 @@ export function SourcingDemo() {
 }
 
 // =============================================================================
-// DEMO 2: AI INTERVIEW COPILOT (Chat stream)
+// DEMO 3: AI INTERVIEW COPILOT (Chat stream)
 // =============================================================================
 
 export function InterviewDemo() {
@@ -197,36 +329,49 @@ export function InterviewDemo() {
     ] as const;
 
     useEffect(() => {
+        let isMounted = true;
+
         const loop = async () => {
+            if (!isMounted) return;
+
             // Step 1: User asks question
             await new Promise((r) => setTimeout(r, 1000));
+            if (!isMounted) return;
             setMessages([{ id: 1, role: "user", text: "Can you explain the trade-offs here?" }]);
 
             // Step 2: Analysis (Thought)
             await new Promise((r) => setTimeout(r, 1500));
-            setMessages((prev) => [
-                ...prev,
-                { id: 2, role: "ai", text: "Analyzing response quality..." },
-            ]);
+            if (!isMounted) return;
+            setMessages((prev) => {
+                // Prevent duplicate adding if react strict mode runs twice fast
+                if (prev.some(m => m.id === 2)) return prev;
+                return [...prev, { id: 2, role: "ai", text: "Analyzing response quality..." }]
+            });
 
             // Step 3: Suggestion
             await new Promise((r) => setTimeout(r, 1500));
-            setMessages((prev) => [
-                ...prev,
-                { id: 3, role: "ai", text: "Ask about eventual consistency." },
-            ]);
+            if (!isMounted) return;
+            setMessages((prev) => {
+                if (prev.some(m => m.id === 3)) return prev;
+                return [...prev, { id: 3, role: "ai", text: "Ask about eventual consistency." }]
+            });
 
             // Reset
             await new Promise((r) => setTimeout(r, 4000));
+            if (!isMounted) return;
             setMessages([]);
-            loop();
+
+            // Continue loop
+            if (isMounted) loop();
         };
 
         loop();
+
+        return () => { isMounted = false; };
     }, []);
 
     return (
-        <div className="w-full h-full flex flex-col relative overflow-hidden">
+        <div className="w-full h-full min-h-[280px] flex flex-col relative overflow-hidden">
             {/* Video Call Background Placeholder */}
             <div className="absolute inset-0 bg-slate-900/50 flex items-center justify-center">
                 <div className="text-slate-700 font-bold text-4xl opacity-10 uppercase tracking-widest">
@@ -271,7 +416,7 @@ export function InterviewDemo() {
 }
 
 // =============================================================================
-// DEMO 3: ANALYTICS (Morphing Radar)
+// DEMO 4: ANALYTICS (Morphing Radar)
 // =============================================================================
 
 export function AnalyticsDemo() {

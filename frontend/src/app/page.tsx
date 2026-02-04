@@ -46,7 +46,12 @@ const StarfieldBackground = dynamic(
 );
 
 // Import interactive demos
-import { SourcingDemo, InterviewDemo, AnalyticsDemo } from "@/components/landing/InteractiveFeatureDemos";
+import {
+  JobProfileDemo,
+  SourcingDemo,
+  InterviewDemo,
+  AnalyticsDemo,
+} from "@/components/landing/InteractiveFeatureDemos";
 
 // =============================================================================
 // DESIGN TOKENS (Matching Auth Page)
@@ -916,105 +921,82 @@ function WhySection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
-  const cards = [
+  const benefits = [
     {
       icon: Clock,
       title: "Reduce debrief time",
       description: "Evidence captured automatically means shorter meetings.",
+      color: colors.accentAmber,
     },
     {
       icon: Target,
       title: "Standardize evaluation",
       description: "Consistent rubrics and AI-assisted scoring.",
+      color: colors.accentCyan,
     },
     {
-      icon: FileText,
+      icon: Sparkles,
       title: "Capture evidence automatically",
       description: "Every signal preserved, nothing lost between rounds.",
+      color: colors.primary,
     },
   ];
 
   return (
-    <section ref={ref} className="py-24 relative" style={{ background: "rgba(12, 17, 32, 0.85)" }}>
-      <div className="max-w-[1440px] mx-auto px-6">
+    <section ref={ref} className="py-32 relative" style={{ background: "rgba(12, 17, 32, 0.95)" }}>
+      {/* Dynamic background glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-500/5 rounded-full blur-[120px] pointer-events-none" />
+
+      <div className="max-w-[1440px] mx-auto px-6 relative z-10">
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-12"
+          transition={{ duration: 0.6 }}
+          className="text-center mb-20"
         >
           <h2
-            className="text-3xl md:text-4xl font-bold mb-4"
+            className="text-4xl md:text-5xl font-bold mb-6 tracking-tight"
             style={{ color: colors.titleText }}
           >
-            Hiring breaks when context gets lost.
+            Hiring breaks when <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-orange-400">context gets lost.</span>
           </h2>
-          <p className="text-lg max-w-2xl mx-auto" style={{ color: colors.subtitleText }}>
-            Hirely preserves context across every interview and turns it into
-            evidence your team can trust.
+          <p className="text-xl md:text-2xl max-w-3xl mx-auto font-light leading-relaxed" style={{ color: colors.subtitleText }}>
+            Hirely preserves context across every interview and turns it into evidence your team can trust.
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-6">
-          {cards.map((card, i) => {
-            const Icon = card.icon;
+        {/* Benefits Grid */}
+        <div className="grid md:grid-cols-3 gap-8 mb-0">
+          {benefits.map((item, i) => {
+            const Icon = item.icon;
             return (
               <motion.div
-                key={card.title}
-                initial={{ opacity: 0, y: 20 }}
+                key={item.title}
+                initial={{ opacity: 0, y: 30 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
-                className="group p-6 rounded-2xl cursor-pointer relative overflow-hidden"
+                transition={{ duration: 0.5, delay: i * 0.15 }}
+                whileHover={{ y: -8, scale: 1.02 }}
+                className="group p-8 rounded-3xl relative overflow-hidden backdrop-blur-sm"
                 style={{
-                  background: colors.cardBg,
+                  background: "rgba(30, 41, 59, 0.4)",
                   border: `1px solid ${colors.cardBorder}`,
                 }}
-                whileHover={{
-                  y: -6,
-                  scale: 1.02,
-                  borderColor: colors.cardBorderHover,
-                  boxShadow: `0 25px 50px rgba(0, 0, 0, 0.35), 0 0 40px rgba(79, 124, 255, 0.18)`,
-                  transition: springs.stiff,
-                }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ duration: 0.4, delay: 0.1 + i * 0.08 }}
               >
-                {/* Hover highlight overlay with gradient */}
-                <motion.div
-                  className="absolute inset-0 rounded-2xl pointer-events-none"
-                  initial={{ opacity: 0 }}
-                  whileHover={{ opacity: 1 }}
-                  transition={{ duration: hoverDuration }}
-                  style={{
-                    background: `linear-gradient(135deg, rgba(79, 124, 255, 0.08) 0%, transparent 50%, rgba(56, 189, 248, 0.04) 100%)`,
-                  }}
-                />
-                {/* Top border glow on hover */}
-                <motion.div
-                  className="absolute top-0 left-4 right-4 h-px pointer-events-none"
-                  initial={{ opacity: 0 }}
-                  whileHover={{ opacity: 1 }}
-                  transition={{ duration: hoverDuration }}
-                  style={{
-                    background: `linear-gradient(90deg, transparent, ${colors.primary}60, transparent)`,
-                  }}
-                />
-                <motion.div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 relative z-10"
-                  style={{ background: `${colors.primary}20` }}
-                  whileHover={{
-                    background: `${colors.primary}35`,
-                    boxShadow: `0 0 25px ${colors.primary}40`,
-                    scale: 1.08,
-                  }}
-                  transition={springs.bounce}
+                <div className="absolute inset-0 bg-gradient-to-b from-white/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                <div
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 text-white shadow-lg"
+                  style={{ background: item.color }}
                 >
-                  <Icon className="w-6 h-6" style={{ color: colors.primary }} />
-                </motion.div>
-                <h3 className="text-lg font-semibold mb-2 relative z-10" style={{ color: colors.titleText }}>
-                  {card.title}
+                  <Icon className="w-7 h-7" />
+                </div>
+
+                <h3 className="text-2xl font-bold mb-3 text-white">
+                  {item.title}
                 </h3>
-                <p className="text-sm relative z-10" style={{ color: colors.mutedText }}>
-                  {card.description}
+                <p className="text-lg leading-relaxed text-slate-400">
+                  {item.description}
                 </p>
               </motion.div>
             );
@@ -1124,12 +1106,11 @@ function MetricsSection() {
 function HowItWorksSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
-  const [activeStep, setActiveStep] = useState(0);
 
   const steps = [
     {
       title: "Create & Enrich Job Profiles",
-      description: "Paste a job description — Hirely extracts signals and builds a rubric.",
+      description: "Transform unstructured requirements into precision evaluation criteria. AI extracts key signals to build objective scoring rubrics instantly.",
       icon: Briefcase,
       preview: "job-profile",
     },
@@ -1165,7 +1146,7 @@ function HowItWorksSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5 }}
-          className="text-center mb-16"
+          className="text-center mb-24"
         >
           <h2
             className="text-3xl md:text-4xl font-bold mb-4"
@@ -1178,162 +1159,88 @@ function HowItWorksSection() {
           </p>
         </motion.div>
 
-        <div className="grid lg:grid-cols-2 gap-12 items-start">
-          {/* Left: Steps with hover lift */}
-          <div className="space-y-4">
-            {steps.map((step, i) => {
-              const Icon = step.icon;
-              const isActive = i === activeStep;
+        <div className="space-y-24">
+          {steps.map((step, i) => {
+            const Icon = step.icon;
+            const isEven = i % 2 === 0;
 
-              return (
-                <motion.button
-                  key={step.title}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={isInView ? { opacity: 1, x: 0 } : {}}
-                  onClick={() => setActiveStep(i)}
-                  className="w-full text-left p-5 rounded-2xl relative overflow-hidden"
-                  style={{
-                    background: isActive ? colors.cardBg : "transparent",
-                    border: `1px solid ${isActive ? colors.primary + "40" : colors.cardBorder}`,
-                    boxShadow: isActive ? `0 0 35px ${colors.primary}18` : "none",
-                  }}
-                  whileHover={{
-                    y: -4,
-                    scale: 1.01,
-                    borderColor: isActive ? `${colors.primary}70` : colors.cardBorderHover,
-                    boxShadow: isActive
-                      ? `0 15px 45px ${colors.primary}25`
-                      : `0 12px 35px rgba(0, 0, 0, 0.25)`,
-                    transition: springs.stiff,
-                  }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ duration: 0.35, delay: 0.1 + i * 0.08 }}
-                >
-                  {/* Hover overlay with gradient */}
-                  <motion.div
-                    className="absolute inset-0 rounded-2xl pointer-events-none"
-                    initial={{ opacity: 0 }}
-                    whileHover={{ opacity: 1 }}
-                    transition={{ duration: hoverDuration }}
-                    style={{
-                      background: isActive
-                        ? `linear-gradient(135deg, rgba(79, 124, 255, 0.08) 0%, transparent 60%)`
-                        : `linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, transparent 50%)`,
-                    }}
-                  />
-                  {/* Top border highlight on active */}
-                  {isActive && (
-                    <motion.div
-                      className="absolute top-0 left-4 right-4 h-px pointer-events-none"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      style={{
-                        background: `linear-gradient(90deg, transparent, ${colors.primary}50, transparent)`,
-                      }}
-                    />
-                  )}
-                  <div className="flex items-start gap-4 relative z-10">
-                    <motion.div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                      style={{
-                        background: isActive ? colors.primary : "rgba(255,255,255,0.05)",
-                      }}
-                      whileHover={{
-                        scale: 1.1,
-                        boxShadow: isActive
-                          ? `0 0 25px ${colors.primary}60`
-                          : `0 0 18px rgba(255,255,255,0.12)`,
-                      }}
-                      transition={springs.bounce}
-                    >
-                      <Icon
-                        className="w-5 h-5"
-                        style={{ color: isActive ? "white" : colors.mutedText }}
-                      />
-                    </motion.div>
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <motion.span
-                          className="text-xs font-medium px-2 py-0.5 rounded-full"
-                          style={{
-                            background: isActive ? `${colors.primary}20` : "rgba(255,255,255,0.05)",
-                            color: isActive ? colors.primary : colors.mutedText,
-                          }}
-                          whileHover={{
-                            boxShadow: isActive ? `0 0 12px ${colors.primary}35` : "none",
-                            scale: 1.05,
-                          }}
-                          transition={{ duration: hoverDuration }}
-                        >
-                          Step {i + 1}
-                        </motion.span>
-                      </div>
-                      <h3
-                        className="text-base font-semibold mb-1"
-                        style={{ color: isActive ? colors.titleText : colors.subtitleText }}
-                      >
-                        {step.title}
-                      </h3>
-                      <p
-                        className="text-sm"
-                        style={{ color: isActive ? colors.subtitleText : colors.mutedText }}
-                      >
-                        {step.description}
-                      </p>
-                    </div>
-                  </div>
-                </motion.button>
-              );
-            })}
-          </div>
-
-          {/* Right: Preview */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="sticky top-32"
-          >
-            <AnimatePresence mode="wait">
+            return (
               <motion.div
-                key={activeStep}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.3 }}
-                className="rounded-2xl p-6 min-h-[300px] border border-white/5 bg-slate-900/50 backdrop-blur-sm"
+                key={step.title}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ duration: 0.6 }}
+                className={`flex flex-col lg:flex-row items-center gap-12 ${!isEven ? "lg:flex-row-reverse" : ""
+                  }`}
               >
-                <div className="flex items-center gap-3 mb-4">
-                  {React.createElement(steps[activeStep].icon, {
-                    className: "w-5 h-5",
-                    style: { color: colors.primary },
-                  })}
-                  <span className="text-sm font-medium" style={{ color: colors.titleText }}>
-                    {steps[activeStep].title}
-                  </span>
+                {/* Text Side */}
+                <div className="flex-1 space-y-6">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+                      style={{ background: `${colors.primary}15` }}
+                    >
+                      <Icon className="w-6 h-6" style={{ color: colors.primary }} />
+                    </div>
+                    <span
+                      className="text-sm font-bold uppercase tracking-wider"
+                      style={{ color: colors.primary }}
+                    >
+                      Step {i + 1}
+                    </span>
+                  </div>
+
+                  <h3
+                    className="text-2xl md:text-3xl font-bold"
+                    style={{ color: colors.titleText }}
+                  >
+                    {step.title}
+                  </h3>
+
+                  <p
+                    className="text-lg leading-relaxed max-w-lg"
+                    style={{ color: colors.subtitleText }}
+                  >
+                    {step.description}
+                  </p>
                 </div>
 
-                <div
-                  className="h-64 rounded-xl flex items-center justify-center relative overflow-hidden"
-                  style={{ background: "rgba(15, 23, 42, 0.6)" }}
-                >
-                  {/* Render the appropriate demo based on activeStep */}
-                  {activeStep === 0 && (
-                    <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center">
-                      <Briefcase className="w-12 h-12 mb-4 opacity-20" style={{ color: colors.primary }} />
-                      <p className="text-sm font-medium" style={{ color: colors.subtitleText }}>Job Profile Enrichment</p>
-                      <p className="text-xs mt-2 max-w-xs" style={{ color: colors.mutedText }}>
-                        AI automatically extracts skills and criteria from your job description.
-                      </p>
+                {/* Preview Side */}
+                <div className="flex-1 w-full">
+                  <motion.div
+                    className="rounded-3xl p-1 overflow-hidden relative group"
+                    style={{
+                      background: `linear-gradient(135deg, ${colors.cardBorder}, transparent)`,
+                    }}
+                    whileHover={{ scale: 1.02 }}
+                    transition={springs.soft}
+                  >
+                    <div
+                      className="rounded-[22px] p-6 lg:p-8 overflow-hidden min-h-[350px] relative"
+                      style={{ background: colors.surface }}
+                    >
+                      <div
+                        className="absolute inset-0 opacity-30 pointer-events-none"
+                        style={{
+                          background: `radial-gradient(circle at ${isEven ? '0% 0%' : '100% 100%'}, ${colors.primary}10, transparent 60%)`
+                        }}
+                      />
+
+                      <div className="relative z-10 h-full flex flex-col items-center justify-center rounded-xl overflow-hidden"
+                        style={{ minHeight: "280px", background: "rgba(15, 23, 42, 0.4)", border: "1px solid rgba(255,255,255,0.05)" }}>
+
+                        {i === 0 && <JobProfileDemo />}
+                        {i === 1 && <SourcingDemo />}
+                        {i === 2 && <InterviewDemo />}
+                        {i === 3 && <AnalyticsDemo />}
+                      </div>
                     </div>
-                  )}
-                  {activeStep === 1 && <SourcingDemo />}
-                  {activeStep === 2 && <InterviewDemo />}
-                  {activeStep === 3 && <AnalyticsDemo />}
+                  </motion.div>
                 </div>
               </motion.div>
-            </AnimatePresence>
-          </motion.div>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -1344,189 +1251,7 @@ function HowItWorksSection() {
 // FEATURES SECTION
 // =============================================================================
 
-function FeaturesSection() {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
-  const [activeTab, setActiveTab] = useState(0);
 
-  const features = [
-    {
-      title: "In-Meeting Copilot",
-      description:
-        "Real-time follow-ups, red flag detection, talk ratio monitoring, and competency coverage tracking.",
-      icon: Zap,
-    },
-    {
-      title: "Unified Candidate Context",
-      description:
-        "Resume, interview signals, rubric scores, and evidence snippets—one profile that grows richer every round.",
-      icon: Users,
-    },
-    {
-      title: "Pipeline Analytics",
-      description:
-        "Visualize your hiring funnel, identify bottlenecks, and make data-driven decisions.",
-      icon: BarChart3,
-    },
-    {
-      title: "Continuous Learning",
-      description:
-        "The AI improves with every interview, learning your team's preferences and patterns.",
-      icon: Brain,
-    },
-  ];
-
-  return (
-    <section ref={ref} id="features" className="py-24 relative" style={{ background: "transparent" }}>
-      <div className="max-w-[1440px] mx-auto px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-16"
-        >
-          <h2
-            className="text-3xl md:text-4xl font-bold mb-4"
-            style={{ color: colors.titleText }}
-          >
-            Features Built for Modern Teams
-          </h2>
-          <p className="text-lg max-w-2xl mx-auto" style={{ color: colors.subtitleText }}>
-            Everything you need to run evidence-driven interviews.
-          </p>
-        </motion.div>
-
-        <div className="grid lg:grid-cols-5 gap-8">
-          {/* Feature Tabs with hover effects */}
-          <div className="lg:col-span-2 space-y-3">
-            {features.map((feature, i) => {
-              const Icon = feature.icon;
-              const isActive = i === activeTab;
-
-              return (
-                <motion.button
-                  key={feature.title}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={isInView ? { opacity: 1, x: 0 } : {}}
-                  onClick={() => setActiveTab(i)}
-                  className="w-full text-left p-4 rounded-xl relative overflow-hidden"
-                  style={{
-                    background: isActive ? colors.cardBg : "transparent",
-                    border: `1px solid ${isActive ? colors.cardBorder : "transparent"}`,
-                  }}
-                  whileHover={{
-                    y: -3,
-                    scale: 1.01,
-                    background: isActive ? colors.cardBg : "rgba(255,255,255,0.03)",
-                    borderColor: isActive ? colors.cardBorderHover : colors.cardBorder,
-                    boxShadow: isActive
-                      ? `0 10px 30px rgba(0, 0, 0, 0.2)`
-                      : `0 8px 25px rgba(0, 0, 0, 0.15)`,
-                    transition: springs.stiff,
-                  }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ duration: 0.35, delay: 0.1 + i * 0.08 }}
-                >
-                  {/* Hover overlay with gradient */}
-                  <motion.div
-                    className="absolute inset-0 rounded-xl pointer-events-none"
-                    initial={{ opacity: 0 }}
-                    whileHover={{ opacity: 1 }}
-                    transition={{ duration: hoverDuration }}
-                    style={{
-                      background: `linear-gradient(90deg, rgba(79, 124, 255, 0.08) 0%, transparent 60%)`,
-                    }}
-                  />
-                  <div className="flex items-center gap-3 relative z-10">
-                    <motion.div
-                      whileHover={{
-                        scale: 1.15,
-                        filter: `drop-shadow(0 0 8px ${colors.primary}50)`,
-                      }}
-                      transition={springs.bounce}
-                    >
-                      <Icon
-                        className="w-5 h-5"
-                        style={{ color: isActive ? colors.primary : colors.mutedText }}
-                      />
-                    </motion.div>
-                    <motion.span
-                      className="font-medium"
-                      style={{ color: isActive ? colors.titleText : colors.subtitleText }}
-                      whileHover={{
-                        color: colors.titleText,
-                        textShadow: isActive ? `0 0 15px ${colors.primary}30` : "none",
-                      }}
-                      transition={{ duration: hoverDuration }}
-                    >
-                      {feature.title}
-                    </motion.span>
-                    {/* Learn more indicator on hover */}
-                    <motion.span
-                      className="ml-auto text-xs flex items-center gap-1"
-                      style={{ color: colors.primary }}
-                      initial={{ opacity: 0, x: -10 }}
-                      whileHover={{ opacity: 1, x: 0 }}
-                      transition={{ duration: hoverDuration }}
-                    >
-                      Learn more <ArrowRight className="w-3 h-3" />
-                    </motion.span>
-                  </div>
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeFeature"
-                      className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full"
-                      style={{ background: colors.primary, boxShadow: `0 0 15px ${colors.primary}60` }}
-                    />
-                  )}
-                </motion.button>
-              );
-            })}
-          </div>
-
-          {/* Feature Preview */}
-          <div className="lg:col-span-3">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeTab}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-                className="rounded-2xl p-8 h-full"
-                style={{
-                  background: colors.cardBg,
-                  border: `1px solid ${colors.cardBorder}`,
-                }}
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  {React.createElement(features[activeTab].icon, {
-                    className: "w-6 h-6",
-                    style: { color: colors.primary },
-                  })}
-                  <h3 className="text-xl font-semibold" style={{ color: colors.titleText }}>
-                    {features[activeTab].title}
-                  </h3>
-                </div>
-                <p className="text-base mb-6" style={{ color: colors.subtitleText }}>
-                  {features[activeTab].description}
-                </p>
-                <div
-                  className="h-48 rounded-xl flex items-center justify-center"
-                  style={{ background: "rgba(255,255,255,0.03)" }}
-                >
-                  <p className="text-sm" style={{ color: colors.mutedText }}>
-                    Feature preview
-                  </p>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
 
 // =============================================================================
 // FINAL CTA SECTION
@@ -1853,7 +1578,7 @@ export default function HomePage() {
       <WhySection />
       <MetricsSection />
       <HowItWorksSection />
-      <FeaturesSection />
+
       <FinalCTASection />
       <Footer />
 
