@@ -54,100 +54,103 @@ export default function StarfieldBackground({
     setCanvasSize();
     window.addEventListener("resize", setCanvasSize);
 
+    // Track scroll speed for warp effect
+    let currentScrollY = window.scrollY;
+    let targetWarp = 0;
+    let warpIntensity = 0;
+
+    const handleScroll = () => {
+      const newScrollY = window.scrollY;
+      const delta = Math.abs(newScrollY - currentScrollY);
+      targetWarp = Math.min(delta * 0.5, 50); // Cap max warp
+      currentScrollY = newScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
     // Star interface
     interface Star {
       x: number;
       y: number;
       baseX: number;
       baseY: number;
+      z: number; // Added depth for warp
       size: number;
       opacity: number;
       twinkleSpeed: number;
       twinklePhase: number;
-      floatSpeed: number;
-      floatPhase: number;
-      floatRadius: number;
     }
 
-    // Generate elegant, small stars
+    // Generate stars with depth
     const stars: Star[] = [];
-
     for (let i = 0; i < starCount; i++) {
-      // Smaller sizes for minimalist look
-      let size: number;
-      const sizeRoll = Math.random();
-      if (sizeRoll < 0.6) {
-        size = Math.random() * 0.8 + 0.5; // 60% tiny (0.5-1.3px)
-      } else if (sizeRoll < 0.9) {
-        size = Math.random() * 0.7 + 1.2; // 30% small (1.2-1.9px)
-      } else {
-        size = Math.random() * 0.8 + 1.8; // 10% medium (1.8-2.6px)
-      }
-
-      const baseX = Math.random() * width;
-      const baseY = Math.random() * height;
+      const x = (Math.random() - 0.5) * width * 2;
+      const y = (Math.random() - 0.5) * height * 2;
+      const z = Math.random() * 1000;
 
       stars.push({
-        x: baseX,
-        y: baseY,
-        baseX,
-        baseY,
-        size,
-        opacity: Math.random() * 0.4 + 0.2, // 0.2-0.6 (subtle)
-        twinkleSpeed: Math.random() * 0.008 + 0.003, // Slower twinkle
+        x, y,
+        baseX: x,
+        baseY: y,
+        z,
+        size: Math.random() * 1.5 + 0.5,
+        opacity: Math.random() * 0.5 + 0.3,
+        twinkleSpeed: Math.random() * 0.02 + 0.005,
         twinklePhase: Math.random() * Math.PI * 2,
-        floatSpeed: Math.random() * 0.0008 + 0.0003, // Very slow float
-        floatPhase: Math.random() * Math.PI * 2,
-        floatRadius: Math.random() * 15 + 8, // Gentle float radius (8-23px)
       });
     }
 
     let animationId: number;
-    let time = 0;
 
     const draw = () => {
       ctx.clearRect(0, 0, width, height);
 
+      // Smoothly interpolate warp intensity
+      warpIntensity += (targetWarp - warpIntensity) * 0.1;
+      targetWarp *= 0.95; // Decay warp target if no scroll
+
+      const centerX = width / 2;
+      const centerY = height / 2;
+
       stars.forEach((star) => {
-        // Gentle floating motion
-        const floatX = Math.sin(time * star.floatSpeed + star.floatPhase) * star.floatRadius;
-        const floatY = Math.cos(time * star.floatSpeed * 0.7 + star.floatPhase) * star.floatRadius * 0.6;
+        // Move star towards camera based on warp
+        star.z -= 2 + warpIntensity;
 
-        star.x = star.baseX + floatX;
-        star.y = star.baseY + floatY;
+        // Reset if passed camera
+        if (star.z <= 0) {
+          star.z = 1000;
+          star.x = (Math.random() - 0.5) * width * 2;
+          star.y = (Math.random() - 0.5) * height * 2;
+        }
 
-        // Wrap around screen
-        if (star.x < -20) star.baseX = width + 20;
-        if (star.x > width + 20) star.baseX = -20;
-        if (star.y < -20) star.baseY = height + 20;
-        if (star.y > height + 20) star.baseY = -20;
+        // Project 3D to 2D
+        const k = 1200 / star.z;
+        const px = centerX + star.x * k;
+        const py = centerY + star.y * k;
 
-        // Gentle twinkle
-        const twinkle = Math.sin(time * star.twinkleSpeed + star.twinklePhase) * 0.5 + 0.5;
-        const currentOpacity = star.opacity * (0.6 + twinkle * 0.4);
+        // Don't draw if out of bounds
+        if (px < 0 || px > width || py < 0 || py > height) return;
 
-        // Draw star with soft glow
-        const gradient = ctx.createRadialGradient(
-          star.x, star.y, 0,
-          star.x, star.y, star.size * 3
-        );
-        gradient.addColorStop(0, `rgba(255, 255, 255, ${currentOpacity})`);
-        gradient.addColorStop(0.4, `rgba(200, 220, 255, ${currentOpacity * 0.4})`);
-        gradient.addColorStop(1, `rgba(150, 180, 255, 0)`);
+        const size = star.size * k * 0.5;
+        const opacity = Math.min(star.opacity, (1000 - star.z) / 200);
 
+        // Draw star (elongate if warping)
         ctx.beginPath();
-        ctx.arc(star.x, star.y, star.size * 3, 0, Math.PI * 2);
-        ctx.fillStyle = gradient;
-        ctx.fill();
-
-        // Crisp center dot
-        ctx.beginPath();
-        ctx.arc(star.x, star.y, star.size * 0.6, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 255, 255, ${currentOpacity * 1.2})`;
-        ctx.fill();
+        if (warpIntensity > 2) {
+          const tailLen = Math.min(warpIntensity * 2 * k, 50);
+          const angle = Math.atan2(py - centerY, px - centerX);
+          ctx.moveTo(px, py);
+          ctx.lineTo(px - Math.cos(angle) * tailLen, py - Math.sin(angle) * tailLen);
+          ctx.strokeStyle = `rgba(200, 220, 255, ${opacity})`;
+          ctx.lineWidth = size;
+          ctx.stroke();
+        } else {
+          ctx.arc(px, py, size, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+          ctx.fill();
+        }
       });
 
-      time += 1;
       animationId = requestAnimationFrame(draw);
     };
 
@@ -156,17 +159,29 @@ export default function StarfieldBackground({
 
     if (prefersReducedMotion) {
       // Draw static
+      const centerX = width / 2;
+      const centerY = height / 2;
+
       stars.forEach((star) => {
+        const k = 1200 / star.z;
+        const px = centerX + star.x * k;
+        const py = centerY + star.y * k;
+
+        if (px < 0 || px > width || py < 0 || py > height) return;
+
+        const size = star.size * k * 0.5;
+        const opacity = Math.min(star.opacity, (1000 - star.z) / 200);
+
         const gradient = ctx.createRadialGradient(
-          star.x, star.y, 0,
-          star.x, star.y, star.size * 3
+          px, py, 0,
+          px, py, size * 3
         );
-        gradient.addColorStop(0, `rgba(255, 255, 255, ${star.opacity})`);
-        gradient.addColorStop(0.4, `rgba(200, 220, 255, ${star.opacity * 0.3})`);
+        gradient.addColorStop(0, `rgba(255, 255, 255, ${opacity})`);
+        gradient.addColorStop(0.4, `rgba(200, 220, 255, ${opacity * 0.3})`);
         gradient.addColorStop(1, `rgba(150, 180, 255, 0)`);
 
         ctx.beginPath();
-        ctx.arc(star.x, star.y, star.size * 3, 0, Math.PI * 2);
+        ctx.arc(px, py, size, 0, Math.PI * 2);
         ctx.fillStyle = gradient;
         ctx.fill();
       });

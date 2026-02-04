@@ -24,7 +24,7 @@ class InterviewStatus(str, Enum):
 
 class CandidateBase(BaseModel):
     """Base candidate fields."""
-    person_id: UUID = Field(..., description="Reference to Person")
+    person_id: Optional[UUID] = Field(None, description="Reference to Person")
     job_id: UUID = Field(..., description="Reference to Job")
     bio_summary: Optional[str] = Field(
         None,
