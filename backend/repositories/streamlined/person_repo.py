@@ -169,45 +169,86 @@ class PersonRepository:
 
         return Person(**result.data[0])
 
+    async def get_by_phone(self, phone: str) -> Optional[Person]:
+        """Get a person by phone number."""
+        result = self.client.table(self.table)\
+            .select("*")\
+            .eq("phone", phone.strip())\
+            .execute()
+
+        if not result.data:
+            return None
+
+        return Person(**result.data[0])
+
+    def get_by_phone_sync(self, phone: str) -> Optional[Person]:
+        """Synchronous version of get_by_phone."""
+        result = self.client.table(self.table)\
+            .select("*")\
+            .eq("phone", phone.strip())\
+            .execute()
+
+        if not result.data:
+            return None
+
+        return Person(**result.data[0])
+
+    async def get_by_name(self, name: str) -> Optional[Person]:
+        """Get a person by exact name match (case-insensitive)."""
+        result = self.client.table(self.table)\
+            .select("*")\
+            .ilike("name", name.strip())\
+            .execute()
+
+        if not result.data:
+            return None
+        
+        # Return the first match (risk of collision but requested behavior)
+        return Person(**result.data[0])
+
+    def get_by_name_sync(self, name: str) -> Optional[Person]:
+        """Synchronous version of get_by_name."""
+        result = self.client.table(self.table)\
+            .select("*")\
+            .ilike("name", name.strip())\
+            .execute()
+
+        if not result.data:
+            return None
+
+        return Person(**result.data[0])
+
     async def get_or_create(self, person_data: PersonCreate) -> tuple[Person, bool]:
         """
-        Get existing person by matching unique identifiers (Email, LinkedIn, Phone),
-        or create a new one.
+        Get existing person by matching unique identifiers or create a new one.
         
-        If a match is found, it will UPDATE the existing person with any new non-null
-        fields from person_data (merging profiles).
-
-        Args:
-            person_data: PersonCreate model
-
-        Returns:
-            Tuple of (Person, created: bool)
+        Resolution Order:
+        1. Email (Strongest)
+        2. LinkedIn URL
+        3. Phone
+        4. Name (Weakest, but requested)
         """
         existing = None
 
-        # 1. Match by Email (Highest Priority)
+        # 1. Match by Email
         if person_data.email:
             existing = await self.get_by_email(person_data.email)
 
-        # 2. Match by LinkedIn URL (Second Priority)
+        # 2. Match by LinkedIn URL
         if not existing and person_data.linkedin_url:
             existing = await self.get_by_linkedin_url(person_data.linkedin_url)
             
-        # 3. Match by Phone (Third Priority)
+        # 3. Match by Phone
         if not existing and person_data.phone:
-            # We need to add get_by_phone method first, but assuming we can query
-            result = self.client.table(self.table)\
-                .select("*")\
-                .eq("phone", person_data.phone.strip())\
-                .execute()
-            if result.data:
-                existing = Person(**result.data[0])
+            existing = await self.get_by_phone(person_data.phone)
+
+        # 4. Match by Name
+        if not existing and person_data.name:
+            existing = await self.get_by_name(person_data.name)
 
         if existing:
-            # MERGE: Update existing person with new data if current fields are empty
+            # MERGE logic
             updates = {}
-            
-            # Check for new info to add
             if person_data.phone and not existing.phone:
                 updates["phone"] = person_data.phone
             if person_data.linkedin_url and not existing.linkedin_url:
@@ -219,18 +260,13 @@ class PersonRepository:
             if person_data.current_company and not existing.current_company:
                 updates["current_company"] = person_data.current_company
                 
-            # Merge JSON fields (simple append/overwrite strategy)
-            if person_data.skills and not existing.skills:
-                updates["skills"] = person_data.skills
-            elif person_data.skills and existing.skills:
-                # Add new skills that don't exist
-                current_skills = set(existing.skills)
+            if person_data.skills:
+                current_skills = set(existing.skills) if existing.skills else set()
                 new_skills = [s for s in person_data.skills if s not in current_skills]
                 if new_skills:
-                    updates["skills"] = existing.skills + new_skills
+                    updates["skills"] = list(current_skills) + new_skills
 
             if updates:
-                # Perform the update
                 updated_person = await self.update(existing.id, PersonUpdate(**updates))
                 return updated_person or existing, False
             
@@ -241,7 +277,7 @@ class PersonRepository:
         return new_person, True
 
     def get_or_create_sync(self, person_data: PersonCreate) -> tuple[Person, bool]:
-        """Synchronous version of get_or_create with full resolution logic."""
+        """Synchronous version of get_or_create."""
         existing = None
 
         # 1. Match by Email
@@ -254,17 +290,15 @@ class PersonRepository:
             
         # 3. Match by Phone
         if not existing and person_data.phone:
-            result = self.client.table(self.table)\
-                .select("*")\
-                .eq("phone", person_data.phone.strip())\
-                .execute()
-            if result.data:
-                existing = Person(**result.data[0])
+            existing = self.get_by_phone_sync(person_data.phone)
+
+        # 4. Match by Name
+        if not existing and person_data.name:
+            existing = self.get_by_name_sync(person_data.name)
 
         if existing:
-            # MERGE: Update existing person with new data
+            # MERGE logic
             updates = {}
-            
             if person_data.phone and not existing.phone:
                 updates["phone"] = person_data.phone
             if person_data.linkedin_url and not existing.linkedin_url:
@@ -276,7 +310,6 @@ class PersonRepository:
             if person_data.current_company and not existing.current_company:
                 updates["current_company"] = person_data.current_company
                 
-            # Merge skills
             if person_data.skills:
                 current_skills = set(existing.skills) if existing.skills else set()
                 new_skills = [s for s in person_data.skills if s not in current_skills]

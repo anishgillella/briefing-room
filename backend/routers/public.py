@@ -140,23 +140,17 @@ async def apply_to_job(
         raise HTTPException(status_code=404, detail="Job not found")
 
     # 2. Get or Create Person
-    # Check if person exists by email
-    existing_person = person_repo.get_by_email_sync(email)
+    # Use robust entity resolution (Email > LinkedIn > Phone > Name)
+    person_data = PersonCreate(
+        name=name,
+        email=email,
+        phone=phone,
+        linkedin_url=linkedin_url,
+        resume_url=None # Will be updated if resume is uploaded
+    )
     
-    if existing_person:
-        person_id = existing_person.id
-        # Optional: Update person details if provided? 
-        # For now, we assume the existing record helps identity resolution.
-    else:
-        # Create new person
-        new_person = person_repo.create_sync(PersonCreate(
-            name=name,
-            email=email,
-            phone=phone,
-            linkedin_url=linkedin_url,
-            # We don't have other details yet
-        ))
-        person_id = new_person.id
+    person, created = person_repo.get_or_create_sync(person_data)
+    person_id = person.id
 
     # 3. Save Resume (if provided)
     resume_path = None
