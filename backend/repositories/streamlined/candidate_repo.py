@@ -318,7 +318,7 @@ class CandidateRepository:
         """Parse database row into Candidate model."""
         return Candidate(
             id=data.get("id"),
-            person_id=data.get("person_id"),
+            person_id=data.get("person_id") if data.get("person_id") else None,
             job_id=data.get("job_posting_id"),
             bio_summary=data.get("bio_summary"),
             skills=data.get("skills", []) or [],

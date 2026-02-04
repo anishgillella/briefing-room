@@ -45,6 +45,9 @@ const StarfieldBackground = dynamic(
   }
 );
 
+// Import interactive demos
+import { SourcingDemo, InterviewDemo, AnalyticsDemo } from "@/components/landing/InteractiveFeatureDemos";
+
 // =============================================================================
 // DESIGN TOKENS (Matching Auth Page)
 // =============================================================================
@@ -172,8 +175,8 @@ function GlassNavbar() {
           boxShadow: scrolled
             ? "0 8px 32px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.05)"
             : navHovered
-            ? "0 4px 20px rgba(0, 0, 0, 0.2)"
-            : "none",
+              ? "0 4px 20px rgba(0, 0, 0, 0.2)"
+              : "none",
         }}
         transition={{ duration: hoverDuration }}
       >
@@ -535,8 +538,8 @@ function PipelinePreviewCard({ isParentHovered = false }: { isParentHovered?: bo
                       background: isActive
                         ? colors.primary
                         : isPast
-                        ? "rgba(34, 197, 94, 0.2)"
-                        : "rgba(255, 255, 255, 0.05)",
+                          ? "rgba(34, 197, 94, 0.2)"
+                          : "rgba(255, 255, 255, 0.05)",
                       boxShadow: isActive ? `0 0 20px ${colors.primary}40` : "none",
                     }}
                     whileHover={{
@@ -544,8 +547,8 @@ function PipelinePreviewCard({ isParentHovered = false }: { isParentHovered?: bo
                       boxShadow: isActive
                         ? `0 0 30px ${colors.primary}60`
                         : isPast
-                        ? `0 0 15px ${colors.accentGreen}30`
-                        : `0 0 12px rgba(255, 255, 255, 0.1)`,
+                          ? `0 0 15px ${colors.accentGreen}30`
+                          : `0 0 12px rgba(255, 255, 255, 0.1)`,
                     }}
                     transition={springs.bounce}
                   >
@@ -572,8 +575,8 @@ function PipelinePreviewCard({ isParentHovered = false }: { isParentHovered?: bo
                       background: isPast
                         ? colors.accentGreen
                         : i === activeStage
-                        ? `linear-gradient(90deg, ${colors.primary}, ${colors.mutedText}40)`
-                        : "rgba(255, 255, 255, 0.1)",
+                          ? `linear-gradient(90deg, ${colors.primary}, ${colors.mutedText}40)`
+                          : "rgba(255, 255, 255, 0.1)",
                     }}
                     animate={{
                       scaleX: isPast || i === activeStage ? 1 : 0.8,
@@ -1298,11 +1301,7 @@ function HowItWorksSection() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3 }}
-                className="rounded-2xl p-6 min-h-[300px]"
-                style={{
-                  background: colors.cardBg,
-                  border: `1px solid ${colors.cardBorder}`,
-                }}
+                className="rounded-2xl p-6 min-h-[300px] border border-white/5 bg-slate-900/50 backdrop-blur-sm"
               >
                 <div className="flex items-center gap-3 mb-4">
                   {React.createElement(steps[activeStep].icon, {
@@ -1313,13 +1312,24 @@ function HowItWorksSection() {
                     {steps[activeStep].title}
                   </span>
                 </div>
+
                 <div
-                  className="h-48 rounded-xl flex items-center justify-center"
-                  style={{ background: "rgba(255,255,255,0.03)" }}
+                  className="h-64 rounded-xl flex items-center justify-center relative overflow-hidden"
+                  style={{ background: "rgba(15, 23, 42, 0.6)" }}
                 >
-                  <p className="text-sm" style={{ color: colors.mutedText }}>
-                    Preview: {steps[activeStep].preview}
-                  </p>
+                  {/* Render the appropriate demo based on activeStep */}
+                  {activeStep === 0 && (
+                    <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center">
+                      <Briefcase className="w-12 h-12 mb-4 opacity-20" style={{ color: colors.primary }} />
+                      <p className="text-sm font-medium" style={{ color: colors.subtitleText }}>Job Profile Enrichment</p>
+                      <p className="text-xs mt-2 max-w-xs" style={{ color: colors.mutedText }}>
+                        AI automatically extracts skills and criteria from your job description.
+                      </p>
+                    </div>
+                  )}
+                  {activeStep === 1 && <SourcingDemo />}
+                  {activeStep === 2 && <InterviewDemo />}
+                  {activeStep === 3 && <AnalyticsDemo />}
                 </div>
               </motion.div>
             </AnimatePresence>
