@@ -11,7 +11,7 @@ import time
 import logging
 import jwt
 
-from config import LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET, VAPI_API_KEY, VAPI_PUBLIC_KEY, VAPI_ASSISTANT_ID, LLM_MODEL
+from config import VAPI_API_KEY, VAPI_PUBLIC_KEY, VAPI_ASSISTANT_ID, LLM_MODEL
 from services.websocket_hub import ws_hub
 from services.vapi_service import vapi_service
 from models.voice_ingest import (
@@ -125,12 +125,7 @@ class ParseJDResponse(BaseModel):
     completion_percentage: float
 
 
-class VoiceTokenResponse(BaseModel):
-    """Response containing LiveKit token for voice session."""
-    token: str
-    livekit_url: str
-    room_name: str
-    session_id: str
+
 
 
 class VapiCallResponse(BaseModel):
@@ -704,92 +699,10 @@ async def get_job_description(session_id: str):
 # Voice Session Endpoints
 # =============================================================================
 
-def _generate_voice_token(
-    room_name: str,
-    participant_identity: str,
-    participant_name: str,
-    metadata: str = "",
-    ttl_seconds: int = 3600
-) -> str:
-    """
-    Generate a LiveKit access token for voice sessions.
-
-    Uses JWT with LiveKit's expected claims structure.
-    """
-    if not LIVEKIT_API_KEY or not LIVEKIT_API_SECRET:
-        raise HTTPException(
-            status_code=500,
-            detail="LiveKit credentials not configured. Set LIVEKIT_API_KEY and LIVEKIT_API_SECRET."
-        )
-
-    now = int(time.time())
-
-    claims = {
-        "iss": LIVEKIT_API_KEY,
-        "exp": now + ttl_seconds,
-        "nbf": now,
-        "sub": participant_identity,
-        "name": participant_name,
-        "video": {
-            "room": room_name,
-            "roomJoin": True,
-            "canPublish": True,
-            "canSubscribe": True,
-            "canPublishData": True,
-        },
-        "metadata": metadata,
-    }
-
-    token = jwt.encode(claims, LIVEKIT_API_SECRET, algorithm="HS256")
-    return token
 
 
-@router.post("/{session_id}/voice-token", response_model=VoiceTokenResponse)
-async def get_voice_token(session_id: str):
-    """
-    Generate a LiveKit token for voice onboarding session.
 
-    Creates a room with session metadata that the agent will read.
-    The frontend uses this token to connect to the LiveKit room.
-    """
-    # Validate session exists
-    profile = await job_profile_repo.get(session_id)
-    if not profile:
-        raise HTTPException(404, "Session not found")
 
-    if not LIVEKIT_URL:
-        raise HTTPException(
-            status_code=500,
-            detail="LiveKit URL not configured. Set LIVEKIT_URL environment variable."
-        )
-
-    # Room name includes session_id for the agent to find
-    room_name = f"voice-ingest-{session_id}"
-
-    # Build room metadata for the agent
-    room_metadata = {
-        "session_id": session_id,
-        "mode": "onboarding",
-        "recruiter_name": f"{profile.recruiter_first_name} {profile.recruiter_last_name}",
-        "company_name": profile.company.name if profile.company else None,
-    }
-
-    # Generate token for the recruiter
-    token = _generate_voice_token(
-        room_name=room_name,
-        participant_identity=f"recruiter-{session_id[:8]}",
-        participant_name=profile.recruiter_first_name,
-        metadata=json.dumps(room_metadata),
-    )
-
-    logger.info(f"Generated voice token for session {session_id}, room {room_name}")
-
-    return VoiceTokenResponse(
-        token=token,
-        livekit_url=LIVEKIT_URL,
-        room_name=room_name,
-        session_id=session_id,
-    )
 
 
 @router.post("/{session_id}/vapi-call", response_model=VapiCallResponse)

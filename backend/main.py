@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import rooms, realtime, analytics, coach, prebrief, pluto, livekit_router, db_interviews, db_managers, db_interviewers, voice_ingest, offer_prep
+from routers import rooms, realtime, analytics, coach, prebrief, pluto, db_interviews, db_managers, db_interviewers, voice_ingest, offer_prep
 from routers import jobs as jobs_router  # Streamlined flow
 from routers import dashboard as dashboard_router  # Phase 7 - Dashboard
 from routers import recruiters as recruiters_router  # Recruiter management
@@ -38,7 +38,7 @@ app.include_router(analytics.router, prefix="/api")
 app.include_router(coach.router, prefix="/api")
 app.include_router(prebrief.router, prefix="/api")
 app.include_router(pluto.router, prefix="/api")
-app.include_router(livekit_router.router, prefix="/api")
+
 app.include_router(db_interviews.router)  # Multi-stage interview routes
 app.include_router(db_managers.router)    # Manager dashboard routes
 app.include_router(db_interviewers.router)  # Interviewer analytics routes
@@ -60,30 +60,7 @@ async def health_check():
     return {"status": "healthy", "service": "briefing-room-api"}
 
 
-# Alias routes for original Pluto frontend compatibility
-# (Pluto frontend uses /api/upload, /api/status, /api/results)
-from routers.pluto import upload_csv, get_status, get_results
-from fastapi import UploadFile, File, Form, BackgroundTasks
 
-@app.post("/api/upload")
-async def upload_alias(
-    background_tasks: BackgroundTasks, 
-    file: UploadFile = File(...),
-    job_description: Annotated[Optional[str], Form()] = None,
-    extraction_fields: Annotated[Optional[str], Form()] = None
-):
-    """Alias for /api/pluto/upload - original Pluto frontend compatibility"""
-    return await upload_csv(background_tasks, file, job_description, extraction_fields)
-
-@app.get("/api/status")
-async def status_alias():
-    """Alias for /api/pluto/status - original Pluto frontend compatibility"""
-    return await get_status()
-
-@app.get("/api/results")
-async def results_alias():
-    """Alias for /api/pluto/results - original Pluto frontend compatibility"""
-    return await get_results()
 
 
 if __name__ == "__main__":

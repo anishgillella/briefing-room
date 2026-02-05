@@ -31,10 +31,7 @@ GEMINI_ANALYTICS_MODEL = LLM_MODEL
 # OpenAI (for Realtime API)
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# LiveKit (for Voice Agent) - DEPRECATED, using Vapi instead
-LIVEKIT_URL = os.getenv("LIVEKIT_URL")
-LIVEKIT_API_KEY = os.getenv("LIVEKIT_API_KEY")
-LIVEKIT_API_SECRET = os.getenv("LIVEKIT_API_SECRET")
+
 
 # Vapi (Voice AI Platform)
 VAPI_API_KEY = os.getenv("VAPI_API_KEY")  # Private API key for server-side calls
