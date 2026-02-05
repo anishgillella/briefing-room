@@ -39,7 +39,9 @@ export async function getPublicJob(id: string): Promise<PublicJobDetail> {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
         },
+        cache: "no-store",
     });
 
     if (!response.ok) {

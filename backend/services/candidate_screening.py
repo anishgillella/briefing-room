@@ -584,5 +584,24 @@ async def process_candidate_screening(
 
         logger.info(f"Screening complete for candidate {candidate_id}: Score {result.overall_score}")
 
+        # Send email if Strong Fit
+        if result.recommendation == "Strong Fit" and enrichment_data.get("email"):
+            from services.email_service import EmailService
+            
+            logger.info(f"Candidate {candidate_id} is a Strong Fit. Generating email...")
+            
+            email_content = await EmailService.generate_strong_fit_email(
+                candidate_name=result.profile.name,
+                job_title=job_title,
+                fit_summary=result.fit_summary,
+                green_flags=[g.model_dump() for g in result.green_flags]
+            )
+            
+            await EmailService.send_email(
+                to_email=enrichment_data.get("email"),
+                subject=email_content["subject"],
+                body=email_content["body"]
+            )
+
     except Exception as e:
         logger.error(f"Background screening failed for candidate {candidate_id}: {e}")

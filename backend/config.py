@@ -49,5 +49,9 @@ ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
 PARALLEL_API_KEY = os.getenv("PARALLEL_API_KEY")
 PARALLEL_API_URL = os.getenv("PARALLEL_API_URL", "https://api.parallel.ai/v1")
 
+# Resend (Email)
+RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+RESEND_API_URL = "https://api.resend.com/emails"
+
 # App
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")

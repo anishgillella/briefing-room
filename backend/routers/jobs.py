@@ -62,6 +62,11 @@ async def create_job(
     """
     repo = get_job_repo()
 
+    # If the frontend provided extracted requirements with a formatted description,
+    # use that as the source of truth for the job description to ensure beautiful rendering.
+    if job_data.extracted_requirements and job_data.extracted_requirements.formatted_description:
+        job_data.raw_description = job_data.extracted_requirements.formatted_description
+
     # Create the job record with organization scoping
     job = repo.create_for_org_sync(
         job_data=job_data,

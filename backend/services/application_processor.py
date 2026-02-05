@@ -68,7 +68,7 @@ async def process_new_application(candidate_id: UUID, resume_path: str):
         from models.streamlined.candidate import CandidateUpdate
         
         # Prepare "enrichment data" which acts as the profile source for screening
-        # We combine manual form data + extracted resume data
+        # strictly from the current application (resume + form data)
         enrichment_data = {
             "name": candidate.person_name,
             "email": candidate.person_email,
@@ -78,7 +78,7 @@ async def process_new_application(candidate_id: UUID, resume_path: str):
             "skills": extracted_data.get("skills", []),
             "years_experience": extracted_data.get("years_experience"),
             "education": extracted_data.get("education"),
-            "location": candidate.person_name, # Fallback if not in resume
+            "location": candidate.person_name, 
         }
         
         # Update skills/bio immediately
@@ -87,6 +87,8 @@ async def process_new_application(candidate_id: UUID, resume_path: str):
             skills=extracted_data.get("skills", []),
             years_experience=extracted_data.get("years_experience")
         ))
+        
+        logger.info(f"Triggering FRESH screening for candidate {candidate_id} on Job {job.title} ({job.id})")
         
         # 5. Trigger Full Screening (Scoring, Fit Analysis)
         # This reuses the exact same logic as CSV upload

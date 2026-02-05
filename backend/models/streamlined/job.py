@@ -106,6 +106,12 @@ class ExtractedRequirements(BaseModel):
         description="Description of the ideal candidate's background and experience"
     )
 
+    # Formatted output
+    formatted_description: Optional[str] = Field(
+        None,
+        description="A clean, professionally formatted Markdown version of the original job description. Use proper headers, lists, and spacing."
+    )
+
     # Category-level weights for overall scoring
     category_weights: dict = Field(
         default_factory=lambda: {

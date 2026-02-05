@@ -191,7 +191,16 @@ async def apply_to_job(
     ))
     
     # 5. Trigger Resume Parsing / Screening (Async)
-    if resume_path:
-        background_tasks.add_task(process_new_application, candidate.id, resume_path)
+    # Always trigger this to ensure fresh screening for this specific job application
+    background_tasks.add_task(process_new_application, candidate.id, resume_path)
+
+    # 6. Send "Application Received" Confirmation Email
+    from services.email_service import EmailService
+    background_tasks.add_task(
+        EmailService.send_application_received_email,
+        candidate_name=name,
+        job_title=job.title,
+        to_email=email
+    )
 
     return {"message": "Application submitted successfully", "candidate_id": str(candidate.id)}

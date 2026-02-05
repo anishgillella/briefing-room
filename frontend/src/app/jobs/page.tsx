@@ -235,20 +235,20 @@ function JobCard({
   // Use actual stage_counts from API, with fallback for backward compatibility
   const pipelineStages = job.stage_counts && job.stage_counts.length > 0
     ? job.stage_counts.map((stage, index) => ({
-        label: stage.stage_name,
-        count: stage.count,
-        color: stage.stage_key === "new"
-          ? tokens.brandSecondary      // Screen = secondary brand color
-          : stage.stage_key === "offer"
-            ? tokens.statusSuccess     // Offer = green
-            : tokens.brandPrimary,     // Interview stages = primary brand color
-      }))
+      label: stage.stage_name,
+      count: stage.count,
+      color: stage.stage_key === "new"
+        ? tokens.brandSecondary      // Screen = secondary brand color
+        : stage.stage_key === "offer"
+          ? tokens.statusSuccess     // Offer = green
+          : tokens.brandPrimary,     // Interview stages = primary brand color
+    }))
     : [
-        // Fallback to calculated values if stage_counts not available
-        { label: "Screen", count: job.candidate_count - job.interviewed_count, color: tokens.brandSecondary },
-        { label: "Interview", count: job.interviewed_count, color: tokens.brandPrimary },
-        { label: "Offer", count: 0, color: tokens.statusSuccess },
-      ];
+      // Fallback to calculated values if stage_counts not available
+      { label: "Screen", count: job.candidate_count - job.interviewed_count, color: tokens.brandSecondary },
+      { label: "Interview", count: job.interviewed_count, color: tokens.brandPrimary },
+      { label: "Offer", count: 0, color: tokens.statusSuccess },
+    ];
 
   return (
     <motion.div
@@ -277,18 +277,6 @@ function JobCard({
             background: `linear-gradient(135deg, ${tokens.brandGlow} 0%, transparent 60%)`,
           }}
         />
-
-        {/* At Risk pulsing border */}
-        {health === "at_risk" && (
-          <motion.div
-            className="absolute inset-0 rounded-2xl pointer-events-none"
-            style={{
-              boxShadow: `inset 0 0 0 1px ${tokens.statusDanger}40`,
-            }}
-            animate={!shouldReduceMotion ? { opacity: [0.4, 1, 0.4] } : {}}
-            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-          />
-        )}
 
         {/* Main Content */}
         <div className="relative p-5">
@@ -329,26 +317,6 @@ function JobCard({
 
             {/* Right: Health Status + Actions */}
             <div className="flex items-center gap-3 shrink-0">
-              {/* Health Badge */}
-              <div
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full"
-                style={{ backgroundColor: healthBg }}
-              >
-                <motion.div
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: healthColor }}
-                  animate={
-                    health === "at_risk" && !shouldReduceMotion
-                      ? { scale: [1, 1.3, 1] }
-                      : {}
-                  }
-                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                />
-                <span className="text-xs font-medium" style={{ color: healthColor }}>
-                  {healthLabel}
-                </span>
-              </div>
-
               {/* Actions */}
               <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                 <button

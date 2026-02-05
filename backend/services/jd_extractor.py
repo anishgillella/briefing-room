@@ -454,11 +454,21 @@ Return a JSON object:
     "deal_breakers": 0.10
   }},
 
+  "formatted_description": "# Job Title\\n\\n## About the Role\\nCleanly formatted text...",
+
   "extraction_confidence": 0.85
 }}
 ```
 
 ## EXTRACTION GUIDELINES
+
+### FORMATTED DESCRIPTION (MANDATORY)
+You MUST generate a clean, professional MARKDOWN version of the job description.
+- Use proper headers (##) for sections like "About", "Responsibilities", "Requirements"
+- Convert messy bullet points into clean markdown lists
+- Fix typos and spacing issues
+- Ensure it looks professional and "ready to publish" on a career site
+- Do NOT change the meaning, just the formatting
 
 ### SUCCESS SIGNALS (MANDATORY - extract all relevant from JD)
 GREEN FLAGS - patterns that indicate a strong candidate:
@@ -631,10 +641,16 @@ async def trigger_jd_extraction_for_job(job_id: str, raw_description: str):
         requirements = await extract_requirements_for_streamlined(raw_description)
 
         if requirements:
-            # Update job with extracted data
-            await repo.update(job_id, JobUpdate(
+            # Update job with extracted data AND formatted description
+            update_data = JobUpdate(
                 extracted_requirements=requirements
-            ))
+            )
+            
+            # If we successfully generated a formatted description, use it as the main description
+            if requirements.formatted_description:
+                update_data.raw_description = requirements.formatted_description
+                
+            await repo.update(job_id, update_data)
 
             logger.info(
                 f"Successfully extracted requirements for job {job_id} "
