@@ -189,47 +189,11 @@ async def start_next_interview(candidate_id: str) -> StartInterviewResponse:
     stage = interview["stage"]
     room_name = interview["room_name"]
     
-    # Generate LiveKit token
-    livekit_url = os.getenv("LIVEKIT_URL", "")
-    livekit_api_key = os.getenv("LIVEKIT_API_KEY", "")
-    livekit_api_secret = os.getenv("LIVEKIT_API_SECRET", "")
-    
-    if livekit_url and livekit_api_key and livekit_api_secret:
-        import jwt
-        import time
-        
-        # Build room metadata
-        room_metadata = {
-            "candidate_id": candidate_id,
-            "candidate_name": candidate["name"],
-            "stage": stage,
-            "mode": "interview",
-        }
-        
-        now = int(time.time())
-        claims = {
-            "iss": livekit_api_key,
-            "exp": now + 3600,
-            "nbf": now,
-            "sub": "interviewer",
-            "name": "Interviewer",
-            "video": {
-                "room": room_name,
-                "roomJoin": True,
-                "canPublish": True,
-                "canSubscribe": True,
-                "canPublishData": True,
-            },
-            "metadata": json.dumps(room_metadata),
-        }
-        
-        token = jwt.encode(claims, livekit_api_secret, algorithm="HS256")
-        room_url = livekit_url
-    else:
-        # Fallback - no LiveKit configured
-        token = ""
-        room_url = ""
-        logger.warning("LiveKit not configured. Interview room won't have voice AI.")
+    # LiveKit removed - returning empty connection info
+    livekit_url = ""
+    token = ""
+    room_url = ""
+    logger.info("LiveKit removed. Interview room will not have voice AI.")
     
     # Update candidate pipeline status
     candidate_repo.update_pipeline_status(candidate_id, stage)
