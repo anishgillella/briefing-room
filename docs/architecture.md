@@ -2,6 +2,8 @@
 
 ## High-Level Overview
 
+Hirely is an AI-native interview intelligence platform composed of a Next.js frontend, a FastAPI backend, and several AI service integrations.
+
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                         BROWSER                                  │
@@ -12,7 +14,7 @@
 │         │                    │  │                    │          │
 │      Vapi SDK            Daily.co  OpenAI         REST API      │
 │         │                WebRTC   Realtime           │          │
-└─────────│────────────────────│──────│────────────────│──────────┘
+15: └─────────│────────────────────│──────│────────────────│──────────┘
           │                    │      │                │
           ▼                    ▼      ▼                ▼
    ┌─────────────┐     ┌──────────┐ ┌──────────┐ ┌──────────────┐
@@ -22,8 +24,8 @@
                                                         │
                                                         ▼
                                                  ┌──────────────┐
-                                                 │ Multi-tenant │
-                                                 │ Repository   │
+                                                 │   Supabase   │
+                                                 │ (PostgresDB) │
                                                  └──────────────┘
                                                         │
                                                         ▼
@@ -37,38 +39,33 @@
 
 | Layer | Technology | Purpose |
 |-------|------------|---------|
-| Frontend | Next.js 16 | React framework |
-| UI | shadcn/ui + Tailwind | Component library |
-| Video | Daily.co | WebRTC video rooms |
-| Voice (Briefing) | Vapi | Voice AI for pre-briefing |
-| Voice (Candidate) | OpenAI Realtime | AI candidate voice (WebSocket) |
-| Backend | FastAPI | REST API & N+1 Optimized Repos |
-| Auth | JWT + Middleware | Organization-scoped access |
-| LLM | OpenRouter | Text generation |
+| **Frontend** | Next.js 15+ (App Router) | React framework, UI components (shadcn/ui + Tailwind) |
+| **Backend** | FastAPI (Python 3.12) | REST API, Business Logic, DB Interactions |
+| **Database** | Supabase (PostgreSQL) | Data persistence (Jobs, Candidates, Interviews) |
+| **Video** | Daily.co | WebRTC video rooms for interviews |
+| **Voice (Briefing)** | Vapi | Voice AI for pre-interview briefings |
+| **Voice (Candidate)** | OpenAI Realtime | AI candidate simulation (WebSocket) |
+| **LLM** | OpenRouter | Text generation, extraction, and analysis |
 
-## Data Flow
+## Core Data Flows
 
-### 1. Streamlined Flow Setup
-```
-Create Job → Add Candidates (CSV/Manual) → Generate Interview Brief → Start Video Room
-```
+### 1. Job & Candidate Management
+- **Job Creation**: Users create jobs with descriptions.
+- **Extraction**: Backend (Resume Processor) uses LLMs to extract structured requirements (skills, experience).
+- **Candidate Upload**: Resumes are parsed, and candidates are scored against the job's structured criteria.
 
-### 2. Pre-Briefing
-```
-Load briefing context → Vapi voice agent → Prepare interviewer → Click "Start"
-```
+### 2. Pre-Briefing (Voice Agent)
+- The user initiates a voice session.
+- Frontend connects to Vapi using a secure token.
+- Vapi interacts with the user to gather context or provide a briefing.
+- Webhooks update the backend with conversation status.
 
-### 3. Interview
-```
-Daily video room active → (Optional) Connect AI candidate → Capture transcript
-```
+### 3. Interview Session
+- Users join a Daily.co video room.
+- (Optional) An AI Candidate (OpenAI Realtime) connects to simulate a candidate.
+- Transcripts are captured.
 
-### 4. Debrief
-```
-POST /api/rooms/{name}/debrief with transcript → LLM analysis → Display results
-```
-
-### Multi-tenancy & Security
-- All repositories use `organization_id` for isolation.
-- Middleware extracts `organization_id` from JWT.
-- Repositories implement batch-fetching to prevent N+1 query performance issues in dashboards.
+### 4. Analysis & Debrief
+- Post-interview, transcripts are sent to the backend.
+- LLMs analyze the transcript against the job rubric.
+- Scores and feedback are generated and stored in Supabase.
