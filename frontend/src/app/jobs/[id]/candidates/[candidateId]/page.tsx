@@ -340,6 +340,20 @@ export default function CandidateDetailPage({
                 <span className="text-xs" style={{ color: tokens.textMuted }}>/100</span>
               </div>
             )}
+            {/* View Profile Button */}
+            <Link
+              href={`/talent-pool/${candidate.person_id}`}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: tokens.bgSurface,
+                border: `1px solid ${tokens.borderDefault}`,
+                color: tokens.textSecondary,
+              }}
+            >
+              <Target className="w-4 h-4" />
+              View Profile
+            </Link>
+
             {/* Schedule Interview Button */}
             {candidate.pipeline_status !== "accepted" && candidate.pipeline_status !== "rejected" && (
               <button
@@ -355,486 +369,486 @@ export default function CandidateDetailPage({
         </motion.div>
 
         <div className="space-y-6">
-        {/* Top Section: Profile + Quick Stats */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1, ease: easeOutCustom }}
-          className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8"
-        >
-          {/* Profile Card */}
-          <div
-            className="rounded-2xl p-6"
-            style={{
-              backgroundColor: tokens.bgSurface,
-              border: `1px solid ${tokens.borderDefault}`,
-            }}
+          {/* Top Section: Profile + Quick Stats */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1, ease: easeOutCustom }}
+            className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8"
           >
-            <div className="flex flex-col items-center text-center mb-6">
+            {/* Profile Card */}
+            <div
+              className="rounded-2xl p-6"
+              style={{
+                backgroundColor: tokens.bgSurface,
+                border: `1px solid ${tokens.borderDefault}`,
+              }}
+            >
+              <div className="flex flex-col items-center text-center mb-6">
+                <div
+                  className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-light mb-4"
+                  style={{ background: tokens.gradientPrimary }}
+                >
+                  {candidate.person_name?.charAt(0)?.toUpperCase() || "?"}
+                </div>
+                <h2 className="text-xl font-medium mb-1" style={{ color: tokens.textPrimary }}>
+                  {candidate.person_name}
+                </h2>
+                {candidate.current_title && (
+                  <p className="text-sm" style={{ color: tokens.textMuted }}>{candidate.current_title}</p>
+                )}
+              </div>
+
+              <div className="space-y-3 pt-4" style={{ borderTop: `1px solid ${tokens.borderSubtle}` }}>
+                {candidate.current_company && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <Briefcase className="w-4 h-4 flex-shrink-0" style={{ color: tokens.textDisabled }} />
+                    <span style={{ color: tokens.textSecondary }}>{candidate.current_company}</span>
+                  </div>
+                )}
+                {candidate.person_email && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <Mail className="w-4 h-4 flex-shrink-0" style={{ color: tokens.textDisabled }} />
+                    <span className="truncate" style={{ color: tokens.textSecondary }}>{candidate.person_email}</span>
+                  </div>
+                )}
+                {candidate.years_experience != null && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <Calendar className="w-4 h-4 flex-shrink-0" style={{ color: tokens.textDisabled }} />
+                    <span style={{ color: tokens.textSecondary }}>{candidate.years_experience} years experience</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Quick Stats Cards */}
+            <div className="lg:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4">
+              {/* Overall Score */}
               <div
-                className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-light mb-4"
-                style={{ background: tokens.gradientPrimary }}
+                className="rounded-2xl p-5"
+                style={{
+                  backgroundColor: tokens.bgSurface,
+                  border: `1px solid ${tokens.borderDefault}`,
+                }}
               >
-                {candidate.person_name?.charAt(0)?.toUpperCase() || "?"}
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${tokens.brandPrimary}15` }}>
+                    <Target className="w-5 h-5" style={{ color: tokens.brandPrimary }} />
+                  </div>
+                </div>
+                <div className="text-3xl font-light mb-1" style={{ color: tokens.textPrimary }}>
+                  {score != null ? score : "—"}
+                </div>
+                <div className="text-xs uppercase tracking-wider" style={{ color: tokens.textMuted }}>Overall Score</div>
               </div>
-              <h2 className="text-xl font-medium mb-1" style={{ color: tokens.textPrimary }}>
-                {candidate.person_name}
-              </h2>
-              {candidate.current_title && (
-                <p className="text-sm" style={{ color: tokens.textMuted }}>{candidate.current_title}</p>
-              )}
-            </div>
 
-            <div className="space-y-3 pt-4" style={{ borderTop: `1px solid ${tokens.borderSubtle}` }}>
-              {candidate.current_company && (
-                <div className="flex items-center gap-3 text-sm">
-                  <Briefcase className="w-4 h-4 flex-shrink-0" style={{ color: tokens.textDisabled }} />
-                  <span style={{ color: tokens.textSecondary }}>{candidate.current_company}</span>
+              {/* Skills Match */}
+              <div
+                className="rounded-2xl p-5"
+                style={{
+                  backgroundColor: tokens.bgSurface,
+                  border: `1px solid ${tokens.borderDefault}`,
+                }}
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${tokens.statusSuccess}15` }}>
+                    <Award className="w-5 h-5" style={{ color: tokens.statusSuccess }} />
+                  </div>
                 </div>
-              )}
-              {candidate.person_email && (
-                <div className="flex items-center gap-3 text-sm">
-                  <Mail className="w-4 h-4 flex-shrink-0" style={{ color: tokens.textDisabled }} />
-                  <span className="truncate" style={{ color: tokens.textSecondary }}>{candidate.person_email}</span>
+                <div className="text-3xl font-light mb-1" style={{ color: tokens.textPrimary }}>
+                  {strongMatches}
+                  <span className="text-base" style={{ color: tokens.textDisabled }}>/{screeningNotes?.skill_matches?.length || 0}</span>
                 </div>
-              )}
-              {candidate.years_experience != null && (
-                <div className="flex items-center gap-3 text-sm">
-                  <Calendar className="w-4 h-4 flex-shrink-0" style={{ color: tokens.textDisabled }} />
-                  <span style={{ color: tokens.textSecondary }}>{candidate.years_experience} years experience</span>
-                </div>
-              )}
-            </div>
-          </div>
+                <div className="text-xs uppercase tracking-wider" style={{ color: tokens.textMuted }}>Strong Skills</div>
+              </div>
 
-          {/* Quick Stats Cards */}
-          <div className="lg:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4">
-            {/* Overall Score */}
-            <div
-              className="rounded-2xl p-5"
+              {/* Green Flags */}
+              <div
+                className="rounded-2xl p-5"
+                style={{
+                  backgroundColor: tokens.bgSurface,
+                  border: `1px solid ${tokens.borderDefault}`,
+                }}
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${tokens.statusSuccess}15` }}>
+                    <CheckCircle className="w-5 h-5" style={{ color: tokens.statusSuccess }} />
+                  </div>
+                </div>
+                <div className="text-3xl font-light mb-1" style={{ color: tokens.statusSuccess }}>
+                  {screeningNotes?.green_flags?.length || 0}
+                </div>
+                <div className="text-xs uppercase tracking-wider" style={{ color: tokens.textMuted }}>Green Flags</div>
+              </div>
+
+              {/* Red Flags */}
+              <div
+                className="rounded-2xl p-5"
+                style={{
+                  backgroundColor: tokens.bgSurface,
+                  border: `1px solid ${tokens.borderDefault}`,
+                }}
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${tokens.statusDanger}15` }}>
+                    <AlertTriangle className="w-5 h-5" style={{ color: tokens.statusDanger }} />
+                  </div>
+                </div>
+                <div className="text-3xl font-light mb-1" style={{ color: tokens.statusDanger }}>
+                  {screeningNotes?.red_flags?.length || 0}
+                </div>
+                <div className="text-xs uppercase tracking-wider" style={{ color: tokens.textMuted }}>Red Flags</div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Fit Summary */}
+          {screeningNotes?.fit_summary && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.15, ease: easeOutCustom }}
+              className="rounded-2xl p-6 mb-6"
               style={{
                 backgroundColor: tokens.bgSurface,
                 border: `1px solid ${tokens.borderDefault}`,
               }}
             >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${tokens.brandPrimary}15` }}>
-                  <Target className="w-5 h-5" style={{ color: tokens.brandPrimary }} />
-                </div>
-              </div>
-              <div className="text-3xl font-light mb-1" style={{ color: tokens.textPrimary }}>
-                {score != null ? score : "—"}
-              </div>
-              <div className="text-xs uppercase tracking-wider" style={{ color: tokens.textMuted }}>Overall Score</div>
-            </div>
+              <h3 className="text-lg font-medium mb-4 flex items-center gap-2" style={{ color: tokens.textPrimary }}>
+                <Sparkles className="w-5 h-5" style={{ color: tokens.brandPrimary }} />
+                Fit Summary
+              </h3>
+              <p className="leading-relaxed text-lg" style={{ color: tokens.textSecondary }}>{screeningNotes.fit_summary}</p>
+            </motion.div>
+          )}
 
-            {/* Skills Match */}
-            <div
-              className="rounded-2xl p-5"
+          {/* Deal Breakers Alert */}
+          {screeningNotes?.deal_breakers_triggered && screeningNotes.deal_breakers_triggered.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.2, ease: easeOutCustom }}
+              className="rounded-2xl p-6 mb-6"
+              style={{
+                backgroundColor: tokens.statusDangerBg,
+                border: `2px solid ${tokens.statusDanger}40`,
+              }}
+            >
+              <h3 className="text-lg font-medium mb-4 flex items-center gap-2" style={{ color: tokens.statusDanger }}>
+                <Shield className="w-5 h-5" />
+                Deal Breakers Triggered
+              </h3>
+              <div className="space-y-2">
+                {screeningNotes.deal_breakers_triggered.map((db, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-3 p-3 rounded-xl"
+                    style={{ backgroundColor: `${tokens.statusDanger}15` }}
+                  >
+                    <XCircle className="w-5 h-5 flex-shrink-0" style={{ color: tokens.statusDanger }} />
+                    <span style={{ color: tokens.textSecondary }}>{db}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Skill Matches */}
+          {screeningNotes?.skill_matches && screeningNotes.skill_matches.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.25, ease: easeOutCustom }}
+              className="rounded-2xl p-6 mb-6"
               style={{
                 backgroundColor: tokens.bgSurface,
                 border: `1px solid ${tokens.borderDefault}`,
               }}
             >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${tokens.statusSuccess}15` }}>
-                  <Award className="w-5 h-5" style={{ color: tokens.statusSuccess }} />
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium flex items-center gap-2" style={{ color: tokens.textPrimary }}>
+                  <Award className="w-5 h-5" style={{ color: tokens.brandPrimary }} />
+                  Skill Matches
+                </h3>
+                <div className="flex items-center gap-3 text-sm">
+                  <span className="px-2 py-1 rounded-lg" style={{ backgroundColor: `${tokens.statusSuccess}20`, color: tokens.statusSuccess }}>{strongMatches} Strong</span>
+                  <span className="px-2 py-1 rounded-lg" style={{ backgroundColor: `${tokens.statusWarning}20`, color: tokens.statusWarning }}>{partialMatches} Partial</span>
+                  <span className="px-2 py-1 rounded-lg" style={{ backgroundColor: `${tokens.statusDanger}20`, color: tokens.statusDanger }}>{noMatches} No Match</span>
                 </div>
               </div>
-              <div className="text-3xl font-light mb-1" style={{ color: tokens.textPrimary }}>
-                {strongMatches}
-                <span className="text-base" style={{ color: tokens.textDisabled }}>/{screeningNotes?.skill_matches?.length || 0}</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {(showAllSkills ? screeningNotes.skill_matches : screeningNotes.skill_matches.slice(0, 9)).map((match, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between p-3 rounded-xl transition-colors"
+                    style={{ backgroundColor: tokens.bgCard }}
+                  >
+                    <span className="font-medium" style={{ color: tokens.textSecondary }}>{match.skill}</span>
+                    <span className={`px-2 py-1 text-xs rounded-lg ${getMatchLevelStyle(match.match_level)}`}>
+                      {match.match_level}
+                    </span>
+                  </div>
+                ))}
               </div>
-              <div className="text-xs uppercase tracking-wider" style={{ color: tokens.textMuted }}>Strong Skills</div>
-            </div>
+              {screeningNotes.skill_matches.length > 9 && (
+                <button
+                  onClick={() => setShowAllSkills(!showAllSkills)}
+                  className="mt-4 flex items-center gap-2 text-sm mx-auto transition-colors"
+                  style={{ color: tokens.brandPrimary }}
+                >
+                  {showAllSkills ? (
+                    <>Show Less <ChevronUp className="w-4 h-4" /></>
+                  ) : (
+                    <>Show All {screeningNotes.skill_matches.length} Skills <ChevronDown className="w-4 h-4" /></>
+                  )}
+                </button>
+              )}
+            </motion.div>
+          )}
 
+          {/* Green Flags & Red Flags */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.3, ease: easeOutCustom }}
+            className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6"
+          >
             {/* Green Flags */}
             <div
-              className="rounded-2xl p-5"
+              className="rounded-2xl p-6"
               style={{
                 backgroundColor: tokens.bgSurface,
-                border: `1px solid ${tokens.borderDefault}`,
+                border: `1px solid ${tokens.statusSuccess}30`,
               }}
             >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${tokens.statusSuccess}15` }}>
-                  <CheckCircle className="w-5 h-5" style={{ color: tokens.statusSuccess }} />
+              <h3 className="text-lg font-medium mb-4 flex items-center gap-2" style={{ color: tokens.textPrimary }}>
+                <CheckCircle className="w-5 h-5" style={{ color: tokens.statusSuccess }} />
+                Green Flags
+                <span
+                  className="ml-auto text-sm font-normal px-2 py-0.5 rounded-lg"
+                  style={{ backgroundColor: `${tokens.statusSuccess}20`, color: tokens.statusSuccess }}
+                >
+                  {screeningNotes?.green_flags?.length || 0}
+                </span>
+              </h3>
+              {screeningNotes?.green_flags && screeningNotes.green_flags.length > 0 ? (
+                <div className="space-y-3">
+                  {screeningNotes.green_flags.map((flag, i) => (
+                    <div
+                      key={i}
+                      className="p-4 rounded-xl"
+                      style={{
+                        backgroundColor: `${tokens.statusSuccess}10`,
+                        border: `1px solid ${tokens.statusSuccess}20`,
+                      }}
+                    >
+                      <div className="font-medium mb-2 flex items-start gap-2" style={{ color: tokens.statusSuccess }}>
+                        <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                        {flag.strength}
+                      </div>
+                      <div className="text-sm ml-6" style={{ color: tokens.textMuted }}>{flag.evidence}</div>
+                      {flag.matched_success_signal && (
+                        <div className="mt-2 ml-6 text-xs italic" style={{ color: `${tokens.statusSuccess}70` }}>
+                          Matches success signal: "{flag.matched_success_signal}"
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              </div>
-              <div className="text-3xl font-light mb-1" style={{ color: tokens.statusSuccess }}>
-                {screeningNotes?.green_flags?.length || 0}
-              </div>
-              <div className="text-xs uppercase tracking-wider" style={{ color: tokens.textMuted }}>Green Flags</div>
+              ) : (
+                <div className="text-center py-8" style={{ color: tokens.textDisabled }}>
+                  <CheckCircle className="w-12 h-12 mx-auto mb-2 opacity-30" />
+                  <p>No green flags identified</p>
+                </div>
+              )}
             </div>
 
             {/* Red Flags */}
             <div
-              className="rounded-2xl p-5"
+              className="rounded-2xl p-6"
+              style={{
+                backgroundColor: tokens.bgSurface,
+                border: `1px solid ${tokens.statusDanger}30`,
+              }}
+            >
+              <h3 className="text-lg font-medium mb-4 flex items-center gap-2" style={{ color: tokens.textPrimary }}>
+                <AlertTriangle className="w-5 h-5" style={{ color: tokens.statusDanger }} />
+                Red Flags
+                <span
+                  className="ml-auto text-sm font-normal px-2 py-0.5 rounded-lg"
+                  style={{ backgroundColor: `${tokens.statusDanger}20`, color: tokens.statusDanger }}
+                >
+                  {screeningNotes?.red_flags?.length || 0}
+                </span>
+              </h3>
+              {screeningNotes?.red_flags && screeningNotes.red_flags.length > 0 ? (
+                <div className="space-y-3">
+                  {screeningNotes.red_flags.map((flag, i) => (
+                    <div
+                      key={i}
+                      className="p-4 rounded-xl"
+                      style={{
+                        backgroundColor: `${tokens.statusDanger}10`,
+                        border: `1px solid ${tokens.statusDanger}20`,
+                      }}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <span className="font-medium flex items-start gap-2" style={{ color: tokens.statusDanger }}>
+                          <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                          {flag.concern}
+                        </span>
+                        <span className={`px-2 py-0.5 text-xs rounded-lg ${getSeverityStyle(flag.severity)}`}>
+                          {flag.severity}
+                        </span>
+                      </div>
+                      <div className="text-sm ml-6" style={{ color: tokens.textMuted }}>{flag.evidence}</div>
+                      {flag.matched_job_red_flag && (
+                        <div className="mt-2 ml-6 text-xs italic" style={{ color: `${tokens.statusDanger}70` }}>
+                          Matches job red flag: "{flag.matched_job_red_flag}"
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8" style={{ color: tokens.textDisabled }}>
+                  <AlertTriangle className="w-12 h-12 mx-auto mb-2 opacity-30" />
+                  <p>No red flags identified</p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+
+          {/* Behavioral & Cultural Assessment */}
+          {(behavioralBullets.length > 0 || culturalBullets.length > 0) && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.35, ease: easeOutCustom }}
+              className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6"
+            >
+              {/* Behavioral Assessment */}
+              {behavioralBullets.length > 0 && (
+                <div
+                  className="rounded-2xl p-6"
+                  style={{
+                    backgroundColor: tokens.bgSurface,
+                    border: "1px solid rgba(168,85,247,0.3)",
+                  }}
+                >
+                  <h3 className="text-lg font-medium mb-4 flex items-center gap-2" style={{ color: tokens.textPrimary }}>
+                    <Brain className="w-5 h-5 text-purple-400" />
+                    Behavioral Assessment
+                  </h3>
+                  <ul className="space-y-3">
+                    {behavioralBullets.map((bullet, i) => (
+                      <li key={i} className="flex items-start gap-3" style={{ color: tokens.textSecondary }}>
+                        <div className="w-1.5 h-1.5 rounded-full bg-purple-400 mt-2 flex-shrink-0" />
+                        <span>{bullet}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Cultural Fit */}
+              {culturalBullets.length > 0 && (
+                <div
+                  className="rounded-2xl p-6"
+                  style={{
+                    backgroundColor: tokens.bgSurface,
+                    border: "1px solid rgba(236,72,153,0.3)",
+                  }}
+                >
+                  <h3 className="text-lg font-medium mb-4 flex items-center gap-2" style={{ color: tokens.textPrimary }}>
+                    <Heart className="w-5 h-5 text-pink-400" />
+                    Cultural Fit
+                  </h3>
+                  <ul className="space-y-3">
+                    {culturalBullets.map((bullet, i) => (
+                      <li key={i} className="flex items-start gap-3" style={{ color: tokens.textSecondary }}>
+                        <div className="w-1.5 h-1.5 rounded-full bg-pink-400 mt-2 flex-shrink-0" />
+                        <span>{bullet}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* Interview Questions */}
+          {screeningNotes?.interview_questions && screeningNotes.interview_questions.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.4, ease: easeOutCustom }}
+              className="rounded-2xl p-6 mb-6"
               style={{
                 backgroundColor: tokens.bgSurface,
                 border: `1px solid ${tokens.borderDefault}`,
               }}
             >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${tokens.statusDanger}15` }}>
-                  <AlertTriangle className="w-5 h-5" style={{ color: tokens.statusDanger }} />
-                </div>
-              </div>
-              <div className="text-3xl font-light mb-1" style={{ color: tokens.statusDanger }}>
-                {screeningNotes?.red_flags?.length || 0}
-              </div>
-              <div className="text-xs uppercase tracking-wider" style={{ color: tokens.textMuted }}>Red Flags</div>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Fit Summary */}
-        {screeningNotes?.fit_summary && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.15, ease: easeOutCustom }}
-            className="rounded-2xl p-6 mb-6"
-            style={{
-              backgroundColor: tokens.bgSurface,
-              border: `1px solid ${tokens.borderDefault}`,
-            }}
-          >
-            <h3 className="text-lg font-medium mb-4 flex items-center gap-2" style={{ color: tokens.textPrimary }}>
-              <Sparkles className="w-5 h-5" style={{ color: tokens.brandPrimary }} />
-              Fit Summary
-            </h3>
-            <p className="leading-relaxed text-lg" style={{ color: tokens.textSecondary }}>{screeningNotes.fit_summary}</p>
-          </motion.div>
-        )}
-
-        {/* Deal Breakers Alert */}
-        {screeningNotes?.deal_breakers_triggered && screeningNotes.deal_breakers_triggered.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.2, ease: easeOutCustom }}
-            className="rounded-2xl p-6 mb-6"
-            style={{
-              backgroundColor: tokens.statusDangerBg,
-              border: `2px solid ${tokens.statusDanger}40`,
-            }}
-          >
-            <h3 className="text-lg font-medium mb-4 flex items-center gap-2" style={{ color: tokens.statusDanger }}>
-              <Shield className="w-5 h-5" />
-              Deal Breakers Triggered
-            </h3>
-            <div className="space-y-2">
-              {screeningNotes.deal_breakers_triggered.map((db, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-3 p-3 rounded-xl"
-                  style={{ backgroundColor: `${tokens.statusDanger}15` }}
-                >
-                  <XCircle className="w-5 h-5 flex-shrink-0" style={{ color: tokens.statusDanger }} />
-                  <span style={{ color: tokens.textSecondary }}>{db}</span>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        {/* Skill Matches */}
-        {screeningNotes?.skill_matches && screeningNotes.skill_matches.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.25, ease: easeOutCustom }}
-            className="rounded-2xl p-6 mb-6"
-            style={{
-              backgroundColor: tokens.bgSurface,
-              border: `1px solid ${tokens.borderDefault}`,
-            }}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium flex items-center gap-2" style={{ color: tokens.textPrimary }}>
-                <Award className="w-5 h-5" style={{ color: tokens.brandPrimary }} />
-                Skill Matches
+              <h3 className="text-lg font-medium mb-4 flex items-center gap-2" style={{ color: tokens.textPrimary }}>
+                <MessageSquare className="w-5 h-5" style={{ color: tokens.brandPrimary }} />
+                Suggested Interview Questions
               </h3>
-              <div className="flex items-center gap-3 text-sm">
-                <span className="px-2 py-1 rounded-lg" style={{ backgroundColor: `${tokens.statusSuccess}20`, color: tokens.statusSuccess }}>{strongMatches} Strong</span>
-                <span className="px-2 py-1 rounded-lg" style={{ backgroundColor: `${tokens.statusWarning}20`, color: tokens.statusWarning }}>{partialMatches} Partial</span>
-                <span className="px-2 py-1 rounded-lg" style={{ backgroundColor: `${tokens.statusDanger}20`, color: tokens.statusDanger }}>{noMatches} No Match</span>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {(showAllSkills ? screeningNotes.skill_matches : screeningNotes.skill_matches.slice(0, 9)).map((match, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between p-3 rounded-xl transition-colors"
-                  style={{ backgroundColor: tokens.bgCard }}
-                >
-                  <span className="font-medium" style={{ color: tokens.textSecondary }}>{match.skill}</span>
-                  <span className={`px-2 py-1 text-xs rounded-lg ${getMatchLevelStyle(match.match_level)}`}>
-                    {match.match_level}
-                  </span>
-                </div>
-              ))}
-            </div>
-            {screeningNotes.skill_matches.length > 9 && (
-              <button
-                onClick={() => setShowAllSkills(!showAllSkills)}
-                className="mt-4 flex items-center gap-2 text-sm mx-auto transition-colors"
-                style={{ color: tokens.brandPrimary }}
-              >
-                {showAllSkills ? (
-                  <>Show Less <ChevronUp className="w-4 h-4" /></>
-                ) : (
-                  <>Show All {screeningNotes.skill_matches.length} Skills <ChevronDown className="w-4 h-4" /></>
-                )}
-              </button>
-            )}
-          </motion.div>
-        )}
-
-        {/* Green Flags & Red Flags */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.3, ease: easeOutCustom }}
-          className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6"
-        >
-          {/* Green Flags */}
-          <div
-            className="rounded-2xl p-6"
-            style={{
-              backgroundColor: tokens.bgSurface,
-              border: `1px solid ${tokens.statusSuccess}30`,
-            }}
-          >
-            <h3 className="text-lg font-medium mb-4 flex items-center gap-2" style={{ color: tokens.textPrimary }}>
-              <CheckCircle className="w-5 h-5" style={{ color: tokens.statusSuccess }} />
-              Green Flags
-              <span
-                className="ml-auto text-sm font-normal px-2 py-0.5 rounded-lg"
-                style={{ backgroundColor: `${tokens.statusSuccess}20`, color: tokens.statusSuccess }}
-              >
-                {screeningNotes?.green_flags?.length || 0}
-              </span>
-            </h3>
-            {screeningNotes?.green_flags && screeningNotes.green_flags.length > 0 ? (
-              <div className="space-y-3">
-                {screeningNotes.green_flags.map((flag, i) => (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {screeningNotes.interview_questions.map((question, i) => (
                   <div
                     key={i}
-                    className="p-4 rounded-xl"
-                    style={{
-                      backgroundColor: `${tokens.statusSuccess}10`,
-                      border: `1px solid ${tokens.statusSuccess}20`,
-                    }}
+                    className="flex items-start gap-4 p-4 rounded-xl transition-colors"
+                    style={{ backgroundColor: tokens.bgCard }}
                   >
-                    <div className="font-medium mb-2 flex items-start gap-2" style={{ color: tokens.statusSuccess }}>
-                      <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                      {flag.strength}
-                    </div>
-                    <div className="text-sm ml-6" style={{ color: tokens.textMuted }}>{flag.evidence}</div>
-                    {flag.matched_success_signal && (
-                      <div className="mt-2 ml-6 text-xs italic" style={{ color: `${tokens.statusSuccess}70` }}>
-                        Matches success signal: "{flag.matched_success_signal}"
-                      </div>
-                    )}
+                    <span
+                      className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium"
+                      style={{ backgroundColor: `${tokens.brandPrimary}20`, color: tokens.brandPrimary }}
+                    >
+                      {i + 1}
+                    </span>
+                    <span className="pt-1" style={{ color: tokens.textSecondary }}>{question}</span>
                   </div>
                 ))}
               </div>
-            ) : (
-              <div className="text-center py-8" style={{ color: tokens.textDisabled }}>
-                <CheckCircle className="w-12 h-12 mx-auto mb-2 opacity-30" />
-                <p>No green flags identified</p>
-              </div>
-            )}
-          </div>
+            </motion.div>
+          )}
 
-          {/* Red Flags */}
-          <div
-            className="rounded-2xl p-6"
-            style={{
-              backgroundColor: tokens.bgSurface,
-              border: `1px solid ${tokens.statusDanger}30`,
-            }}
-          >
-            <h3 className="text-lg font-medium mb-4 flex items-center gap-2" style={{ color: tokens.textPrimary }}>
-              <AlertTriangle className="w-5 h-5" style={{ color: tokens.statusDanger }} />
-              Red Flags
-              <span
-                className="ml-auto text-sm font-normal px-2 py-0.5 rounded-lg"
-                style={{ backgroundColor: `${tokens.statusDanger}20`, color: tokens.statusDanger }}
-              >
-                {screeningNotes?.red_flags?.length || 0}
-              </span>
-            </h3>
-            {screeningNotes?.red_flags && screeningNotes.red_flags.length > 0 ? (
-              <div className="space-y-3">
-                {screeningNotes.red_flags.map((flag, i) => (
-                  <div
-                    key={i}
-                    className="p-4 rounded-xl"
-                    style={{
-                      backgroundColor: `${tokens.statusDanger}10`,
-                      border: `1px solid ${tokens.statusDanger}20`,
-                    }}
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <span className="font-medium flex items-start gap-2" style={{ color: tokens.statusDanger }}>
-                        <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                        {flag.concern}
-                      </span>
-                      <span className={`px-2 py-0.5 text-xs rounded-lg ${getSeverityStyle(flag.severity)}`}>
-                        {flag.severity}
-                      </span>
-                    </div>
-                    <div className="text-sm ml-6" style={{ color: tokens.textMuted }}>{flag.evidence}</div>
-                    {flag.matched_job_red_flag && (
-                      <div className="mt-2 ml-6 text-xs italic" style={{ color: `${tokens.statusDanger}70` }}>
-                        Matches job red flag: "{flag.matched_job_red_flag}"
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8" style={{ color: tokens.textDisabled }}>
-                <AlertTriangle className="w-12 h-12 mx-auto mb-2 opacity-30" />
-                <p>No red flags identified</p>
-              </div>
-            )}
-          </div>
-        </motion.div>
-
-        {/* Behavioral & Cultural Assessment */}
-        {(behavioralBullets.length > 0 || culturalBullets.length > 0) && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.35, ease: easeOutCustom }}
-            className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6"
-          >
-            {/* Behavioral Assessment */}
-            {behavioralBullets.length > 0 && (
-              <div
-                className="rounded-2xl p-6"
-                style={{
-                  backgroundColor: tokens.bgSurface,
-                  border: "1px solid rgba(168,85,247,0.3)",
-                }}
-              >
-                <h3 className="text-lg font-medium mb-4 flex items-center gap-2" style={{ color: tokens.textPrimary }}>
-                  <Brain className="w-5 h-5 text-purple-400" />
-                  Behavioral Assessment
-                </h3>
-                <ul className="space-y-3">
-                  {behavioralBullets.map((bullet, i) => (
-                    <li key={i} className="flex items-start gap-3" style={{ color: tokens.textSecondary }}>
-                      <div className="w-1.5 h-1.5 rounded-full bg-purple-400 mt-2 flex-shrink-0" />
-                      <span>{bullet}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Cultural Fit */}
-            {culturalBullets.length > 0 && (
-              <div
-                className="rounded-2xl p-6"
-                style={{
-                  backgroundColor: tokens.bgSurface,
-                  border: "1px solid rgba(236,72,153,0.3)",
-                }}
-              >
-                <h3 className="text-lg font-medium mb-4 flex items-center gap-2" style={{ color: tokens.textPrimary }}>
-                  <Heart className="w-5 h-5 text-pink-400" />
-                  Cultural Fit
-                </h3>
-                <ul className="space-y-3">
-                  {culturalBullets.map((bullet, i) => (
-                    <li key={i} className="flex items-start gap-3" style={{ color: tokens.textSecondary }}>
-                      <div className="w-1.5 h-1.5 rounded-full bg-pink-400 mt-2 flex-shrink-0" />
-                      <span>{bullet}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </motion.div>
-        )}
-
-        {/* Interview Questions */}
-        {screeningNotes?.interview_questions && screeningNotes.interview_questions.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.4, ease: easeOutCustom }}
-            className="rounded-2xl p-6 mb-6"
-            style={{
-              backgroundColor: tokens.bgSurface,
-              border: `1px solid ${tokens.borderDefault}`,
-            }}
-          >
-            <h3 className="text-lg font-medium mb-4 flex items-center gap-2" style={{ color: tokens.textPrimary }}>
-              <MessageSquare className="w-5 h-5" style={{ color: tokens.brandPrimary }} />
-              Suggested Interview Questions
-            </h3>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {screeningNotes.interview_questions.map((question, i) => (
-                <div
-                  key={i}
-                  className="flex items-start gap-4 p-4 rounded-xl transition-colors"
-                  style={{ backgroundColor: tokens.bgCard }}
-                >
-                  <span
-                    className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium"
-                    style={{ backgroundColor: `${tokens.brandPrimary}20`, color: tokens.brandPrimary }}
-                  >
-                    {i + 1}
-                  </span>
-                  <span className="pt-1" style={{ color: tokens.textSecondary }}>{question}</span>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        {/* Candidate Skills */}
-        {candidate.skills && candidate.skills.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.45, ease: easeOutCustom }}
-            className="rounded-2xl p-6"
-            style={{
-              backgroundColor: tokens.bgSurface,
-              border: `1px solid ${tokens.borderDefault}`,
-            }}
-          >
-            <h3 className="text-lg font-medium mb-4 flex items-center gap-2" style={{ color: tokens.textPrimary }}>
-              <Sparkles className="w-5 h-5" style={{ color: tokens.brandPrimary }} />
-              Candidate Skills
-              <span className="ml-auto text-sm font-normal" style={{ color: tokens.textDisabled }}>
-                {candidate.skills.length} skills
-              </span>
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {candidate.skills.map((skill, i) => (
-                <span
-                  key={i}
-                  className="px-3 py-1.5 text-sm rounded-lg transition-colors"
-                  style={{
-                    backgroundColor: tokens.bgCard,
-                    border: `1px solid ${tokens.borderDefault}`,
-                    color: tokens.textSecondary,
-                  }}
-                >
-                  {skill}
+          {/* Candidate Skills */}
+          {candidate.skills && candidate.skills.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.45, ease: easeOutCustom }}
+              className="rounded-2xl p-6"
+              style={{
+                backgroundColor: tokens.bgSurface,
+                border: `1px solid ${tokens.borderDefault}`,
+              }}
+            >
+              <h3 className="text-lg font-medium mb-4 flex items-center gap-2" style={{ color: tokens.textPrimary }}>
+                <Sparkles className="w-5 h-5" style={{ color: tokens.brandPrimary }} />
+                Candidate Skills
+                <span className="ml-auto text-sm font-normal" style={{ color: tokens.textDisabled }}>
+                  {candidate.skills.length} skills
                 </span>
-              ))}
-            </div>
-          </motion.div>
-        )}
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {candidate.skills.map((skill, i) => (
+                  <span
+                    key={i}
+                    className="px-3 py-1.5 text-sm rounded-lg transition-colors"
+                    style={{
+                      backgroundColor: tokens.bgCard,
+                      border: `1px solid ${tokens.borderDefault}`,
+                      color: tokens.textSecondary,
+                    }}
+                  >
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            </motion.div>
+          )}
         </div>
       </div>
 
@@ -851,8 +865,8 @@ export default function CandidateDetailPage({
         jobId={resolvedParams.id}
         jobTitle={job?.title || "Interview"}
         stage={candidate.pipeline_status === "new" ? "round_1" :
-               candidate.pipeline_status === "round_1" ? "round_2" :
-               candidate.pipeline_status === "round_2" ? "round_3" : "round_1"}
+          candidate.pipeline_status === "round_1" ? "round_2" :
+            candidate.pipeline_status === "round_2" ? "round_3" : "round_1"}
       />
     </AppLayout>
   );

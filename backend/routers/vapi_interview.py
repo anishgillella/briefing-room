@@ -152,16 +152,32 @@ async def vapi_webhook(request: Request, background_tasks: BackgroundTasks):
             analysis = body.get("message", {}).get("analysis", {})
             artifact = body.get("message", {}).get("artifact", {})
             
-            # Extract interview_id from metadata
-            # Vapi passes custom metadata through 'assistant' -> 'model' -> 'metadata' or similar
-            # But the webhook payload for 'call' usually contains 'metadata' if we passed it in create_call (which maps to customer metadata)
-            # Let's check a few places
-            metadata = call.get("metadata") or call.get("assistant", {}).get("metadata") or {}
+            # Extract interview_id from metadata or variable values
+            # The structure from Vapi shows 'assistantOverrides' at the top level of the call object
+            metadata = call.get("metadata") or call.get("assistantOverrides", {}).get("metadata") or call.get("assistant", {}).get("metadata") or {}
             interview_id = metadata.get("interview_id")
             
+            # Fallback: Check variableValues in assistantOverrides
             if not interview_id:
-                logger.warning("Vapi webhook received without interview_id in metadata.")
+                variable_values = call.get("assistantOverrides", {}).get("variableValues") or call.get("assistant", {}).get("variableValues") or {}
+                interview_id = variable_values.get("interview_id")
+            
+            if not interview_id:
+                logger.warning(f"Vapi webhook received without interview_id in metadata or variables. Call ID: {call.get('id')}")
+                # Log full call object for debugging - using ERROR to ensure it shows in console
+                logger.error(f"Full call object: {json.dumps(call, default=str)}")
                 return {"status": "ignored", "reason": "no_interview_id"}
+            
+            # Resolve access token to UUID if needed
+            if interview_id.startswith("tok_"):
+                logger.info(f"Resolving access token {interview_id} to interview ID...")
+                interview = interview_repo.get_by_access_token(interview_id)
+                if interview:
+                    interview_id = interview["id"]
+                    logger.info(f"Resolved to interview UUID: {interview_id}")
+                else:
+                    logger.error(f"Failed to find interview for token: {interview_id}")
+                    return {"status": "ignored", "reason": "invalid_token"}
             
             # Parsing transcript
             transcript = artifact.get("transcript", "")

@@ -29,6 +29,7 @@ interface Job {
   company_context?: Record<string, unknown>;
   // Configurable interview stages
   interview_stages: string[];  // e.g., ["Round 1", "Round 2", "Round 3"]
+  interview_stage_icons?: string[];
   // Actual candidate counts per stage
   stage_counts: StageCount[];
 }
