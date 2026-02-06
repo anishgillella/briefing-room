@@ -36,7 +36,8 @@ class EmailService:
         candidate_name: str,
         job_title: str,
         fit_summary: str,
-        green_flags: list[Dict[str, Any]]
+        green_flags: list[Dict[str, Any]],
+        interview_link: Optional[str] = None
     ) -> Dict[str, str]:
         """
         Generate a personalized email for a strong fit candidate.
@@ -47,6 +48,14 @@ class EmailService:
         
         # Prepare context for the LLM
         green_flag_text = "\n".join([f"- {g['strength']}: {g['evidence']}" for g in green_flags[:3]])
+        
+        interview_cta = ""
+        if interview_link:
+            interview_cta = f"""
+        6. Interview Link: Include this exact link for the candidate to start their interview:
+           {interview_link}
+           Make sure to emphasize this is a quick 15-minute voice conversation with our AI interviewer.
+        """
         
         prompt = f"""
         You are a recruiter at "Hirely". Write a personalized email to a candidate who has just applied and is a "Strong Fit".
@@ -66,6 +75,7 @@ class EmailService:
         3. Key Message: They have been qualified to the next round.
         4. Call to Action: They need to finish the interview in the next 7 days as quickly as possible.
         5. Sender Name: The Hirely Team
+        {interview_cta}
         """
         
         try:
@@ -84,9 +94,11 @@ class EmailService:
             
         except Exception as e:
             logger.error(f"Error generating candidate email: {e}")
-            # Fallback
+            # Fallback with interview link if available
+            link_text = f"\n\nStart your interview here: {interview_link}" if interview_link else ""
             return {
-                "body": f"Hi {candidate_name},\n\nWe were impressed with your application for the {job_title} role. We'd like to invite you to the next round. Please complete your interview within the next 7 days.\n\nBest,\nThe Hirely Team"
+                "subject": f"Great news about your {job_title} application!",
+                "body": f"Hi {candidate_name},\n\nWe were impressed with your application for the {job_title} role. We'd like to invite you to the next round. Please complete your interview within the next 7 days.{link_text}\n\nBest,\nThe Hirely Team"
             }
 
     @staticmethod

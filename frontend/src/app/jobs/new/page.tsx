@@ -23,6 +23,10 @@ import {
   Eye,
   ChevronRight,
   Bot,
+  Phone,
+  Video,
+  Building2,
+  Check,
 } from "lucide-react";
 import JobArchitectChat from "@/components/JobArchitectChat";
 import JobCreationStepper from "@/components/JobCreationStepper";
@@ -102,9 +106,19 @@ function NewJobPageContent() {
     "Round 2",
     "Round 3",
   ]);
+  const [stageIcons, setStageIcons] = useState<string[]>(["bot", "video", "building"]);
+  const [voiceScreeningEnabled, setVoiceScreeningEnabled] = useState(true);
   const [showStagesEditor, setShowStagesEditor] = useState(false);
   const [creationMode, setCreationMode] = useState<"select" | "classic" | "architect">("select");
   const [architectJd, setArchitectJd] = useState<string | null>(null);
+
+  // Icon options for stages
+  const iconOptions = [
+    { value: "bot", label: "AI Bot", icon: Bot },
+    { value: "phone", label: "Phone", icon: Phone },
+    { value: "video", label: "Video", icon: Video },
+    { value: "building", label: "Onsite", icon: Building2 },
+  ];
 
   // Check if voice mode is requested
   const voiceMode = searchParams.get("voice") === "true";
@@ -146,6 +160,8 @@ function NewJobPageContent() {
           title: title.trim() || extractedRequirements.title || "",
           description: description.trim(),
           interviewStages,
+          stageIcons,
+          voiceScreeningEnabled,
           extractedRequirements,
           voiceMode,
         };
@@ -566,33 +582,44 @@ Include responsibilities, requirements, qualifications, and any other relevant d
 
                     {/* Pipeline Preview */}
                     <div className="flex items-center gap-2 flex-wrap">
-                      <div
-                        className="px-4 py-2.5 rounded-xl flex items-center gap-2"
-                        style={{
-                          backgroundColor: "rgba(99,102,241,0.1)",
-                          border: "1px solid rgba(99,102,241,0.25)",
-                        }}
-                      >
-                        <span className="font-semibold text-sm" style={{ color: tokens.brandSecondary }}>Screen</span>
-                      </div>
-                      <ChevronRight className="w-4 h-4" style={{ color: tokens.textMuted }} />
-
-                      {interviewStages.map((stage, index) => (
-                        <div key={index} className="flex items-center gap-2">
+                      {/* AI Screen stage - only shows when voice screening is enabled */}
+                      {voiceScreeningEnabled && (
+                        <>
                           <div
-                            className="px-4 py-2.5 rounded-xl"
+                            className="px-4 py-2.5 rounded-xl flex items-center gap-2"
                             style={{
-                              backgroundColor: tokens.bgCard,
-                              border: `1px solid ${tokens.borderSubtle}`,
+                              backgroundColor: "rgba(99,102,241,0.1)",
+                              border: "1px solid rgba(99,102,241,0.25)",
                             }}
                           >
-                            <span className="font-medium text-sm" style={{ color: tokens.textPrimary }}>{stage}</span>
+                            <Bot className="w-4 h-4" style={{ color: tokens.brandSecondary }} />
+                            <span className="font-semibold text-sm" style={{ color: tokens.brandSecondary }}>AI Screen</span>
                           </div>
-                          {index < interviewStages.length - 1 && (
-                            <ChevronRight className="w-4 h-4" style={{ color: tokens.textMuted }} />
-                          )}
-                        </div>
-                      ))}
+                          <ChevronRight className="w-4 h-4" style={{ color: tokens.textMuted }} />
+                        </>
+                      )}
+
+                      {interviewStages.map((stage, index) => {
+                        const iconConfig = iconOptions.find(opt => opt.value === stageIcons[index]) || iconOptions[0];
+                        const IconComponent = iconConfig.icon;
+                        return (
+                          <div key={index} className="flex items-center gap-2">
+                            <div
+                              className="px-4 py-2.5 rounded-xl flex items-center gap-2"
+                              style={{
+                                backgroundColor: tokens.bgCard,
+                                border: `1px solid ${tokens.borderSubtle}`,
+                              }}
+                            >
+                              <IconComponent className="w-4 h-4" style={{ color: tokens.textSecondary }} />
+                              <span className="font-medium text-sm" style={{ color: tokens.textPrimary }}>{stage}</span>
+                            </div>
+                            {index < interviewStages.length - 1 && (
+                              <ChevronRight className="w-4 h-4" style={{ color: tokens.textMuted }} />
+                            )}
+                          </div>
+                        );
+                      })}
 
                       <ChevronRight className="w-4 h-4" style={{ color: tokens.textMuted }} />
                       <div
@@ -606,6 +633,47 @@ Include responsibilities, requirements, qualifications, and any other relevant d
                       </div>
                     </div>
 
+                    {/* Voice Screening Toggle */}
+                    <div
+                      className="mt-5 pt-5 flex items-center justify-between"
+                      style={{ borderTop: `1px solid ${tokens.borderSubtle}` }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-10 h-10 rounded-xl flex items-center justify-center"
+                          style={{ backgroundColor: voiceScreeningEnabled ? "rgba(99,102,241,0.15)" : tokens.bgInput }}
+                        >
+                          <Bot className="w-5 h-5" style={{ color: voiceScreeningEnabled ? tokens.brandPrimary : tokens.textMuted }} />
+                        </div>
+                        <div>
+                          <span className="text-sm font-bold" style={{ color: tokens.textPrimary }}>
+                            AI Voice Screening
+                          </span>
+                          <p className="text-xs mt-0.5" style={{ color: tokens.textMuted }}>
+                            Strong Fit candidates get an AI screening interview
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setVoiceScreeningEnabled(!voiceScreeningEnabled)}
+                        className="relative w-14 h-7 rounded-full transition-all duration-300"
+                        style={{
+                          backgroundColor: voiceScreeningEnabled ? tokens.brandPrimary : tokens.bgInput,
+                          border: `1px solid ${voiceScreeningEnabled ? tokens.brandPrimary : tokens.borderSubtle}`,
+                        }}
+                      >
+                        <div
+                          className="absolute top-0.5 w-6 h-6 rounded-full bg-white shadow-md transition-all duration-300 flex items-center justify-center"
+                          style={{
+                            left: voiceScreeningEnabled ? "calc(100% - 26px)" : "2px",
+                          }}
+                        >
+                          {voiceScreeningEnabled && <Check className="w-3 h-3" style={{ color: tokens.brandPrimary }} />}
+                        </div>
+                      </button>
+                    </div>
+
                     {/* Stages Editor */}
                     <AnimatePresence>
                       {showStagesEditor && (
@@ -617,52 +685,83 @@ Include responsibilities, requirements, qualifications, and any other relevant d
                           style={{ borderTop: `1px solid ${tokens.borderSubtle}` }}
                         >
                           <p className="text-sm" style={{ color: tokens.textSecondary }}>
-                            Drag to reorder or edit stage names:
+                            Customize stage names and icons:
                           </p>
                           <div className="space-y-3">
-                            {interviewStages.map((stage, index) => (
-                              <div
-                                key={index}
-                                className="flex items-center gap-3"
-                              >
-                                <GripVertical className="w-4 h-4 cursor-grab" style={{ color: tokens.textMuted }} />
-                                <span
-                                  className="text-sm font-medium w-8"
-                                  style={{ color: tokens.textMuted }}
+                            {interviewStages.map((stage, index) => {
+                              const currentIcon = iconOptions.find(opt => opt.value === stageIcons[index]) || iconOptions[0];
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex items-center gap-3"
                                 >
-                                  {index + 1}.
-                                </span>
-                                <input
-                                  type="text"
-                                  value={stage}
-                                  onChange={(e) => {
-                                    const newStages = [...interviewStages];
-                                    newStages[index] = e.target.value;
-                                    setInterviewStages(newStages);
-                                  }}
-                                  className="flex-1 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus:outline-none"
-                                  style={{
-                                    backgroundColor: tokens.bgInput,
-                                    border: `1px solid ${tokens.borderSubtle}`,
-                                    color: tokens.textPrimary,
-                                  }}
-                                />
-                                {interviewStages.length > 1 && (
-                                  <button
-                                    type="button"
-                                    onClick={() => setInterviewStages(interviewStages.filter((_, i) => i !== index))}
-                                    className="p-2 rounded-lg transition-colors hover:bg-red-500/10"
+                                  <GripVertical className="w-4 h-4 cursor-grab" style={{ color: tokens.textMuted }} />
+                                  <span
+                                    className="text-sm font-medium w-8"
                                     style={{ color: tokens.textMuted }}
                                   >
-                                    <X className="w-4 h-4" />
-                                  </button>
-                                )}
-                              </div>
-                            ))}
+                                    {index + 1}.
+                                  </span>
+                                  {/* Icon Selector */}
+                                  <select
+                                    value={stageIcons[index] || "bot"}
+                                    onChange={(e) => {
+                                      const newIcons = [...stageIcons];
+                                      newIcons[index] = e.target.value;
+                                      setStageIcons(newIcons);
+                                    }}
+                                    className="px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus:outline-none appearance-none cursor-pointer"
+                                    style={{
+                                      backgroundColor: tokens.bgInput,
+                                      border: `1px solid ${tokens.borderSubtle}`,
+                                      color: tokens.textPrimary,
+                                      width: "100px",
+                                    }}
+                                  >
+                                    {iconOptions.map(opt => (
+                                      <option key={opt.value} value={opt.value}>
+                                        {opt.label}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <input
+                                    type="text"
+                                    value={stage}
+                                    onChange={(e) => {
+                                      const newStages = [...interviewStages];
+                                      newStages[index] = e.target.value;
+                                      setInterviewStages(newStages);
+                                    }}
+                                    className="flex-1 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus:outline-none"
+                                    style={{
+                                      backgroundColor: tokens.bgInput,
+                                      border: `1px solid ${tokens.borderSubtle}`,
+                                      color: tokens.textPrimary,
+                                    }}
+                                  />
+                                  {interviewStages.length > 1 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setInterviewStages(interviewStages.filter((_, i) => i !== index));
+                                        setStageIcons(stageIcons.filter((_, i) => i !== index));
+                                      }}
+                                      className="p-2 rounded-lg transition-colors hover:bg-red-500/10"
+                                      style={{ color: tokens.textMuted }}
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </button>
+                                  )}
+                                </div>
+                              );
+                            })}
                           </div>
                           <button
                             type="button"
-                            onClick={() => setInterviewStages([...interviewStages, `Round ${interviewStages.length + 1}`])}
+                            onClick={() => {
+                              setInterviewStages([...interviewStages, `Round ${interviewStages.length + 1}`]);
+                              setStageIcons([...stageIcons, "video"]);
+                            }}
                             className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-colors"
                             style={{
                               backgroundColor: tokens.bgInput,

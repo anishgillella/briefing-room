@@ -51,3 +51,6 @@ __pycache__/
 backend/data/analytics/
 backend/data/transcripts/
 backend/data/prebriefs/
+
+# Uploads
+backend/uploads/

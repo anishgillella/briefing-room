@@ -190,17 +190,20 @@ async def apply_to_job(
         # Default status is usually 'new'
     ))
     
-    # 5. Trigger Resume Parsing / Screening (Async)
-    # Always trigger this to ensure fresh screening for this specific job application
-    background_tasks.add_task(process_new_application, candidate.id, resume_path)
-
-    # 6. Send "Application Received" Confirmation Email
+    # 5. Send "Application Received" Confirmation Email IMMEDIATELY (before screening)
     from services.email_service import EmailService
-    background_tasks.add_task(
-        EmailService.send_application_received_email,
-        candidate_name=name,
-        job_title=job.title,
-        to_email=email
-    )
+    try:
+        await EmailService.send_application_received_email(
+            candidate_name=name,
+            job_title=job.title,
+            to_email=email
+        )
+        logger.info(f"Sent confirmation email to {email}")
+    except Exception as e:
+        logger.error(f"Failed to send confirmation email: {e}")
+    
+    # 6. Trigger Resume Parsing / Screening (Async - runs AFTER confirmation email)
+    # If candidate is a Strong Fit, they'll get the interview link email after screening
+    background_tasks.add_task(process_new_application, candidate.id, resume_path)
 
     return {"message": "Application submitted successfully", "candidate_id": str(candidate.id)}

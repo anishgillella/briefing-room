@@ -186,6 +186,7 @@ function CategoryCard({
 }) {
   const [newItem, setNewItem] = useState("");
   const [showAddInput, setShowAddInput] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   const handleAdd = () => {
     if (newItem.trim()) {
@@ -200,7 +201,7 @@ function CategoryCard({
       className="rounded-xl p-5"
       style={{
         backgroundColor: bgColor,
-        border: `1px solid ${borderColor}`,
+        border: `1px solid ${isEditing ? color : borderColor}`,
       }}
     >
       <div className="flex items-center justify-between mb-4">
@@ -212,21 +213,49 @@ function CategoryCard({
           >
             {title}
           </h4>
+          <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: borderColor, color }}>
+            {items.length}
+          </span>
         </div>
-        <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: borderColor, color }}>
-          {items.length}
-        </span>
+        <button
+          onClick={() => setIsEditing(!isEditing)}
+          className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all duration-200 flex items-center gap-1.5"
+          style={{
+            backgroundColor: isEditing ? color : tokens.bgInput,
+            color: isEditing ? "#fff" : tokens.textSecondary,
+            border: `1px solid ${isEditing ? color : tokens.borderSubtle}`,
+          }}
+        >
+          {isEditing ? (
+            <>
+              <Check className="w-3.5 h-3.5" />
+              Done
+            </>
+          ) : (
+            <>
+              <Pencil className="w-3.5 h-3.5" />
+              Edit
+            </>
+          )}
+        </button>
       </div>
       <div className="flex flex-wrap gap-2">
         {items.map((item, index) => (
-          <EditableTag
+          <div
             key={`${title}-${index}-${item}`}
-            value={item}
-            onUpdate={(newValue) => onUpdate(index, newValue)}
-            onRemove={() => onRemove(index)}
-            color={color}
-            bgColor={borderColor}
-          />
+            className="px-3 py-1.5 rounded-lg text-sm font-medium inline-flex items-center gap-1.5 group transition-all"
+            style={{ backgroundColor: borderColor, color }}
+          >
+            {item}
+            {isEditing && (
+              <button
+                onClick={() => onRemove(index)}
+                className="p-0.5 rounded hover:bg-white/20 transition-colors"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
         ))}
         {showAddInput ? (
           <div className="flex items-center gap-1">
@@ -294,6 +323,8 @@ export default function ReviewJobPage() {
     title: string;
     description: string;
     interviewStages: string[];
+    stageIcons?: string[];
+    voiceScreeningEnabled?: boolean;
     extractedRequirements: any;
     voiceMode: boolean;
   } | null>(null);
@@ -412,6 +443,8 @@ export default function ReviewJobPage() {
           recruiter_id: recruiter.id,
           status: "draft",
           interview_stages: jobDraft.interviewStages,
+          interview_stage_icons: jobDraft.stageIcons || ["bot", "video", "building"],
+          voice_screening_enabled: jobDraft.voiceScreeningEnabled !== false, // Default to true
           extracted_requirements: extractedRequirements,
         }),
       });

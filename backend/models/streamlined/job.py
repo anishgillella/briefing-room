@@ -225,6 +225,14 @@ class JobBase(BaseModel):
         default_factory=lambda: DEFAULT_INTERVIEW_STAGES.copy(),
         description="List of interview stage names. Default: ['Round 1', 'Round 2', 'Round 3']"
     )
+    voice_screening_enabled: bool = Field(
+        default=True,
+        description="If True, Strong Fit candidates will receive voice AI screening interview emails"
+    )
+    interview_stage_icons: List[str] = Field(
+        default_factory=lambda: ["bot", "video", "building"],
+        description="Icons for each interview stage. Options: phone, video, building, users, bot, mic"
+    )
 
 
 class JobCreate(JobBase):
@@ -248,6 +256,14 @@ class JobUpdate(BaseModel):
     interview_stages: Optional[List[str]] = Field(
         None,
         description="List of interview stage names"
+    )
+    voice_screening_enabled: Optional[bool] = Field(
+        None,
+        description="If True, Strong Fit candidates will receive voice AI screening interview emails"
+    )
+    interview_stage_icons: Optional[List[str]] = Field(
+        None,
+        description="Icons for each interview stage"
     )
 
 

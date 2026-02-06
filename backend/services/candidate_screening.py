@@ -584,17 +584,59 @@ async def process_candidate_screening(
 
         logger.info(f"Screening complete for candidate {candidate_id}: Score {result.overall_score}")
 
-        # Send email if Strong Fit
+        # Send email if Strong Fit AND voice screening is enabled for this job
         if result.recommendation == "Strong Fit" and enrichment_data.get("email"):
             from services.email_service import EmailService
+            from repositories.interview_repository import InterviewRepository
+            from repositories.streamlined.job_repo import JobRepository
+            from config import FRONTEND_URL
+            import secrets
             
-            logger.info(f"Candidate {candidate_id} is a Strong Fit. Generating email...")
+            # Get job details to check if voice screening is enabled
+            from repositories.streamlined.candidate_repo import CandidateRepository as StreamlinedCandidateRepo
+            streamlined_candidate_repo = StreamlinedCandidateRepo()
+            candidate = streamlined_candidate_repo.get_by_id_sync(candidate_id)
+            job_id = str(candidate.job_id) if candidate else None
             
+            # Check voice_screening_enabled flag on the job
+            voice_screening_enabled = True  # Default to True
+            if job_id:
+                job_repo = JobRepository()
+                job = job_repo.get_by_id_sync(job_id)
+                if job:
+                    voice_screening_enabled = getattr(job, 'voice_screening_enabled', True)
+            
+            if not voice_screening_enabled:
+                logger.info(f"Candidate {candidate_id} is a Strong Fit, but voice screening is DISABLED for this job. Skipping interview email.")
+                return  # Skip the voice interview email
+            
+            logger.info(f"Candidate {candidate_id} is a Strong Fit. Creating interview and generating email...")
+            
+            # Create an interview record with a secure access token
+            interview_repo = InterviewRepository()
+            access_token = f"tok_{secrets.token_urlsafe(24)}"
+            
+            interview_data = {
+                "candidate_id": str(candidate_id),
+                "stage": "round_1",
+                "status": "scheduled",
+                "job_posting_id": job_id,
+                "access_token": access_token,
+            }
+            
+            interview = interview_repo.create(interview_data)
+            interview_id = interview["id"] if interview else None
+            
+            # 2. Build the interview link
+            interview_link = f"{FRONTEND_URL}/interview/{access_token}" if interview_id else None
+            
+            # 3. Generate email content with the link
             email_content = await EmailService.generate_strong_fit_email(
                 candidate_name=result.profile.name,
                 job_title=job_title,
                 fit_summary=result.fit_summary,
-                green_flags=[g.model_dump() for g in result.green_flags]
+                green_flags=[g.model_dump() for g in result.green_flags],
+                interview_link=interview_link
             )
             
             await EmailService.send_email(
