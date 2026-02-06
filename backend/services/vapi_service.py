@@ -32,16 +32,22 @@ class VapiService:
         self,
         session_id: str,
         user_name: str,
+        system_prompt: Optional[str] = None,
+        assistant_overrides: Optional[Dict[str, Any]] = None,
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         Create a Vapi web call using the pre-configured assistant ID.
 
         Args:
-            session_id: The voice ingest session ID
+            session_id: The session ID (voice ingest or interview)
             user_name: User's first name
+            system_prompt: Optional system prompt to override the default
+            assistant_overrides: Optional complete assistant overrides
+            metadata: Optional metadata to pass to Vapi (for webhooks)
 
         Returns:
-            Dict with assistant_id for frontend to use
+            Dict with assistant_id and full overrides for frontend to use
         """
         if not self.assistant_id:
             logger.error("VAPI_ASSISTANT_ID not configured")
@@ -49,11 +55,37 @@ class VapiService:
 
         # Return the assistant ID for the frontend to use directly
         logger.info(f"Returning assistant ID for session {session_id}: {self.assistant_id}")
-        return {
+        
+        response = {
             "assistantId": self.assistant_id,
             "sessionId": session_id,
             "userName": user_name,
         }
+        
+        if assistant_overrides:
+            response["assistantOverrides"] = assistant_overrides
+        
+        # If specific system prompt provided but no full overrides, create minimal override
+        if system_prompt and not assistant_overrides:
+            response["assistantOverrides"] = {
+                "model": {
+                    "provider": "openrouter",
+                    "model": "google/gemini-2.5-flash", # Default to configured model
+                    "temperature": 0.7,
+                    "systemPrompt": system_prompt
+                }
+            }
+            
+        # Inject metadata if provided
+        if metadata:
+            if "assistantOverrides" not in response:
+                response["assistantOverrides"] = {}
+            
+            # Merge with existing metadata if present
+            existing_metadata = response["assistantOverrides"].get("metadata", {})
+            response["assistantOverrides"]["metadata"] = {**existing_metadata, **metadata}
+            
+        return response
 
     async def end_call(self, call_id: str) -> Dict[str, Any]:
         """End an active Vapi call."""

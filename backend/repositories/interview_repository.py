@@ -51,6 +51,19 @@ class InterviewRepository:
             logger.error(f"Error getting interview by room {room_name}: {e}")
             return None
     
+    def get_by_access_token(self, access_token: str) -> Optional[dict]:
+        """Get an interview by secure access token."""
+        try:
+            result = self._get_db().table(self.table_name)\
+                .select("*")\
+                .eq("access_token", access_token)\
+                .single()\
+                .execute()
+            return result.data if result.data else None
+        except Exception as e:
+            logger.error(f"Error getting interview by token: {e}")
+            return None
+    
     def get_candidate_interviews(
         self, 
         candidate_id: str, 
