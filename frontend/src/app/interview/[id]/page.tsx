@@ -103,11 +103,12 @@ export default function InterviewPage() {
             // Also pass variableValues for template substitution
             const overrides = {
                 metadata: {
-                    interview_id: data.call_config.sessionId, // This links webhook to interview
+                    interview_id: data.call_config.sessionId, // Try passing in metadata
                 },
-                ...(data.call_config.assistantOverrides?.variableValues && {
-                    variableValues: data.call_config.assistantOverrides.variableValues
-                })
+                variableValues: {
+                    ...(data.call_config.assistantOverrides?.variableValues || {}),
+                    interview_id: data.call_config.sessionId, // Also pass in variableValues as fallback
+                }
             };
 
             await vapiRef.current.start(data.call_config.assistantId, overrides);

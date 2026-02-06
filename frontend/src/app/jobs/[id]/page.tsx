@@ -1672,7 +1672,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                           <div
                             key={candidate.id}
                             className="flex items-center p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-colors cursor-pointer"
-                            onClick={() => router.push(`/talent-pool/${candidate.person_id}`)}
+                            onClick={() => router.push(`/jobs/${resolvedParams.id}/candidates/${candidate.id}`)}
                           >
                             <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60 font-medium mr-3">
                               {candidate.person_name?.charAt(0)?.toUpperCase() || "?"}
