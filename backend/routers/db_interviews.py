@@ -60,6 +60,7 @@ class InterviewSummary(BaseModel):
     ended_at: Optional[str]
     duration_sec: Optional[int]
     analytics: Optional[dict] = None
+    transcript_turns: Optional[list] = None
 
 
 class CandidateInterviewsResponse(BaseModel):
@@ -140,6 +141,15 @@ async def get_candidate_interviews(candidate_id: str) -> CandidateInterviewsResp
         if score:
             scores.append(score)
         
+        # Extract transcript turns
+        transcripts = interview.get("transcripts")
+        transcript_turns = None
+        if transcripts:
+            if isinstance(transcripts, list) and transcripts:
+                transcript_turns = transcripts[0].get("turns")
+            elif isinstance(transcripts, dict):
+                transcript_turns = transcripts.get("turns")
+
         interview_summaries.append(InterviewSummary(
             id=interview["id"],
             stage=interview["stage"],
@@ -147,7 +157,8 @@ async def get_candidate_interviews(candidate_id: str) -> CandidateInterviewsResp
             started_at=interview.get("started_at"),
             ended_at=interview.get("ended_at"),
             duration_sec=interview.get("duration_sec"),
-            analytics=analytics[0] if isinstance(analytics, list) and analytics else analytics
+            analytics=analytics[0] if isinstance(analytics, list) and analytics else analytics,
+            transcript_turns=transcript_turns,
         ))
     
     return CandidateInterviewsResponse(

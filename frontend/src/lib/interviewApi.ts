@@ -18,6 +18,7 @@ export interface InterviewSummary {
         overall_score?: number;
         recommendation?: string;
         synthesis?: string;
+        overall_synthesis?: string;
         question_analytics?: Array<{
             question: string;
             answer_summary?: string;
@@ -34,9 +35,41 @@ export interface InterviewSummary {
             quote?: string;
             confidence?: string;
         }>;
+        red_flags?: Array<{
+            concern: string;
+            severity?: string;
+            evidence?: string;
+        }>;
+        highlights?: Array<{
+            moment: string;
+            quote?: string;
+            why_notable?: string;
+        }>;
+        role_competencies?: Array<{
+            competency: string;
+            score: number;
+            evidence_quote?: string;
+            assessment?: string;
+        }>;
         behavioral_profile?: Record<string, number>;
+        cultural_fit?: {
+            values_alignment?: number;
+            work_style?: string;
+            motivation_drivers?: string[];
+            team_fit_notes?: string;
+        };
+        enthusiasm?: {
+            overall_enthusiasm?: number;
+            role_interest?: number;
+            company_interest?: number;
+            engagement_notes?: string;
+        };
         communication_metrics?: Record<string, any>;
     };
+    transcript_turns?: Array<{
+        speaker: string;
+        text: string;
+    }>;
 }
 
 export interface CandidateInterviewsResponse {

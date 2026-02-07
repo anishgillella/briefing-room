@@ -671,9 +671,69 @@ function AnalyticsModal({
   interview: Interview;
   onClose: () => void;
 }) {
-  const [activeTab, setActiveTab] = useState<"summary" | "transcript">("summary");
-  const transcript = interview.transcripts?.[0];
-  const analytics = interview.analytics?.[0];
+  const [activeTab, setActiveTab] = useState<"overview" | "transcript">("overview");
+  const [analyticsData, setAnalyticsData] = useState<any>(null);
+  const [transcriptTurns, setTranscriptTurns] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+        // Fetch analytics and transcript in parallel
+        const [analyticsRes, transcriptRes] = await Promise.all([
+          fetch(`${API_URL}/api/interviews/candidate/${interview.candidate_id}`),
+          fetch(`${API_URL}/api/interviews/${interview.id}/transcript`),
+        ]);
+
+        if (analyticsRes.ok) {
+          const data = await analyticsRes.json();
+          const match = data.interviews?.find((i: any) => i.id === interview.id || i.stage === interview.stage);
+          if (match) {
+            setAnalyticsData(match.analytics || null);
+          }
+        }
+
+        if (transcriptRes.ok) {
+          const tData = await transcriptRes.json();
+          if (tData.transcript?.turns) {
+            setTranscriptTurns(tData.transcript.turns);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to fetch interview data:", e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, [interview.candidate_id, interview.id, interview.stage]);
+
+  const analytics = analyticsData || interview.analytics?.[0];
+  const bp = analytics?.behavioral_profile;
+  const cm = analytics?.communication_metrics;
+  const topicsObj = analytics?.topics_to_probe;
+
+  // Extract highlights and red flags from behavioral_profile (actual DB format)
+  const bpHighlights: string[] = Array.isArray(bp?.highlights) ? bp.highlights : [];
+  const bpRedFlags: string[] = Array.isArray(bp?.red_flags) ? bp.red_flags : [];
+  // Also check topics_to_probe.overall for red flags/highlights
+  const tpRedFlags: string[] = Array.isArray(topicsObj?.overall?.red_flags) ? topicsObj.overall.red_flags : [];
+  const tpHighlights: string[] = Array.isArray(topicsObj?.overall?.highlights) ? topicsObj.overall.highlights : [];
+  const allHighlights = [...new Set([...bpHighlights, ...tpHighlights])];
+  const allRedFlags = [...new Set([...bpRedFlags, ...tpRedFlags])];
+
+  // Score bars from behavioral_profile
+  const scoreEntries: [string, number][] = [];
+  if (bp?.technical_score != null) scoreEntries.push(["Technical", bp.technical_score]);
+  if (bp?.cultural_fit_score != null) scoreEntries.push(["Cultural Fit", bp.cultural_fit_score]);
+  if (bp?.communication_score != null) scoreEntries.push(["Communication", bp.communication_score]);
+
+  // Areas to probe from communication_metrics
+  const areasToProbe: string[] = Array.isArray(cm?.areas_to_probe) ? cm.areas_to_probe
+    : Array.isArray(analytics?.skill_evidence) ? analytics.skill_evidence.filter((s: any) => typeof s === "string")
+    : [];
 
   return (
     <motion.div
@@ -688,22 +748,14 @@ function AnalyticsModal({
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-2xl max-h-[85vh] rounded-2xl border overflow-hidden flex flex-col"
-        style={{
-          backgroundColor: tokens.bgSurface,
-          borderColor: tokens.borderSubtle,
-        }}
+        className="w-full max-w-4xl max-h-[90vh] rounded-2xl border overflow-hidden flex flex-col"
+        style={{ backgroundColor: tokens.bgSurface, borderColor: tokens.borderSubtle }}
       >
         {/* Header */}
         <div className="p-6 border-b flex items-center justify-between" style={{ borderColor: tokens.borderSubtle }}>
           <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${interview.stage === "screen" ? "bg-indigo-500/10" : "bg-emerald-500/10"
-              }`}>
-              {interview.stage === "screen" ? (
-                <Bot className="w-5 h-5 text-indigo-400" />
-              ) : (
-                <Video className="w-5 h-5 text-emerald-400" />
-              )}
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-emerald-500/10">
+              <Video className="w-5 h-5 text-emerald-400" />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-white">
@@ -713,121 +765,250 @@ function AnalyticsModal({
                 {interview.candidate_name} • {formatDateTime(interview.ended_at || "", interview.timezone)}
               </p>
             </div>
+            {analytics?.recommendation && (
+              <span className={`ml-3 px-3 py-1 rounded-full text-xs font-bold uppercase ${
+                analytics.recommendation.toLowerCase().includes("hire") && !analytics.recommendation.toLowerCase().includes("no")
+                  ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20"
+                  : "bg-red-500/15 text-red-400 border border-red-500/20"
+              }`}>
+                {analytics.recommendation}
+              </span>
+            )}
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-lg hover:bg-white/10 transition-colors"
-          >
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/10 transition-colors">
             <X className="w-5 h-5 text-white/50" />
           </button>
         </div>
 
         {/* Tabs */}
         <div className="flex border-b" style={{ borderColor: tokens.borderSubtle }}>
-          <button
-            onClick={() => setActiveTab("summary")}
-            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors border-b-2 ${activeTab === "summary"
-              ? "border-indigo-500 text-indigo-400"
-              : "border-transparent text-white/50 hover:text-white/80"
+          {(["overview", "transcript"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`flex-1 px-4 py-3 text-sm font-medium transition-colors border-b-2 ${
+                activeTab === tab
+                  ? "border-indigo-500 text-indigo-400"
+                  : "border-transparent text-white/50 hover:text-white/80"
               }`}
-          >
-            Summary & Scores
-          </button>
-          <button
-            onClick={() => setActiveTab("transcript")}
-            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors border-b-2 ${activeTab === "transcript"
-              ? "border-indigo-500 text-indigo-400"
-              : "border-transparent text-white/50 hover:text-white/80"
-              }`}
-          >
-            Transcript
-          </button>
+            >
+              {tab === "overview" ? "Overview" : "Transcript"}
+            </button>
+          ))}
         </div>
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
-          {activeTab === "summary" ? (
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-6 h-6 animate-spin text-indigo-400" />
+              <span className="ml-2 text-sm" style={{ color: tokens.textMuted }}>Loading analytics...</span>
+            </div>
+          ) : activeTab === "overview" ? (
             <div className="space-y-6">
-              {/* Overall Score */}
-              <div className="p-4 rounded-xl border flex items-center justify-between" style={{
-                backgroundColor: tokens.bgCard,
-                borderColor: tokens.borderSubtle
-              }}>
-                <div>
+              {/* Score + Profile Scores */}
+              <div className="grid grid-cols-3 gap-4">
+                <div className="p-4 rounded-xl border" style={{ backgroundColor: tokens.bgCard, borderColor: tokens.borderSubtle }}>
                   <div className="text-sm font-medium mb-1" style={{ color: tokens.textMuted }}>Overall Score</div>
-                  <div className="text-3xl font-bold" style={{ color: getScoreColor(analytics?.overall_score) }}>
-                    {analytics?.overall_score ?? "—"}/100
+                  <div className="text-4xl font-bold" style={{ color: getScoreColor(analytics?.overall_score) }}>
+                    {analytics?.overall_score ?? "—"}<span className="text-lg text-white/30">/100</span>
                   </div>
                 </div>
-                <div className="h-12 w-12 rounded-full flex items-center justify-center border-2" style={{
-                  borderColor: getScoreColor(analytics?.overall_score),
-                  color: getScoreColor(analytics?.overall_score)
-                }}>
-                  <BarChart2 className="w-6 h-6" />
-                </div>
+                {scoreEntries.map(([label, score]) => (
+                  <div key={label} className="p-4 rounded-xl border" style={{ backgroundColor: tokens.bgCard, borderColor: tokens.borderSubtle }}>
+                    <div className="text-sm font-medium mb-1" style={{ color: tokens.textMuted }}>{label}</div>
+                    <div className="text-3xl font-bold" style={{ color: getScoreColor(score * 10) }}>
+                      {score}<span className="text-base text-white/30">/10</span>
+                    </div>
+                  </div>
+                ))}
+                {bp?.confidence != null && (
+                  <div className="p-4 rounded-xl border" style={{ backgroundColor: tokens.bgCard, borderColor: tokens.borderSubtle }}>
+                    <div className="text-sm font-medium mb-1" style={{ color: tokens.textMuted }}>Confidence</div>
+                    <div className="text-3xl font-bold" style={{ color: getScoreColor(bp.confidence) }}>
+                      {bp.confidence}<span className="text-base text-white/30">%</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Feedback Summary */}
-              <div>
+              {/* Executive Summary */}
+              <div className="p-4 rounded-xl border" style={{ backgroundColor: tokens.bgCard, borderColor: tokens.borderSubtle }}>
                 <h4 className="text-sm font-semibold uppercase tracking-wider mb-2" style={{ color: tokens.textSecondary }}>
                   Executive Summary
                 </h4>
                 <p className="text-sm leading-relaxed" style={{ color: tokens.textPrimary }}>
-                  {analytics?.feedback_summary || "No summary available."}
+                  {analytics?.synthesis || analytics?.summary || analytics?.recommendation_reasoning || "No summary available."}
                 </p>
               </div>
 
-              {/* Key Signals */}
+              {/* Highlights + Red Flags */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
-                  <h5 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-400 mb-3">
-                    <CheckCircle className="w-3.5 h-3.5" /> Strengths
-                  </h5>
-                  <ul className="space-y-2">
-                    {analytics?.pros?.map((pro: string, i: number) => (
-                      <li key={i} className="text-xs text-emerald-200/80 flex items-start gap-2">
-                        <span className="mt-1 w-1 h-1 rounded-full bg-emerald-400" />
-                        {pro}
-                      </li>
-                    )) || <span className="text-xs text-white/30">None recorded</span>}
-                  </ul>
-                </div>
+                {allHighlights.length > 0 && (
+                  <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
+                    <h5 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-400 mb-3">
+                      <CheckCircle className="w-3.5 h-3.5" /> Highlights
+                    </h5>
+                    <ul className="space-y-2">
+                      {allHighlights.map((h, i) => (
+                        <li key={i} className="text-xs text-emerald-200/80 flex items-start gap-2">
+                          <span className="mt-1 w-1 h-1 rounded-full bg-emerald-400 shrink-0" />
+                          {h}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
-                <div className="p-4 rounded-xl bg-red-500/5 border border-red-500/10">
-                  <h5 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-red-400 mb-3">
-                    <AlertCircle className="w-3.5 h-3.5" /> Areas used to Probe
+                {allRedFlags.length > 0 && (
+                  <div className="p-4 rounded-xl bg-red-500/5 border border-red-500/10">
+                    <h5 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-red-400 mb-3">
+                      <AlertCircle className="w-3.5 h-3.5" /> Red Flags
+                    </h5>
+                    <ul className="space-y-2">
+                      {allRedFlags.map((f, i) => (
+                        <li key={i} className="text-xs text-red-200/80 flex items-start gap-2">
+                          <span className="mt-1 w-1 h-1 rounded-full bg-red-400 shrink-0" />
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              {/* Areas to Probe */}
+              {areasToProbe.length > 0 && (
+                <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/10">
+                  <h5 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-400 mb-3">
+                    <Search className="w-3.5 h-3.5" /> Areas to Probe Further
                   </h5>
                   <ul className="space-y-2">
-                    {analytics?.topics_to_probe?.map((topic: string, i: number) => (
-                      <li key={i} className="text-xs text-red-200/80 flex items-start gap-2">
-                        <span className="mt-1 w-1 h-1 rounded-full bg-red-400" />
+                    {areasToProbe.map((topic, i) => (
+                      <li key={i} className="text-xs text-amber-200/80 flex items-start gap-2">
+                        <span className="mt-1 w-1 h-1 rounded-full bg-amber-400 shrink-0" />
                         {topic}
                       </li>
-                    )) || <span className="text-xs text-white/30">None recorded</span>}
+                    ))}
                   </ul>
                 </div>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {transcript?.conversation_data ? (
-                (transcript.conversation_data as any[]).map((turn: any, i: number) => (
-                  <div key={i} className={`flex ${turn.speaker === 'interviewer' || turn.role === 'assistant' ? 'justify-start' : 'justify-end'}`}>
-                    <div className={`max-w-[80%] rounded-2xl p-4 ${turn.speaker === 'interviewer' || turn.role === 'assistant'
-                      ? 'bg-indigo-500/10 text-indigo-100 rounded-tl-sm'
-                      : 'bg-emerald-500/10 text-emerald-100 rounded-tr-sm'
-                      }`}>
-                      <div className="text-[10px] uppercase font-bold mb-1 opacity-50">
-                        {turn.speaker === 'interviewer' || turn.role === 'assistant' ? 'AI Interviewer' : 'Candidate'}
+              )}
+
+              {/* Standout Moments from communication_metrics */}
+              {Array.isArray(cm?.standout_moments) && cm.standout_moments.length > 0 && (
+                <div className="p-4 rounded-xl border" style={{ backgroundColor: tokens.bgCard, borderColor: tokens.borderSubtle }}>
+                  <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider mb-3" style={{ color: tokens.textSecondary }}>
+                    <Star className="w-4 h-4 text-yellow-400" /> Standout Moments
+                  </h4>
+                  <div className="space-y-3">
+                    {cm.standout_moments.map((m: any, i: number) => (
+                      <div key={i} className="p-3 rounded-lg bg-yellow-500/5 border border-yellow-500/10">
+                        <div className="text-xs font-medium text-yellow-300 mb-1">{m.question}</div>
+                        {m.quote && <div className="text-xs italic text-yellow-200/60 mb-1">&ldquo;{m.quote}&rdquo;</div>}
+                        {m.why && <div className="text-xs text-white/40">{m.why}</div>}
                       </div>
-                      <p className="text-sm leading-relaxed">{turn.text || turn.content || turn.message}</p>
-                    </div>
+                    ))}
                   </div>
-                ))
-              ) : (
-                <div className="py-12 text-center text-white/30 italic">
-                  No transcript data available.
                 </div>
+              )}
+
+              {/* Best Answer */}
+              {cm?.best_answer && (
+                <div className="p-4 rounded-xl border border-emerald-500/10 bg-emerald-500/5">
+                  <h4 className="text-sm font-semibold uppercase tracking-wider mb-2 text-emerald-400">Best Answer</h4>
+                  <p className="text-xs font-medium text-white/80 mb-1">{cm.best_answer.question}</p>
+                  <p className="text-xs italic text-emerald-200/60 leading-relaxed">&ldquo;{cm.best_answer.quote}&rdquo;</p>
+                  {cm.best_answer.why_impressive && <p className="text-xs mt-2 text-white/40">{cm.best_answer.why_impressive}</p>}
+                </div>
+              )}
+
+              {/* Quotable Moments */}
+              {Array.isArray(cm?.quotable_moments) && cm.quotable_moments.length > 0 && (
+                <div className="p-4 rounded-xl border" style={{ backgroundColor: tokens.bgCard, borderColor: tokens.borderSubtle }}>
+                  <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider mb-3" style={{ color: tokens.textSecondary }}>
+                    <MessageSquare className="w-4 h-4 text-indigo-400" /> Quotable Moments
+                  </h4>
+                  <div className="space-y-2">
+                    {cm.quotable_moments.map((q: string, i: number) => (
+                      <div key={i} className="text-xs italic text-white/50 pl-3 border-l-2 border-indigo-500/30">
+                        &ldquo;{q}&rdquo;
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Question-by-Question Breakdown */}
+              {Array.isArray(analytics?.question_analytics) && analytics.question_analytics.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold uppercase tracking-wider mb-3" style={{ color: tokens.textSecondary }}>
+                    Question-by-Question Breakdown
+                  </h4>
+                  <div className="space-y-3">
+                    {analytics.question_analytics.map((qa: any, i: number) => {
+                      const metrics = qa.metrics || {};
+                      return (
+                        <div key={i} className="p-4 rounded-xl border" style={{ backgroundColor: tokens.bgCard, borderColor: tokens.borderSubtle }}>
+                          <div className="flex items-start justify-between gap-4 mb-2">
+                            <div className="flex-1">
+                              {qa.question_type && (
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 font-medium uppercase">
+                                  {qa.question_type}
+                                </span>
+                              )}
+                              <p className="text-sm font-medium text-white mt-1.5">{qa.question}</p>
+                            </div>
+                            {(metrics.depth != null || metrics.clarity != null || metrics.relevance != null) && (
+                              <div className="flex gap-2 shrink-0">
+                                {metrics.relevance != null && <div className="text-center"><div className="text-lg font-bold" style={{ color: getScoreColor(metrics.relevance * 10) }}>{metrics.relevance}</div><div className="text-[9px] text-white/30">REL</div></div>}
+                                {metrics.clarity != null && <div className="text-center"><div className="text-lg font-bold" style={{ color: getScoreColor(metrics.clarity * 10) }}>{metrics.clarity}</div><div className="text-[9px] text-white/30">CLR</div></div>}
+                                {metrics.depth != null && <div className="text-center"><div className="text-lg font-bold" style={{ color: getScoreColor(metrics.depth * 10) }}>{metrics.depth}</div><div className="text-[9px] text-white/30">DPT</div></div>}
+                              </div>
+                            )}
+                          </div>
+                          {(qa.answer || qa.answer_summary) && (
+                            <p className="text-xs leading-relaxed mb-2" style={{ color: tokens.textMuted }}>{qa.answer || qa.answer_summary}</p>
+                          )}
+                          {qa.highlight && (
+                            <p className="text-xs italic text-indigo-300/60 mb-1">&ldquo;{qa.highlight}&rdquo;</p>
+                          )}
+                          {qa.concern && (
+                            <p className="text-xs text-red-300/60"><span className="font-medium">Concern:</span> {qa.concern}</p>
+                          )}
+                          {qa.follow_up_needed && (
+                            <p className="text-xs text-amber-300/60 mt-1"><span className="font-medium">Follow-up:</span> {qa.follow_up_needed}</p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+          ) : (
+            /* Transcript Tab */
+            <div className="space-y-3">
+              {transcriptTurns.length > 0 ? (
+                transcriptTurns.map((turn: any, i: number) => {
+                  const isInterviewer = turn.speaker === "interviewer" || turn.role === "assistant" || turn.speaker === "ai";
+                  return (
+                    <div key={i} className={`flex ${isInterviewer ? "justify-start" : "justify-end"}`}>
+                      <div className={`max-w-[80%] rounded-2xl p-4 ${
+                        isInterviewer
+                          ? "bg-indigo-500/10 text-indigo-100 rounded-tl-sm"
+                          : "bg-emerald-500/10 text-emerald-100 rounded-tr-sm"
+                      }`}>
+                        <div className="text-[10px] uppercase font-bold mb-1 opacity-50">
+                          {isInterviewer ? "AI Interviewer" : "Candidate"}
+                        </div>
+                        <p className="text-sm leading-relaxed">{turn.text || turn.content || turn.message}</p>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="py-12 text-center text-white/30 italic">No transcript data available.</div>
               )}
             </div>
           )}
@@ -895,7 +1076,7 @@ function RoundBadge({ round, interview, score, icon: Icon, onStart, onCancel, on
         animate={{ scale: 1, opacity: 1 }}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        onClick={onClick}
+        onClick={(e) => { e.stopPropagation(); onClick?.(); }}
         transition={{ ...springConfig, delay: round * 0.1 }}
         className="flex flex-col items-center cursor-pointer group"
       >
@@ -1504,6 +1685,11 @@ function CandidateInterviewCard({
                   score={group.scores.round_2}
                   onStart={group.rounds.round_2 ? () => onStartInterview(group.rounds.round_2!) : () => onScheduleInterview(group.candidate_id, group.candidate_name, group.job_id || "", group.job_title || "", "round_2")}
                   onCancel={group.rounds.round_2 ? () => onCancelInterview(group.rounds.round_2!.id) : undefined}
+                  onClick={
+                    group.rounds.round_2?.status === "completed"
+                      ? () => setSelectedInterview(group.rounds.round_2!)
+                      : undefined
+                  }
                 />
 
                 {/* Arrow 2→3: Green if R2 completed and R3 exists, Red if R2 cancelled, Grey if pending */}
@@ -1518,6 +1704,11 @@ function CandidateInterviewCard({
                   score={group.scores.round_3}
                   onStart={group.rounds.round_3 ? () => onStartInterview(group.rounds.round_3!) : () => onScheduleInterview(group.candidate_id, group.candidate_name, group.job_id || "", group.job_title || "", "round_3")}
                   onCancel={group.rounds.round_3 ? () => onCancelInterview(group.rounds.round_3!.id) : undefined}
+                  onClick={
+                    group.rounds.round_3?.status === "completed"
+                      ? () => setSelectedInterview(group.rounds.round_3!)
+                      : undefined
+                  }
                 />
               </div>
             </div>
