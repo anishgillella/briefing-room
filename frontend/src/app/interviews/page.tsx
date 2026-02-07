@@ -1559,7 +1559,7 @@ function CandidateInterviewCard({
     }
 
     // Defaults if no icons configured
-    if (roundNumber === 1) return Phone;
+    if (roundNumber === 1) return Video;
     if (roundNumber === 2) return Video;
     return Building2;
   };
